@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A18830F1-DBCE-4805-A70E-AB23A7C57A13}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{44D98BD0-088B-45C0-AEAC-1151FD1AE1D5}"
+	ProjectSection(SolutionItems) = preProject
+		src\just-test.js = src\just-test.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{1C0A6D0C-1901-4E66-AF25-71AC507E69EE}"
+	ProjectSection(SolutionItems) = preProject
+		test\index.html = test\index.html
+		test\test1.js = test\test1.js
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{44D98BD0-088B-45C0-AEAC-1151FD1AE1D5} = {A18830F1-DBCE-4805-A70E-AB23A7C57A13}
+		{1C0A6D0C-1901-4E66-AF25-71AC507E69EE} = {A18830F1-DBCE-4805-A70E-AB23A7C57A13}
+	EndGlobalSection
+EndGlobal
