@@ -1,8 +1,4 @@
-﻿//	the syntax i'd like to have:
-//		var suite = JustTest.createSuite('some id');
-//		suite.createTest(function() {}, sync/async).run();
-
-(function (options) {
+﻿(function (options) {
 	'use strict';
 
 	var out, suites = [], DEFAULT_TEST_TTL = 5000;
@@ -14,21 +10,49 @@
 	}
 
 	function TestCase(id, description, async, ttl, func) {
-		var status = 'idle', result, message, duration, beg, end;
+		var status = 'idle', message, duration, beg, end, view;
+
+		(function createView() {
+			var tmp;
+			view = document.createElement('div');
+			view.id = id;
+			view.style.cssText = 'position:relative;height:20px;margin:10px 5px 0px;font:17px Tahoma;color:#fff';
+
+			tmp = document.createElement('div');
+			tmp.classList.add('description');
+			tmp.style.cssText = 'position:absolute;left:30px;width:150px;overflow:hidden;white-space:nowrap';
+			tmp.textContent = description;
+			view.appendChild(tmp);
+
+			tmp = document.createElement('div');
+			tmp.classList.add('message');
+			tmp.style.cssText = 'position:absolute;left:200px;width:150px;overflow:hidden;white-space:nowrap';
+			view.appendChild(tmp);
+
+			tmp = document.createElement('div');
+			tmp.classList.add('status');
+			tmp.style.cssText = 'position:absolute;right:0px';
+			tmp.textContent = status;
+			view.appendChild(tmp);
+		})();
 
 		function run() {
-			var internalPromise, timeoutWatcher, tmp = out.querySelector('#' + id);
-			tmp.textContent = description + ' is running...';
+			var internalPromise, timeoutWatcher;
 			status = 'running';
 			beg = performance.now();
+			view.querySelector('.status').textContent = status;
+			view.querySelector('.status').style.color = '#bbf';
 			function finalize(res, msg, settle) {
 				timeoutWatcher && clearInterval(timeoutWatcher);
 				end = performance.now();
-				result = res;
 				message = msg;
+				status = res;
 				duration = end - beg;
-				status = 'done';
-				tmp.textContent = description + ' - ' + message + ' - ' + result + ' - ' + duration.toFixed(2) + 'ms';
+
+				view.querySelector('.message').textContent = message;
+				view.querySelector('.status').textContent = status;
+				view.querySelector('.status').style.color = status === 'passed' ? '#9f9' : '#f99';
+
 				settle();
 			}
 			internalPromise = new Promise(function (resolve, reject) {
@@ -41,20 +65,21 @@
 			});
 			return new Promise(function (resolve) {
 				internalPromise.then(function (msg) {
-					finalize('success', msg, resolve);
+					finalize('passed', msg, resolve);
 				}, function (msg) {
-					finalize('failure', msg, resolve);
+					finalize('failed', msg, resolve);
 				});
 			});
 		}
 
 		Object.defineProperties(this, {
+			id: { value: id },
 			status: { value: status },
-			result: { value: result },
 			message: { value: message },
 			duration: { value: duration },
 			async: { value: async },
-			run: { value: run }
+			run: { value: run },
+			view: { get: function () { return view; } }
 		});
 	}
 
@@ -88,10 +113,6 @@
 				typeof options.ttl === 'number' ? options.ttl : DEFAULT_TEST_TTL,
 				executor
 			));
-			tmp = document.createElement('div');
-			tmp.id = 'testCase_' + id + '_' + cases.length;
-			tmp.style.cssText = 'position:relative;margin-left:40px;color:#fff';
-			view.appendChild(tmp);
 			return cases.slice(-1)[0];
 		}
 
@@ -113,6 +134,7 @@
 						asyncFlow.then(resolve, reject);
 					} else {
 						testCase = cases[index++];
+						view.appendChild(testCase.view);
 						if (testCase.async) {
 							asyncFlow = Promise.all([asyncFlow, testCase.run()]);
 							iterate(index);
@@ -141,17 +163,28 @@
 		var root, tmp;
 		root = document.createElement('div');
 		root.id = 'JustTestOut';
-		root.style.cssText = 'position:fixed;top:50px;bottom:50px;right:50px;width:800px;background-color:#777;opacity:.8;border:3px solid #555;border-top-left-radius:7px;border-top-right-radius:7px';
-		document.body.appendChild(root);
+		root.style.cssText = 'position:fixed;top:50px;bottom:50px;right:50px;width:800px;background-color:#555;opacity:.7;border:0px solid #555;border-top-left-radius:7px;border-top-right-radius:7px';
 
 		tmp = document.createElement('div');
-		tmp.style.cssText = 'position:absolute;top:0px;left:0px;width:100%;height:40px;font:28px Tahoma;border-bottom:3px solid #fff;color:#fff;cursor:default;box-sizing:border-box';
+		tmp.id = 'JustTestOutTitle';
+		tmp.style.cssText = 'position:absolute;top:0px;left:0px;width:100%;height:40px;padding:0px 5px;font:28px Tahoma;border-bottom:3px solid #fff;color:#fff;cursor:default;box-sizing:border-box';
 		tmp.textContent = 'Just Test: reasonably simple testing util for JS (client)';
 		root.appendChild(tmp);
+
+		tmp = document.createElement('div');
+		tmp.style.cssText = 'position:absolute;right:7px;top:7px;font:20px monospace;cursor:default';
+		tmp.textContent = 'x';
+		tmp.onclick = function () {
+			console.info('at this point handle any shutting down of the running tasks if any');
+			document.body.removeChild(root);
+		}
+		root.querySelector('#JustTestOutTitle').appendChild(tmp);
 
 		out = document.createElement('div');
 		out.style.cssText = 'position:absolute;top:40px;bottom:0px;width:100%;overflow-x:hidden;overflow-y:scroll';
 		root.appendChild(out);
+
+		document.body.appendChild(root);
 	}
 
 	buildOut();
