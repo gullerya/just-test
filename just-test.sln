@@ -3,25 +3,36 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A18830F1-DBCE-4805-A70E-AB23A7C57A13}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{44D98BD0-088B-45C0-AEAC-1151FD1AE1D5}"
-	ProjectSection(SolutionItems) = preProject
-		src\just-test.js = src\just-test.js
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{1C0A6D0C-1901-4E66-AF25-71AC507E69EE}"
-	ProjectSection(SolutionItems) = preProject
-		test\index.html = test\index.html
-		test\test1.js = test\test1.js
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "just-test", "http://localhost:56208", "{DDF4FDD5-84F2-44AB-95B8-3E2E0ADBCAAA}"
+	ProjectSection(WebsiteProperties) = preProject
+		UseIISExpress = "true"
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_56208"
+		Debug.AspNetCompiler.PhysicalPath = "..\just-test\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_56208\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_56208"
+		Release.AspNetCompiler.PhysicalPath = "..\just-test\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_56208\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		SlnRelativePath = "..\just-test\"
 	EndProjectSection
 EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DDF4FDD5-84F2-44AB-95B8-3E2E0ADBCAAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDF4FDD5-84F2-44AB-95B8-3E2E0ADBCAAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{44D98BD0-088B-45C0-AEAC-1151FD1AE1D5} = {A18830F1-DBCE-4805-A70E-AB23A7C57A13}
-		{1C0A6D0C-1901-4E66-AF25-71AC507E69EE} = {A18830F1-DBCE-4805-A70E-AB23A7C57A13}
 	EndGlobalSection
 EndGlobal
