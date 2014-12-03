@@ -55,7 +55,7 @@
 				internalPromise = new Promise(function (resolve, reject) {
 					if (!async) {
 						timeoutWatcher = setTimeout(function () {
-							reject('timeout');
+							reject(new Error('timeout'));
 						}, ttl);
 					}
 					func(resolve, reject);
@@ -64,6 +64,7 @@
 					internalPromise.then(function (msg) {
 						finalize('passed', msg, resolve);
 					}, function (msg) {
+						console.dir(msg);
 						finalize('failed', msg, resolve);
 					});
 				});
@@ -160,23 +161,12 @@
 									view.querySelector('.status').style.color = status === 'passed' ? PASSED : FAILED;
 								}
 								resolve();
-							}, function () {
-								status = 'failed';
-								view.querySelector('.status').textContent = status;
-								view.querySelector('.status').style.color = status === 'passed' ? PASSED : FAILED;
-								resolve();
 							});
 						} else {
 							testCase = cases[index++];
 							view.appendChild(testCase.view);
 							tmpPromise = testCase.run();
 							tmpPromise.then(function () {
-								if (testCase.status === 'passed') passed++;
-								else if (testCase.status === 'failed') failed++;
-								else if (testCase.status === 'skipped') skipped++;
-								updateCounters();
-								!testCase.async && iterate(index);
-							}, function () {
 								if (testCase.status === 'passed') passed++;
 								else if (testCase.status === 'failed') failed++;
 								else if (testCase.status === 'skipped') skipped++;
@@ -194,7 +184,7 @@
 		}
 
 		Object.defineProperties(this, {
-			id: { get: function () { return id; } },
+			id: { value: id },
 			createCase: { value: createCase },
 			run: { value: run }
 		});

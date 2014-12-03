@@ -11,6 +11,7 @@
 
 	suite.createCase({ description: 'timing out' }, function (pass, fail) {
 		//	timeout should happen here
+		setTimeout(function () { fail(new Error('keep thowing with Error to get the stacktrace')); }, 8000);
 	});
 
 	suite.createCase({ description: 'to be skipped', skip: true }, function (pass, fail) {
@@ -22,7 +23,7 @@
 	});
 
 	suite.createCase({ description: 'async - failure', async: true }, function (pass, fail) {
-		setTimeout(function () { fail('all bad'); }, 6000);
+		setTimeout(function () { fail(new Error('all bad')); }, 6000);
 	});
 
 	suite.createCase({ description: 'throwing' }, function (pass, fail) {
@@ -30,7 +31,7 @@
 	});
 
 	suite.createCase({}, function (pass, fail) {
-		fail('this is failed');
+		fail(new Error('this is failed'));
 	});
 
 	suite.run();
