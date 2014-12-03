@@ -1,7 +1,9 @@
 ﻿(function () {
 	'use strict';
 
-	var suite = window.Utils.JustTest.createSuite('testing the flows');
+	var suite = window.Utils.JustTest.createSuite({
+		name: 'testing the flows'
+	});
 
 	suite.createCase(function (pass, fail) {
 		pass('this is passed');

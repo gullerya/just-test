@@ -1,7 +1,7 @@
 ﻿(function (options) {
 	'use strict';
 
-	var out, suites = [], suitesQueue = Promise.resolve(), DEFAULT_TEST_TTL = 5000, RUNNING = '#bbf', PASSED = '#4f2', FAILED = '#f77', SKIPPED = '#aaa';
+	var out, suiteIdGen = 0, caseIdGen = 0, suites = [], suitesQueue = Promise.resolve(), DEFAULT_TEST_TTL = 5000, RUNNING = '#bbf', PASSED = '#4f2', FAILED = '#f77', SKIPPED = '#aaa';
 
 	if (typeof options !== 'object') { options = {}; }
 	if (typeof options.namespace !== 'object') {
@@ -9,13 +9,13 @@
 		options.namespace = window.Utils;
 	}
 
-	function TestCase(id, description, async, ttl, skip, func) {
-		var status = 'idle', message, duration, beg, end, view;
+	function TestCase(description, async, ttl, skip, func) {
+		var id = caseIdGen++, status = 'idle', message, duration, beg, end, view;
 
 		(function createView() {
 			var tmp;
 			view = document.createElement('div');
-			view.style.cssText = 'position:relative;height:20px;margin:10px 5px 0px;font:17px Tahoma;color:#fff';
+			view.style.cssText = 'position:relative;height:20px;margin:10px 5px 0px;font:17px Tahoma';
 
 			tmp = document.createElement('div');
 			tmp.classList.add('description');
@@ -71,7 +71,7 @@
 		}
 
 		Object.defineProperties(this, {
-			id: { value: id },
+			id: { get: function () { return id; } },
 			status: { get: function () { return status; } },
 			message: { get: function () { return message; } },
 			duration: { get: function () { return duration; } },
@@ -81,37 +81,38 @@
 		});
 	}
 
-	function TestSuite(description) {
-		var id = suites.length, cases = [], passed = 0, failed = 0, skipped = 0, status = 'idle', suitePromise, view, tmp;
+	function TestSuite(options) {
+		var id = suiteIdGen++, name, cases = [], passed = 0, failed = 0, skipped = 0, status = 'idle', suitePromise, view, tmp;
+		name = options && options.name ? options.name : 'Suite (id: ' + id + ')';
 		suites.push(this);
 
-		(function createView() {
-			view = document.createElement('div');
-			view.style.cssText = 'position:relative;width:100%;height:auto;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid #ccc';
+		view = document.createElement('div');
+		view.style.cssText = 'position:relative;width:100%;height:auto;margin:10px 0px 30px';
 
-			tmp = document.createElement('div');
-			tmp.classList.add('header');
-			tmp.style.cssText = 'position:relative;height:30px;margin:0px 5px;color:#fff';
-			view.appendChild(tmp);
+		tmp = document.createElement('div');
+		tmp.classList.add('header');
+		tmp.style.cssText = 'position:relative;height:26px;margin:0px 5px;border-bottom:1px solid #ccc';
+		view.appendChild(tmp);
 
-			tmp = document.createElement('div');
-			tmp.classList.add('description');
-			tmp.style.cssText = 'position:absolute';
-			tmp.textContent = 'Suite ' + id + ': ' + description;
-			view.querySelector('.header').appendChild(tmp);
+		tmp = document.createElement('div');
+		tmp.classList.add('title');
+		tmp.style.cssText = 'position:absolute';
+		tmp.textContent = 'Suite: ' + name;
+		view.querySelector('.header').appendChild(tmp);
 
-			tmp = document.createElement('div');
-			tmp.classList.add('counters');
-			tmp.style.cssText = 'position:absolute;top:0px;left:400px;font-family:monospace';
-			tmp.innerHTML = '<span class="passed" style="color:' + PASSED + '">0</span> | <span class="failed" style="color:' + FAILED + '">0</span> | <span class="skipped" style="color:' + SKIPPED + '">0</span> of <span class="total">0</span>';
-			view.querySelector('.header').appendChild(tmp);
+		tmp = document.createElement('div');
+		tmp.classList.add('counters');
+		tmp.style.cssText = 'position:absolute;top:0px;left:400px;font-family:monospace';
+		tmp.innerHTML = '<span class="passed" style="color:' + PASSED + '">0</span> | <span class="failed" style="color:' + FAILED + '">0</span> | <span class="skipped" style="color:' + SKIPPED + '">0</span> of <span class="total">0</span>';
+		view.querySelector('.header').appendChild(tmp);
 
-			tmp = document.createElement('div');
-			tmp.classList.add('status');
-			tmp.style.cssText = 'position:absolute;right:0px;top:0px';
-			tmp.textContent = status;
-			view.querySelector('.header').appendChild(tmp);
-		})();
+		tmp = document.createElement('div');
+		tmp.classList.add('status');
+		tmp.style.cssText = 'position:absolute;right:0px;top:0px';
+		tmp.textContent = status;
+		view.querySelector('.header').appendChild(tmp);
+
+		out.appendChild(view);
 
 		function updateCounters() {
 			view.querySelector('.passed').textContent = passed;
@@ -122,7 +123,6 @@
 		function createCase(options, executor) {
 			if (typeof options === 'function') { executor = options; } else if (typeof executor !== 'function') { throw new Error('test function must be a last of not more than two parameters'); }
 			cases.push(new TestCase(
-				cases.length,
 				options.description || 'test ' + (cases.length + 1),
 				typeof options.async === 'boolean' ? options.async : false,
 				typeof options.ttl === 'number' ? options.ttl : DEFAULT_TEST_TTL,
@@ -135,7 +135,6 @@
 		function run() {
 			view.querySelector('.status').textContent = status;
 			view.querySelector('.total').textContent = cases.length;
-			out.appendChild(view);
 
 			suitesQueue = suitesQueue.then(function () {
 				return new Promise(function (resolve, reject) {
@@ -201,37 +200,65 @@
 	}
 
 	function buildOut() {
-		var root, tmp;
+		var root, tmp, offsetX, offsetY, tmpMMH, tmpMUH;
 		root = document.createElement('div');
 		root.id = 'JustTestOut';
-		root.style.cssText = 'position:fixed;top:50px;bottom:50px;right:50px;width:800px;background-color:#555;opacity:.7;border:2px solid #555;border-top-left-radius:7px;border-top-right-radius:7px';
+		root.style.cssText = 'position:fixed;top:50px;left:350px;height:800px;width:800px;background-color:#444;color:#fff;opacity:.7;border:2px solid #444;border-radius:7px;overflow:hidden;transition: width .3s, height .3s';
 
 		tmp = document.createElement('div');
 		tmp.id = 'JustTestOutTitle';
-		tmp.style.cssText = 'position:absolute;top:0px;left:0px;width:100%;height:40px;padding:0px 5px;font:28px Tahoma;border-bottom:3px solid #fff;color:#fff;cursor:default;box-sizing:border-box';
+		tmp.style.cssText = 'position:absolute;top:0px;height:40px;left:5px;right:40px;font:28px Tahoma;cursor:default;box-sizing:border-box';
 		tmp.textContent = 'JustTest';
+		tmp.onmousedown = function (event) {
+			tmpMMH = document.onmousemove;
+			tmpMUH = document.onmouseup;
+			offsetX = event.offsetX;
+			offsetY = event.offsetY;
+			document.onmousemove = function (event) {
+				var x = event.clientX - offsetX, y = event.clientY - offsetY;
+				x = x < 0 ? 0 : x;
+				y = y < 0 ? 0 : y;
+				x = document.documentElement.clientWidth - x - 164 < 0 ? document.documentElement.clientWidth - 164 : x;
+				y = document.documentElement.clientHeight - y - 39 < 0 ? document.documentElement.clientHeight - 39 : y;
+				root.style.left = x + 'px';
+				root.style.top = y + 'px';
+				event.preventDefault();
+				event.stopImmediatePropagation();
+			};
+			document.onmouseleave = document.onmouseup = function (event) {
+				document.onmousemove = tmpMMH;
+			};
+
+		};
 		root.appendChild(tmp);
 
 		tmp = document.createElement('div');
-		tmp.style.cssText = 'position:absolute;right:32px;top:5px;font:22px monospace;cursor:default';
+		tmp.style.cssText = 'position:absolute;right:9px;top:3px;font:25px monospace;cursor:default';
 		tmp.textContent = '\u25b2';
 		tmp.onclick = function () {
-			console.info('collapse and turn this sign to expand');
+			if (this.textContent === '\u25b2') {
+				root.querySelector('#JustTestOutSummary').style.display = 'none';
+				root.style.height = '35px';
+				root.style.width = '160px';
+				this.textContent = '\u25bc';
+			} else {
+				root.style.height = '800px';
+				root.style.width = '800px';
+				this.textContent = '\u25b2';
+				root.querySelector('#JustTestOutSummary').style.display = 'block';
+			}
 		}
-		root.querySelector('#JustTestOutTitle').appendChild(tmp);
-
-		tmp = document.createElement('div');
-		tmp.style.cssText = 'position:absolute;right:9px;top:0px;font:28px monospace;cursor:default';
-		tmp.textContent = '\u00d7';
-		tmp.onclick = function () {
-			console.info('at this point handle any shutting down of the running tasks if any');
-			document.body.removeChild(root);
-		}
-		root.querySelector('#JustTestOutTitle').appendChild(tmp);
+		root.appendChild(tmp);
 
 		out = document.createElement('div');
-		out.style.cssText = 'position:absolute;top:40px;bottom:0px;width:100%;overflow-x:hidden;overflow-y:scroll';
+		out.style.cssText = 'position:absolute;top:40px;bottom:32px;width:100%;border-top:3px solid #fff;overflow-x:hidden;overflow-y:scroll';
 		root.appendChild(out);
+
+		tmp = document.createElement('div');
+		tmp.id = 'JustTestOutSummary';
+		tmp.style.cssText = 'position:absolute;bottom:0px;left:0px;width:100%;height:32px;padding:0px 5px;font:22px Tahoma;border-top:3px solid #fff;cursor:default;box-sizing:border-box';
+		tmp.textContent = 'Summary: ';
+		root.appendChild(tmp);
 
 		document.body.appendChild(root);
 	}
@@ -240,9 +267,26 @@
 	Object.defineProperty(options.namespace, 'JustTest', { value: {} });
 	Object.defineProperties(options.namespace.JustTest, {
 		createSuite: {
-			value: function (description) {
-				suites.push(new TestSuite(description));
-				return suites.slice(-1)[0];
+			value: function (options) {
+				var suite = new TestSuite(options);
+				suites.push(suite);
+				return suite;
+			}
+		},
+		getSuite: {
+			value: function (id) {
+				if (typeof id === 'number') {
+					suites.forEach(function (suite) {
+						if (suite.id === id) return suite;
+					});
+				} else {
+					throw new Error('id must be a number');
+				}
+			}
+		},
+		getAllSuites: {
+			value: function () {
+				return suites.slice(0);
 			}
 		}
 	});
