@@ -1,7 +1,7 @@
 ﻿(function (options) {
 	'use strict';
 
-	var out, suiteIdGen = 0, caseIdGen = 0, suites = [], suitesQueue = Promise.resolve(), DEFAULT_TEST_TTL = 5000, RUNNING = '#bbf', PASSED = '#4f2', FAILED = '#f77', SKIPPED = '#aaa';
+	var out, suiteIdGen = 0, suites = [], suitesQueue = Promise.resolve(), DEFAULT_TEST_TTL = 5000, RUNNING = '#bbf', PASSED = '#4f2', FAILED = '#f77', SKIPPED = '#aaa';
 
 	if (typeof options !== 'object') { options = {}; }
 	if (typeof options.namespace !== 'object') {
@@ -9,8 +9,8 @@
 		options.namespace = window.Utils;
 	}
 
-	function TestCase(description, async, ttl, skip, func) {
-		var id = caseIdGen++, status = 'idle', message, duration, beg, end, view;
+	function TestCase(id, description, async, ttl, skip, func) {
+		var status = 'idle', message, duration, beg, end, view;
 
 		(function createView() {
 			var tmp;
@@ -81,8 +81,8 @@
 		});
 	}
 
-	function TestSuite(options) {
-		var id = suiteIdGen++, name, cases = [], passed = 0, failed = 0, skipped = 0, status = 'idle', suitePromise, view, tmp;
+	function TestSuite(id, options) {
+		var id, caseIdGen = 0, name, cases = [], passed = 0, failed = 0, skipped = 0, status = 'idle', suitePromise, view, tmp;
 		name = options && options.name ? options.name : 'Suite (id: ' + id + ')';
 		suites.push(this);
 
@@ -123,6 +123,7 @@
 		function createCase(options, executor) {
 			if (typeof options === 'function') { executor = options; } else if (typeof executor !== 'function') { throw new Error('test function must be a last of not more than two parameters'); }
 			cases.push(new TestCase(
+				caseIdGen++,
 				options.description || 'test ' + (cases.length + 1),
 				typeof options.async === 'boolean' ? options.async : false,
 				typeof options.ttl === 'number' ? options.ttl : DEFAULT_TEST_TTL,
@@ -199,6 +200,33 @@
 		});
 	}
 
+	function Report(suites) {
+		//	TODO: create report from one or many suites and generate
+		//	TODO: add methods to generate outputs in json/xml formats
+		Object.defineProperties(this, {
+			toJSON: {
+				value: function () {
+					//	to be implemented
+				}
+			},
+			toXMLJUnit: {
+				value: function () {
+					//	to be implemented
+				}
+			},
+			toXMLNUnit: {
+				value: function () {
+					//	to be implemented
+				}
+			},
+			toXMLTestNG: {
+				value: function () {
+					//	to be implemented
+				}
+			}
+		});
+	}
+
 	function buildOut() {
 		var root, tmp, offsetX, offsetY, tmpMMH, tmpMUH;
 		root = document.createElement('div');
@@ -262,18 +290,30 @@
 
 		document.body.appendChild(root);
 	}
-
 	buildOut();
+
 	Object.defineProperty(options.namespace, 'JustTest', { value: {} });
 	Object.defineProperties(options.namespace.JustTest, {
 		createSuite: {
 			value: function (options) {
-				var suite = new TestSuite(options);
+				var suite = new TestSuite(suiteIdGen++, options);
 				suites.push(suite);
 				return suite;
 			}
 		},
-		getSuite: {
+		createReport: {
+			value: function (from) {
+				var em = 'parameter must be a TestSuite object or an Array of them';
+				if (!from) throw new Error(em);
+				if (!Array.isArray(from)) from = [from];
+				if (!from.length) throw new Error(em);
+				from.forEach(function (one) {
+					if (!(one instanceof TestSuite)) throw new Error(em);
+				});
+				return new Report(from);
+			}
+		},
+		getSuiteById: {
 			value: function (id) {
 				if (typeof id === 'number') {
 					suites.forEach(function (suite) {
@@ -281,6 +321,17 @@
 					});
 				} else {
 					throw new Error('id must be a number');
+				}
+			}
+		},
+		getSuiteByName: {
+			value: function (name) {
+				if (typeof id === 'string') {
+					suites.forEach(function (suite) {
+						if (suite.name === name) return suite;
+					});
+				} else {
+					throw new Error('name must be a string');
 				}
 			}
 		},
