@@ -279,8 +279,8 @@
 		tmp.onmousedown = function (event) {
 			tmpMMH = document.onmousemove;
 			tmpMUH = document.onmouseup;
-			offsetX = event.offsetX;
-			offsetY = event.offsetY;
+			offsetX = event.layerX;
+			offsetY = event.layerY;
 			document.onmousemove = function (event) {
 				var x = event.clientX - offsetX, y = event.clientY - offsetY;
 				x = x < 0 ? 0 : x;
