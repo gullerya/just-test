@@ -1,7 +1,7 @@
 ﻿(function (options) {
 	'use strict';
 
-	var out, suiteIdGen = 0, suites = [], suitesQueue = Promise.resolve(), DEFAULT_TEST_TTL = 5000, RUNNING = '#bbf', PASSED = '#4f2', FAILED = '#f77', SKIPPED = '#aaa';
+	var out, suites = [], suitesQueue = Promise.resolve(), DEFAULT_TEST_TTL = 5000, RUNNING = '#bbf', PASSED = '#4f2', FAILED = '#f77', SKIPPED = '#aaa';
 
 	if (typeof options !== 'object') { options = {}; }
 	if (typeof options.namespace !== 'object') {
@@ -9,8 +9,8 @@
 		options.namespace = window.Utils;
 	}
 
-	function TestCase(id, description, async, ttl, skip, func) {
-		var status = 'idle', message, duration, beg, end, view;
+	function Test(id, description, async, ttl, skip, func) {
+		var status = 'pending', message, duration, beg, end, view;
 
 		(function createView() {
 			var tmp;
@@ -82,8 +82,9 @@
 		});
 	}
 
-	function TestSuite(id, options) {
-		var id, caseIdGen = 0, name, cases = [], passed = 0, failed = 0, skipped = 0, status = 'idle', suitePromise, view, tmp;
+	function Suite(options) {
+		var id, name, cases = [], passed = 0, failed = 0, skipped = 0, status = 'pending', suitePromise, view, tmp;
+		if (id in options) id = options.id;
 		name = options && options.name ? options.name : 'Suite (id: ' + id + ')';
 		suites.push(this);
 
@@ -121,17 +122,24 @@
 			view.querySelector('.skipped').textContent = skipped;
 		}
 
-		function createCase(options, executor) {
-			if (typeof options === 'function') { executor = options; } else if (typeof executor !== 'function') { throw new Error('test function must be a last of not more than two parameters'); }
-			cases.push(new TestCase(
-				caseIdGen++,
-				options.description || 'test ' + (cases.length + 1),
-				typeof options.async === 'boolean' ? options.async : false,
-				typeof options.ttl === 'number' ? options.ttl : DEFAULT_TEST_TTL,
-				typeof options.skip === 'boolean' ? options.skip : false,
-				executor
-			));
-			return cases.slice(-1)[0];
+		function createTest(options, executor) {
+			var em = 'bad parameters: must be 1 or 2 where the last one is a function', test;
+			if (arguments.length < 1 || arguments.length > 2) throw new Error(em);
+			if (arguments.length === 1) {
+				executor = arguments[0];
+				options = {};
+			}
+			if (typeof executor !== 'function') { throw new Error(em); }
+			test = new Test(options, executor);
+			cases.push(test);
+			//	id in options ? options.id : undefined,
+			//	options.description || 'test ' + (cases.length + 1),
+			//	typeof options.async === 'boolean' ? options.async : false,
+			//	typeof options.ttl === 'number' ? options.ttl : DEFAULT_TEST_TTL,
+			//	typeof options.skip === 'boolean' ? options.skip : false,
+			//	executor
+			//));
+			return test;
 		}
 
 		function run() {
@@ -148,7 +156,7 @@
 
 					if (!cases.length) { throw new Error('empty suite can not be run'); }
 					(function iterate(index) {
-						var testCase, tmpPromise;
+						var test, tmpPromise;
 						if (index === cases.length) {
 							asyncFlow.then(function () {
 								if (failed > 0) {
@@ -163,17 +171,17 @@
 								resolve();
 							});
 						} else {
-							testCase = cases[index++];
-							view.appendChild(testCase.view);
-							tmpPromise = testCase.run();
+							test = cases[index++];
+							view.appendChild(test.view);
+							tmpPromise = test.run();
 							tmpPromise.then(function () {
-								if (testCase.status === 'passed') passed++;
-								else if (testCase.status === 'failed') failed++;
-								else if (testCase.status === 'skipped') skipped++;
+								if (test.status === 'passed') passed++;
+								else if (test.status === 'failed') failed++;
+								else if (test.status === 'skipped') skipped++;
 								updateCounters();
-								!testCase.async && iterate(index);
+								!test.async && iterate(index);
 							});
-							if (testCase.async) {
+							if (test.async) {
 								asyncFlow = Promise.all([asyncFlow, tmpPromise]);
 								iterate(index);
 							}
@@ -185,7 +193,7 @@
 
 		Object.defineProperties(this, {
 			id: { value: id },
-			createCase: { value: createCase },
+			createTest: { value: createTest },
 			run: { value: run }
 		});
 	}
@@ -286,19 +294,19 @@
 	Object.defineProperties(options.namespace.JustTest, {
 		createSuite: {
 			value: function (options) {
-				var suite = new TestSuite(suiteIdGen++, options);
+				var suite = new Suite(options);
 				suites.push(suite);
 				return suite;
 			}
 		},
 		createReport: {
 			value: function (from) {
-				var em = 'parameter must be a TestSuite object or an Array of them';
+				var em = 'parameter must be a Suite object or an Array of them';
 				if (!from) throw new Error(em);
 				if (!Array.isArray(from)) from = [from];
 				if (!from.length) throw new Error(em);
 				from.forEach(function (one) {
-					if (!(one instanceof TestSuite)) throw new Error(em);
+					if (!(one instanceof Suite)) throw new Error(em);
 				});
 				return new Report(from);
 			}
