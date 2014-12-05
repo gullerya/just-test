@@ -5,32 +5,32 @@
 		name: 'testing the objects'
 	});
 
-	suite.createCase(function (pass, fail) {
+	suite.createTest(function (pass, fail) {
 		pass('this is passed');
 	});
 
-	suite.createCase({ description: 'timing out' }, function (pass, fail) {
+	suite.createTest({ description: 'timing out' }, function (pass, fail) {
 		//	timeout should happen here
 		setTimeout(function () { fail(new Error('keep thowing with Error to get the stacktrace')); }, 8000);
 	});
 
-	suite.createCase({ description: 'to be skipped', skip: true }, function (pass, fail) {
+	suite.createTest({ description: 'to be skipped', skip: true }, function (pass, fail) {
 		//	no matter what we have here
 	});
 
-	suite.createCase({ description: 'async - success', async: true }, function (pass, fail) {
+	suite.createTest({ description: 'async - success', async: true }, function (pass, fail) {
 		setTimeout(function () { pass('all good'); }, 7000);
 	});
 
-	suite.createCase({ description: 'async - failure', async: true }, function (pass, fail) {
+	suite.createTest({ description: 'async - failure', async: true }, function (pass, fail) {
 		setTimeout(function () { fail(new Error('all bad')); }, 6000);
 	});
 
-	suite.createCase({ description: 'throwing' }, function (pass, fail) {
+	suite.createTest({ description: 'throwing' }, function (pass, fail) {
 		throw new Error('some error');
 	});
 
-	suite.createCase({}, function (pass, fail) {
+	suite.createTest({}, function (pass, fail) {
 		fail(new Error('this is failed'));
 	});
 

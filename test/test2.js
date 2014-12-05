@@ -5,27 +5,27 @@
 		name: 'testing the flows'
 	});
 
-	suite.createCase(function (pass, fail) {
+	suite.createTest(function (pass, fail) {
 		pass('this is passed');
 	});
 
-	suite.createCase({ description: 'not timing out' }, function (pass, fail) {
+	suite.createTest({ description: 'not timing out' }, function (pass, fail) {
 		setTimeout(pass, 3000);
 	});
 
-	suite.createCase({ description: 'to be skipped', skip: true }, function (pass, fail) {
+	suite.createTest({ description: 'to be skipped', skip: true }, function (pass, fail) {
 		//	no matter what we have here
 	});
 
-	suite.createCase({ description: 'async - success', async: true }, function (pass, fail) {
+	suite.createTest({ description: 'async - success', async: true }, function (pass, fail) {
 		setTimeout(function () { pass('all good'); }, 7000);
 	});
 
-	suite.createCase({ description: 'async - success', async: true }, function (pass, fail) {
+	suite.createTest({ description: 'async - success', async: true }, function (pass, fail) {
 		setTimeout(function () { pass('all bad'); }, 6000);
 	});
 
-	suite.createCase({}, function (pass, fail) {
+	suite.createTest({}, function (pass, fail) {
 		pass('this is passed');
 	});
 

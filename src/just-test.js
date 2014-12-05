@@ -1,16 +1,37 @@
 ﻿(function (options) {
 	'use strict';
 
-	var out, suites = [], suitesQueue = Promise.resolve(), DEFAULT_TEST_TTL = 5000, RUNNING = '#bbf', PASSED = '#4f2', FAILED = '#f77', SKIPPED = '#aaa';
+	var out, themes = {}, suites = [], suitesQueue = Promise.resolve(), DEFAULT_TEST_TTL = 5000, RUNNING = '#bbf', PASSED = '#4f2', FAILED = '#f77', SKIPPED = '#aaa';
 
-	if (typeof options !== 'object') { options = {}; }
-	if (typeof options.namespace !== 'object') {
+	themes.dark = {
+		//	key value pairs of css rules and their values
+	};
+	themes.light = {
+
+	};
+
+	if (!options || typeof options !== 'object') { options = {}; }
+	if (!options.namespace || typeof options.namespace !== 'object') {
 		if (typeof window.Utils !== 'object') Object.defineProperty(window, 'Utils', { value: {} });
 		options.namespace = window.Utils;
 	}
+	if (!(options.theme in themes)) options.theme = 'dark';
 
-	function Test(id, description, async, ttl, skip, func) {
-		var status = 'pending', message, duration, beg, end, view;
+	//	TODO: create css rules by the selected theme and use only classes in the code below
+
+	//	TODO: add option to customize the default behaviour
+	function stringifyDuration(durMS) {
+		return durMS.toFixed(2) + 'ms';
+		//return (durMS / 1000).toFixed(2) + 's';
+	}
+
+	function Test(options, executor) {
+		var id, description, async, skip, ttl, status = 'pending', message, duration, beg, end, view;
+		id = 'id' in options ? options.id : undefined;
+		description = 'description' in options ? options.description : 'not descripted';
+		async = typeof options.async === 'boolean' ? options.async : false;
+		skip = typeof options.skip === 'boolean' ? options.skip : false;
+		ttl = typeof options.ttl === 'number' ? options.ttl : DEFAULT_TEST_TTL;
 
 		(function createView() {
 			var tmp;
@@ -21,6 +42,11 @@
 			tmp.classList.add('description');
 			tmp.style.cssText = 'position:absolute;left:30px;width:150px;overflow:hidden;white-space:nowrap';
 			tmp.textContent = description;
+			view.appendChild(tmp);
+
+			tmp = document.createElement('div');
+			tmp.classList.add('duration');
+			tmp.style.cssText = 'position:absolute;right:100px;color:#bbb';
 			view.appendChild(tmp);
 
 			tmp = document.createElement('div');
@@ -43,6 +69,7 @@
 				status = res;
 				duration = end - beg;
 
+				view.querySelector('.duration').textContent = stringifyDuration(duration);
 				view.querySelector('.status').textContent = status;
 				view.querySelector('.status').style.color = status === 'passed' ? PASSED : (status === 'skipped' ? SKIPPED : FAILED);
 
@@ -58,7 +85,7 @@
 							reject(new Error('timeout'));
 						}, ttl);
 					}
-					func(resolve, reject);
+					executor(resolve, reject);
 				});
 				return new Promise(function (resolve) {
 					internalPromise.then(function (msg) {
@@ -73,17 +100,23 @@
 
 		Object.defineProperties(this, {
 			id: { get: function () { return id; } },
+			description: { get: function () { return description; } },
+			async: { get: function () { return async; } },
+			skip: { get: function () { return skip; } },
+			ttl: { get: function () { return ttl; } },
+			run: { value: run },
+
 			status: { get: function () { return status; } },
 			message: { get: function () { return message; } },
+			started: { get: function () { return beg; } },
 			duration: { get: function () { return duration; } },
-			async: { value: async },
-			run: { value: run },
+
 			view: { get: function () { return view; } }
 		});
 	}
 
 	function Suite(options) {
-		var id, name, cases = [], passed = 0, failed = 0, skipped = 0, status = 'pending', suitePromise, view, tmp;
+		var id, name, cases = [], passed = 0, failed = 0, skipped = 0, status = 'pending', duration, beg, end, view, tmp;
 		if (id in options) id = options.id;
 		name = options && options.name ? options.name : 'Suite (id: ' + id + ')';
 		suites.push(this);
@@ -104,8 +137,13 @@
 
 		tmp = document.createElement('div');
 		tmp.classList.add('counters');
-		tmp.style.cssText = 'position:absolute;top:0px;left:400px;font-family:monospace';
+		tmp.style.cssText = 'position:absolute;top:0px;left:300px;font-family:monospace';
 		tmp.innerHTML = '<span class="passed" style="color:' + PASSED + '">0</span> | <span class="failed" style="color:' + FAILED + '">0</span> | <span class="skipped" style="color:' + SKIPPED + '">0</span> of <span class="total">0</span>';
+		view.querySelector('.header').appendChild(tmp);
+
+		tmp = document.createElement('div');
+		tmp.classList.add('duration');
+		tmp.style.cssText = 'position:absolute;right:100px';
 		view.querySelector('.header').appendChild(tmp);
 
 		tmp = document.createElement('div');
@@ -131,14 +169,8 @@
 			}
 			if (typeof executor !== 'function') { throw new Error(em); }
 			test = new Test(options, executor);
+			view.appendChild(test.view);
 			cases.push(test);
-			//	id in options ? options.id : undefined,
-			//	options.description || 'test ' + (cases.length + 1),
-			//	typeof options.async === 'boolean' ? options.async : false,
-			//	typeof options.ttl === 'number' ? options.ttl : DEFAULT_TEST_TTL,
-			//	typeof options.skip === 'boolean' ? options.skip : false,
-			//	executor
-			//));
 			return test;
 		}
 
@@ -154,11 +186,18 @@
 					view.querySelector('.status').textContent = status;
 					view.querySelector('.status').style.color = RUNNING;
 
+					beg = performance.now();
+
 					if (!cases.length) { throw new Error('empty suite can not be run'); }
 					(function iterate(index) {
 						var test, tmpPromise;
 						if (index === cases.length) {
 							asyncFlow.then(function () {
+
+								end = performance.now();
+								duration = end - beg;
+								view.querySelector('.header > .duration').textContent = stringifyDuration(duration);
+
 								if (failed > 0) {
 									status = 'failed';
 									view.querySelector('.status').textContent = status;
@@ -168,11 +207,11 @@
 									view.querySelector('.status').textContent = status;
 									view.querySelector('.status').style.color = status === 'passed' ? PASSED : FAILED;
 								}
+
 								resolve();
 							});
 						} else {
 							test = cases[index++];
-							view.appendChild(test.view);
 							tmpPromise = test.run();
 							tmpPromise.then(function () {
 								if (test.status === 'passed') passed++;
@@ -229,7 +268,7 @@
 		var root, tmp, offsetX, offsetY, tmpMMH, tmpMUH;
 		root = document.createElement('div');
 		root.id = 'JustTestOut';
-		root.style.cssText = 'position:fixed;top:50px;left:350px;height:800px;width:800px;background-color:#444;color:#fff;opacity:.7;border:2px solid #444;border-radius:7px;overflow:hidden;transition: width .3s, height .3s';
+		root.style.cssText = 'position:fixed;top:50px;left:350px;height:800px;width:800px;background-color:#000;color:#fff;opacity:.7;border:2px solid #444;border-radius:7px;overflow:hidden;transition: width .3s, height .3s';
 
 		tmp = document.createElement('div');
 		tmp.id = 'JustTestOutTitle';
