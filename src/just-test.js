@@ -57,12 +57,11 @@
 		})();
 
 		function run() {
-			var internalPromise, timeoutWatcher;
+			var testPromise, timeoutWatcher;
 			status = 'running';
-			beg = performance.now();
 			view.querySelector('.status').textContent = status;
 			view.querySelector('.status').style.color = RUNNING;
-			function finalize(res, msg, settle) {
+			function finalize(res, msg) {
 				timeoutWatcher && clearInterval(timeoutWatcher);
 				end = performance.now();
 				message = msg;
@@ -72,14 +71,13 @@
 				view.querySelector('.duration').textContent = stringifyDuration(duration);
 				view.querySelector('.status').textContent = status;
 				view.querySelector('.status').style.color = status === 'passed' ? PASSED : (status === 'skipped' ? SKIPPED : FAILED);
-
-				settle && settle();
 			}
+			beg = performance.now();
 			if (skip) {
 				finalize('skipped', '');
 				return Promise.resolve();
 			} else {
-				internalPromise = new Promise(function (resolve, reject) {
+				testPromise = new Promise(function (resolve, reject) {
 					if (!async) {
 						timeoutWatcher = setTimeout(function () {
 							reject(new Error('timeout'));
@@ -87,14 +85,12 @@
 					}
 					executor(resolve, reject);
 				});
-				return new Promise(function (resolve) {
-					internalPromise.then(function (msg) {
-						finalize('passed', msg, resolve);
-					}, function (msg) {
-						console.dir(msg);
-						finalize('failed', msg, resolve);
-					});
+				testPromise.then(function (msg) {
+					finalize('passed', msg);
+				}, function (msg) {
+					finalize('failed', msg);
 				});
+				return testPromise;
 			}
 		}
 
@@ -190,7 +186,7 @@
 
 					if (!cases.length) { throw new Error('empty suite can not be run'); }
 					(function iterate(index) {
-						var test, tmpPromise;
+						var test, testPromise;
 						if (index === cases.length) {
 							asyncFlow.then(function () {
 
@@ -212,8 +208,14 @@
 							});
 						} else {
 							test = cases[index++];
-							tmpPromise = test.run();
-							tmpPromise.then(function () {
+							testPromise = test.run();
+							testPromise.then(function () {
+								if (test.status === 'passed') passed++;
+								else if (test.status === 'failed') failed++;
+								else if (test.status === 'skipped') skipped++;
+								updateCounters();
+								!test.async && iterate(index);
+							}, function () {
 								if (test.status === 'passed') passed++;
 								else if (test.status === 'failed') failed++;
 								else if (test.status === 'skipped') skipped++;
@@ -221,7 +223,7 @@
 								!test.async && iterate(index);
 							});
 							if (test.async) {
-								asyncFlow = Promise.all([asyncFlow, tmpPromise]);
+								asyncFlow = asyncFlow.then(function () { return new Promise(function (r) { testPromise.then(r, r) }); });
 								iterate(index);
 							}
 						}
