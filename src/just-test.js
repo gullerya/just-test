@@ -1,7 +1,7 @@
 ﻿(function (options) {
 	'use strict';
 
-	var out, themes = {}, suites = [], suitesQueue = Promise.resolve(), DEFAULT_TEST_TTL = 5000, RUNNING = '#bbf', PASSED = '#4f2', FAILED = '#f77', SKIPPED = '#aaa';
+	var out, themes = {}, suitesQueue = Promise.resolve(), DEFAULT_TEST_TTL = 5000, RUNNING = '#66f', PASSED = '#4f2', FAILED = '#f77', SKIPPED = '#666';
 
 	themes.dark = {
 		//	key value pairs of css rules and their values
@@ -40,19 +40,22 @@
 
 			tmp = document.createElement('div');
 			tmp.classList.add('description');
-			tmp.style.cssText = 'position:absolute;left:30px;width:150px;overflow:hidden;white-space:nowrap';
+			tmp.style.cssText = 'position:absolute;left:30px;width:500px;overflow:hidden;white-space:nowrap;cursor:default';
 			tmp.textContent = description;
 			view.appendChild(tmp);
 
 			tmp = document.createElement('div');
 			tmp.classList.add('duration');
-			tmp.style.cssText = 'position:absolute;right:100px;color:#bbb';
+			tmp.style.cssText = 'position:absolute;right:100px;color:#bbb;cursor:default';
 			view.appendChild(tmp);
 
 			tmp = document.createElement('div');
 			tmp.classList.add('status');
-			tmp.style.cssText = 'position:absolute;right:0px';
+			tmp.style.cssText = 'position:absolute;right:0px;cursor:default';
 			tmp.textContent = status;
+			tmp.onclick = function () {
+				console.log('Expanding result: ' + message);
+			};
 			view.appendChild(tmp);
 		})();
 
@@ -113,27 +116,27 @@
 
 	function Suite(options) {
 		var id, name, cases = [], passed = 0, failed = 0, skipped = 0, status = 'pending', duration, beg, end, view, tmp;
-		if (id in options) id = options.id;
-		name = options && options.name ? options.name : 'Suite (id: ' + id + ')';
-		suites.push(this);
+		options = typeof options === 'object' ? options : {};
+		if ('id' in options) id = options.id;
+		name = 'name' in options ? options.name : '';
 
 		view = document.createElement('div');
 		view.style.cssText = 'position:relative;width:100%;height:auto;margin:10px 0px 30px';
 
 		tmp = document.createElement('div');
 		tmp.classList.add('header');
-		tmp.style.cssText = 'position:relative;height:26px;margin:0px 5px;border-bottom:1px solid #ccc';
+		tmp.style.cssText = 'position:relative;height:26px;margin:0px 5px;border-bottom:1px solid #ccc;cursor:default';
 		view.appendChild(tmp);
 
 		tmp = document.createElement('div');
 		tmp.classList.add('title');
-		tmp.style.cssText = 'position:absolute';
+		tmp.style.cssText = 'position:absolute;width:340px;cursor:default';
 		tmp.textContent = 'Suite: ' + name;
 		view.querySelector('.header').appendChild(tmp);
 
 		tmp = document.createElement('div');
 		tmp.classList.add('counters');
-		tmp.style.cssText = 'position:absolute;top:0px;left:300px;font-family:monospace';
+		tmp.style.cssText = 'position:absolute;top:0px;left:350px;font-family:monospace;cursor:default';
 		tmp.innerHTML = '<span class="passed" style="color:' + PASSED + '">0</span> | <span class="failed" style="color:' + FAILED + '">0</span> | <span class="skipped" style="color:' + SKIPPED + '">0</span> of <span class="total">0</span>';
 		view.querySelector('.header').appendChild(tmp);
 
@@ -144,11 +147,9 @@
 
 		tmp = document.createElement('div');
 		tmp.classList.add('status');
-		tmp.style.cssText = 'position:absolute;right:0px;top:0px';
+		tmp.style.cssText = 'position:absolute;right:0px;top:0px;cursor:default';
 		tmp.textContent = status;
 		view.querySelector('.header').appendChild(tmp);
-
-		out.appendChild(view);
 
 		function updateCounters() {
 			view.querySelector('.passed').textContent = passed;
@@ -156,7 +157,7 @@
 			view.querySelector('.skipped').textContent = skipped;
 		}
 
-		function createTest(options, executor) {
+		function addTest(options, executor) {
 			var em = 'bad parameters: must be 1 or 2 where the last one is a function', test;
 			if (arguments.length < 1 || arguments.length > 2) throw new Error(em);
 			if (arguments.length === 1) {
@@ -170,72 +171,76 @@
 			return test;
 		}
 
+		function reset() {
+			//	TODO: reset the suite results on demand
+		}
+
 		function run() {
 			view.querySelector('.status').textContent = status;
 			view.querySelector('.total').textContent = cases.length;
 
-			suitesQueue = suitesQueue.then(function () {
-				return new Promise(function (resolve, reject) {
-					var asyncFlow = Promise.resolve();
+			return new Promise(function (resolve, reject) {
+				var asyncFlow = Promise.resolve();
 
-					status = 'running';
-					view.querySelector('.status').textContent = status;
-					view.querySelector('.status').style.color = RUNNING;
+				status = 'running';
+				view.querySelector('.status').textContent = status;
+				view.querySelector('.status').style.color = RUNNING;
 
-					beg = performance.now();
+				beg = performance.now();
 
-					if (!cases.length) { throw new Error('empty suite can not be run'); }
-					(function iterate(index) {
-						var test, testPromise;
-						if (index === cases.length) {
-							asyncFlow.then(function () {
+				if (!cases.length) { throw new Error('empty suite can not be run'); }
+				(function iterate(index) {
+					var test, testPromise;
+					if (index === cases.length) {
+						asyncFlow.then(function () {
 
-								end = performance.now();
-								duration = end - beg;
-								view.querySelector('.header > .duration').textContent = stringifyDuration(duration);
+							end = performance.now();
+							duration = end - beg;
+							view.querySelector('.header > .duration').textContent = stringifyDuration(duration);
 
-								if (failed > 0) {
-									status = 'failed';
-									view.querySelector('.status').textContent = status;
-									view.querySelector('.status').style.color = status === 'passed' ? PASSED : FAILED;
-								} else {
-									status = 'passed';
-									view.querySelector('.status').textContent = status;
-									view.querySelector('.status').style.color = status === 'passed' ? PASSED : FAILED;
-								}
-
-								resolve();
-							});
-						} else {
-							test = cases[index++];
-							testPromise = test.run();
-							testPromise.then(function () {
-								if (test.status === 'passed') passed++;
-								else if (test.status === 'failed') failed++;
-								else if (test.status === 'skipped') skipped++;
-								updateCounters();
-								!test.async && iterate(index);
-							}, function () {
-								if (test.status === 'passed') passed++;
-								else if (test.status === 'failed') failed++;
-								else if (test.status === 'skipped') skipped++;
-								updateCounters();
-								!test.async && iterate(index);
-							});
-							if (test.async) {
-								asyncFlow = asyncFlow.then(function () { return new Promise(function (r) { testPromise.then(r, r) }); });
-								iterate(index);
+							if (failed > 0) {
+								status = 'failed';
+								view.querySelector('.status').textContent = status;
+								view.querySelector('.status').style.color = status === 'passed' ? PASSED : FAILED;
+							} else {
+								status = 'passed';
+								view.querySelector('.status').textContent = status;
+								view.querySelector('.status').style.color = status === 'passed' ? PASSED : FAILED;
 							}
+
+							resolve();
+						});
+					} else {
+						test = cases[index++];
+						testPromise = test.run();
+						testPromise.then(function () {
+							if (test.status === 'passed') passed++;
+							else if (test.status === 'failed') failed++;
+							else if (test.status === 'skipped') skipped++;
+							updateCounters();
+							!test.async && iterate(index);
+						}, function () {
+							if (test.status === 'passed') passed++;
+							else if (test.status === 'failed') failed++;
+							else if (test.status === 'skipped') skipped++;
+							updateCounters();
+							!test.async && iterate(index);
+						});
+						if (test.async) {
+							asyncFlow = asyncFlow.then(function () { return new Promise(function (r) { testPromise.then(r, r) }); });
+							iterate(index);
 						}
-					})(0);
-				});
+					}
+				})(0);
 			});
 		}
 
 		Object.defineProperties(this, {
-			id: { value: id },
-			createTest: { value: createTest },
-			run: { value: run }
+			id: { get: function () { return id; } },
+			name: { get: function () { return name; } },
+			view: { get: function () { return view; } },
+			addTest: { value: addTest },
+			run: { value: run },
 		});
 	}
 
@@ -267,7 +272,7 @@
 	}
 
 	function buildOut() {
-		var root, tmp, offsetX, offsetY, tmpMMH, tmpMUH;
+		var root, tmp, startX, startY, startLeft, startTop, tmpMMH, tmpMUH;
 		root = document.createElement('div');
 		root.id = 'JustTestOut';
 		root.style.cssText = 'position:fixed;top:50px;left:350px;height:800px;width:800px;background-color:#000;color:#fff;opacity:.7;border:2px solid #444;border-radius:7px;overflow:hidden;transition: width .3s, height .3s';
@@ -279,18 +284,22 @@
 		tmp.onmousedown = function (event) {
 			tmpMMH = document.onmousemove;
 			tmpMUH = document.onmouseup;
-			offsetX = event.layerX;
-			offsetY = event.layerY;
+			startX = event.clientX;
+			startY = event.clientY;
+			startLeft = root.offsetLeft;
+			startTop = root.offsetTop;
+
 			document.onmousemove = function (event) {
-				var x = event.clientX - offsetX, y = event.clientY - offsetY;
-				x = x < 0 ? 0 : x;
-				y = y < 0 ? 0 : y;
-				x = document.documentElement.clientWidth - x - 164 < 0 ? document.documentElement.clientWidth - 164 : x;
-				y = document.documentElement.clientHeight - y - 39 < 0 ? document.documentElement.clientHeight - 39 : y;
-				root.style.left = x + 'px';
-				root.style.top = y + 'px';
+				var top = startTop + event.clientY - startY, left = startLeft + event.clientX - startX;
+				top = top < 0 ? 0 : top;
+				left = left < 0 ? 0 : left;
+				top = document.documentElement.clientHeight - top - 39 < 0 ? document.documentElement.clientHeight - 39 : top;
+				left = document.documentElement.clientWidth - left - 164 < 0 ? document.documentElement.clientWidth - 164 : left;
+				root.style.top = top + 'px';
+				root.style.left = left + 'px';
 				event.preventDefault();
 				event.stopImmediatePropagation();
+				return false;
 			};
 			document.onmouseleave = document.onmouseup = function (event) {
 				document.onmousemove = tmpMMH;
@@ -333,50 +342,34 @@
 
 	Object.defineProperty(options.namespace, 'JustTest', { value: {} });
 	Object.defineProperties(options.namespace.JustTest, {
-		createSuite: {
-			value: function (options) {
-				var suite = new Suite(options);
-				suites.push(suite);
-				return suite;
+		Suite: { value: Suite },
+		run: {
+			value: function (suites) {
+				var em = 'parameter must be a Suite object or an Array of them';
+				if (!suites) throw new Error(em);
+				if (!Array.isArray(suites)) suites = [suites];
+				if (!suites.length) throw new Error(em);
+				suites.forEach(function (one) {
+					if (one instanceof Suite) {
+						out.appendChild(one.view);
+						suitesQueue = suitesQueue.then(one.run);
+					} else {
+						console.error('not a Suite object, passing over');
+					}
+				});
+				return;
 			}
 		},
 		createReport: {
-			value: function (from) {
+			value: function (suites) {
 				var em = 'parameter must be a Suite object or an Array of them';
-				if (!from) throw new Error(em);
-				if (!Array.isArray(from)) from = [from];
-				if (!from.length) throw new Error(em);
-				from.forEach(function (one) {
+				if (!suites) throw new Error(em);
+				if (!Array.isArray(from)) from = [suites];
+				if (!suites.length) throw new Error(em);
+				suites.forEach(function (one) {
 					if (!(one instanceof Suite)) throw new Error(em);
 				});
-				return new Report(from);
-			}
-		},
-		getSuiteById: {
-			value: function (id) {
-				if (typeof id === 'number') {
-					suites.forEach(function (suite) {
-						if (suite.id === id) return suite;
-					});
-				} else {
-					throw new Error('id must be a number');
-				}
-			}
-		},
-		getSuiteByName: {
-			value: function (name) {
-				if (typeof id === 'string') {
-					suites.forEach(function (suite) {
-						if (suite.name === name) return suite;
-					});
-				} else {
-					throw new Error('name must be a string');
-				}
-			}
-		},
-		getAllSuites: {
-			value: function () {
-				return suites.slice(0);
+				return new Report(suites);
 			}
 		}
 	});
