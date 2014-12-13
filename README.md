@@ -101,8 +101,8 @@ API
 <b>Framework</b> object (default ```window.Utils.JustTest```):
 
 
-<b>Test</b> object:
+<b>Test</b> (```JustTest.Test```):
 
 
-<b>Suite</b> object:
+<b>Suite</b> (```JustTest.Suite```):
 
