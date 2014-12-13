@@ -44,20 +44,18 @@ The project under development right now. TODO list:
 Examples
 ========
 
-Typical usage of the JustTest would involve two steps: <b>(A)</b> referring to the freamework and the tests in your html page; <b>(B)</b> writing the actual test logic using an API (look example below and APIs).
-
+Typical usage of the JustTest would involve two steps:<br/>
+<b>(A)</b> referring to the freamework and the tests in your html page;<br/>
+<b>(B)</b> writing the actual test logic using an API (look example below and APIs).<br/>
+<br/>
 <b>index.html</b>
 <code>
-<html>
-	...
 	<body>
 		...
-
 		<script src="just-test.js"></script>
 		<script src="test1.js"></script>
 		<script src="test2.js"></script>
 	</body>
-</html>
 </code>
 
 API
