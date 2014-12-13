@@ -41,8 +41,24 @@ The project under development right now. TODO list:
 6) possibly add configuration via config.js file (having tests files stated there and not in index.html)
 7) possibly add WebSocket based connectivity/API enabling remote execution/reporting
 
-API
-===
-
 Examples
 ========
+
+Typical usage of the JustTest would involve two steps: <b>(A)</b> referring to the freamework and the tests in your html page; <b>(B)</b> writing the actual test logic using an API (look example below and APIs).
+
+<b>index.html</b>
+<code>
+<html>
+	...
+	<body>
+		...
+
+		<script src="just-test.js"></script>
+		<script src="test1.js"></script>
+		<script src="test2.js"></script>
+	</body>
+</html>
+</code>
+
+API
+===
