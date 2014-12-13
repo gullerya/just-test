@@ -1,14 +1,19 @@
 ﻿(function (options) {
 	'use strict';
 
-	var out, themes = {}, suitesQueue = Promise.resolve(), DEFAULT_TEST_TTL = 5000, RUNNING = '#66f', PASSED = '#4f2', FAILED = '#f77', SKIPPED = '#666';
+	var out, consts = {}, themes = {}, suitesQueue = Promise.resolve();
 
-	themes.dark = {
-		//	key value pairs of css rules and their values
-	};
-	themes.light = {
+	Object.defineProperties(consts, {
+		DEFAULT_SUITE_NAME: {value: 'unnamed'},
+		DEFAULT_TEST_TTL: {value: 5000},
+		RUNNING: {value:'#66f'},
+		PASSED: {value: '#4f2'},
+		FAILED: {value: '#f77'},
+		SKIPPED: {value:'#666'}
+	});
 
-	};
+	themes.dark = {};
+	themes.light = {};
 
 	if (!options || typeof options !== 'object') { options = {}; }
 	if (!options.namespace || typeof options.namespace !== 'object') {
@@ -16,6 +21,7 @@
 		options.namespace = window.Utils;
 	}
 	if (!(options.theme in themes)) options.theme = 'dark';
+	if (!('configUrl' in options)) options.configUrl = 'config.js';
 
 	//	TODO: create css rules by the selected theme and use only classes in the code below
 
@@ -26,22 +32,22 @@
 	}
 
 	function Test(options, executor) {
-		var id, description, async, skip, ttl, status = 'pending', message, duration, beg, end, view;
+		var id, name, async, skip, ttl, status = 'pending', message, duration, beg, end, view;
 		id = 'id' in options ? options.id : undefined;
-		description = 'description' in options ? options.description : 'not descripted';
+		name = 'name' in options ? options.name : 'not descripted';
 		async = typeof options.async === 'boolean' ? options.async : false;
 		skip = typeof options.skip === 'boolean' ? options.skip : false;
-		ttl = typeof options.ttl === 'number' ? options.ttl : DEFAULT_TEST_TTL;
+		ttl = typeof options.ttl === 'number' ? options.ttl : consts.DEFAULT_TEST_TTL;
 
 		(function createView() {
 			var tmp;
 			view = document.createElement('div');
-			view.style.cssText = 'position:relative;height:20px;margin:10px 5px 0px;font:17px Tahoma';
+			view.style.cssText = 'position:relative;height:25px;margin:10px 5px 10px 30px;font:17px Tahoma';
 
 			tmp = document.createElement('div');
-			tmp.classList.add('description');
-			tmp.style.cssText = 'position:absolute;left:30px;width:500px;overflow:hidden;white-space:nowrap;cursor:default';
-			tmp.textContent = description;
+			tmp.classList.add('name');
+			tmp.style.cssText = 'position:absolute;left:0px;width:500px;overflow:hidden;white-space:nowrap;cursor:default';
+			tmp.textContent = name;
 			view.appendChild(tmp);
 
 			tmp = document.createElement('div');
@@ -63,7 +69,7 @@
 			var testPromise, timeoutWatcher;
 			status = 'running';
 			view.querySelector('.status').textContent = status;
-			view.querySelector('.status').style.color = RUNNING;
+			view.querySelector('.status').style.color = consts.RUNNING;
 			function finalize(res, msg) {
 				timeoutWatcher && clearInterval(timeoutWatcher);
 				end = performance.now();
@@ -73,7 +79,7 @@
 
 				view.querySelector('.duration').textContent = stringifyDuration(duration);
 				view.querySelector('.status').textContent = status;
-				view.querySelector('.status').style.color = status === 'passed' ? PASSED : (status === 'skipped' ? SKIPPED : FAILED);
+				view.querySelector('.status').style.color = status === 'passed' ? consts.PASSED : (status === 'skipped' ? consts.SKIPPED : consts.FAILED);
 			}
 			beg = performance.now();
 			if (skip) {
@@ -99,7 +105,7 @@
 
 		Object.defineProperties(this, {
 			id: { get: function () { return id; } },
-			description: { get: function () { return description; } },
+			name: { get: function () { return name; } },
 			async: { get: function () { return async; } },
 			skip: { get: function () { return skip; } },
 			ttl: { get: function () { return ttl; } },
@@ -118,7 +124,7 @@
 		var id, name, cases = [], passed = 0, failed = 0, skipped = 0, status = 'pending', duration, beg, end, view, tmp;
 		options = typeof options === 'object' ? options : {};
 		if ('id' in options) id = options.id;
-		name = 'name' in options ? options.name : '';
+		name = 'name' in options ? options.name : consts.DEFAULT_SUITE_NAME;
 
 		view = document.createElement('div');
 		view.style.cssText = 'position:relative;width:100%;height:auto;margin:10px 0px 30px';
@@ -130,14 +136,14 @@
 
 		tmp = document.createElement('div');
 		tmp.classList.add('title');
-		tmp.style.cssText = 'position:absolute;width:340px;cursor:default';
-		tmp.textContent = 'Suite: ' + name;
+		tmp.style.cssText = 'position:absolute;width:340px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:default';
+		tmp.textContent = name;
 		view.querySelector('.header').appendChild(tmp);
 
 		tmp = document.createElement('div');
 		tmp.classList.add('counters');
 		tmp.style.cssText = 'position:absolute;top:0px;left:350px;font-family:monospace;cursor:default';
-		tmp.innerHTML = '<span class="passed" style="color:' + PASSED + '">0</span> | <span class="failed" style="color:' + FAILED + '">0</span> | <span class="skipped" style="color:' + SKIPPED + '">0</span> of <span class="total">0</span>';
+		tmp.innerHTML = '<span class="passed" style="color:' + consts.PASSED + '">0</span> | <span class="failed" style="color:' + consts.FAILED + '">0</span> | <span class="skipped" style="color:' + consts.SKIPPED + '">0</span> of <span class="total">0</span>';
 		view.querySelector('.header').appendChild(tmp);
 
 		tmp = document.createElement('div');
@@ -184,7 +190,7 @@
 
 				status = 'running';
 				view.querySelector('.status').textContent = status;
-				view.querySelector('.status').style.color = RUNNING;
+				view.querySelector('.status').style.color = consts.RUNNING;
 
 				beg = performance.now();
 
@@ -201,11 +207,11 @@
 							if (failed > 0) {
 								status = 'failed';
 								view.querySelector('.status').textContent = status;
-								view.querySelector('.status').style.color = status === 'passed' ? PASSED : FAILED;
+								view.querySelector('.status').style.color = status === 'passed' ? consts.PASSED : consts.FAILED;
 							} else {
 								status = 'passed';
 								view.querySelector('.status').textContent = status;
-								view.querySelector('.status').style.color = status === 'passed' ? PASSED : FAILED;
+								view.querySelector('.status').style.color = status === 'passed' ? consts.PASSED : consts.FAILED;
 							}
 
 							resolve();
@@ -271,6 +277,20 @@
 		});
 	}
 
+	function minimize(root, button) {
+		root.querySelector('#JustTestOutSummary').style.display = 'none';
+		root.style.height = '35px';
+		root.style.width = '160px';
+		button.textContent = '\u25bc';
+	}
+
+	function maximize(root, button) {
+		root.style.height = '800px';
+		root.style.width = '800px';
+		button.textContent = '\u25b2';
+		root.querySelector('#JustTestOutSummary').style.display = 'block';
+	}
+
 	function buildOut() {
 		var root, tmp, startX, startY, startLeft, startTop, tmpMMH, tmpMUH;
 		root = document.createElement('div');
@@ -312,17 +332,7 @@
 		tmp.style.cssText = 'position:absolute;right:9px;top:3px;font:25px monospace;cursor:default';
 		tmp.textContent = '\u25b2';
 		tmp.onclick = function () {
-			if (this.textContent === '\u25b2') {
-				root.querySelector('#JustTestOutSummary').style.display = 'none';
-				root.style.height = '35px';
-				root.style.width = '160px';
-				this.textContent = '\u25bc';
-			} else {
-				root.style.height = '800px';
-				root.style.width = '800px';
-				this.textContent = '\u25b2';
-				root.querySelector('#JustTestOutSummary').style.display = 'block';
-			}
+			if (this.textContent === '\u25b2') { minimize(root, this); } else { maximize(root, this); }
 		}
 		root.appendChild(tmp);
 
