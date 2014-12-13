@@ -49,14 +49,52 @@ Typical usage of the JustTest would involve two steps:<br/>
 <b>(B)</b> writing the actual test logic using an API (look example below and APIs).<br/>
 <br/>
 <b>index.html</b>
-<code>
-	<body>
+```
+<body>
+	...
+	<script src="just-test.js"></script>
+	<script src="test1.js"></script>
+	<script src="test2.js"></script>
+</body>
+```
+
+<b>test1.js</b>
+```
+(function() {
+	'use strict';
+
+	var Suite = window.Utils.JustTest.Suite, suite;
+
+	suite = new Suite({ name: 'Suite object APIs' });
+
+	suite.addTest({						//	options list described in API section below
+		name: 'JustTest namespace created okay'
+	}, function (pass, fail) {
+		if ('your internal validation logic fails') fail(new Error('error notice'));
+		if ('another fail') throw new Error('calling "fail" and throwing have the same effect');
+		pass();
+	});
+	
+	suite.run();
+})();
+```
+
+<b>test2.js</b>
+```
+(function() {
+	'use strict';
+
+	var Suite = window.Utils.JustTest.Suite, suite;
+	
+	suite = new Suite({ name: 'Suite object APIs' });
+
+	suite.addTest(function (pass, fail) {		//	can skip the options, defaults will be used
 		...
-		<script src="just-test.js"></script>
-		<script src="test1.js"></script>
-		<script src="test2.js"></script>
-	</body>
-</code>
+	});
+	
+	suite.run();
+})();
+```
 
 API
 ===
