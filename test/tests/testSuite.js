@@ -1,19 +1,12 @@
-﻿(function() {
+﻿(function () {
 	'use strict';
 
 	var JT = window.Utils.JustTest, suite, tmpSuite;
 
-	suite = new JT.Suite({ name: 'Suite object APIs' });
-
-	suite.addTest({ name: 'JustTest namespace created okay' }, function (pass, fail) {
-		if (typeof JT !== 'object') fail(new Error('JustTest namespace not exists'));
-		if (typeof JT.Suite !== 'function') fail(new Error('Suite constructor function not found'));
-		if (typeof JT.createReport !== 'function') fail(new Error('createReport function not found'));
-		pass();
-	});
+	suite = JT.createSuite({ name: 'Suite object APIs' });
 
 	suite.addTest({ name: 'Suite object created (no options)' }, function (pass, fail) {
-		tmpSuite = new JT.Suite();
+		tmpSuite = JT.createSuite({ hidden: true });
 		if (!tmpSuite) fail(new Error('failed to create suite object'));
 		if (tmpSuite.constructor.name !== 'Suite') fail(new Error('suite object of wrong type: expected Suite, received ' + tmpSuite.constructor.name));
 		if (typeof tmpSuite.id !== 'undefined') fail(new Error('id expected to be undefined when not explicitly stated'));
@@ -25,7 +18,7 @@
 	});
 
 	suite.addTest({ name: 'Suite object created (with options)' }, function (pass, fail) {
-		tmpSuite = new JT.Suite({ id: 'id', name: 'name' });
+		tmpSuite = JT.createSuite({ id: 'id', name: 'name', hidden: true });
 		if (tmpSuite.id !== 'id') fail(new Error('id expected to be equal "id"'));
 		if (tmpSuite.name !== 'name') fail(new Error('name expected to be equal "name"'));
 		pass();
@@ -33,7 +26,7 @@
 
 	suite.addTest({ name: 'Suite object created (properties should be immutable)' }, function (pass, fail) {
 		var tmpFunc = function () { };
-		tmpSuite = new JT.Suite({ id: 'id', name: 'name' });
+		tmpSuite = JT.createSuite({ id: 'id', name: 'name', hidden: true });
 		try {
 			tmpSuite.id = 'some_new_id';
 			fail(new Error('flow should not get here'));
@@ -58,5 +51,9 @@
 		pass();
 	});
 
-	JT.run(suite);
+	//	TODO: add tests for the suite run, timings result
+
+	//	TODO: add tests for different compositions of sync/async tests
+
+	suite.run();
 })();

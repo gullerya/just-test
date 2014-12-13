@@ -1,15 +1,15 @@
 ﻿(function (options) {
 	'use strict';
 
-	var out, consts = {}, themes = {}, suitesQueue = Promise.resolve();
+	var api = {}, jtView, consts = {}, themes = {}, suites = [], suitesQueue = Promise.resolve();
 
 	Object.defineProperties(consts, {
-		DEFAULT_SUITE_NAME: {value: 'unnamed'},
-		DEFAULT_TEST_TTL: {value: 5000},
-		RUNNING: {value:'#66f'},
-		PASSED: {value: '#4f2'},
-		FAILED: {value: '#f77'},
-		SKIPPED: {value:'#666'}
+		DEFAULT_SUITE_NAME: { value: 'unnamed' },
+		DEFAULT_TEST_TTL: { value: 5000 },
+		RUNNING: { value: '#66f' },
+		PASSED: { value: '#4f2' },
+		FAILED: { value: '#f77' },
+		SKIPPED: { value: '#666' }
 	});
 
 	themes.dark = {};
@@ -65,6 +65,10 @@
 			view.appendChild(tmp);
 		})();
 
+		function reset() {
+			//	TODO: add reset logic
+		}
+
 		function run() {
 			var testPromise, timeoutWatcher;
 			status = 'running';
@@ -110,6 +114,7 @@
 			skip: { get: function () { return skip; } },
 			ttl: { get: function () { return ttl; } },
 			run: { value: run },
+			reset: { value: reset },
 
 			status: { get: function () { return status; } },
 			message: { get: function () { return message; } },
@@ -121,10 +126,11 @@
 	}
 
 	function Suite(options) {
-		var id, name, cases = [], passed = 0, failed = 0, skipped = 0, status = 'pending', duration, beg, end, view, tmp;
+		var id, name, visible, tests = [], passed = 0, failed = 0, skipped = 0, status = 'pending', duration, beg, end, view, tmp;
 		options = typeof options === 'object' ? options : {};
 		if ('id' in options) id = options.id;
 		name = 'name' in options ? options.name : consts.DEFAULT_SUITE_NAME;
+		visible = !(options.hidden === true);
 
 		view = document.createElement('div');
 		view.style.cssText = 'position:relative;width:100%;height:auto;margin:10px 0px 30px';
@@ -173,7 +179,7 @@
 			if (typeof executor !== 'function') { throw new Error(em); }
 			test = new Test(options, executor);
 			view.appendChild(test.view);
-			cases.push(test);
+			tests.push(test);
 			return test;
 		}
 
@@ -183,7 +189,21 @@
 
 		function run() {
 			view.querySelector('.status').textContent = status;
-			view.querySelector('.total').textContent = cases.length;
+			view.querySelector('.total').textContent = tests.length;
+			function finalize() {
+				end = performance.now();
+				duration = end - beg;
+				view.querySelector('.header > .duration').textContent = stringifyDuration(duration);
+				if (failed > 0) {
+					status = 'failed';
+					view.querySelector('.status').textContent = status;
+					view.querySelector('.status').style.color = status === 'passed' ? consts.PASSED : consts.FAILED;
+				} else {
+					status = 'passed';
+					view.querySelector('.status').textContent = status;
+					view.querySelector('.status').style.color = status === 'passed' ? consts.PASSED : consts.FAILED;
+				}
+			}
 
 			return new Promise(function (resolve, reject) {
 				var asyncFlow = Promise.resolve();
@@ -194,30 +214,13 @@
 
 				beg = performance.now();
 
-				if (!cases.length) { throw new Error('empty suite can not be run'); }
+				if (!tests.length) { finalize(); resolve(); }
 				(function iterate(index) {
 					var test, testPromise;
-					if (index === cases.length) {
-						asyncFlow.then(function () {
-
-							end = performance.now();
-							duration = end - beg;
-							view.querySelector('.header > .duration').textContent = stringifyDuration(duration);
-
-							if (failed > 0) {
-								status = 'failed';
-								view.querySelector('.status').textContent = status;
-								view.querySelector('.status').style.color = status === 'passed' ? consts.PASSED : consts.FAILED;
-							} else {
-								status = 'passed';
-								view.querySelector('.status').textContent = status;
-								view.querySelector('.status').style.color = status === 'passed' ? consts.PASSED : consts.FAILED;
-							}
-
-							resolve();
-						});
+					if (index === tests.length) {
+						asyncFlow.then(function () { finalize(); resolve(); });
 					} else {
-						test = cases[index++];
+						test = tests[index++];
 						testPromise = test.run();
 						testPromise.then(function () {
 							if (test.status === 'passed') passed++;
@@ -244,8 +247,10 @@
 		Object.defineProperties(this, {
 			id: { get: function () { return id; } },
 			name: { get: function () { return name; } },
+			visible: { get: function () { return visible; } },
 			view: { get: function () { return view; } },
 			addTest: { value: addTest },
+			reset: { value: reset },
 			run: { value: run },
 		});
 	}
@@ -277,29 +282,31 @@
 		});
 	}
 
-	function minimize(root, button) {
-		root.querySelector('#JustTestOutSummary').style.display = 'none';
-		root.style.height = '35px';
-		root.style.width = '160px';
-		button.textContent = '\u25bc';
+	function minimize(button) {
+		var r = document.getElementById('JustTestView'), b = document.getElementById('JustTestViewToggle');
+		r.querySelector('#JustTestViewSummary').style.display = 'none';
+		r.style.height = '35px';
+		r.style.width = '180px';
+		b.textContent = '\u25bc';
 	}
 
-	function maximize(root, button) {
-		root.style.height = '800px';
-		root.style.width = '800px';
-		button.textContent = '\u25b2';
-		root.querySelector('#JustTestOutSummary').style.display = 'block';
+	function maximize(button) {
+		var r = document.getElementById('JustTestView'), b = document.getElementById('JustTestViewToggle');
+		r.style.height = '800px';
+		r.style.width = '800px';
+		b.textContent = '\u25b2';
+		r.querySelector('#JustTestViewSummary').style.display = 'block';
 	}
 
-	function buildOut() {
+	function buildView() {
 		var root, tmp, startX, startY, startLeft, startTop, tmpMMH, tmpMUH;
 		root = document.createElement('div');
-		root.id = 'JustTestOut';
-		root.style.cssText = 'position:fixed;top:50px;left:350px;height:800px;width:800px;background-color:#000;color:#fff;opacity:.7;border:2px solid #444;border-radius:7px;overflow:hidden;transition: width .3s, height .3s';
+		root.id = 'JustTestView';
+		root.style.cssText = 'position:fixed;top:50px;left:350px;height:800px;width:800px;background-color:#000;color:#fff;opacity:.7;border-radius:7px;overflow:hidden;transition: width .2s, height .2s';
 
 		tmp = document.createElement('div');
-		tmp.id = 'JustTestOutTitle';
-		tmp.style.cssText = 'position:absolute;top:0px;height:40px;left:5px;right:40px;font:28px Tahoma;cursor:default;box-sizing:border-box';
+		tmp.id = 'JustTestViewTitle';
+		tmp.style.cssText = 'position:absolute;top:0px;height:40px;left:5px;right:40px;font:bold 27px Tahoma;cursor:default;box-sizing:border-box';
 		tmp.textContent = 'JustTest';
 		tmp.onmousedown = function (event) {
 			tmpMMH = document.onmousemove;
@@ -313,13 +320,11 @@
 				var top = startTop + event.clientY - startY, left = startLeft + event.clientX - startX;
 				top = top < 0 ? 0 : top;
 				left = left < 0 ? 0 : left;
-				top = document.documentElement.clientHeight - top - 39 < 0 ? document.documentElement.clientHeight - 39 : top;
-				left = document.documentElement.clientWidth - left - 164 < 0 ? document.documentElement.clientWidth - 164 : left;
+				top = document.documentElement.clientHeight - top - 35 < 0 ? document.documentElement.clientHeight - 35 : top;
+				left = document.documentElement.clientWidth - left - 180 < 0 ? document.documentElement.clientWidth - 180 : left;
 				root.style.top = top + 'px';
 				root.style.left = left + 'px';
 				event.preventDefault();
-				event.stopImmediatePropagation();
-				return false;
 			};
 			document.onmouseleave = document.onmouseup = function (event) {
 				document.onmousemove = tmpMMH;
@@ -329,58 +334,42 @@
 		root.appendChild(tmp);
 
 		tmp = document.createElement('div');
+		tmp.id = 'JustTestViewToggle';
 		tmp.style.cssText = 'position:absolute;right:9px;top:3px;font:25px monospace;cursor:default';
 		tmp.textContent = '\u25b2';
 		tmp.onclick = function () {
-			if (this.textContent === '\u25b2') { minimize(root, this); } else { maximize(root, this); }
+			if (this.textContent === '\u25b2') { minimize(); } else { maximize(); }
 		}
 		root.appendChild(tmp);
 
-		out = document.createElement('div');
-		out.style.cssText = 'position:absolute;top:40px;bottom:32px;width:100%;border-top:3px solid #fff;overflow-x:hidden;overflow-y:scroll';
-		root.appendChild(out);
+		jtView = document.createElement('div');
+		jtView.style.cssText = 'position:absolute;top:40px;bottom:32px;width:100%;border-top:3px solid #fff;overflow-x:hidden;overflow-y:scroll';
+		root.appendChild(jtView);
 
 		tmp = document.createElement('div');
-		tmp.id = 'JustTestOutSummary';
+		tmp.id = 'JustTestViewSummary';
 		tmp.style.cssText = 'position:absolute;bottom:0px;left:0px;width:100%;height:32px;padding:0px 5px;font:22px Tahoma;border-top:3px solid #fff;cursor:default;box-sizing:border-box';
 		tmp.textContent = 'Summary: ';
 		root.appendChild(tmp);
 
 		document.body.appendChild(root);
 	}
-	buildOut();
+	buildView();
 
-	Object.defineProperty(options.namespace, 'JustTest', { value: {} });
-	Object.defineProperties(options.namespace.JustTest, {
-		Suite: { value: Suite },
-		run: {
-			value: function (suites) {
-				var em = 'parameter must be a Suite object or an Array of them';
-				if (!suites) throw new Error(em);
-				if (!Array.isArray(suites)) suites = [suites];
-				if (!suites.length) throw new Error(em);
-				suites.forEach(function (one) {
-					if (one instanceof Suite) {
-						out.appendChild(one.view);
-						suitesQueue = suitesQueue.then(one.run);
-					} else {
-						console.error('not a Suite object, passing over');
-					}
-				});
-				return;
-			}
-		},
-		createReport: {
-			value: function (suites) {
-				var em = 'parameter must be a Suite object or an Array of them';
-				if (!suites) throw new Error(em);
-				if (!Array.isArray(from)) from = [suites];
-				if (!suites.length) throw new Error(em);
-				suites.forEach(function (one) {
-					if (!(one instanceof Suite)) throw new Error(em);
-				});
-				return new Report(suites);
+	Object.defineProperties(api, {
+		View: { value: {} },
+		createSuite: {
+			value: function (options) {
+				var s = new Suite(options);
+				suites.push(s);
+				s.visible && jtView.appendChild(s.view);
+				return s;
 			}
 		}
 	});
+	Object.defineProperties(api.View, {
+		minimize: { value: minimize },
+		maximize: { value: maximize }
+	});
+	Object.defineProperty(options.namespace, 'JustTest', { value: api });
 })((typeof arguments === 'object' ? arguments[0] : undefined));

@@ -62,9 +62,9 @@ Typical usage of the JustTest would involve two steps:<br/>
 (function() {
 	'use strict';
 
-	var Suite = window.Utils.JustTest.Suite, suite;
+	var JT = window.Utils.JustTest, suite;
 
-	suite = new Suite({ name: 'Suite object APIs' });
+	suite = JT.createSuite({ name: 'Suite object APIs' });
 
 	suite.addTest({						//	options list described in API section below
 		name: 'JustTest namespace created okay'
@@ -83,9 +83,9 @@ Typical usage of the JustTest would involve two steps:<br/>
 (function() {
 	'use strict';
 
-	var Suite = window.Utils.JustTest.Suite, suite;
+	var JT = window.Utils.JustTest, suite;
 	
-	suite = new Suite({ name: 'Suite object APIs' });
+	suite = JT.createSuite();
 
 	suite.addTest(function (pass, fail) {		//	can skip the options, defaults will be used
 		...

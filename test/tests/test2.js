@@ -1,8 +1,8 @@
 ﻿(function () {
-	
+
 	var JT = window.Utils.JustTest, suite;
 
-	suite = new JT.Suite({ name: 'sync/async tests mix, manual verification' });
+	suite = JT.createSuite();
 
 	suite.addTest(function (pass, fail) {
 		pass('this is passed');
@@ -28,6 +28,6 @@
 		pass('this is passed');
 	});
 
-	JT.run(suite);
+	suite.run();
 })();
 
