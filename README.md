@@ -1,21 +1,22 @@
 JustTest
 ========
 
-Test framework to run JavaScript (client) tests. Currently supports Chrome and Firefox (IE will work once Promises will be supported natively).
-The main idea behind JustTest is having the client tests immediatelly available during the development process, call it TDD, if you'd like to.
-Thus, the framework and the tests files are to be added directly to the webapp page. Each reload/refresh of the page will run the tests.
-Work process is:
-	a)	Write functionality (API)
-	b)	Write test that uses/hits that functionality
-	c)	Refresh the browser :)
-	d)	After finishing the active development phase tests invocation must be removed (easily) from the sources, but may stay for an automation and/or regressions testing
+Test framework to run JavaScript (client) tests. Currently supports Chrome and Firefox (IE will work once Promises will be supported natively).<br/>
+The main idea behind JustTest is having the client tests immediatelly available during the development process, call it TDD, if you'd like to.<br/>
+Thus, the framework and the tests files are to be added directly to the webapp page. Each reload/refresh of the page will run the tests.<br/>
 
-Advantages:
-	a)	You're immediatelly experiment with the functional aspect of an app actually using your APIs/logic
-	b)	The implementation is being tested immediatelly as well
-	c)	Those test, if left intact, are becoming regression tests
-	d)	Running the tests while running the application brings them closer to reality
-	e)	The dev process becomes more efficient: no need to setup test env (unless automation used), no need to invest in separate process of running tests: running app is running the tests as well
+<b>Work process:</b><br/>
+	a)	Write functionality (API)<br/>
+	b)	Write test that uses/hits that functionality<br/>
+	c)	Refresh the browser :)<br>
+	d)	After finishing the active development phase tests invocation must be removed (easily) from the sources, but may stay for an automation and/or regressions testing<br/>
+
+<b>Advantages:</b><br/>
+	a)	You're immediatelly experiment with the functional aspect of an app actually using your APIs/logic<br/>
+	b)	The implementation is being tested immediatelly as well<br/>
+	c)	Those test, if left intact, are becoming regression tests<br/>
+	d)	Running the tests while running the application brings them closer to reality<br/>
+	e)	The dev process becomes more efficient: no need to setup test env (unless automation used), no need to invest in separate process of running tests: running app is running the tests as well<br/>
 
 Concepts
 ========
