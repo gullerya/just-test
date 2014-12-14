@@ -42,7 +42,7 @@
 		(function createView() {
 			var tmp;
 			view = document.createElement('div');
-			view.style.cssText = 'position:relative;height:25px;margin:10px 5px 10px 30px;font:17px Tahoma';
+			view.style.cssText = 'position:relative;min-height:25px;margin:10px 5px 10px 30px;font:17px Tahoma';
 
 			tmp = document.createElement('div');
 			tmp.classList.add('name');
@@ -60,8 +60,14 @@
 			tmp.style.cssText = 'position:absolute;right:0px;cursor:default';
 			tmp.textContent = status;
 			tmp.onclick = function () {
-				console.log('Expanding result: ' + message);
+				view.querySelector('.testResult').textContent = message.toString();
+				view.querySelector('.testResult').style.display = 'block';
 			};
+			view.appendChild(tmp);
+
+			tmp = document.createElement('div');
+			tmp.classList.add('testResult');
+			tmp.style.cssText = 'position:relative;padding:25px 0px 0px 40px;width:100%;z-index:-1';
 			view.appendChild(tmp);
 		})();
 
