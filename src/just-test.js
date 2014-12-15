@@ -1,19 +1,8 @@
 ﻿(function (options) {
 	'use strict';
 
-	var api = {}, jtView, consts = {}, themes = {}, suites = [], suitesQueue = Promise.resolve();
-
-	Object.defineProperties(consts, {
-		DEFAULT_SUITE_NAME: { value: 'unnamed' },
-		DEFAULT_TEST_TTL: { value: 5000 },
-		RUNNING: { value: '#66f' },
-		PASSED: { value: '#4f2' },
-		FAILED: { value: '#f77' },
-		SKIPPED: { value: '#666' }
-	});
-
-	themes.dark = {};
-	themes.light = {};
+	var api = {}, consts = {}, themes = {}, suites = [], suitesQueue = Promise.resolve();
+	var jtViewContainer, jtViewList;
 
 	if (!options || typeof options !== 'object') { options = {}; }
 	if (!options.namespace || typeof options.namespace !== 'object') {
@@ -23,7 +12,20 @@
 	if (!(options.theme in themes)) options.theme = 'dark';
 	if (!('configUrl' in options)) options.configUrl = 'config.js';
 
+	//	TODO: provide customizaton for the default values via the options
+	Object.defineProperties(consts, {
+		DEFAULT_SUITE_NAME: { value: 'unnamed' },
+		DEFAULT_SYNC_TEST_TTL: { value: 5000 },
+		DEFAULT_ASYNC_TEST_TTL: { value: 3 * 60 * 1000 },
+		RUNNING: { value: '#66f' },
+		PASSED: { value: '#4f2' },
+		FAILED: { value: '#f77' },
+		SKIPPED: { value: '#666' }
+	});
+
 	//	TODO: create css rules by the selected theme and use only classes in the code below
+	themes.dark = {};
+	themes.light = {};
 
 	//	TODO: add option to customize the default behaviour
 	function stringifyDuration(durMS) {
@@ -37,16 +39,17 @@
 		name = 'name' in options ? options.name : 'not descripted';
 		async = typeof options.async === 'boolean' ? options.async : false;
 		skip = typeof options.skip === 'boolean' ? options.skip : false;
-		ttl = typeof options.ttl === 'number' ? options.ttl : consts.DEFAULT_TEST_TTL;
+		ttl = typeof options.ttl === 'number' ? options.ttl : (async ? consts.DEFAULT_ASYNC_TEST_TTL : consts.DEFAULT_SYNC_TEST_TTL);
 
 		(function createView() {
 			var tmp;
 			view = document.createElement('div');
-			view.style.cssText = 'position:relative;min-height:25px;margin:10px 5px 10px 30px;font:17px Tahoma';
+			view.classList.add('testStatusView');
+			view.style.cssText = 'position:relative;min-height:24px;margin:10px 5px 10px 30px;font:17px Tahoma;overflow:hidden';
 
 			tmp = document.createElement('div');
 			tmp.classList.add('name');
-			tmp.style.cssText = 'position:absolute;left:0px;width:500px;overflow:hidden;white-space:nowrap;cursor:default';
+			tmp.style.cssText = 'position:absolute;left:3px;width:500px;overflow:hidden;white-space:nowrap;cursor:default';
 			tmp.textContent = name;
 			view.appendChild(tmp);
 
@@ -57,17 +60,30 @@
 
 			tmp = document.createElement('div');
 			tmp.classList.add('status');
-			tmp.style.cssText = 'position:absolute;right:0px;cursor:default';
+			tmp.style.cssText = 'position:absolute;right:3px;cursor:default;box-sizing:border-box';
 			tmp.textContent = status;
+			tmp.onmouseenter = function () { if (status === 'pending' || status === 'running') return; this.style.borderBottom = '1px solid ' + this.style.color; };
+			tmp.onmouseleave = function () { if (status === 'pending' || status === 'running') return; this.style.borderBottom = 'none'; };
 			tmp.onclick = function () {
-				view.querySelector('.testResult').textContent = message.toString();
-				view.querySelector('.testResult').style.display = 'block';
+				var cntnt;
+				if (status === 'pending' || status === 'running') return;
+				if (view.querySelector('.testResult').offsetHeight > 0) {
+					view.querySelector('.testResult').style.maxHeight = '0px';
+				} else {
+					view.querySelector('.testResult').style.maxHeight = '200px';
+					if (message instanceof Error) {
+						cntnt = message.stack.replace(' at ', '<br>')
+						view.querySelector('.testResult').innerHTML = cntnt;
+					} else {
+						view.querySelector('.testResult').textContent = message ? message.toString() : '';
+					}
+				}
 			};
 			view.appendChild(tmp);
 
 			tmp = document.createElement('div');
 			tmp.classList.add('testResult');
-			tmp.style.cssText = 'position:relative;padding:25px 0px 0px 40px;width:100%;z-index:-1';
+			tmp.style.cssText = 'position:relative;margin:25px 0px 0px 40px;height:auto;max-height:0px;transition:max-height .2s;overflow-x:hidden;overflow-y:auto;font-size:12px;line-height:200%;color:' + consts.FAILED;
 			view.appendChild(tmp);
 		})();
 
@@ -97,16 +113,13 @@
 				return Promise.resolve();
 			} else {
 				testPromise = new Promise(function (resolve, reject) {
-					if (!async) {
-						timeoutWatcher = setTimeout(function () {
-							reject(new Error('timeout'));
-						}, ttl);
-					}
+					timeoutWatcher = setTimeout(function () {
+						reject(new Error('timeout'));
+					}, ttl);
 					executor(resolve, reject);
 				});
-				testPromise.then(function (msg) {
-					finalize('passed', msg);
-				}, function (msg) {
+				testPromise.then(function (msg) { finalize('passed', msg); }, function (msg) {
+					msg = msg instanceof Error ? msg : new Error(msg);
 					finalize('failed', msg);
 				});
 				return testPromise;
@@ -186,7 +199,6 @@
 			test = new Test(options, executor);
 			view.appendChild(test.view);
 			tests.push(test);
-			return test;
 		}
 
 		function reset() {
@@ -289,26 +301,25 @@
 	}
 
 	function minimize(button) {
-		var r = document.getElementById('JustTestView'), b = document.getElementById('JustTestViewToggle');
-		r.querySelector('#JustTestViewSummary').style.display = 'none';
-		r.style.height = '35px';
-		r.style.width = '180px';
+		var b = jtViewContainer.querySelector('#JustTestViewToggle');
+		jtViewContainer.querySelector('#JustTestViewSummary').style.display = 'none';
+		jtViewContainer.style.height = '35px';
+		jtViewContainer.style.width = '180px';
 		b.textContent = '\u25bc';
 	}
 
 	function maximize(button) {
-		var r = document.getElementById('JustTestView'), b = document.getElementById('JustTestViewToggle');
-		r.style.height = '800px';
-		r.style.width = '800px';
+		var b = jtViewContainer.querySelector('#JustTestViewToggle');
+		jtViewContainer.style.height = '800px';
+		jtViewContainer.style.width = '800px';
 		b.textContent = '\u25b2';
-		r.querySelector('#JustTestViewSummary').style.display = 'block';
+		jtViewContainer.querySelector('#JustTestViewSummary').style.display = 'block';
 	}
 
 	function buildView() {
-		var root, tmp, startX, startY, startLeft, startTop, tmpMMH, tmpMUH;
-		root = document.createElement('div');
-		root.id = 'JustTestView';
-		root.style.cssText = 'position:fixed;top:50px;left:350px;height:800px;width:800px;background-color:#000;color:#fff;opacity:.7;border-radius:7px;overflow:hidden;transition: width .2s, height .2s';
+		var tmp, startX, startY, startLeft, startTop, tmpMMH, tmpMUH;
+		jtViewContainer = document.createElement('div');
+		jtViewContainer.style.cssText = 'position:fixed;top:50px;left:350px;height:800px;width:800px;background-color:#000;color:#fff;opacity:.7;border-radius:7px;overflow:hidden;transition: width .2s, height .2s';
 
 		tmp = document.createElement('div');
 		tmp.id = 'JustTestViewTitle';
@@ -319,8 +330,8 @@
 			tmpMUH = document.onmouseup;
 			startX = event.clientX;
 			startY = event.clientY;
-			startLeft = root.offsetLeft;
-			startTop = root.offsetTop;
+			startLeft = jtViewContainer.offsetLeft;
+			startTop = jtViewContainer.offsetTop;
 
 			document.onmousemove = function (event) {
 				var top = startTop + event.clientY - startY, left = startLeft + event.clientX - startX;
@@ -328,8 +339,8 @@
 				left = left < 0 ? 0 : left;
 				top = document.documentElement.clientHeight - top - 35 < 0 ? document.documentElement.clientHeight - 35 : top;
 				left = document.documentElement.clientWidth - left - 180 < 0 ? document.documentElement.clientWidth - 180 : left;
-				root.style.top = top + 'px';
-				root.style.left = left + 'px';
+				jtViewContainer.style.top = top + 'px';
+				jtViewContainer.style.left = left + 'px';
 				event.preventDefault();
 			};
 			document.onmouseleave = document.onmouseup = function (event) {
@@ -337,7 +348,7 @@
 			};
 
 		};
-		root.appendChild(tmp);
+		jtViewContainer.appendChild(tmp);
 
 		tmp = document.createElement('div');
 		tmp.id = 'JustTestViewToggle';
@@ -346,36 +357,37 @@
 		tmp.onclick = function () {
 			if (this.textContent === '\u25b2') { minimize(); } else { maximize(); }
 		}
-		root.appendChild(tmp);
+		jtViewContainer.appendChild(tmp);
 
-		jtView = document.createElement('div');
-		jtView.style.cssText = 'position:absolute;top:40px;bottom:32px;width:100%;border-top:3px solid #fff;overflow-x:hidden;overflow-y:scroll';
-		root.appendChild(jtView);
+		jtViewList = document.createElement('div');
+		jtViewList.style.cssText = 'position:absolute;top:40px;bottom:32px;width:100%;border-top:3px solid #fff;overflow-x:hidden;overflow-y:scroll';
+		jtViewContainer.appendChild(jtViewList);
 
 		tmp = document.createElement('div');
 		tmp.id = 'JustTestViewSummary';
 		tmp.style.cssText = 'position:absolute;bottom:0px;left:0px;width:100%;height:32px;padding:0px 5px;font:22px Tahoma;border-top:3px solid #fff;cursor:default;box-sizing:border-box';
 		tmp.textContent = 'Summary: ';
-		root.appendChild(tmp);
+		jtViewContainer.appendChild(tmp);
 
-		document.body.appendChild(root);
+		document.body.appendChild(jtViewContainer);
 	}
 	buildView();
 
 	Object.defineProperties(api, {
-		View: { value: {} },
 		createSuite: {
 			value: function (options) {
 				var s = new Suite(options);
 				suites.push(s);
-				s.visible && jtView.appendChild(s.view);
+				s.visible && jtViewList.appendChild(s.view);
 				return s;
 			}
-		}
+		},
+		View: { value: {} }
 	});
 	Object.defineProperties(api.View, {
 		minimize: { value: minimize },
-		maximize: { value: maximize }
+		maximize: { value: maximize },
+		element: { value: jtViewContainer }
 	});
 	Object.defineProperty(options.namespace, 'JustTest', { value: api });
 })((typeof arguments === 'object' ? arguments[0] : undefined));

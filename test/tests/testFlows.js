@@ -2,7 +2,7 @@
 
 	var JT = window.Utils.JustTest, suite;
 
-	suite = JT.createSuite();
+	suite = JT.createSuite({ name: 'Test sync/async assets' });
 
 	suite.addTest(function (pass, fail) {
 		pass('this is passed');
