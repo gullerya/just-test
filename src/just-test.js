@@ -16,7 +16,7 @@
 	Object.defineProperties(consts, {
 		DEFAULT_SUITE_NAME: { value: 'unnamed' },
 		DEFAULT_SYNC_TEST_TTL: { value: 5000 },
-		DEFAULT_ASYNC_TEST_TTL: { value: 3 * 60 * 1000 },
+		DEFAULT_ASYNC_TEST_TTL: { value: 30 * 60 * 1000 },
 		RUNNING: { value: '#66f' },
 		PASSED: { value: '#4f2' },
 		FAILED: { value: '#f77' },
@@ -206,6 +206,8 @@
 		}
 
 		function run() {
+			var suitePromise;
+
 			view.querySelector('.status').textContent = status;
 			view.querySelector('.total').textContent = tests.length;
 			function finalize() {
@@ -223,7 +225,7 @@
 				}
 			}
 
-			return new Promise(function (resolve, reject) {
+			suitePromise = new Promise(function (resolve, reject) {
 				var asyncFlow = Promise.resolve();
 
 				status = 'running';
@@ -232,7 +234,6 @@
 
 				beg = performance.now();
 
-				if (!tests.length) { finalize(); resolve(); }
 				(function iterate(index) {
 					var test, testPromise;
 					if (index === tests.length) {
@@ -260,6 +261,8 @@
 					}
 				})(0);
 			});
+
+			return suitePromise;
 		}
 
 		Object.defineProperties(this, {
