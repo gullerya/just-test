@@ -34,7 +34,7 @@
 	}
 
 	function Test(options, executor) {
-		var id, name, async, skip, ttl, status = 'pending', message, duration, beg, end, view;
+		var id, name, async, skip, ttl, status = 'pending', message, startTime, beg, end, duration, view;
 		id = 'id' in options ? options.id : undefined;
 		name = 'name' in options ? options.name : 'not descripted';
 		async = typeof options.async === 'boolean' ? options.async : false;
@@ -87,10 +87,6 @@
 			view.appendChild(tmp);
 		})();
 
-		function reset() {
-			//	TODO: add reset logic
-		}
-
 		function run() {
 			var testPromise, timeoutWatcher;
 			status = 'running';
@@ -107,6 +103,7 @@
 				view.querySelector('.status').textContent = status;
 				view.querySelector('.status').style.color = status === 'passed' ? consts.PASSED : (status === 'skipped' ? consts.SKIPPED : consts.FAILED);
 			}
+			startTime = new Date();
 			beg = performance.now();
 			if (skip) {
 				finalize('skipped', '');
@@ -126,6 +123,7 @@
 			}
 		}
 
+		//	TODO: remove 'run' from public API?
 		Object.defineProperties(this, {
 			id: { get: function () { return id; } },
 			name: { get: function () { return name; } },
@@ -133,11 +131,10 @@
 			skip: { get: function () { return skip; } },
 			ttl: { get: function () { return ttl; } },
 			run: { value: run },
-			reset: { value: reset },
 
 			status: { get: function () { return status; } },
 			message: { get: function () { return message; } },
-			started: { get: function () { return beg; } },
+			startTime: { get: function () { return startTime; } },
 			duration: { get: function () { return duration; } },
 
 			view: { get: function () { return view; } }
@@ -145,7 +142,7 @@
 	}
 
 	function Suite(options) {
-		var id, name, visible, tests = [], passed = 0, failed = 0, skipped = 0, status = 'pending', duration, beg, end, view, tmp;
+		var id, name, visible, tests = [], passed = 0, failed = 0, skipped = 0, status = 'pending', startTime, beg, end, duration, view, tmp;
 		options = typeof options === 'object' ? options : {};
 		if ('id' in options) id = options.id;
 		name = 'name' in options ? options.name : consts.DEFAULT_SUITE_NAME;
@@ -201,10 +198,6 @@
 			tests.push(test);
 		}
 
-		function reset() {
-			//	TODO: reset the suite results on demand
-		}
-
 		function run() {
 			var suitePromise;
 
@@ -232,6 +225,7 @@
 				view.querySelector('.status').textContent = status;
 				view.querySelector('.status').style.color = consts.RUNNING;
 
+				startTime = new Date();
 				beg = performance.now();
 
 				(function iterate(index) {
@@ -269,37 +263,15 @@
 			id: { get: function () { return id; } },
 			name: { get: function () { return name; } },
 			visible: { get: function () { return visible; } },
+
 			view: { get: function () { return view; } },
 			addTest: { value: addTest },
-			reset: { value: reset },
+			getTests: { value: function () { return tests.slice(0); } },
 			run: { value: run },
-		});
-	}
 
-	function Report(suites) {
-		//	TODO: create report from one or many suites and generate
-		//	TODO: add methods to generate outputs in json/xml formats
-		Object.defineProperties(this, {
-			toJSON: {
-				value: function () {
-					//	to be implemented
-				}
-			},
-			toXMLJUnit: {
-				value: function () {
-					//	to be implemented
-				}
-			},
-			toXMLNUnit: {
-				value: function () {
-					//	to be implemented
-				}
-			},
-			toXMLTestNG: {
-				value: function () {
-					//	to be implemented
-				}
-			}
+			status: { get: function () { return status; } },
+			startTime: { get: function () { return startTime; } },
+			duration: { get: function () { return duration; } }
 		});
 	}
 
