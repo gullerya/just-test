@@ -1,21 +1,27 @@
 JustTest
 ========
 
-Test framework to run JavaScript (client) tests. Currently supports Chrome and Firefox (IE currently lack of Promises support).<br/>
+Test framework to run JavaScript (client) tests. Currently supports Chrome and Firefox (IE limitation due to lack of Promises support).<br/>
 The main idea behind JustTest is having the client tests available within the development process (call it TDD, if you'd like to). The framework and the tests files are to be added directly to the webapp page. Each reload/refresh of the page will run the tests.<br/>
+JustTest originally developed as a small'n'smart test framework for a personal needs (datatier-js), but I've decided to refactor it a bit and publish to the community as something useful, to my mind. Please feel free to comment, request, contribute.
 
 <b>Work process:</b><br/>
-	a)	Write functionality (API),<br/>
+	a)	Write your app functionality (API),<br/>
 	b)	Write test that uses/hits that functionality,<br/>
-	c)	Refresh the browser.<br>
-	d)	After finishing the active development phase tests invocation must be removed (easily) from the sources, but may stay for an automation and/or regressions testing.<br/>
+	c)	See the tests you've added within the browser.<br>
+	d)	After finishing the active development phase tests invocation must obviously be removed from the sources, but you may want to keep them aside for an automation and/or regressions testing. Just rename your .html file with the tests before removing references to them.<br/>
 
 <b>Advantages:</b><br/>
 	a)	You're immediatelly experiment with the functional aspect of an app actually using your APIs/logic,<br/>
 	b)	The implementation is being tested immediatelly as well,<br/>
-	c)	Those test, if left intact, are becoming regression tests,<br/>
+	c)	Tests, if left intact, are becoming regression tests on later stage,<br/>
 	d)	Running the tests while running the application brings them closer to reality,<br/>
 	e)	The dev process becomes more efficient: no need to setup test env (unless automation used), no need to invest in separate process of running tests: running app is running the tests as well.<br/>
+
+<b>Disadvantages:</b><br/>
+	a)	References to tests and the framework mixed inside the production code (future feature of configuration by config.js will lower this to one reference only)
+	b)	No reports persisted (two features are planned to handle this: (i) API to post the results to the specified URL [formats of XML_JUnit, XML_TestNG, XML_NUnit as well as JSON_JustTest, XML_JustTest are meant to be provided out of the box, as well as API to register custom format])
+	c)	Currently tests files must be explicitly specified (either in .html or in config.js) which becomes inconvenient with dozens of files. There probably will be a server-side part supplied in a (distant :)) future to provider fully functioning test execution with Selenium-like approach.
 
 Concepts
 ========
