@@ -1,7 +1,7 @@
 ﻿(function (options) {
 	'use strict';
 
-	var api = {}, consts = {}, themes = {}, suites = [], suitesQueue = Promise.resolve();
+	var api = {}, consts = {}, utils = {}, suites = [], suitesQueue = Promise.resolve();
 	var jtViewContainer, jtViewList;
 
 	if (!options || typeof options !== 'object') { options = {}; }
@@ -9,32 +9,59 @@
 		if (typeof window.Utils !== 'object') Object.defineProperty(window, 'Utils', { value: {} });
 		options.namespace = window.Utils;
 	}
-	if (!(options.theme in themes)) options.theme = 'dark';
 	if (!('configUrl' in options)) options.configUrl = 'config.js';
 
 	//	TODO: provide customizaton for the default values via the options
 	Object.defineProperties(consts, {
 		DEFAULT_SUITE_NAME: { value: 'unnamed' },
-		DEFAULT_SYNC_TEST_TTL: { value: 5000 },
+		DEFAULT_SYNC_TEST_TTL: { value: 10 * 1000 },
 		DEFAULT_ASYNC_TEST_TTL: { value: 30 * 60 * 1000 },
-		RUNNING: { value: '#66f' },
-		PASSED: { value: '#4f2' },
-		FAILED: { value: '#f77' },
-		SKIPPED: { value: '#666' }
+		running: { value: '#66f' },
+		passed: { value: '#6f4' },
+		failed: { value: '#f55' },
+		skipped: { value: '#666' }
 	});
 
-	//	TODO: create css rules by the selected theme and use only classes in the code below
-	themes.dark = {};
-	themes.light = {};
-
-	//	TODO: add option to customize the default behaviour
-	function stringifyDuration(durMS) {
-		return durMS.toFixed(2) + 'ms';
-		//return (durMS / 1000).toFixed(2) + 's';
+	function stringifyDuration(d) {
+		if (d > 99) return (d / 1000).toFixed(1) + 's';
+		else if (d > 59900) return (d / 60000).toFixed(1) + 'm';
+		else return d.toFixed(2) + 'ms';
 	}
 
-	function Test(options, executor) {
-		var id, name, async, skip, ttl, status = 'pending', message, startTime, beg, end, duration, view;
+	function Assert(assertsAPI) {
+		//	TODO: instead of test provide testAssertsAPI and count the asserts inside the test
+		Object.defineProperties(this, {
+			equal: {
+				value: function (a, b) {
+					if (a != b) {
+						assertsAPI.failed++;
+						throw new Error('Assert fail: ' + a + ' not equals ' + b);
+					} else {
+						assertsAPI.passed++;
+					}
+				}
+			},
+			striqual: {
+				value: function (a, b) {
+					if (a !== b) {
+						assertsAPI.failed++;
+						throw new Error('Assert fail: ' + a + ' not strictly equals ' + b);
+					} else {
+						assertsAPI.passed++;
+					}
+				}
+			}
+		});
+	}
+
+	function Utils(assertsAPI) {
+		Object.defineProperties(this, {
+			assert: { value: new Assert(assertsAPI) }
+		});
+	}
+
+	function Test(options, testCode) {
+		var id, name, async, skip, ttl, status = 'idle', message, startTime, beg, end, duration, view, asserts;
 		id = 'id' in options ? options.id : undefined;
 		name = 'name' in options ? options.name : 'not descripted';
 		async = typeof options.async === 'boolean' ? options.async : false;
@@ -62,11 +89,11 @@
 			tmp.classList.add('status');
 			tmp.style.cssText = 'position:absolute;right:3px;cursor:default;box-sizing:border-box';
 			tmp.textContent = status;
-			tmp.onmouseenter = function () { if (status === 'pending' || status === 'running') return; this.style.borderBottom = '1px solid ' + this.style.color; };
-			tmp.onmouseleave = function () { if (status === 'pending' || status === 'running') return; this.style.borderBottom = 'none'; };
+			tmp.onmouseenter = function () { if (status === 'idle' || status === 'running') return; this.style.borderBottom = '1px solid ' + this.style.color; };
+			tmp.onmouseleave = function () { if (status === 'idle' || status === 'running') return; this.style.borderBottom = 'none'; };
 			tmp.onclick = function () {
 				var cntnt;
-				if (status === 'pending' || status === 'running') return;
+				if (status === 'idle' || status === 'running') return;
 				if (view.querySelector('.testResult').offsetHeight > 0) {
 					view.querySelector('.testResult').style.maxHeight = '0px';
 				} else {
@@ -83,15 +110,20 @@
 
 			tmp = document.createElement('div');
 			tmp.classList.add('testResult');
-			tmp.style.cssText = 'position:relative;margin:25px 0px 0px 40px;height:auto;max-height:0px;transition:max-height .2s;overflow-x:hidden;overflow-y:auto;font-size:12px;line-height:200%;color:' + consts.FAILED;
+			tmp.style.cssText = 'position:relative;margin:25px 0px 0px 40px;height:auto;max-height:0px;transition:max-height .2s;overflow-x:hidden;overflow-y:auto;font-size:12px;line-height:200%;color:' + consts.failed;
 			view.appendChild(tmp);
 		})();
+
+		asserts = {
+			passed: 0,
+			failed: 0
+		};
 
 		function run() {
 			var testPromise, timeoutWatcher;
 			status = 'running';
 			view.querySelector('.status').textContent = status;
-			view.querySelector('.status').style.color = consts.RUNNING;
+			view.querySelector('.status').style.color = consts.running;
 			function finalize(res, msg) {
 				timeoutWatcher && clearInterval(timeoutWatcher);
 				end = performance.now();
@@ -101,7 +133,7 @@
 
 				view.querySelector('.duration').textContent = stringifyDuration(duration);
 				view.querySelector('.status').textContent = status;
-				view.querySelector('.status').style.color = status === 'passed' ? consts.PASSED : (status === 'skipped' ? consts.SKIPPED : consts.FAILED);
+				view.querySelector('.status').style.color = consts[status];
 			}
 			startTime = new Date();
 			beg = performance.now();
@@ -111,9 +143,9 @@
 			} else {
 				testPromise = new Promise(function (resolve, reject) {
 					timeoutWatcher = setTimeout(function () {
-						reject(new Error('timeout'));
+						reject(new Error('Timeout, have you forgotten to call pass/fail?'));
 					}, ttl);
-					executor(resolve, reject);
+					testCode(resolve, reject, new Utils(asserts));
 				});
 				testPromise.then(function (msg) { finalize('passed', msg); }, function (msg) {
 					msg = msg instanceof Error ? msg : new Error(msg);
@@ -142,11 +174,10 @@
 	}
 
 	function Suite(options) {
-		var id, name, visible, tests = [], passed = 0, failed = 0, skipped = 0, status = 'pending', startTime, beg, end, duration, view, tmp;
+		var id, name, tests = [], passed = 0, failed = 0, skipped = 0, status = 'idle', startTime, beg, end, duration, view, tmp;
 		options = typeof options === 'object' ? options : {};
 		if ('id' in options) id = options.id;
 		name = 'name' in options ? options.name : consts.DEFAULT_SUITE_NAME;
-		visible = !(options.hidden === true);
 
 		view = document.createElement('div');
 		view.style.cssText = 'position:relative;width:100%;height:auto;margin:10px 0px 30px';
@@ -165,7 +196,7 @@
 		tmp = document.createElement('div');
 		tmp.classList.add('counters');
 		tmp.style.cssText = 'position:absolute;top:0px;left:350px;font-family:monospace;cursor:default';
-		tmp.innerHTML = '<span class="passed" style="color:' + consts.PASSED + '">0</span> | <span class="failed" style="color:' + consts.FAILED + '">0</span> | <span class="skipped" style="color:' + consts.SKIPPED + '">0</span> of <span class="total">0</span>';
+		tmp.innerHTML = '<span class="passed" style="color:' + consts.passed + '">0</span> | <span class="failed" style="color:' + consts.failed + '">0</span> | <span class="skipped" style="color:' + consts.skipped + '">0</span> of <span class="total">0</span>';
 		view.querySelector('.header').appendChild(tmp);
 
 		tmp = document.createElement('div');
@@ -185,15 +216,15 @@
 			view.querySelector('.skipped').textContent = skipped;
 		}
 
-		function addTest(options, executor) {
+		function addTest(options, testCode) {
 			var em = 'bad parameters: must be 1 or 2 where the last one is a function', test;
 			if (arguments.length < 1 || arguments.length > 2) throw new Error(em);
 			if (arguments.length === 1) {
-				executor = arguments[0];
+				testCode = arguments[0];
 				options = {};
 			}
-			if (typeof executor !== 'function') { throw new Error(em); }
-			test = new Test(options, executor);
+			if (typeof testCode !== 'function') { throw new Error(em); }
+			test = new Test(options, testCode);
 			view.appendChild(test.view);
 			tests.push(test);
 		}
@@ -210,11 +241,11 @@
 				if (failed > 0) {
 					status = 'failed';
 					view.querySelector('.status').textContent = status;
-					view.querySelector('.status').style.color = status === 'passed' ? consts.PASSED : consts.FAILED;
+					view.querySelector('.status').style.color = consts[status];
 				} else {
 					status = 'passed';
 					view.querySelector('.status').textContent = status;
-					view.querySelector('.status').style.color = status === 'passed' ? consts.PASSED : consts.FAILED;
+					view.querySelector('.status').style.color = consts[status];
 				}
 			}
 
@@ -223,7 +254,7 @@
 
 				status = 'running';
 				view.querySelector('.status').textContent = status;
-				view.querySelector('.status').style.color = consts.RUNNING;
+				view.querySelector('.status').style.color = consts.running;
 
 				startTime = new Date();
 				beg = performance.now();
@@ -262,7 +293,6 @@
 		Object.defineProperties(this, {
 			id: { get: function () { return id; } },
 			name: { get: function () { return name; } },
-			visible: { get: function () { return visible; } },
 
 			view: { get: function () { return view; } },
 			addTest: { value: addTest },
@@ -341,7 +371,7 @@
 		tmp = document.createElement('div');
 		tmp.id = 'JustTestViewSummary';
 		tmp.style.cssText = 'position:absolute;bottom:0px;left:0px;width:100%;height:32px;padding:0px 5px;font:22px Tahoma;border-top:3px solid #fff;cursor:default;box-sizing:border-box';
-		tmp.textContent = 'Summary: ';
+		tmp.textContent = 'Sum:';
 		jtViewContainer.appendChild(tmp);
 
 		document.body.appendChild(jtViewContainer);
@@ -353,7 +383,7 @@
 			value: function (options) {
 				var s = new Suite(options);
 				suites.push(s);
-				s.visible && jtViewList.appendChild(s.view);
+				jtViewList.appendChild(s.view);
 				return s;
 			}
 		},

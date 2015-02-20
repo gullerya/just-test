@@ -24,7 +24,7 @@
 		});
 
 		tmpSute.addTest({ id: 4, name: 'async - fail', async: true }, function (pass, fail) {
-			setTimeout(function () { fail('all bad'); }, 6000);
+			setTimeout(function () { fail('this should fail after 6s and not on timeout!'); }, 6000);
 		});
 
 		tmpSute.addTest({ id: 5 }, function (pass, fail) {

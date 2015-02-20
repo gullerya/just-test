@@ -40,5 +40,16 @@
 		xhr.send();
 	});
 
+	suite.addTest({ name: 'test utils parameter' }, function (pass, fail, utils) {
+		if (!utils) fail(new Error('"utils" parameter expected to be defined'));
+		if (!utils.assert) fail(new Error('"utils.assert" property expected to be defined'));
+		if (!utils.assert.equal) fail(new Error('"utils.assert.equal" property expected to be defined'));
+		if (!utils.assert.striqual) fail(new Error('"utils.assert.srtiqual" property expected to be defined'));
+		utils.assert.equal(5, 5);
+		utils.assert.striqual(5, 5);
+		utils.assert.equal('5', 5);
+		pass();
+	});
+
 	suite.run();
 })();
