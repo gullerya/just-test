@@ -324,7 +324,7 @@
 	function buildView() {
 		var tmp, startX, startY, startLeft, startTop, tmpMMH, tmpMUH;
 		jtViewContainer = document.createElement('div');
-		jtViewContainer.style.cssText = 'position:fixed;top:50px;left:350px;height:800px;width:800px;background-color:#000;color:#fff;opacity:.7;border-radius:7px;overflow:hidden;transition: width .2s, height .2s';
+		jtViewContainer.style.cssText = 'position:fixed;top:50px;left:350px;height:800px;width:800px;background-color:#000;color:#fff;opacity:.7;border-radius:7px;overflow:hidden;transition: width .2s, height .2s;z-index:99999';
 
 		tmp = document.createElement('div');
 		tmp.id = 'JustTestViewTitle';
