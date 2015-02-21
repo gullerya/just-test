@@ -16,16 +16,16 @@
 		DEFAULT_SUITE_NAME: { value: 'unnamed' },
 		DEFAULT_SYNC_TEST_TTL: { value: 10 * 1000 },
 		DEFAULT_ASYNC_TEST_TTL: { value: 30 * 60 * 1000 },
-		running: { value: '#66f' },
+		running: { value: '#99f' },
 		passed: { value: '#6f4' },
 		failed: { value: '#f55' },
 		skipped: { value: '#666' }
 	});
 
 	function stringifyDuration(d) {
-		if (d > 99) return (d / 1000).toFixed(1) + 's';
-		else if (d > 59900) return (d / 60000).toFixed(1) + 'm';
-		else return d.toFixed(2) + 'ms';
+		if (d > 99) return (d / 1000).toFixed(1) + ' s';
+		else if (d > 59900) return (d / 60000).toFixed(1) + ' m';
+		else return d.toFixed(1) + ' ms';
 	}
 
 	function Assert(assertsAPI) {
@@ -72,11 +72,11 @@
 			var tmp;
 			view = document.createElement('div');
 			view.classList.add('testStatusView');
-			view.style.cssText = 'position:relative;min-height:24px;margin:10px 5px 10px 30px;font:17px Tahoma;overflow:hidden';
+			view.style.cssText = 'position:relative;min-height:24px;margin:10px 5px 10px 30px;font-size:18px;overflow:hidden';
 
 			tmp = document.createElement('div');
 			tmp.classList.add('name');
-			tmp.style.cssText = 'position:absolute;left:3px;width:500px;overflow:hidden;white-space:nowrap;cursor:default';
+			tmp.style.cssText = 'position:absolute;left:3px;width:500px;overflow:hidden;white-space:nowrap;cursor:default;text-overflow:ellipsis';
 			tmp.textContent = name;
 			view.appendChild(tmp);
 
@@ -184,18 +184,18 @@
 
 		tmp = document.createElement('div');
 		tmp.classList.add('header');
-		tmp.style.cssText = 'position:relative;height:26px;margin:0px 5px;border-bottom:1px solid #ccc;cursor:default';
+		tmp.style.cssText = 'position:relative;height:26px;margin:0px 5px;border-bottom:1px solid #ccc;cursor:default;font-weight:bold';
 		view.appendChild(tmp);
 
 		tmp = document.createElement('div');
 		tmp.classList.add('title');
-		tmp.style.cssText = 'position:absolute;width:340px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:default';
+		tmp.style.cssText = 'position:absolute;width:340px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:default;text-overflow:ellipsis';
 		tmp.textContent = name;
 		view.querySelector('.header').appendChild(tmp);
 
 		tmp = document.createElement('div');
 		tmp.classList.add('counters');
-		tmp.style.cssText = 'position:absolute;top:0px;left:350px;font-family:monospace;cursor:default';
+		tmp.style.cssText = 'position:absolute;top:0px;left:350px;cursor:default';
 		tmp.innerHTML = '<span class="passed" style="color:' + consts.passed + '">0</span> | <span class="failed" style="color:' + consts.failed + '">0</span> | <span class="skipped" style="color:' + consts.skipped + '">0</span> of <span class="total">0</span>';
 		view.querySelector('.header').appendChild(tmp);
 
@@ -322,13 +322,55 @@
 	}
 
 	function buildView() {
-		var tmp, startX, startY, startLeft, startTop, tmpMMH, tmpMUH;
+		var css, tmp, startX, startY, startLeft, startTop, tmpMMH, tmpMUH;
+		css = document.createElement('style');
+		css.innerHTML += '.just-test-ui {' +
+			'position:fixed;' +
+			'top:50px;' +
+			'left:350px;' +
+			'height:800px;' +
+			'width:800px;' +
+			'background-color:#000;' +
+			'color:#fff;' +
+			'opacity:.7;' +
+			'font:20px Courier;' +
+			'border-radius:5px;' +
+			'overflow:hidden;' +
+			'transition: width .2s, height .2s;' +
+			'z-index:99999;}; ';
+		css.innerHTML += '.just-test-ui .title {' +
+			'position:absolute;' +
+			'font-family:Tahoma;' +
+			'font-weight:bold;' +
+			'cursor:default;' +
+			'text-overflow:ellipsis;}; ';
+		css.innerHTML += '.just-test-ui > .header {top:3px;height:40px;left:5px;right:40px;font-size:24px;box-sizing:border-box;color:#99f;};';
+		document.body.appendChild(css);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		jtViewContainer = document.createElement('div');
-		jtViewContainer.style.cssText = 'position:fixed;top:50px;left:350px;height:800px;width:800px;background-color:#000;color:#fff;opacity:.7;border-radius:7px;overflow:hidden;transition: width .2s, height .2s;z-index:99999';
+		jtViewContainer.className = 'just-test-ui';
 
 		tmp = document.createElement('div');
 		tmp.id = 'JustTestViewTitle';
-		tmp.style.cssText = 'position:absolute;top:0px;height:40px;left:5px;right:40px;font:bold 27px Tahoma;cursor:default;box-sizing:border-box';
+		tmp.className = 'header title';
+		//tmp.style.cssText = 'position:absolute;top:3px;height:40px;left:5px;right:40px;font:bold 24px Tahoma;cursor:default;box-sizing:border-box;color:#99f';
 		tmp.textContent = 'JustTest';
 		tmp.onmousedown = function (event) {
 			tmpMMH = document.onmousemove;
@@ -357,7 +399,7 @@
 
 		tmp = document.createElement('div');
 		tmp.id = 'JustTestViewToggle';
-		tmp.style.cssText = 'position:absolute;right:9px;top:3px;font:25px monospace;cursor:default';
+		//tmp.style.cssText = 'position:absolute;right:9px;top:3px;font:25px monospace;cursor:default';
 		tmp.textContent = '\u25b2';
 		tmp.onclick = function () {
 			if (this.textContent === '\u25b2') { minimize(); } else { maximize(); }
@@ -365,13 +407,13 @@
 		jtViewContainer.appendChild(tmp);
 
 		jtViewList = document.createElement('div');
-		jtViewList.style.cssText = 'position:absolute;top:40px;bottom:32px;width:100%;border-top:3px solid #fff;overflow-x:hidden;overflow-y:scroll';
+		//jtViewList.style.cssText = 'position:absolute;top:40px;bottom:60px;width:100%;border-top:3px solid #fff;overflow-x:hidden;overflow-y:scroll';
 		jtViewContainer.appendChild(jtViewList);
 
 		tmp = document.createElement('div');
 		tmp.id = 'JustTestViewSummary';
-		tmp.style.cssText = 'position:absolute;bottom:0px;left:0px;width:100%;height:32px;padding:0px 5px;font:22px Tahoma;border-top:3px solid #fff;cursor:default;box-sizing:border-box';
-		tmp.textContent = 'Sum:';
+		//tmp.style.cssText = 'position:absolute;bottom:0px;left:0px;width:100%;height:60px;padding:0px 5px;font:22px Tahoma;border-top:3px solid #fff;cursor:default;box-sizing:border-box';
+		tmp.textContent = 'Summary';
 		jtViewContainer.appendChild(tmp);
 
 		document.body.appendChild(jtViewContainer);
