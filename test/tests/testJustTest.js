@@ -8,9 +8,6 @@
 		if (typeof window.Utils.JustTest !== 'object') fail(new Error('JustTest namespace not exists'));
 		if (typeof window.Utils.JustTest.createSuite !== 'function') fail(new Error('"createSuite" function not found'));
 		if (typeof window.Utils.JustTest.View !== 'object') fail(new Error('JustTest.View object not exists'));
-		if (typeof window.Utils.JustTest.View.maximize !== 'function') fail(new Error('JustTest.View.maximize function not exists'));
-		if (typeof window.Utils.JustTest.View.minimize !== 'function') fail(new Error('JustTest.View.minimize function not exists'));
-		if (window.Utils.JustTest.View.element.nodeName !== 'DIV') fail(new Error('JustTest.View.element object not created properly'));
 		pass();
 	});
 
@@ -25,10 +22,8 @@
 				if (typeof customNamespace.JustTest !== 'object') fail(new Error('failed to init in custom namespace'));
 				if (typeof customNamespace.JustTest.createSuite !== 'function') fail(new Error('"createSuite" function not found in custom namespace'));
 				if (typeof customNamespace.JustTest.View !== 'object') fail(new Error('JustTest.View object not exists'));
-				if (typeof customNamespace.JustTest.View.maximize !== 'function') fail(new Error('JustTest.View.maximize function not exists'));
-				if (typeof customNamespace.JustTest.View.minimize !== 'function') fail(new Error('JustTest.View.minimize function not exists'));
-				if (customNamespace.JustTest.View.element.nodeName !== 'DIV') fail(new Error('JustTest.View.element object not created properly'));
-				customNamespace.JustTest.View.element.parentNode.removeChild(customNamespace.JustTest.View.element);
+				if (typeof customNamespace.JustTest.View.ui !== 'object') fail(new Error('JustTest.View.ui object not exists'));
+				document.body.removeChild(customNamespace.JustTest.View.ui);
 				customNamespace = null;
 				pass();
 			} else { console.error(xhr.status); fail(new Error()); }
