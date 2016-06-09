@@ -10,6 +10,7 @@
   "main": "dist/just-test.js",
   "devDependencies": {
     "karma": "~0.13.0",
+    "just-test": "~0.0.1",
     "grunt": "~0.4.5",
     "grunt-cli": "~1.2.0",
     "grunt-karma": "~2.0.0",
