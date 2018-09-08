@@ -1,5 +1,5 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://badge.fury.io/js/just-test-js.svg)](https://badge.fury.io/js/just-test-js)
+[![npm version](https://badge.fury.io/js/just-test.svg)](https://badge.fury.io/js/just-test)
 [![Build Status](https://travis-ci.org/gullerya/just-test-js.svg?branch=master)](https://travis-ci.org/gullerya/just-test-js)
 
 JustTest
