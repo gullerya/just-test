@@ -7,6 +7,7 @@
     "email": "gullerya@gmail.com"
   },
   "description": "Client side JavaScript tests runner",
+  "main": "dist/just-test.min.js",
   "devDependencies": {
     "eslint": "^5.5.0",
     "eslint-plugin-node": "^7.0.1",
