@@ -1,31 +1,35 @@
 {
   "name": "just-test",
-  "version": "0.0.1",
-  "homepage": "https://github.com/gullerya/just-test-js/README.md",
+  "version": "0.1.0",
+  "homepage": "https://github.com/gullerya/just-test-js",
   "author": {
     "name": "Guller Yuri",
     "email": "gullerya@gmail.com"
   },
   "description": "Client side JavaScript tests runner",
-  "main": "dist/just-test.js",
   "devDependencies": {
-    "karma": "~0.13.0",
-    "just-test": "~0.0.1",
-    "grunt": "~0.4.5",
-    "grunt-cli": "~1.2.0",
-    "grunt-karma": "~2.0.0",
-    "grunt-contrib-jshint": "~1.0.0",
-    "grunt-contrib-uglify": "~1.0.1"
+    "eslint": "^5.5.0",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "eslint-config-standard": "^12.0.0",
+    "fs-extra": "^7.0.0",
+    "uglify-es": "^3.3.9"
   },
   "keywords": [
-    "javascript"
+    "javascript",
+    "testing",
+    "framework",
+    "test"
   ],
   "license": "MIT",
   "files": [
     "dist"
   ],
   "scripts": {
-    "test": "grunt test"
+    "eslint": "eslint -c .eslintrc.json ../src/*.js",
+    "build": ""
   },
   "repository": {
     "type": "git",
