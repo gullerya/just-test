@@ -197,7 +197,7 @@
 				view.querySelector('.header > .duration').textContent = stringifyDuration(duration);
 			}
 
-			suitePromise = new Promise((resolve, reject) => {
+			suitePromise = new Promise(resolve => {
 				let asyncFlow = Promise.resolve();
 
 				startTime = new Date();
