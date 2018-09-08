@@ -2,11 +2,13 @@ language: node_js
 node_js:
 - "8"
 
-install: true
+before_install:
+- cd build
+install:
+- npm install
 
 before_script:
 - cd build
-
 script:
 - npm run eslint
 
