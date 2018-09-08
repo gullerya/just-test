@@ -29,7 +29,7 @@
   ],
   "scripts": {
     "eslint": "eslint -c .eslintrc.json ../src/*.js",
-    "build": ""
+    "build": "node ./tools/build-dist.js"
   },
   "repository": {
     "type": "git",
