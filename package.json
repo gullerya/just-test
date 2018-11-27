@@ -6,11 +6,13 @@
     "javascript",
     "testing",
     "framework",
-    "test"
+    "test",
+    "tests",
+    "coverage"
   ],
-  "homepage": "https://github.com/gullerya/just-test-js",
+  "homepage": "https://github.com/gullerya/just-test",
   "bugs": {
-    "url": "https://github.com/gullerya/just-test-js/issues",
+    "url": "https://github.com/gullerya/just-test/issues",
     "email": "gullerya@gmail.com"
   },
   "license": "MIT",
@@ -24,13 +26,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gullerya/just-test-js"
+    "url": "https://github.com/gullerya/just-test"
   },
   "scripts": {
     "eslint": "eslint -c ./build/.eslintrc.json ./src/*.js",
     "build": "node ./build/tools/build-dist.js"
   },
   "devDependencies": {
+    "npm": "^6.4.1",
     "eslint": "^5.9.0",
     "eslint-plugin-node": "^8.0.0",
     "eslint-plugin-import": "^2.14.0",
@@ -38,6 +41,8 @@
     "eslint-plugin-standard": "^4.0.0",
     "eslint-config-standard": "^12.0.0",
     "fs-extra": "^7.0.1",
-    "uglify-es": "^3.3.9"
+    "uglify-es": "^3.3.9",
+    "puppeteer": "^1.10.0",
+    "codecov": "^3.1.0"
   }
 }
