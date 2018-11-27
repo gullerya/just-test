@@ -1,9 +1,8 @@
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://badge.fury.io/js/just-test.svg)](https://badge.fury.io/js/just-test)
-[![Build Status](https://travis-ci.org/gullerya/just-test-js.svg?branch=master)](https://travis-ci.org/gullerya/just-test-js)
+[![License GitHub](https://img.shields.io/github/license/gullerya/just-test.svg)](https://opensource.org/licenses/MIT)
+[![npm version](https://img.shields.io/npm/v/just-test.svg?logo=npm)](https://www.npmjs.com/package/just-test)
+[![Travis (.org) branch](https://img.shields.io/travis/gullerya/just-test/master.svg?logo=travis)](https://travis-ci.org/gullerya/just-test)
 
-JustTest
-========
+# Summary
 
 Test framework to run JavaScript (client) tests. Currently supports Chrome and Firefox (IE limitation due to lack of Promises support).<br/>
 The main idea behind JustTest is having the client tests available within the development process (call it TDD, if you'd like to). The framework and the tests files are to be added directly to the webapp page. Each reload/refresh of the page will run the tests.<br/>
@@ -27,8 +26,7 @@ JustTest originally developed as a small'n'smart test framework for a personal n
 	b)	No reports persisted (two features are planned to handle this: (i) API to post the results to the specified URL [formats of XML_JUnit, XML_TestNG, XML_NUnit as well as JSON_JustTest, XML_JustTest are meant to be provided out of the box, as well as API to register custom format])
 	c)	Currently tests files must be explicitly specified (either in .html or in config.js) which becomes inconvenient with dozens of files. There probably will be a server-side part supplied in a (distant :)) future to provider fully functioning test execution with Selenium-like approach.
 
-Concepts
-========
+# Concepts
 
 1) The grouping unit is Suite,<br/>
 2) Any number of suites can be created and run. Suite is a logical entity, you can have create many suites in one file and you can use one suite from different files,<br/>
@@ -38,8 +36,7 @@ Concepts
 6) Tests are actually a functions of test logic provided with two parameters: pass callback and fail callback. You can provide custom message for any of them while in case of fail it's advised to make a message as an Error (see examples),<br/>
 7) Suites are meant to be run via the JustSest API and not directly, then they'll appear in the UI and will run sequentally.<br/>
 
-Status
-======
+# Status
 
 The project under development right now. TODO list:<br/>
 1) add more tests for internal functionality, cover tests flows, sync and async,<br/>
@@ -50,8 +47,7 @@ The project under development right now. TODO list:<br/>
 6) possibly add configuration via config.js file (having tests files stated there and not in index.html),<br/>
 7) possibly add WebSocket based connectivity/API enabling remote execution/reporting.<br/>
 
-Examples
-========
+# Examples
 
 Typical usage of the JustTest would involve two steps:<br/>
 <b>(A)</b> referring to the freamework and the tests in your html page;<br/>
@@ -105,8 +101,7 @@ Typical usage of the JustTest would involve two steps:<br/>
 })();
 ```
 
-API
-===
+# API
 
 <b>Framework</b> object (default ```window.Utils.JustTest```):
 
