@@ -46,11 +46,11 @@ template.innerHTML = `
 		}
 
 		:host .counter.passed {
-			color: green;
+			color: #0d0;
 		}
 
 		:host .counter.failed {
-			color: red;
+			color: #f00;
 		}
 
 		:host .counter.skipped {

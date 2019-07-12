@@ -37,11 +37,9 @@ if (!initParams['headless'] && !document.querySelectorAll('just-test-view').leng
 }
 
 document.addEventListener('justTestSuiteFinished', suiteFinishedEvent => {
-	Object.assign(model, {
-		passed: suiteFinishedEvent.detail.passed,
-		failed: suiteFinishedEvent.detail.failed,
-		skipped: suiteFinishedEvent.detail.skipped
-	});
+	model.passed += suiteFinishedEvent.detail.passed;
+	model.failed += suiteFinishedEvent.detail.failed;
+	model.skipped += suiteFinishedEvent.detail.skipped;
 });
 
 function createSuite(options) {
