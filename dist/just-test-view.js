@@ -27,8 +27,8 @@ template.innerHTML = `
 		}
 
 		:host(.minimized) {
-			width: 180px;
-			height: 35px;
+			width: 280px;
+			height: 48px;
 		}
 
 		:host .header {

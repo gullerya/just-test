@@ -32,7 +32,9 @@ if (Object.keys(initParams).length) {
 if (!initParams['headless'] && !document.querySelectorAll('just-test-view').length) {
 	import('./just-test-view.js');
 	const justTestView = document.createElement('just-test-view');
-	//	TODO: setup classes like minifimized, position etc by init params
+	if (initParams.minimized) {
+		justTestView.classList.add('minimized');
+	}
 	document.body.appendChild(justTestView);
 }
 
