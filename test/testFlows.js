@@ -25,8 +25,14 @@ suite.addTest({ name: 'running the flow' }, test => {
 		setTimeout(() => { it5.fail('this should fail after 6s and not on timeout!'); }, 6000);
 	});
 
-	tmpSuite.addTest({}, it6 => {
-		it6.pass('this is passed');
+	tmpSuite.addTest({}, it => {
+		it.pass('this is passed');
+	});
+
+	let opToCheck = 0;
+	tmpSuite.addTest({ name: 'calling "fail" should stop test execution' }, it => {
+		it.fail('stopping the test here');
+		opToCheck = 10;
 	});
 
 	const tmpPromise = tmpSuite.run();
@@ -38,6 +44,7 @@ suite.addTest({ name: 'running the flow' }, test => {
 		if (tests[3].startTime > tests[4].startTime || tests[4].startTime > tests[5].startTime) test.fail(new Error('expected tests to start in sequence'));
 		if (tests[3].startTime + tests[3].duration > tests[4].startTime) test.fail(new Error('expected tests 3 and 4 to run in parallel'));
 		if (tests[4].startTime + tests[4].duration > tests[5].startTime) test.fail(new Error('expected tests 4 and 5 to run in parallel'));
+		if (opToCheck !== 0) test.fail('test should have failed and stopped upon "fail" call');
 		test.pass();
 	}, function () {
 		test.fail();

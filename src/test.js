@@ -26,7 +26,11 @@ export function Test(options, testCode) {
 				reject(new Error('timeout, have you forgotten to call pass/fail?'));
 			}, this.timeout);
 			this.pass = resolve;
-			this.fail = reject;
+			this.fail = error => {
+				let e = error instanceof Error ? error : new Error(error);
+				reject(e);
+				throw e;
+			};
 			try {
 				this.testCode(this);
 			} catch (e) {
