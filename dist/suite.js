@@ -4,8 +4,10 @@ let
 	suiteIDSequencer = 0;
 
 export function Suite(options) {
+	const opts = Object.assign({}, options);
+
 	this.id = suiteIDSequencer++;
-	this.name = options.name || 'nameless';
+	this.name = opts.name || 'nameless';
 	this.tests = [];
 
 	this.status = 'idle';

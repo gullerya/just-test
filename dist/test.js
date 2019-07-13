@@ -27,7 +27,7 @@ export function Test(options, testCode) {
 			}, this.timeout);
 			this.pass = resolve;
 			this.fail = error => {
-				let e = error instanceof Error ? error : new Error(error);
+				const e = error instanceof Error ? error : new Error(error);
 				reject(e);
 				throw e;
 			};
