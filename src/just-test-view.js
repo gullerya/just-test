@@ -104,6 +104,7 @@ template.innerHTML = `
 			<div class="suite-view">
 				<div class="header">
 					<span class="name" data-tie="item:name"></span>
+					<span class="duration" data-tie="item:duration"></span>
 					<span class="counter pass" data-tie="item:passed"></span>
 					<span class="counter fail" data-tie="item:failed"></span>
 					<span class="counter skip" data-tie="item:skipped"></span>

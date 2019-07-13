@@ -62,6 +62,8 @@ template.innerHTML = `
 			overflow-y: auto;
 			font-family: Courier;
 			background-color: #111;
+			cursor: text;
+			user-select: text;
 		}
 
 		:host(.errorOpen) > .error {
@@ -90,7 +92,7 @@ customElements.define('test-view', class extends HTMLElement {
 		this
 			.attachShadow({ mode: 'open' })
 			.appendChild(template.content.cloneNode(true));
-		this.addEventListener('click', () => {
+		this.shadowRoot.querySelector('.header').addEventListener('click', () => {
 			this.classList.toggle('errorOpen');
 		});
 	}

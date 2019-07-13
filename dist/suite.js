@@ -1,4 +1,4 @@
-import { Test, stringifyDuration } from './test.js';
+import { Test } from './test.js';
 
 let
 	suiteIDSequencer = 0;
@@ -39,12 +39,22 @@ export function Suite(options) {
 		});
 
 		const suitePromise = Promise.all(testPromises);
-		suitePromise.then(() => document.dispatchEvent(new CustomEvent('justTestSuiteFinished', { detail: this })));
+		suitePromise.then(() => {
+			this.end = performance.now();
+			this.duration = stringifyDuration(this.end - this.start);
+			document.dispatchEvent(new CustomEvent('justTestSuiteFinished', { detail: this }))
+		});
+
+		return suitePromise;
 	}
 }
 
-Suite.prototype.finalize = function () {
-	this.end = performance.now();
-	this.status = this.failed > 0 ? 'failed' : 'passed';
-	this.duration = stringifyDuration(this.end - this.start);
-};
+function stringifyDuration(duration) {
+	let ds = '';
+	if (typeof duration === 'number') {
+		if (duration > 99) ds = (duration / 1000).toFixed(1) + ' s' + String.fromCharCode(160);
+		else if (duration > 59900) ds = (duration / 60000).toFixed(1) + ' m' + String.fromCharCode(160);
+		else ds = duration.toFixed(1) + ' ms';
+	}
+	return ds;
+}

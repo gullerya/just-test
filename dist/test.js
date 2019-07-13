@@ -54,9 +54,3 @@ export function Test(options, testCode) {
 		this.duration = this.end - this.start;
 	}
 }
-
-export function stringifyDuration(d) {
-	if (d > 99) return (d / 1000).toFixed(1) + ' s';
-	else if (d > 59900) return (d / 60000).toFixed(1) + ' m';
-	else return d.toFixed(1) + ' ms';
-};
