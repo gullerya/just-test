@@ -34,7 +34,11 @@ template.innerHTML = `
 		}
 
 		:host > .header > .status {
-			flex-basis: 50px;
+			flex-basis: 70px;
+		}
+
+		:host(.runs) > .header > .status {
+			color: #88f;
 		}
 
 		:host(.pass) > .header > .status {
@@ -99,8 +103,8 @@ customElements.define('test-view', class extends HTMLElement {
 	set duration(duration) {
 		let ds = '';
 		if (typeof duration === 'number') {
-			if (duration > 99) ds = (duration / 1000).toFixed(1) + ' s ';
-			else if (duration > 59900) ds = (duration / 60000).toFixed(1) + ' m ';
+			if (duration > 99) ds = (duration / 1000).toFixed(1) + ' s' + String.fromCharCode(160);
+			else if (duration > 59900) ds = (duration / 60000).toFixed(1) + ' m' + String.fromCharCode(160);
 			else ds = duration.toFixed(1) + ' ms';
 		}
 		this.shadowRoot.querySelector('.duration').textContent = ds;
@@ -110,6 +114,10 @@ customElements.define('test-view', class extends HTMLElement {
 		const se = this.shadowRoot.querySelector('.status');
 		this.classList.remove('pass', 'fail', 'skip');
 		switch (status) {
+			case 'runs':
+				se.textContent = 'runs';
+				this.classList.add('runs');
+				break;
 			case 'pass':
 				se.textContent = 'pass';
 				this.classList.add('pass');

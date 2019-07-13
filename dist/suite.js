@@ -19,7 +19,7 @@ export function Suite(options) {
 
 	this.run = async function () {
 		this.start = performance.now();
-		this.status = 'running';
+		this.status = 'runs';
 		this.passed = 0;
 		this.failed = 0;
 		this.skipped = 0;

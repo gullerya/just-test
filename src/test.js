@@ -17,7 +17,7 @@ export function Test(options, testCode) {
 
 	this.run = async function () {
 		this.start = performance.now();
-		this.status = 'running';
+		this.status = 'runs';
 		this.error = null;
 		this.duration = 0;
 
