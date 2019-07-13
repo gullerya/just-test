@@ -38,6 +38,7 @@
     "data-tier-list": "^0.2.0"
   },
   "devDependencies": {
+    "npm": "^6.10.1",
     "eslint": "^6.0.1",
     "babel-eslint": "^10.0.2",
     "eslint-plugin-node": "^9.1.0",

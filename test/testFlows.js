@@ -1,32 +1,32 @@
-﻿import { createSuite } from '../../dist/just-test.js';
+﻿import { createSuite } from '../dist/just-test.js';
 
-const suite = createSuite({ title: 'Test sync/async assets' });
+const suite = createSuite({ name: 'Test sync/async assets' });
 
-suite.addTest({ title: 'running the flow' }, test => {
+suite.addTest({ name: 'running the flow' }, test => {
 	const tmpSuite = createSuite({ title: 'sub suite having tests flows' });
 	let tmpPromise;
 
-	tmpSuite.addTest({ id: 0 }, it1 => {
+	tmpSuite.addTest({}, it1 => {
 		it1.pass('this is passed');
 	});
 
-	tmpSuite.addTest({ id: 1, name: 'not timing out' }, it2 => {
+	tmpSuite.addTest({ name: 'not timing out' }, it2 => {
 		setTimeout(it2.pass, 3000);
 	});
 
-	tmpSuite.addTest({ id: 2, name: 'to be skipped', skip: true }, () => {
+	tmpSuite.addTest({ name: 'to be skipped', skip: true }, () => {
 		//	no matter what we have here
 	});
 
-	tmpSuite.addTest({ id: 3, name: 'async - success' }, it4 => {
+	tmpSuite.addTest({ name: 'async - success' }, it4 => {
 		setTimeout(() => { it4.pass('all good'); }, 7000);
 	});
 
-	tmpSuite.addTest({ id: 4, name: 'async - fail' }, it5 => {
+	tmpSuite.addTest({ name: 'async - fail' }, it5 => {
 		setTimeout(() => { it5.fail('this should fail after 6s and not on timeout!'); }, 6000);
 	});
 
-	tmpSuite.addTest({ id: 5 }, it6 => {
+	tmpSuite.addTest({}, it6 => {
 		it6.pass('this is passed');
 	});
 

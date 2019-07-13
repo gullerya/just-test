@@ -1,4 +1,4 @@
-﻿import { createSuite } from '../../dist/just-test.js';
+﻿import { createSuite } from '../dist/just-test.js';
 
 const
 	suite = createSuite({ name: 'Suite object APIs' });

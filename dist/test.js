@@ -11,14 +11,14 @@ export function Test(options, testCode) {
 	this.timeout = typeof options.timeout === 'number' ? options.timeout : DEFAULT_TEST_TIMEOUT;
 	this.testCode = testCode;
 
-	this.status = this.skip ? '-' : '';
-	this.message = '';
+	this.status = this.skip ? 'skip' : null;
+	this.error = null;
 	this.duration = null;
 
 	this.run = async function () {
 		this.start = performance.now();
-		this.status = '?';
-		this.message = '';
+		this.status = 'running';
+		this.error = null;
 		this.duration = 0;
 
 		const testPromise = new Promise((resolve, reject) => {
@@ -35,23 +35,23 @@ export function Test(options, testCode) {
 		});
 		testPromise
 			.then(
-				msg => { this.finalize('V', msg); },
+				msg => { this.finalize('pass', msg); },
 				msg => {
-					const error = msg instanceof Error ? msg.stack.replace(/[\n\r]/g, '<br>') : msg;
-					this.finalize('X', error);
+					const error = msg instanceof Error ? msg : new Error(msg);
+					this.finalize('fail', error);
 				});
 		return testPromise;
 	}
 
-	this.finalize = function (res, msg) {
+	this.finalize = function (res, error) {
 		if (this.timeoutWatcher) {
 			clearInterval(this.timeoutWatcher);
 			this.timeoutWatcher = null;
 		}
 		this.end = performance.now();
-		this.message = msg;
+		this.error = error;
 		this.status = res;
-		this.duration = stringifyDuration(this.end - this.start);
+		this.duration = this.end - this.start;
 	}
 }
 

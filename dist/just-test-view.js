@@ -1,4 +1,5 @@
 import './libs/data-tier-list/data-tier-list.min.js';
+import './test-view.js';
 
 const
 	template = document.createElement('template');
@@ -45,15 +46,15 @@ template.innerHTML = `
 			text-align: right;
 		}
 
-		:host .counter.passed {
-			color: #0d0;
+		:host .counter.pass, .status.pass {
+			color: #6f4;
 		}
 
-		:host .counter.failed {
+		:host .counter.fail, .status.fail {
 			color: #f00;
 		}
 
-		:host .counter.skipped {
+		:host .counter.skip, .status.skip {
 			color: gray;
 		}
 
@@ -61,65 +62,55 @@ template.innerHTML = `
 			flex-basis: 50px;
 		}
 
-		:host .title {
+		:host .name {
 			flex: 1;
-		}
-
-		:host .test-view {
-			margin-left: 20px;
-			font-size: 90%;
-			overflow: hidden;
-		}
-
-		:host .error {
-			height: 0px;
-			margin-left: 20px;
-			transition: height 100ms;
-			overflow-x: hidden;
-			overflow-y: auto;
-			font-family: Courier;
 		}
 
 		:host > .header {
 			flex: 0 0 36px;
 			font-size: 120%;
-			border-bottom: 1px solid #ccc;
+			color: #99f;
+			border-bottom: 2px solid #99f;
+		}
+
+		:host > .header > .scroll-spacer {
+			overflow-y: scroll;
 		}
 
 		:host > .content {
 			flex: 1;
+			overflow-x: hidden;
+			overflow-y: scroll;
+		}
+
+		:host > .content > .suite-view {
+			margin-top: 20px;
 		}
 
 		:host > .content > .suite-view > .header {
-			background-color: #1a1a1a;
+			border-bottom: 1px solid #555;
 		}
 	</style>
 
 	<div class="header">
-		<span class="title">JustTest</span>
-		<span class="counter passed" data-tie="justTestSuites:passed"></span>
-		<span class="counter failed" data-tie="justTestSuites:failed"></span>
-		<span class="counter skipped" data-tie="justTestSuites:skipped"></span>
+		<span class="name">JustTest</span>
+		<span class="counter pass" data-tie="justTestSuites:passed"></span>
+		<span class="counter fail" data-tie="justTestSuites:failed"></span>
+		<span class="counter skip" data-tie="justTestSuites:skipped"></span>
+		<span class="scroll-spacer"></span>
 	</div>
 	<div class="content">
 		<template is="data-tier-item-template" data-tie="justTestSuites:suites => items">
 			<div class="suite-view">
 				<div class="header">
-					<span class="title" data-tie="item:name"></span>
-					<span class="counter passed" data-tie="item:passed"></span>
-					<span class="counter failed" data-tie="item:failed"></span>
-					<span class="counter skipped" data-tie="item:skipped"></span>
+					<span class="name" data-tie="item:name"></span>
+					<span class="counter pass" data-tie="item:passed"></span>
+					<span class="counter fail" data-tie="item:failed"></span>
+					<span class="counter skip" data-tie="item:skipped"></span>
 				</div>
 				<div class="suite-tests">
 					<template is="data-tier-item-template" data-tie="item:tests => items">
-						<div class="test-view">
-							<div class="header">
-								<span class="title" data-tie="item:name"></span>
-								<span class="duration" data-tie="item:duration"></span>
-								<span class="status" data-tie="item:status"></span>
-							</div>
-							<div class="error" data-tie="item:message => innerHTML"></div>
-						</div>
+						<test-view data-tie="item => test, item:status => status, item:duration => duration, item:error => error"></test-view>
 					</template>
 				</div>
 			</div>

@@ -12,7 +12,10 @@
   "rules": {
     "indent": [
       2,
-      "tab"
+      "tab",
+      {
+        "SwitchCase": 1
+      }
     ],
     "no-tabs": 0,
     "semi": "off",
