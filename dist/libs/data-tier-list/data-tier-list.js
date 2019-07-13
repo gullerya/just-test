@@ -18,12 +18,15 @@ class DataTierItemTemplate extends HTMLTemplateElement {
 
 		this[ITEMS_KEY] = newItemsList;
 
-		let container = this.parentNode, ruleData,
-			fceDataSet,
-			templateItemAid,
+		const
+			container = this.parentNode,
+			fceDataSet = this.content.firstElementChild.dataset,
 			desiredListLength = newItemsList.length;
 
-		fceDataSet = this.content.firstElementChild.dataset;
+		let
+			ruleData,
+			templateItemAid;
+
 		templateItemAid = fceDataSet.dtListItemAid;
 		if (!templateItemAid) {
 			templateItemAid = new Date().getTime();
@@ -31,8 +34,8 @@ class DataTierItemTemplate extends HTMLTemplateElement {
 		}
 
 		//	adjust list elements size to the data length
-		let existingList = container.querySelectorAll('[data-dt-list-item-aid="' + templateItemAid + '"]'),
-			existingListLength = existingList.length;
+		const existingList = container.querySelectorAll('[data-dt-list-item-aid="' + templateItemAid + '"]');
+		let existingListLength = existingList.length;
 
 		//	remove extra items, if any
 		if (existingListLength > desiredListLength) {
@@ -58,12 +61,13 @@ class DataTierItemTemplate extends HTMLTemplateElement {
 	}
 
 	static insertNewContent(container, template, controllerParameters, from, to) {
-		let result = null, optimizationMap, tmpContent, tmpTemplate, index = from, i, tmp,
-			prefix = controllerParameters[0] + (controllerParameters[0].indexOf(':') < 0 ? ':' : '.'), optTmpIdx,
-			views, view;
-		tmpContent = template.content;
-		optimizationMap = DataTierItemTemplate.prepareOptimizationMap(template);
-		optTmpIdx = optimizationMap.index;
+		const
+			prefix = controllerParameters[0] + (controllerParameters[0].indexOf(':') < 0 ? ':' : '.'),
+			optimizationMap = DataTierItemTemplate.prepareOptimizationMap(template),
+			optTmpIdx = optimizationMap.index,
+			tmpContent = template.content;
+
+		let result = null, tmpTemplate, index = from, i, tmp, views, view;
 
 		for (; index < to; index++) {
 			tmpTemplate = tmpContent.cloneNode(true);
@@ -84,9 +88,10 @@ class DataTierItemTemplate extends HTMLTemplateElement {
 	//	extract and index all the data-tied elements from the template so that on each clone the pre-processing will be based on this index
 	//	we just need to know which elements (index of array-like, outcome of 'querySelectorAll(*)') are relevant
 	static prepareOptimizationMap(template) {
-		let result = {index: []},
-			views = template.content.querySelectorAll('*'),
-			i = views.length, view;
+		const
+			result = { index: [] },
+			views = template.content.querySelectorAll('*');
+		let i = views.length, view;
 		while (i--) {
 			view = views[i];
 			if (view.dataset && typeof view.dataset.tie === 'string') {
@@ -97,4 +102,6 @@ class DataTierItemTemplate extends HTMLTemplateElement {
 	}
 }
 
-customElements.define('data-tier-item-template', DataTierItemTemplate, {extends: 'template'});
+if (!customElements.get('data-tier-item-template')) {
+	customElements.define('data-tier-item-template', DataTierItemTemplate, { extends: 'template' });
+}

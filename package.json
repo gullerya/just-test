@@ -1,6 +1,6 @@
 {
   "name": "just-test",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Client side JavaScript tests runner",
   "keywords": [
     "javascript",
@@ -35,7 +35,7 @@
   "dependencies": {
     "puppeteer": "^1.18.1",
     "data-tier": "^1.7.1",
-    "data-tier-list": "^0.2.0"
+    "data-tier-list": "^0.3.0"
   },
   "devDependencies": {
     "npm": "^6.10.1",
