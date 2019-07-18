@@ -25,12 +25,9 @@ export function Test(options, testCode) {
 			this.timeoutWatcher = setTimeout(() => {
 				reject(new Error('timeout, have you forgotten to call pass/fail?'));
 			}, this.timeout);
-			this.pass = resolve;
-			this.fail = error => {
-				const e = error instanceof Error ? error : new Error(error);
-				reject(e);
-				throw e;
-			};
+
+			enrichTestApis(this, resolve, reject);
+
 			try {
 				this.testCode(this);
 			} catch (e) {
@@ -56,5 +53,28 @@ export function Test(options, testCode) {
 		this.error = error;
 		this.status = res;
 		this.duration = this.end - this.start;
+	}
+}
+
+function enrichTestApis(test, resolve, reject) {
+	test.pass = resolve;
+	test.fail = error => {
+		const e = error instanceof Error ? error : new Error(error);
+		reject(e);
+		throw e;
+	};
+	test.waitNextMicrotask = async () => new Promise(resolve => setTimeout(resolve, 0));
+	test.waitMillis = async (waitMillis) => new Promise(resolve => setTimeout(resolve, waitMillis));
+
+	//	TODO: add here optional assertions framework? Chai as a HUB?
+	test.assertEqual = (actual, expected) => {
+		if (expected !== actual) {
+			test.fail(new Error('expected: ' + expected + ', found ' + actual));
+		}
+	};
+	test.assertTrue = expression => {
+		if (expression !== true) {
+			test.fail(new Error('expression did not resolved to true'));
+		}
 	}
 }

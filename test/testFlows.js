@@ -2,27 +2,30 @@
 
 const suite = createSuite({ name: 'Test sync/async assets' });
 
-suite.addTest({ name: 'running the flow' }, test => {
+suite.addTest({ name: 'running the flow' }, async test => {
 	const tmpSuite = createSuite({ title: 'sub suite having tests flows' });
 
 	tmpSuite.addTest({}, it1 => {
 		it1.pass('this is passed');
 	});
 
-	tmpSuite.addTest({ name: 'not timing out' }, it2 => {
-		setTimeout(it2.pass, 3000);
+	tmpSuite.addTest({ name: 'not timing out' }, async it2 => {
+		await it2.waitMillis(3000);
+		it2.pass();
 	});
 
 	tmpSuite.addTest({ name: 'to be skipped', skip: true }, () => {
 		//	no matter what we have here
 	});
 
-	tmpSuite.addTest({ name: 'async - success' }, it4 => {
-		setTimeout(() => { it4.pass('all good'); }, 7000);
+	tmpSuite.addTest({ name: 'async - success' }, async it4 => {
+		await it4.waitMillis(7000);
+		it4.pass('all good');
 	});
 
-	tmpSuite.addTest({ name: 'async - fail' }, it5 => {
-		setTimeout(() => { it5.fail('this should fail after 6s and not on timeout!'); }, 6000);
+	tmpSuite.addTest({ name: 'async - fail' }, async test => {
+		await test.waitMillis(6000);
+		test.fail('this should fail after 6s and not on timeout!');
 	});
 
 	tmpSuite.addTest({}, it => {
@@ -35,20 +38,24 @@ suite.addTest({ name: 'running the flow' }, test => {
 		opToCheck = 10;
 	});
 
-	const tmpPromise = tmpSuite.run();
-
-	tmpPromise.then(() => {
-		const tests = tmpSuite.tests;
-		if (tests[1].duration < 3000) test.fail(new Error('expected test to last at least 3000ms'));
-		if (tests[2].startTime < tests[1].startTime + 3000) test.fail(new Error('expected test 2 to start after full finish of test 1'));
-		if (tests[3].startTime > tests[4].startTime || tests[4].startTime > tests[5].startTime) test.fail(new Error('expected tests to start in sequence'));
-		if (tests[3].startTime + tests[3].duration > tests[4].startTime) test.fail(new Error('expected tests 3 and 4 to run in parallel'));
-		if (tests[4].startTime + tests[4].duration > tests[5].startTime) test.fail(new Error('expected tests 4 and 5 to run in parallel'));
-		if (opToCheck !== 0) test.fail('test should have failed and stopped upon "fail" call');
-		test.pass();
-	}, function () {
-		test.fail();
+	tmpSuite.addTest({ name: 'simple throw exception in test ' }, test => {
+		throw new Error('intentional error throw');
 	});
+
+	await tmpSuite.run();
+
+	const tests = tmpSuite.tests;
+
+	test.assertTrue(tests[1].duration > 3000);
+	test.assertTrue(!tests[2].start && !tests[2].end && tests[2].duration === null);
+	test.assertEqual(tests[3].start + tests[3].duration, tests[3].end);
+	test.assertTrue(tests[3].start < tests[4].start);
+	test.assertTrue(tests[4].start < tests[5].start)
+	test.assertTrue(tests[3].end > tests[4].start);
+	test.assertTrue(tests[4].end > tests[5].start);
+	test.assertEqual(opToCheck, 0);
+
+	test.pass();
 });
 
 suite.run();
