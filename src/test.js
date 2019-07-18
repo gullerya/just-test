@@ -29,18 +29,20 @@ export function Test(options, testCode) {
 			enrichTestApis(this, resolve, reject);
 
 			try {
-				this.testCode(this);
+				const testResult = this.testCode(this);
+				if (testResult instanceof Promise) {
+					testResult.catch(reject);
+				}
 			} catch (e) {
 				reject(e);
 			}
 		});
 		testPromise
-			.then(
-				msg => { this.finalize('pass', msg); },
-				msg => {
-					const error = msg instanceof Error ? msg : new Error(msg);
-					this.finalize('fail', error);
-				});
+			.then(msg => this.finalize('pass', msg))
+			.catch(msg => {
+				const error = msg instanceof Error ? msg : new Error(msg);
+				this.finalize('fail', error);
+			});
 		return testPromise;
 	}
 

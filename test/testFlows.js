@@ -2,7 +2,7 @@
 
 const suite = createSuite({ name: 'Test sync/async assets' });
 
-suite.addTest({ name: 'running the flow' }, async test => {
+suite.addTest({ name: 'running the flow', timeout: 11000 }, async test => {
 	const tmpSuite = createSuite({ title: 'sub suite having tests flows' });
 
 	tmpSuite.addTest({}, it1 => {
@@ -39,7 +39,11 @@ suite.addTest({ name: 'running the flow' }, async test => {
 	});
 
 	tmpSuite.addTest({ name: 'simple throw exception in test ' }, test => {
-		throw new Error('intentional error throw');
+		throw new Error('intentional error throw in sync');
+	});
+
+	tmpSuite.addTest({ name: 'simple throw exception in async test ' }, async test => {
+		throw new Error('intentional error throw in async');
 	});
 
 	await tmpSuite.run();
@@ -53,6 +57,13 @@ suite.addTest({ name: 'running the flow' }, async test => {
 	test.assertTrue(tests[4].start < tests[5].start)
 	test.assertTrue(tests[3].end > tests[4].start);
 	test.assertTrue(tests[4].end > tests[5].start);
+
+	//	erroneous exists
+	test.assertEqual(tests[7].status, 'fail');
+	test.assertTrue(tests[7].duration < 3);
+	test.assertEqual(tests[8].status, 'fail');
+	test.assertTrue(tests[8].duration < 3);
+
 	test.assertEqual(opToCheck, 0);
 
 	test.pass();
