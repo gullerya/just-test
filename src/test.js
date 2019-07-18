@@ -78,5 +78,10 @@ function enrichTestApis(test, resolve, reject) {
 		if (expression !== true) {
 			test.fail(new Error('expression did not resolved to true'));
 		}
-	}
+	};
+	test.assertFalse = expression => {
+		if (expression !== false) {
+			test.fail(new Error('expression did not resolved to false'));
+		}
+	};
 }
