@@ -7,6 +7,10 @@ class DataTierItemTemplate extends HTMLTemplateElement {
 		this[ITEMS_KEY] = [];
 	}
 
+	get defaultTieTarget() {
+		return 'items';
+	}
+
 	get items() {
 		return this[ITEMS_KEY];
 	}
@@ -53,7 +57,7 @@ class DataTierItemTemplate extends HTMLTemplateElement {
 		let procParam;
 		if (paramValue) {
 			procParam = paramValue.trim().split(/\s+=>\s+/);
-			if (!procParam || procParam.length !== 2) {
+			if (!procParam || !procParam.length) {
 				throw new Error('invalid DataTier configuration');
 			}
 		}
@@ -67,7 +71,7 @@ class DataTierItemTemplate extends HTMLTemplateElement {
 			optTmpIdx = optimizationMap.index,
 			tmpContent = template.content;
 
-		let result = null, tmpTemplate, index = from, i, tmp, views, view;
+		let result = null, tmpTemplate, index = from, i, tmp, views, view, rule;
 
 		for (; index < to; index++) {
 			tmpTemplate = tmpContent.cloneNode(true);
@@ -76,8 +80,13 @@ class DataTierItemTemplate extends HTMLTemplateElement {
 			while (i--) {
 				tmp = optTmpIdx[i];
 				view = views[tmp];
-				view.dataset.tie = view.dataset.tie.replace(/item:/g, prefix + index + '.');
-				view.dataset.tie = view.dataset.tie.replace(/item\s*=/g, prefix + index + '=');
+				rule = view.dataset.tie;
+
+				rule = rule.replace(/item:/g, prefix + index + '.');
+				rule = rule.replace(/item\s*=/g, prefix + index + '=');
+				rule = rule.replace(/item(?![.a-zA-Z0-9])/g, prefix + index);
+
+				view.dataset.tie = rule;
 			}
 			index === from ? result = tmpTemplate : result.appendChild(tmpTemplate);
 		}

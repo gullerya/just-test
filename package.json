@@ -33,19 +33,19 @@
     "build": "node ./build/tools/build-dist.js"
   },
   "dependencies": {
-    "puppeteer": "^1.18.1",
-    "data-tier": "^1.7.1",
-    "data-tier-list": "^0.3.0"
+    "puppeteer": "^1.19.0",
+    "data-tier": "^1.11.0",
+    "data-tier-list": "^0.5.0"
   },
   "devDependencies": {
-    "npm": "^6.10.1",
-    "eslint": "^6.0.1",
-    "babel-eslint": "^10.0.2",
-    "eslint-plugin-node": "^9.1.0",
-    "eslint-plugin-import": "^2.18.0",
+    "npm": "^6.11.2",
+    "eslint": "^6.2.2",
+    "babel-eslint": "^10.0.3",
+    "eslint-plugin-node": "^9.2.0",
+    "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "eslint-config-standard": "^13.0.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "eslint-config-standard": "^14.1.0",
     "fs-extra": "^8.1.0",
     "uglify-es": "^3.3.9"
   }

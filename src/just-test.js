@@ -29,7 +29,7 @@ if (Object.keys(initParams).length) {
 }
 
 //	only if not explicitly required headless and not already created
-if (!initParams['headless'] && !document.querySelectorAll('just-test-view').length) {
+if (!initParams.headless && !document.querySelectorAll('just-test-view').length) {
 	import('./just-test-view.js');
 	const justTestView = document.createElement('just-test-view');
 	if (initParams.minimized) {
