@@ -7,10 +7,12 @@ export {
 
 const
 	initParams = {},
-	model = DataTier.ties.create('justTestSuites', {
+	model = DataTier.ties.create('jtModel', {
 		passed: 0,
 		failed: 0,
 		skipped: 0,
+		total: 0,
+		done: 0,
 		suites: []
 	}).model;
 
@@ -30,22 +32,18 @@ if (Object.keys(initParams).length) {
 
 //	only if not explicitly required headless and not already created
 if (!initParams.headless && !document.querySelectorAll('just-test-view').length) {
-	import('./just-test-view.js');
-	const justTestView = document.createElement('just-test-view');
-	if (initParams.minimized) {
-		justTestView.classList.add('minimized');
-	}
-	document.body.appendChild(justTestView);
+	import('./just-test-view.js')
+		.then(() => {
+			const justTestView = document.createElement('just-test-view');
+			if (initParams.minimized) {
+				justTestView.classList.add('minimized');
+			}
+			document.body.appendChild(justTestView);
+		});
 }
 
-document.addEventListener('justTestSuiteFinished', suiteFinishedEvent => {
-	model.passed += suiteFinishedEvent.detail.passed;
-	model.failed += suiteFinishedEvent.detail.failed;
-	model.skipped += suiteFinishedEvent.detail.skipped;
-});
-
 function createSuite(options) {
-	var s = new Suite(options);
+	const s = new Suite(options, model);
 	model.suites.push(s);
 	return model.suites[model.suites.length - 1];
 }

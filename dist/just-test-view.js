@@ -14,7 +14,7 @@ template.innerHTML = `
 			width: 800px;
 			height: 800px;
 			background-color: #000;
-			color: #fff;
+			color: #ccc;
 			opacity: .7;
 			font-size: 20px;
 			font-family: Tahoma;
@@ -32,75 +32,95 @@ template.innerHTML = `
 			height: 48px;
 		}
 
-		:host .header {
-			padding: 6px;
+		.header {
+			flex: 0 0 48px;
 			display: flex;
 			flex-direction: row;
 			align-items: center;
 		}
 
-		:host .counter, .status {
+		.header .name {
+			margin: 0 12px;
+		}
+
+		.header .runtime {
+			margin: 0 12px;
+			font-size: 0.75em;
+		}
+
+		.header .counter {
+			margin: 0 12px;
+		}
+
+		.counter, .status {
 			flex-basis: 70px;
 			font-family: Courier;
 			font-weight: bold;
 			text-align: right;
 		}
 
-		:host .counter.pass, .status.pass {
+		.counter.pass, .status.pass {
 			color: #6f4;
 		}
 
-		:host .counter.fail, .status.fail {
+		.counter.fail, .status.fail {
 			color: #f00;
 		}
 
-		:host .counter.skip, .status.skip {
+		.counter.skip, .status.skip {
 			color: gray;
 		}
 
-		:host .status {
+		.status {
 			flex-basis: 50px;
 		}
 
-		:host .name {
+		.name {
 			flex: 1;
 		}
 
 		:host > .header {
-			flex: 0 0 36px;
-			font-size: 120%;
-			color: #99f;
+			flex: 0 0 48px;
 			border-bottom: 2px solid #99f;
 		}
 
-		:host > .header > .scroll-spacer {
-			overflow-y: scroll;
+		:host > .header > .name {
+			font-size: 120%;
+			color: #99f;
 		}
 
-		:host > .content {
+		.scroll-spacer {
+			overflow-y: scroll;
+			visibility: hidden;
+		}
+
+		.content {
 			flex: 1;
 			overflow-x: hidden;
 			overflow-y: scroll;
 		}
 
-		:host > .content > .suite-view {
+		.content > .suite-view {
 			margin-top: 20px;
 		}
 
-		:host > .content > .suite-view > .header {
+		.content > .suite-view > .header {
 			border-bottom: 1px solid #555;
 		}
 	</style>
 
 	<div class="header">
 		<span class="name">JustTest</span>
-		<span class="counter pass" data-tie="justTestSuites:passed"></span>
-		<span class="counter fail" data-tie="justTestSuites:failed"></span>
-		<span class="counter skip" data-tie="justTestSuites:skipped"></span>
+		<span class="runtime">
+			<span data-tie="jtModel:done"></span>&#47;<span data-tie="jtModel:total"></span>
+		</span>
+		<span class="counter pass" data-tie="jtModel:passed"></span>
+		<span class="counter fail" data-tie="jtModel:failed"></span>
+		<span class="counter skip" data-tie="jtModel:skipped"></span>
 		<span class="scroll-spacer"></span>
 	</div>
 	<div class="content">
-		<template is="data-tier-item-template" data-tie="justTestSuites:suites => items">
+		<template is="data-tier-item-template" data-tie="jtModel:suites">
 			<div class="suite-view">
 				<div class="header">
 					<span class="name" data-tie="item:name"></span>
@@ -110,7 +130,7 @@ template.innerHTML = `
 					<span class="counter skip" data-tie="item:skipped"></span>
 				</div>
 				<div class="suite-tests">
-					<template is="data-tier-item-template" data-tie="item:tests => items">
+					<template is="data-tier-item-template" data-tie="item:tests">
 						<test-view data-tie="item => test, item:status => status, item:duration => duration, item:error => error"></test-view>
 					</template>
 				</div>

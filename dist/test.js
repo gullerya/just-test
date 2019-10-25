@@ -1,87 +1,102 @@
 const
-	DEFAULT_TEST_NAME = 'nameless test',
-	DEFAULT_TEST_TIMEOUT = 10000;
+	DEFAULT_TEST_OPTIONS = Object.freeze({
+		name: 'nameless',
+		skip: false,
+		timeout: 10000
+	});
 
 export function Test(options, testCode) {
 	if (typeof testCode !== 'function') {
 		throw new Error('test code MUST be a function');
 	}
-	this.name = options.name || DEFAULT_TEST_NAME;
-	this.skip = Boolean(options.skip);
-	this.timeout = typeof options.timeout === 'number' ? options.timeout : DEFAULT_TEST_TIMEOUT;
-	this.testCode = testCode;
-
-	this.status = this.skip ? 'skip' : null;
+	const opts = Object.assign({}, DEFAULT_TEST_OPTIONS, typeof options === 'string'
+		? { name: options }
+		: options);
+	this.name = opts.name;
+	this.skip = opts.skip;
 	this.error = null;
 	this.duration = null;
+	this.testCode = testCode;
 
-	this.run = async function () {
-		this.start = performance.now();
-		this.status = 'runs';
-		this.error = null;
-		this.duration = 0;
+	//	if skip - finilize it quickly
+	if (this.skip) {
+		this.status = 'skip';
+		this.whenDone = Promise.resolve();
+		return;
+	}
 
-		const testPromise = new Promise((resolve, reject) => {
-			this.timeoutWatcher = setTimeout(() => {
-				reject(new Error('timeout, have you forgotten to call pass/fail?'));
-			}, this.timeout);
+	this.whenDone = new Promise(resolve => {
+		//	setup timeout watcher
+		this.timeoutWatcher = setTimeout(() => {
+			const timeoutError = new Error('timeout, have you forgotten to set custom timeout?');
+			this.finalize('fail', timeoutError);
+			resolve();
+		}, opts.timeout);
 
-			enrichTestApis(this, resolve, reject);
-
-			try {
-				const testResult = this.testCode(this);
-				if (testResult instanceof Promise) {
-					testResult.catch(reject);
+		//	running the test code requires:
+		//	- get synchronous result	= test PASSED unless explisitly false returned, which means test FAILED
+		//	- catch synchronous error	= test FAILED
+		//	- get asynchronous resolve	= test PASSED
+		//	- catch asynchronous reject	= test FAILED
+		try {
+			this.status = 'runs';
+			this.start = performance.now();
+			const testResult = this.testCode(this);
+			if (testResult instanceof Promise) {
+				testResult
+					.then(result => {
+						if (result === false) {
+							this.finalize('fail', 'test returned false');
+							resolve();
+						} else {
+							this.finalize('pass');
+							resolve();
+						}
+					})
+					.catch(e => {
+						this.finalize('fail', e);
+						resolve();
+					});
+			} else {
+				if (testResult === false) {
+					this.finalize('fail', 'test returned false');
+					resolve();
+				} else {
+					this.finalize('pass');
+					resolve();
 				}
-			} catch (e) {
-				reject(e);
 			}
-		});
-		testPromise
-			.then(msg => this.finalize('pass', msg))
-			.catch(msg => {
-				const error = msg instanceof Error ? msg : new Error(msg);
-				this.finalize('fail', error);
-			});
-		return testPromise;
-	}
-
-	this.finalize = function (res, error) {
-		if (this.timeoutWatcher) {
-			clearInterval(this.timeoutWatcher);
-			this.timeoutWatcher = null;
+		} catch (e) {
+			this.finalize('fail', e);
+			resolve();
 		}
-		this.end = performance.now();
-		this.error = error;
-		this.status = res;
-		this.duration = this.end - this.start;
-	}
+	});
 }
 
-function enrichTestApis(test, resolve, reject) {
-	test.pass = resolve;
-	test.fail = error => {
-		const e = error instanceof Error ? error : new Error(error);
-		reject(e);
-		throw e;
-	};
-	test.waitNextMicrotask = async () => new Promise(resolve => setTimeout(resolve, 0));
-	test.waitMillis = async (waitMillis) => new Promise(resolve => setTimeout(resolve, waitMillis));
+Test.prototype.finalize = function (status, error) {
+	this.duration = performance.now() - this.start;
+	if (this.timeoutWatcher) {
+		clearInterval(this.timeoutWatcher);
+		this.timeoutWatcher = null;
+	}
+	this.status = status;
+	this.error = error;
+};
 
-	//	TODO: add here optional assertions framework? Chai as a HUB?
-	test.assertEqual = (actual, expected) => {
-		if (expected !== actual) {
-			test.fail(new Error('expected: ' + expected + ', found ' + actual));
-		}
-	};
-	test.assertTrue = expression => {
-		if (expression !== true) {
-			test.fail(new Error('expression did not resolved to true'));
-		}
-	};
-	test.assertFalse = expression => {
-		if (expression !== false) {
-			test.fail(new Error('expression did not resolved to false'));
-		}
-	};
-}
+Test.prototype.waitNextMicrotask = async () => new Promise(resolve => setTimeout(resolve, 0));
+Test.prototype.waitMillis = async (waitMillis) => new Promise(resolve => setTimeout(resolve, waitMillis));
+Test.prototype.assertEqual = (actual, expected) => {
+	if (expected !== actual) {
+		throw new Error('expected: ' + expected + ', found: ' + actual);
+	}
+};
+Test.prototype.assertFalse = expression => {
+	if (expression !== false) {
+		throw new Error('expected: false, found: ' + expression);
+	}
+};
+Test.prototype.assertTrue = expression => {
+	if (expression !== true) {
+		throw new Error('expected: true, found: ' + expression);
+	}
+};

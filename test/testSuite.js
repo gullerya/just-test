@@ -3,31 +3,16 @@
 const
 	suite = createSuite({ name: 'Suite object APIs' });
 
-suite.addTest({ name: 'Suite object created (no options)' }, test => {
+suite.runTest('Suite object created (no options)', test => {
 	const tmpSuite = createSuite();
 
 	test.assertTrue(Boolean(tmpSuite));
 	test.assertEqual(tmpSuite.name, 'nameless');
-	test.assertEqual(typeof tmpSuite.addTest, 'function');
-	test.assertEqual(typeof tmpSuite.run, 'function');
-	//if (!tmpSuite) test.fail(new Error('failed to create suite object'));
-	//if (tmpSuite.name !== 'nameless') test.fail(new Error('name expected to be equal "nameless" when not explicitly stated'));
-	//if (typeof tmpSuite.addTest !== 'function') test.fail(new Error('addTest function not found'));
-	//if (typeof tmpSuite.run !== 'function') test.fail(new Error('run function not found'));
-	test.pass();
+	test.assertEqual(typeof tmpSuite.runTest, 'function');
 });
 
-suite.addTest({ name: 'Suite object created (with options)' }, test => {
+suite.runTest('Suite object created (with options)', test => {
 	const tmpSuite = createSuite({ name: 'name' });
 
 	test.assertEqual(tmpSuite.name, 'name');
-
-	//if (tmpSuite.name !== 'name') test.fail(new Error('name expected to be equal "name"'));
-	test.pass();
 });
-
-//	TODO: add tests for the suite run, timings result
-
-//	TODO: add tests for different compositions of sync/async tests
-
-suite.run();

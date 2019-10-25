@@ -2,51 +2,59 @@
 
 const suite = createSuite({ name: 'Test sync/async assets' });
 
-suite.addTest({ name: 'running the flow', timeout: 11000 }, async test => {
+suite.runTest({ name: 'running the flow', timeout: 11000 }, async test => {
 	const tmpSuite = createSuite({ title: 'sub suite having tests flows' });
 
-	tmpSuite.addTest({}, it1 => {
-		it1.pass('this is passed');
+	//	sync tests
+	//
+	tmpSuite.runTest('sync - pass', () => { });
+
+	tmpSuite.runTest({ name: 'sync - skip', skip: true }, () => { });
+
+	tmpSuite.runTest('sync - fail by false', () => {
+		return false;
 	});
 
-	tmpSuite.addTest({ name: 'not timing out' }, async it2 => {
-		await it2.waitMillis(3000);
-		it2.pass();
+	tmpSuite.runTest('sync - fail by Error', () => {
+		throw new Error('some error');
 	});
 
-	tmpSuite.addTest({ name: 'to be skipped', skip: true }, () => {
-		//	no matter what we have here
+	tmpSuite.runTest('sync - fail by Error from assert', t => {
+		t.assertEqual('this is', 'wrong');
 	});
 
-	tmpSuite.addTest({ name: 'async - success' }, async it4 => {
-		await it4.waitMillis(7000);
-		it4.pass('all good');
+	//	async
+	//
+	tmpSuite.runTest({ name: 'async - pass' }, async t => {
+		await t.waitMillis(3000);
 	});
 
-	tmpSuite.addTest({ name: 'async - fail' }, async test => {
-		await test.waitMillis(6000);
-		test.fail('this should fail after 6s and not on timeout!');
+	tmpSuite.runTest({ name: 'async - skip so no effect of async', skip: true }, async t => {
+		await t.waitMillis(3000);
 	});
 
-	tmpSuite.addTest({}, it => {
-		it.pass('this is passed');
+	tmpSuite.runTest('async - fail by false', async t => {
+		await t.waitMillis(6000);
+		return false;
+	});
+
+	tmpSuite.runTest('async - fail by Error', async t => {
+		await t.waitMillis(6000);
+		throw new Error('fail by error');
+	});
+
+	tmpSuite.runTest('async - fail by Error from assert', async t => {
+		await t.waitMillis(6000);
+		t.assertTrue(false);
 	});
 
 	let opToCheck = 0;
-	tmpSuite.addTest({ name: 'calling "fail" should stop test execution' }, it => {
-		it.fail('stopping the test here');
+	tmpSuite.runTest('failing assert should stop test execution', t => {
+		t.assertTrue(false);
 		opToCheck = 10;
 	});
 
-	tmpSuite.addTest({ name: 'simple throw exception in test ' }, test => {
-		throw new Error('intentional error throw in sync');
-	});
-
-	tmpSuite.addTest({ name: 'simple throw exception in async test ' }, async test => {
-		throw new Error('intentional error throw in async');
-	});
-
-	await tmpSuite.run();
+	await tmpSuite.done();
 
 	const tests = tmpSuite.tests;
 
@@ -65,8 +73,4 @@ suite.addTest({ name: 'running the flow', timeout: 11000 }, async test => {
 	test.assertTrue(tests[8].duration < 3);
 
 	test.assertEqual(opToCheck, 0);
-
-	test.pass();
 });
-
-suite.run();

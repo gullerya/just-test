@@ -1,54 +1,65 @@
 import { Test } from './test.js';
 
+const
+	DEFAULT_SUITE_OPTIONS = Object.freeze({
+		name: 'nameless'
+	});
+
 let
 	suiteIDSequencer = 0;
 
-export function Suite(options) {
-	const opts = Object.assign({}, options);
+export function Suite(options, jtModel) {
+	const opts = Object.assign({}, DEFAULT_SUITE_OPTIONS, options);
 
 	this.id = suiteIDSequencer++;
-	this.name = opts.name || 'nameless';
+	this.name = opts.name;
 	this.tests = [];
 
 	this.status = 'idle';
 	this.passed = 0;
 	this.failed = 0;
 	this.skipped = 0;
+	this.started = null;
+	this.duration = null;
 
-	this.addTest = function (options, testCode) {
-		this.tests.push(new Test(options, testCode));
+	this.runTest = function (testParams, testCode) {
+		if (!testParams || (typeof testParams !== 'string' && typeof testParams !== 'object')) {
+			throw new Error('test parameters MUST be a non empty string or an object; got ' + testParams);
+		}
+		if (typeof testCode !== 'function') {
+			throw new Error('test code MUST be a function; got ' + testCode);
+		}
+
+		const test = new Test(testParams, testCode);
+		this.tests.push(test);
+		test.whenDone
+			.finally(() => {
+				switch (test.status) {
+					case 'pass':
+						this.passed++;
+						jtModel.passed++;
+						break;
+					case 'fail':
+						this.failed++;
+						jtModel.failed++;
+						break;
+					case 'skip':
+						this.skipped++;
+						jtModel.skipped++;
+						break;
+					default:
+						break;
+				}
+				this.duration = stringifyDuration(performance.now() - this.started);
+				jtModel.done++;
+			});
+
+		if (!this.started) {
+			this.started = performance.now();
+		}
+
+		jtModel.total++;
 	};
-
-	this.run = async function () {
-		this.start = performance.now();
-		this.status = 'runs';
-		this.passed = 0;
-		this.failed = 0;
-		this.skipped = 0;
-		this.duration = 0;
-
-		const testPromises = [];
-		this.tests.forEach(test => {
-			if (!test.skip) {
-				testPromises.push(new Promise(resolve =>
-					test.run()
-						.then(() => { this.passed++; resolve(); })
-						.catch(() => { this.failed++; resolve(); }))
-				);
-			} else {
-				this.skipped++;
-			}
-		});
-
-		const suitePromise = Promise.all(testPromises);
-		suitePromise.then(() => {
-			this.end = performance.now();
-			this.duration = stringifyDuration(this.end - this.start);
-			document.dispatchEvent(new CustomEvent('justTestSuiteFinished', { detail: this }))
-		});
-
-		return suitePromise;
-	}
 }
 
 function stringifyDuration(duration) {
