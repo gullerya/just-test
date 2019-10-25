@@ -53,24 +53,4 @@ suite.runTest({ name: 'running the flow', timeout: 11000 }, async test => {
 		t.assertTrue(false);
 		opToCheck = 10;
 	});
-
-	await tmpSuite.done();
-
-	const tests = tmpSuite.tests;
-
-	test.assertTrue(tests[1].duration > 3000);
-	test.assertTrue(!tests[2].start && !tests[2].end && tests[2].duration === null);
-	test.assertEqual(tests[3].start + tests[3].duration, tests[3].end);
-	test.assertTrue(tests[3].start < tests[4].start);
-	test.assertTrue(tests[4].start < tests[5].start)
-	test.assertTrue(tests[3].end > tests[4].start);
-	test.assertTrue(tests[4].end > tests[5].start);
-
-	//	erroneous exists
-	test.assertEqual(tests[7].status, 'fail');
-	test.assertTrue(tests[7].duration < 3);
-	test.assertEqual(tests[8].status, 'fail');
-	test.assertTrue(tests[8].duration < 3);
-
-	test.assertEqual(opToCheck, 0);
 });

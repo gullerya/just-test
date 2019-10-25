@@ -28,7 +28,7 @@ template.innerHTML = `
 		}
 
 		:host(.minimized) {
-			width: 280px;
+			width: 420px;
 			height: 48px;
 		}
 
@@ -50,6 +50,7 @@ template.innerHTML = `
 
 		.header .counter {
 			margin: 0 12px;
+			font-size: 1.25em;
 		}
 
 		.counter, .status {

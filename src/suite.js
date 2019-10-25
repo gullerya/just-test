@@ -15,7 +15,6 @@ export function Suite(options, jtModel) {
 	this.name = opts.name;
 	this.tests = [];
 
-	this.status = 'idle';
 	this.passed = 0;
 	this.failed = 0;
 	this.skipped = 0;
