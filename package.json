@@ -30,7 +30,8 @@
   },
   "scripts": {
     "eslint": "eslint -c ./build/.eslintrc.json ./src/*.js",
-    "build": "node ./build/tools/build-dist.js"
+    "build": "node ./build/tools/build-dist.js",
+    "test": "node ./dist/tests-runner/run-tests.js"
   },
   "dependencies": {
     "puppeteer": "^2.0.0",

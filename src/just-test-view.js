@@ -113,7 +113,7 @@ template.innerHTML = `
 	<div class="header">
 		<span class="name">JustTest</span>
 		<span class="runtime">
-			<span data-tie="jtModel:done"></span>&#47;<span data-tie="jtModel:total"></span>
+			<span class="done" data-tie="jtModel:done"></span>&#47;<span class="total" data-tie="jtModel:total"></span>
 		</span>
 		<span class="counter pass" data-tie="jtModel:passed"></span>
 		<span class="counter fail" data-tie="jtModel:failed"></span>
@@ -148,5 +148,17 @@ customElements.define('just-test-view', class extends HTMLElement {
 			.appendChild(template.content.cloneNode(true));
 
 		this.shadowRoot.querySelector('.header').addEventListener('click', () => this.classList.toggle('minimized'));
+
+		const wi = setInterval(() => {
+			const done = this.shadowRoot.querySelector('.header .runtime .done').textContent;
+			const total = this.shadowRoot.querySelector('.header .runtime .total').textContent;
+			if (done === total) {
+				clearInterval(wi);
+				this.done = true;
+				this.passed = parseInt(this.shadowRoot.querySelector('.header > .counter.pass').textContent);
+				this.failed = parseInt(this.shadowRoot.querySelector('.header > .counter.fail').textContent);
+				this.skipped = parseInt(this.shadowRoot.querySelector('.header > .counter.skip').textContent);
+			}
+		}, 200);
 	}
 });
