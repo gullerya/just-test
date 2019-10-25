@@ -47,7 +47,7 @@ export function Test(options, testCode) {
 					testResult
 						.then(result => {
 							if (result === false) {
-								this.finalize('fail', 'test returned false');
+								this.finalize('fail', 'explicit false returned');
 								resolve();
 							} else {
 								this.finalize('pass');
@@ -60,7 +60,7 @@ export function Test(options, testCode) {
 						});
 				} else {
 					if (testResult === false) {
-						this.finalize('fail', 'test returned false');
+						this.finalize('fail', 'explicit false returned');
 						resolve();
 					} else {
 						this.finalize('pass');

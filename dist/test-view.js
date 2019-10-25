@@ -139,20 +139,24 @@ customElements.define('test-view', class extends HTMLElement {
 
 	set error(error) {
 		this.shadowRoot.querySelector('.error').innerHTML = '';
-		if (error && error instanceof Error) {
-			const
-				lines = error.stack.split(/[\r\n]/),
-				df = new DocumentFragment();
-			lines
-				.filter(l => l.length)
-				.map(l => {
-					const le = document.createElement('div');
-					le.classList.add('error-line');
-					le.textContent = l;
-					return le;
-				})
-				.forEach(le => df.appendChild(le));
-			this.shadowRoot.querySelector('.error').appendChild(df);
+		if (error) {
+			if (error instanceof Error) {
+				const
+					lines = error.stack.split(/[\r\n]/),
+					df = new DocumentFragment();
+				lines
+					.filter(l => l.length)
+					.map(l => {
+						const le = document.createElement('div');
+						le.classList.add('error-line');
+						le.textContent = l;
+						return le;
+					})
+					.forEach(le => df.appendChild(le));
+				this.shadowRoot.querySelector('.error').appendChild(df);
+			} else {
+				this.shadowRoot.querySelector('.error').textContent = error;
+			}
 		}
 	}
 });
