@@ -32,9 +32,10 @@ export function Suite(options, jtModel) {
 
 		const test = new Test(testParams, testCode);
 		this.tests.push(test);
-		test.whenDone
+		const tiedTest = this.tests[this.tests.length - 1];
+		tiedTest.run()
 			.finally(() => {
-				switch (test.status) {
+				switch (tiedTest.status) {
 					case 'pass':
 						this.passed++;
 						jtModel.passed++;
