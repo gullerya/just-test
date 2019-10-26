@@ -23,8 +23,7 @@ async function report(page, conf) {
 	console.info(model.skipped.toString().padStart(7) + ' skipped');
 
 	const statusPass = model.failed <= conf.maxFail && model.skipped <= conf.maxSkip;
-
-	return {
+	const result = {
 		passed: model.passed,
 		failed: model.failed,
 		skipped: model.skipped,
@@ -32,7 +31,9 @@ async function report(page, conf) {
 		statusText: statusPass
 			? 'SUCCESS' + (model.failed || model.skipped ? ' (with allowed no. of fails/skips)' : '')
 			: 'FAILURE'
-	};
+	}
+
+	return result;
 }
 
 async function waitTestsToFinish(page, ttl) {
