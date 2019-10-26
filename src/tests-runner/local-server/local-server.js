@@ -18,7 +18,7 @@ module.exports = {
 	stop: stop
 };
 
-function launch(port) {
+function launch(port, resourcesFolder) {
 	console.info('JustTest: starting local server on port ' + port + '...');
 	server = http.createServer((request, response) => {
 
@@ -26,7 +26,7 @@ function launch(port) {
 			extension = path.extname(filePath),
 			contentType = extMap[extension] ? extMap[extension] : 'text/plain';
 
-		fs.readFile(path.join(__dirname, '..', '..', filePath), (error, content) => {
+		fs.readFile(path.resolve(resourcesFolder, filePath), (error, content) => {
 			if (!error) {
 				response.writeHead(200, { 'Content-Type': contentType });
 				response.end(content, 'utf-8');
