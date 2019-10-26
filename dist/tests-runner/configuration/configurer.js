@@ -28,7 +28,7 @@ apargs.forEach(arg => {
 const configLocation = args['--config'];
 if (!configLocation) {
 	console.error('Error: missing or invalid argument "--config" (example: --config=/path/to/config.json)');
-	process.exit(-1);
+	process.exit(1);
 }
 
 console.info(os.EOL);
@@ -44,7 +44,7 @@ try {
 	rawConfiguration = fs.readFileSync(configLocation, { encoding: 'utf8' });
 } catch (e) {
 	console.error('Error: failed to READ configuration', e);
-	process.exit(-1);
+	process.exit(1);
 }
 
 //	parse configuration and merge with defaults
@@ -53,7 +53,7 @@ try {
 	configuration = JSON.parse(rawConfiguration);
 } catch (e) {
 	console.error('Error: failed to PARSE configuration', e);
-	process.exit(-1);
+	process.exit(1);
 }
 buildEffectiveConfiguration(configuration);
 
@@ -84,7 +84,7 @@ function validateEffectiveConf() {
 		validateReportsFolder(effectiveConf.reports);
 	} catch (e) {
 		console.error('Error: invalid configuration', e);
-		process.exit(-1);
+		process.exit(1);
 	}
 }
 

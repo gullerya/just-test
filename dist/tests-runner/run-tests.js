@@ -1,118 +1,69 @@
 const
 	os = require('os'),
+	util = require('util'),
 	{ performance } = require('perf_hooks'),
 	puppeteer = require('puppeteer'),
-	autServer = require('./aut-server'),
-	coverageToLcov = require('./coverage-to-lcov'),
-	fsExtra = require('fs-extra');
+	configurer = require('./configuration/configurer'),
+	localServer = require('./local-server/local-server'),
+	coverager = require('./coverage/coverager');
 
 let
-	port = 3000,
 	testResults = {};
 
+//	configuration
+const conf = configurer.configuration;
+
+//	main flow runs here, IIF used allow async/await
 (async () => {
-	fsExtra.emptyDirSync(__dirname + '/../../reports');
+	const
+		autServerUrl = conf.server.local
+			? localServer.launch(conf.server.port)
+			: conf.server.remoteUrl,
+		testsUrl = autServerUrl + conf.tests.url;
 
-	autServer.launchServer(port);
+	//	browser
+	console.info('JustTest: tests (AUT) URL resolved to "' + testsUrl + '", launching browsing env...');
+	const browser = await puppeteer.launch(), browserDetails = await browser.userAgent();
+	console.info('JustTest: ... browsing env launched; details (taken by "userAgent") as following');
+	console.info(util.inspect(browserDetails, false, null, true));
 
-	const browser = await puppeteer.launch();
-
+	//	page in general
 	const page = await browser.newPage();
 
-	await page.coverage.startJSCoverage();
+	//	coverage
+	if (!conf.coverage.skip) {
+		await coverager.start(page);
+		console.info('JustTest: JS coverager started');
+	}
 
-	//	open the page
-	await page.goto('http://localhost:' + port + '/tests/test.html');
+	//	navigate to tests - this is where the tests are starting to run
+	console.info(os.EOL);
+	console.info('JustTest: navigating to tests (AUT) URL...');
+	await page.goto(testsUrl);
+	console.info('JustTest: ... tests (AUT) page opened, we are in bussiness :)');
 
-	//	wait till all of the tests settled (no running classes), TODO: configurable timeout
-	await waitTestsToFinish(page, 0);
+	//	wait till all of the tests settled (no running classes)
+	await waitTestsToFinish(page);
 
 	//	analyze test results, create report
 	await processTestResults(page);
 
-	//	analyze coverage, create report
-	const
-		jsCoverage = await page.coverage.stopJSCoverage(),
-		coverageData = {
-			tests: [{
-				testName: 'anonymous.anonymous',
-				coverage: {
-					files: []
-				}
-			}]
-		};
-	for (const entry of jsCoverage) {
-		//	here should come sources filter
-
-		let fileCoverage = {
-			path: entry.url.replace('http://localhost:' + port, ''),
-			lines: {},
-			ranges: []
-		};
-
-		//	existing ranges are a COVERED sections
-		//	ranges' in-between parts are a NON-COVERED sections
-		let positionInCode = 0,
-			currentLine = 1;
-		entry.ranges.forEach(range => {
-			fileCoverage.ranges.push(range);
-
-			//	handle missed section
-			if (range.start > positionInCode) {
-				let missedCode = entry.text.substring(positionInCode, range.start);
-				if (missedCode.indexOf(os.EOL) >= 0) {
-					let missedLines = missedCode.split(os.EOL);
-					missedLines.forEach(line => {
-						if (!/^\s*$/.test(line) && (!fileCoverage.lines[currentLine] || !fileCoverage.lines[currentLine].hits)) {
-							fileCoverage.lines[currentLine] = { hits: 0 };
-						}
-						currentLine++;
-					});
-					currentLine--;
-				} else {
-					if (!fileCoverage.lines[currentLine] && !/^\s*$/.test(missedCode)) {
-						fileCoverage.lines[currentLine] = { hits: 0 };
-					}
-				}
-			}
-
-			//	handle covered section
-			let hitCode = entry.text.substring(range.start, range.end);
-			if (hitCode.indexOf(os.EOL) >= 0) {
-				let hitLines = hitCode.split(os.EOL);
-				if (hitLines[0] === '') {
-					hitLines.shift();
-					currentLine++;
-				}
-				hitLines.forEach(line => {
-					if (!/^\s*$/.test(line)) {
-						fileCoverage.lines[currentLine] = { hits: 1 };
-					}
-					currentLine++;
-				});
-				currentLine--;
-			} else {
-				fileCoverage.lines[currentLine].hits++;
-			}
-
-			positionInCode = range.end;
-		});
-		coverageData.tests[0].coverage.files.push(fileCoverage);
+	//	process coverage, create report
+	if (!conf.coverage.skip) {
+		await coverager.report(page, conf.coverage, conf.reportsFolder, autServerUrl);
 	}
-	let lcovReport = coverageToLcov.convert(coverageData);
-	fsExtra.outputFileSync(__dirname + '/../reports/coverage.lcov', lcovReport);
-
-	await browser.close();
 })()
 	.then(() => {
-		autServer.closeServer();
 		console.info('test suite/s DONE');
 		process.exit(testResults.failed ? 1 : 0);
 	})
 	.catch(error => {
-		autServer.closeServer();
 		console.error('test suite/s run DONE (with error)', error);
 		process.exit(1);
+	})
+	.finally(() => {
+		browser.close();
+		localServer.stop();
 	});
 
 async function waitTestsToFinish(page) {
