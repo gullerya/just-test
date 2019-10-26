@@ -39,10 +39,12 @@ const conf = configurer.configuration;
 	})
 
 	//	coverage
+	console.info(os.EOL);
 	if (!conf.coverage.skip) {
 		await coverager.start(page);
-		console.info(os.EOL);
 		console.info('JustTest: JS coverager started');
+	} else {
+		console.info('JustTest: skipping JS coverage as per configuration');
 	}
 
 	//	navigate to tests - this is where the tests are starting to run
@@ -59,18 +61,18 @@ const conf = configurer.configuration;
 
 	//	process coverage, create report
 	if (!conf.coverage.skip) {
-		await coverager.report(page, conf.coverage, path.resolve(conf.reportsFolder, conf.coverage.reportFilename), autServerUrl);
+		await coverager.report(page, conf.coverage, path.resolve(conf.reports.folder, conf.coverage.reportFilename), autServerUrl);
 	}
 })()
 	.then(async () => {
 		console.info(os.EOL);
-		console.info('JustTest: tests run finished normally');
+		console.info('JustTest: tests execution finished normally');
 		await finalizeRun();
 		process.exit(passed ? 0 : 1);
 	})
 	.catch(async error => {
 		console.info(os.EOL);
-		console.error('JustTest: tests run finished erroneously', error);
+		console.error('JustTest: tests execution finished erroneously', error);
 		await finalizeRun();
 		process.exit(1);
 	});

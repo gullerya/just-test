@@ -1,4 +1,5 @@
 const
+	os = require('os'),
 	fsExtra = require('fs-extra'),
 	coverageToLcov = require('./coverage-to-lcov');
 
@@ -23,15 +24,17 @@ async function report(nativePage, covConf, reportPath, serverUrl) {
 			}]
 		};
 	for (const entry of jsCoverage) {
-		if (!sourceRelevant()) {
+		if (entry.url.endsWith('.min.js')) {
 			continue;
 		}
 
-		let fileCoverage = {
+		const fileCoverage = {
 			path: entry.url.replace(serverUrl, ''),
 			lines: {},
 			ranges: []
 		};
+
+		console.info('JustTest [coverager]: processing "' + fileCoverage.path + '"');
 
 		//	existing ranges are a COVERED sections
 		//	ranges' in-between parts are a NON-COVERED sections
@@ -42,9 +45,9 @@ async function report(nativePage, covConf, reportPath, serverUrl) {
 
 			//	handle missed section
 			if (range.start > positionInCode) {
-				let missedCode = entry.text.substring(positionInCode, range.start);
+				const missedCode = entry.text.substring(positionInCode, range.start);
 				if (missedCode.indexOf(os.EOL) >= 0) {
-					let missedLines = missedCode.split(os.EOL);
+					const missedLines = missedCode.split(os.EOL);
 					missedLines.forEach(line => {
 						if (!/^\s*$/.test(line) && (!fileCoverage.lines[currentLine] || !fileCoverage.lines[currentLine].hits)) {
 							fileCoverage.lines[currentLine] = { hits: 0 };
@@ -60,9 +63,9 @@ async function report(nativePage, covConf, reportPath, serverUrl) {
 			}
 
 			//	handle covered section
-			let hitCode = entry.text.substring(range.start, range.end);
+			const hitCode = entry.text.substring(range.start, range.end);
 			if (hitCode.indexOf(os.EOL) >= 0) {
-				let hitLines = hitCode.split(os.EOL);
+				const hitLines = hitCode.split(os.EOL);
 				if (hitLines[0] === '') {
 					hitLines.shift();
 					currentLine++;
@@ -84,16 +87,18 @@ async function report(nativePage, covConf, reportPath, serverUrl) {
 	}
 
 	//	produce report
-	writeReport(covData, reportPath, covConf.format);
+	writeReport(covData, covConf, reportPath);
 }
 
-function writeReport(covData, reportPath, format) {
-	switch (format) {
+function writeReport(data, conf, reportPath) {
+	let report;
+	switch (conf.format) {
 		case 'lcov':
-			const lcov = coverageToLcov.convert(covData);
-			fsExtra.outputFileSync(reportPath, lcov);
+			report = coverageToLcov.convert(data);
 			break;
 		default:
-			console.error('JustTest: invalid coverage format "' + covConf.format + '" required');
+			console.error('JustTest: invalid coverage format "' + conf.format + '" required');
+			return;
 	}
+	fsExtra.outputFileSync(reportPath, report);
 }
