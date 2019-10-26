@@ -127,9 +127,11 @@ function validateCoverageConf(cc) {
 	if (!cc) {
 		throw new Error('"coverage" configuration part is missing');
 	}
+
 	if (cc.skip) {
 		return;
 	}
+
 	if (!coverageFormats.includes(cc.format)) {
 		throw new Error('"coverage" configuration has invalid "format": ' + cc.format + '; supported formats are: ' + coverageFormats);
 	}

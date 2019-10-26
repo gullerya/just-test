@@ -31,7 +31,7 @@
   "scripts": {
     "eslint": "eslint -c ./build/.eslintrc.json --ignore-path ./build/.eslintignore ./src/**/*.js",
     "build": "node ./build/tools/build-dist.js",
-    "test": "node ./dist/tests-runner/run-tests.js"
+    "test": "node ./dist/tests-runner/run-tests.js --config=./tests/runner-config.json"
   },
   "dependencies": {
     "puppeteer": "^2.0.0",

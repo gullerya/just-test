@@ -13,6 +13,9 @@ async function start(nativePage) {
 }
 
 async function report(nativePage, covConf, reportPath, serverUrl) {
+	console.info(os.EOL);
+	console.info('JustTest [coverager]: processing coverage data...');
+
 	const
 		jsCoverage = await nativePage.coverage.stopJSCoverage(),
 		covData = {
@@ -88,6 +91,8 @@ async function report(nativePage, covConf, reportPath, serverUrl) {
 
 	//	produce report
 	writeReport(covData, covConf, reportPath);
+
+	console.info('JustTest [coverager]: ... done');
 }
 
 function writeReport(data, conf, reportPath) {
@@ -97,7 +102,7 @@ function writeReport(data, conf, reportPath) {
 			report = coverageToLcov.convert(data);
 			break;
 		default:
-			console.error('JustTest: invalid coverage format "' + conf.format + '" required');
+			console.error('JustTest [coverager]: invalid coverage format "' + conf.format + '" required');
 			return;
 	}
 	fsExtra.outputFileSync(reportPath, report);

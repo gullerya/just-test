@@ -12,12 +12,12 @@ async function report(page, testsConf) {
 
 	//	extract results
 	console.info(os.EOL);
-	console.info('JustTest: obtaining test results...');
+	console.info('JustTest [tester]: obtaining test results...');
 	const model = await page.evaluate(() => {
 		const mAsJson = document.querySelector('just-test-view').model;
 		return JSON.parse(JSON.stringify(mAsJson));
 	});
-	console.info('JustTest: ... test results summary:');
+	console.info('JustTest [tester]: ... test results summary:');
 	console.info(model.passed.toString().padStart(7) + ' passed');
 	console.info(model.failed.toString().padStart(7) + ' failed');
 	console.info(model.skipped.toString().padStart(7) + ' skipped');
@@ -30,7 +30,7 @@ async function waitTestsToFinish(page, ttl) {
 	let testsDone = false;
 
 	console.info(os.EOL);
-	console.info('JustTest: waiting for tests to finish (max TTL set to ' + Math.floor(ttl / 1000) + 's)...');
+	console.info('JustTest [tester]: waiting for tests to finish (max TTL set to ' + Math.floor(ttl / 1000) + 's)...');
 	do {
 		testsDone = await page.evaluate(() => {
 			const jtv = document.querySelector('just-test-view');
@@ -39,9 +39,9 @@ async function waitTestsToFinish(page, ttl) {
 
 		const currentTL = performance.now() - started;
 		if (testsDone) {
-			console.info('JustTest: ... tests run finished in ' + Math.floor(currentTL / 1000) + 's');
+			console.info('JustTest [tester]: ... tests run finished in ' + Math.floor(currentTL / 1000) + 's');
 		} else if (currentTL > ttl) {
-			console.error('JustTest: ... max tests run TTL was set to ' + ttl + 'ms, but already passed ' + Math.floor(currentTL / 1000) + 's - abandoning')
+			console.error('JustTest [tester]: ... max tests run TTL was set to ' + ttl + 'ms, but already passed ' + Math.floor(currentTL / 1000) + 's - abandoning')
 			throw new Error('tests run timeed out after ' + Math.floor(currentTL / 1000) + 's');
 		}
 	} while (!testsDone);
