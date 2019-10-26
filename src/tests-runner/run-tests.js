@@ -32,10 +32,10 @@ const conf = configurer.configuration;
 	//	general page handling
 	const page = await browser.newPage();
 	page.on('error', e => {
-		console.error('error: ', e);
+		console.error('JustTest: "error" event fired on page', e);
 	});
 	page.on('pageerror', e => {
-		console.error('pageerror: ', e);
+		console.error('JustTest: "pageerror" event fired on page ', e);
 	})
 
 	//	coverage
@@ -59,7 +59,7 @@ const conf = configurer.configuration;
 
 	//	process coverage, create report
 	if (!conf.coverage.skip) {
-		await coverager.report(page, conf.coverage, path.resolve(conf.reportsFolder, conf.coverage.reportFilename), autServerUrl);
+		await coverager.report(page, conf.coverage, path.resolve(conf.reports.folder, conf.coverage.reportFilename), autServerUrl);
 	}
 })()
 	.then(async () => {
