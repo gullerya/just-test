@@ -54,7 +54,7 @@ const conf = configurer.configuration;
 	if (pageResult.status() !== 200) {
 		throw new Error('JustTest: tests (AUT) page gave invalid status ' + pageResult.status() + '; expected 200');
 	}
-	console.info('JustTest: ... tests (AUT) page opened, we are in bussiness :)');
+	console.info('JustTest: ... tests (AUT) page opened');
 
 	//	process test results, create report
 	result = await tester.report(page, conf.tests);

@@ -53,7 +53,9 @@ async function waitTestsToFinish(page, ttl) {
 			console.info('JustTest [tester]: ... tests run finished in ' + Math.floor(currentTL / 1000) + 's');
 		} else if (currentTL > ttl) {
 			console.error('JustTest [tester]: ... max tests run TTL was set to ' + ttl + 'ms, but already passed ' + Math.floor(currentTL / 1000) + 's - abandoning')
-			throw new Error('tests run timeed out after ' + Math.floor(currentTL / 1000) + 's');
+			throw new Error('tests run timed out after ' + Math.floor(currentTL / 1000) + 's');
 		}
+
+		await new Promise(r => r(), 2000);
 	} while (!testsDone);
 }

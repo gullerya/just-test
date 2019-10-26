@@ -1,5 +1,6 @@
 const
 	fs = require('fs'),
+	{ URL } = require('url'),
 	path = require('path'),
 	http = require('http'),
 	extMap = {
@@ -10,7 +11,7 @@ const
 	};
 
 const sockets = [];
-let server;
+let server, baseUrl;
 
 module.exports = {
 	launch: launch,
@@ -21,7 +22,8 @@ function launch(port, resourcesFolder) {
 	console.info('JustTest: starting local server on port ' + port + '...');
 	server = http.createServer((req, res) => {
 		const
-			filePath = '.' + req.url,
+			asUrl = new URL(req.url, baseUrl),
+			filePath = '.' + asUrl.pathname,
 			extension = path.extname(filePath),
 			contentType = extMap[extension] ? extMap[extension] : 'text/plain';
 
@@ -31,9 +33,11 @@ function launch(port, resourcesFolder) {
 				res.end(content, 'utf-8');
 			} else {
 				if (error.code === 'ENOENT') {
+					console.warn('JustTest [local-server]: sending 404 for ' + filePath);
 					res.writeHead(404, { 'Content-Type': 'text/plain' });
 					res.end('requested resource "' + filePath + '" not found', 'utf-8');
 				} else {
+					console.warn('JustTest [local-server]: sending 500 for ' + filePath);
 					res.writeHead(500, { 'Content-Type': 'text/plain' });
 					res.end('unexpected error: ' + JSON.stringify(error), 'utf-8');
 				}
@@ -52,7 +56,8 @@ function launch(port, resourcesFolder) {
 	});
 
 	console.info('JustTest: ... local server started on port ' + port);
-	return 'http://localhost:' + port;
+	baseUrl = 'http://localhost:' + port;
+	return baseUrl;
 }
 
 function stop() {
