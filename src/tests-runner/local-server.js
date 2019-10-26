@@ -14,12 +14,12 @@ let
 	sockets = [];
 
 module.exports = {
-	launchServer: launchServer,
-	closeServer: closeServer
+	launch: launch,
+	stop: stop
 };
 
-function launchServer(port) {
-	console.info('starting local server on port ' + port + '...');
+function launch(port) {
+	console.info('JustTest: starting local server on port ' + port + '...');
 	server = http.createServer((request, response) => {
 
 		let filePath = '.' + request.url,
@@ -28,14 +28,14 @@ function launchServer(port) {
 
 		fs.readFile(path.join(__dirname, '..', '..', filePath), (error, content) => {
 			if (!error) {
-				response.writeHead(200, {'Content-Type': contentType});
+				response.writeHead(200, { 'Content-Type': contentType });
 				response.end(content, 'utf-8');
 			} else {
 				if (error.code === 'ENOENT') {
-					response.writeHead(404, {'Content-Type': 'text/plain'});
+					response.writeHead(404, { 'Content-Type': 'text/plain' });
 					response.end('requested resource "' + filePath + '" not found', 'utf-8');
 				} else {
-					response.writeHead(500, {'Content-Type': 'text/plain'});
+					response.writeHead(500, { 'Content-Type': 'text/plain' });
 					response.end('unexpected error: ' + JSON.stringify(error), 'utf-8');
 				}
 			}
@@ -53,10 +53,11 @@ function launchServer(port) {
 		});
 	});
 
-	console.info('... local server started on port ' + port);
+	console.info('JustTest: ... local server started on port ' + port);
+	return 'http://localhost:' + port;
 }
 
-function closeServer() {
-	server.close(() => console.info('local server closed'));
+function stop() {
+	server.close(() => console.info('JustTest: local server closed'));
 	sockets.forEach(socket => socket.destroy());
 }

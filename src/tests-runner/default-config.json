@@ -1,15 +1,19 @@
 {
 	"server": {
 		"local": true,
-		"port": 3000
+		"port": 3000,
+		"remoteUrl": null
 	},
 	"tests": {
-		"starter": null
+		"url": null
 	},
 	"coverage": {
 		"skip": false,
 		"format": "lcov",
 		"include": null,
 		"exclude": null
+	},
+	"reports": {
+		"folder": "./just-test-reports"
 	}
 }

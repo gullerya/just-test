@@ -1,8 +1,11 @@
 {
 	"tests": {
-		"starter": "./tests/test.html"
+		"url": "/tests/test.html"
 	},
 	"coverage": {
-		"format": "lcov"
+		"skip": true
+	},
+	"reports": {
+		"folder": "./reports"
 	}
 }

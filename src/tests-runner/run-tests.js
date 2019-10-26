@@ -1,39 +1,50 @@
 const
 	os = require('os'),
+	util = require('util'),
 	{ performance } = require('perf_hooks'),
 	puppeteer = require('puppeteer'),
 	configurer = require('./configurer'),
-	autServer = require('./aut-server'),
+	localServer = require('./local-server'),
 	coverageToLcov = require('./coverage-to-lcov'),
 	fsExtra = require('fs-extra');
 
 let
-	port = 3000,
 	testResults = {};
 
 //	configuration
-const configuration = configurer.configure();
+const conf = configurer.configuration;
 
 //	main flow runs here, IIF used allow async/await
 (async () => {
-	fsExtra.emptyDirSync(__dirname + '/../../reports');
+	const testsUrl = conf.server.local
+		? localServer.launch(conf.server.port) + conf.tests.url
+		: conf.server.remoteUrl + conf.tests.url;
 
-	autServer.launchServer(port);
+	console.info('JustTest: tests (AUT) URL resolved to "' + testsUrl + '", launching browsing env...');
+	const browser = await puppeteer.launch(), browserDetails = await browser.userAgent();
+	console.info('JustTest: ... browsing env launched; details (taken by "userAgent") as following');
+	console.info(util.inspect(browserDetails, false, null, true));
 
-	const browser = await puppeteer.launch();
-
+	console.info(os.EOL);
+	console.info('JustTest: navigating to tests (AUT) URL...');
 	const page = await browser.newPage();
+	console.info('JustTest: ... tests (AUT) page opened, we are in bussiness :)');
 
-	await page.coverage.startJSCoverage();
+	if (!conf.coverage.skip) {
+		await page.coverage.startJSCoverage();
+	}
 
-	//	open the page
-	await page.goto('http://localhost:' + port + '/tests/test.html');
+	await page.goto(testsUrl);
 
 	//	wait till all of the tests settled (no running classes), TODO: configurable timeout
 	await waitTestsToFinish(page, 0);
 
 	//	analyze test results, create report
 	await processTestResults(page);
+
+	if (conf.coverage.skip) {
+		return;
+	}
 
 	//	analyze coverage, create report
 	const
@@ -112,12 +123,12 @@ const configuration = configurer.configure();
 	await browser.close();
 })()
 	.then(() => {
-		autServer.closeServer();
+		localServer.stop();
 		console.info('test suite/s DONE');
 		process.exit(testResults.failed ? 1 : 0);
 	})
 	.catch(error => {
-		autServer.closeServer();
+		localServer.stop();
 		console.error('test suite/s run DONE (with error)', error);
 		process.exit(1);
 	});

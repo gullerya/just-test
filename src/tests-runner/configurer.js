@@ -1,13 +1,15 @@
 const
 	os = require('os'),
 	fs = require('fs'),
+	path = require('path'),
 	util = require('util'),
+	fsExtra = require('fs-extra'),
 	ARG_KEYS = ['--config'],
 	DEFAULT_CONFIG = require('./default-config.json'),
-	effectiveConfig = {};
+	effectiveConf = {};
 
 module.exports = {
-	configuration: effectiveConfig
+	configuration: effectiveConf
 };
 
 const
@@ -29,6 +31,13 @@ if (!configLocation) {
 	process.exit(-1);
 }
 
+console.info(os.EOL);
+console.info('JustTest: started, execution directory "' + process.cwd() + '"');
+console.info('JustTest: execution arguments collected as following');
+console.info(util.inspect(args, false, null, true));
+console.info(os.EOL);
+console.info('JustTest: building effective configuration...');
+
 //	read configuration
 let rawConfiguration;
 try {
@@ -49,59 +58,58 @@ try {
 buildEffectiveConfiguration(configuration);
 
 //	validate configuration essentials
-validateEffectiveConfiguration();
+validateEffectiveConf();
 
 //	print out effective configuration
-console.info(os.EOL);
-console.info('JustTest: effective configuration to be used is as following');
-console.info(util.inspect(effectiveConfig, false, null, true));
+console.info('JustTest: ... effective configuration to be used is as following');
+console.info(util.inspect(effectiveConf, false, null, true));
 console.info(os.EOL);
 
 function buildEffectiveConfiguration(inputConfig) {
 	if (!inputConfig || typeof inputConfig !== 'object') {
 		throw new Error('invalid input config');
 	}
-	//	TODO: should be recursive and deep, for now will completely override top tevel sections
-	Object.assign(effectiveConfig, {
-		server: Object.assign({}, DEFAULT_CONFIG.server, inputConfig.server),
-		tests: Object.assign({}, DEFAULT_CONFIG.tests, inputConfig.tests),
-		coverage: Object.assign({}, DEFAULT_CONFIG.coverage, inputConfig.coverage)
+
+	//	TODO: currenctly runs on top level object hierarchy only, in future might be need to turn it to deep merge
+	Object.keys(DEFAULT_CONFIG).forEach(partKey => {
+		effectiveConf[partKey] = Object.assign({}, DEFAULT_CONFIG[partKey], inputConfig[partKey]);
 	});
 }
 
-function validateEffectiveConfiguration() {
+function validateEffectiveConf() {
 	try {
-		validateServerConfiguration(effectiveConfig.server);
-		validateTestsConfiuration(effectiveConfig.tests);
-		validateCoverageConfiguration(effectiveConfig.coverage);
+		validateServerConf(effectiveConf.server);
+		validateTestsConf(effectiveConf.tests);
+		validateCoverageConf(effectiveConf.coverage);
+		validateReportsFolder(effectiveConf.reports);
 	} catch (e) {
 		console.error('Error: invalid configuration', e);
 		process.exit(-1);
 	}
 }
 
-function validateServerConfiguration(sc) {
+function validateServerConf(sc) {
 	if (!sc) {
 		throw new Error('AUT "server" configuration part is missing');
 	}
 	if (sc.local && !sc.port) {
 		throw new Error('AUT "server" said to be local but "port" is missing');
 	}
-	if (!sc.local && !sc.url) {
-		throw new Error('AUT "server" said to be remove but "url" is missing');
+	if (!sc.local && !sc.remoteUrl) {
+		throw new Error('AUT "server" said to be remote but "remoteUrl" is missing');
 	}
 }
 
-function validateTestsConfiuration(tc) {
+function validateTestsConf(tc) {
 	if (!tc) {
 		throw new Error('"tests" configuration part is missing');
 	}
-	if (!tc.starter) {
-		throw new Error('"tests" configuration is missing "starter" part');
+	if (!tc.url) {
+		throw new Error('"tests" configuration is missing "url" part');
 	}
 }
 
-function validateCoverageConfiguration(cc) {
+function validateCoverageConf(cc) {
 	const coverageFormats = ['lcov'];
 	if (!cc) {
 		throw new Error('"coverage" configuration part is missing');
@@ -112,4 +120,16 @@ function validateCoverageConfiguration(cc) {
 	if (!coverageFormats.includes(cc.format)) {
 		throw new Error('"coverage" configuration has invalid "format": ' + cc.format + '; supported formats are: ' + coverageFormats);
 	}
+}
+
+function validateReportsFolder(rc) {
+	if (!rc) {
+		throw new Error('"reports" configuration part is missing');
+	}
+	if (!rc.folder) {
+		throw new Error('"reports" configuration is missing "folder" part');
+	}
+	const reportsFolderPath = path.resolve(process.cwd(), rc.folder);
+	fsExtra.emptyDirSync(reportsFolderPath);
+	console.info('JustTest: reports folder resolve to and initialized in "' + reportsFolderPath + '"');
 }
