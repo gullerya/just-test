@@ -2,6 +2,7 @@ const
 	os = require('os'),
 	{ performance } = require('perf_hooks'),
 	puppeteer = require('puppeteer'),
+	configurer = require('./configurer'),
 	autServer = require('./aut-server'),
 	coverageToLcov = require('./coverage-to-lcov'),
 	fsExtra = require('fs-extra');
@@ -10,6 +11,10 @@ let
 	port = 3000,
 	testResults = {};
 
+//	configuration
+const configuration = configurer.configure();
+
+//	main flow runs here, IIF used allow async/await
 (async () => {
 	fsExtra.emptyDirSync(__dirname + '/../../reports');
 
@@ -42,7 +47,9 @@ let
 			}]
 		};
 	for (const entry of jsCoverage) {
-		//	here should come sources filter
+		if (!sourceRelevant()) {
+			continue;
+		}
 
 		let fileCoverage = {
 			path: entry.url.replace('http://localhost:' + port, ''),

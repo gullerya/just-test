@@ -1,0 +1,8 @@
+{
+	"tests": {
+		"starter": "./tests/test.html"
+	},
+	"coverage": {
+		"format": "lcov"
+	}
+}

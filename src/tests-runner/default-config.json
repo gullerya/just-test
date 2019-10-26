@@ -1,0 +1,15 @@
+{
+	"server": {
+		"local": true,
+		"port": 3000
+	},
+	"tests": {
+		"starter": null
+	},
+	"coverage": {
+		"skip": false,
+		"format": "lcov",
+		"include": null,
+		"exclude": null
+	}
+}
