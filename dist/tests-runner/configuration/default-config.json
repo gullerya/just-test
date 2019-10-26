@@ -7,7 +7,9 @@
 	},
 	"tests": {
 		"url": null,
-		"ttl": 23000
+		"ttl": 23000,
+		"maxFail": 0,
+		"maxSkip": 0
 	},
 	"coverage": {
 		"skip": false,

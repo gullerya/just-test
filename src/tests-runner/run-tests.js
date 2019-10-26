@@ -9,7 +9,7 @@ const
 	coverager = require('./coverage/coverager');
 
 let browser,
-	passed = false;
+	result;
 
 //	configuration
 const conf = configurer.configuration;
@@ -57,7 +57,7 @@ const conf = configurer.configuration;
 	console.info('JustTest: ... tests (AUT) page opened, we are in bussiness :)');
 
 	//	process test results, create report
-	passed = await tester.report(page, conf.tests);
+	result = await tester.report(page, conf.tests);
 
 	//	process coverage, create report
 	if (!conf.coverage.skip) {
@@ -67,8 +67,9 @@ const conf = configurer.configuration;
 	.then(async () => {
 		console.info(os.EOL);
 		console.info('JustTest: tests execution finished normally');
+		console.info('JustTest: tests status - ' + result.statusText);
 		await finalizeRun();
-		process.exit(passed ? 0 : 1);
+		process.exit(result.statusPass ? 0 : 1);
 	})
 	.catch(async error => {
 		console.info(os.EOL);

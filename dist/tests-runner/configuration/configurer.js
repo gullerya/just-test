@@ -120,6 +120,12 @@ function validateTestsConf(tc) {
 	if (!tc.url) {
 		throw new Error('"tests" configuration is missing "url" part');
 	}
+	if (typeof tc.maxFail !== 'number') {
+		throw new Error('"maxFail" configuration of "tests" is not a number');
+	}
+	if (typeof tc.maxSkip !== 'number') {
+		throw new Error('"maxSkip" configuration of "tests" is not a number');
+	}
 }
 
 function validateCoverageConf(cc) {

@@ -6,9 +6,9 @@ module.exports = {
 	report: report
 }
 
-async function report(page, testsConf) {
+async function report(page, conf) {
 	//	wait for tests to finish
-	await waitTestsToFinish(page, testsConf.ttl);
+	await waitTestsToFinish(page, conf.ttl);
 
 	//	extract results
 	console.info(os.EOL);
@@ -22,7 +22,17 @@ async function report(page, testsConf) {
 	console.info(model.failed.toString().padStart(7) + ' failed');
 	console.info(model.skipped.toString().padStart(7) + ' skipped');
 
-	return model.failed === 0;
+	const statusPass = model.failed <= conf.maxFail && model.skipped <= conf.maxSkip;
+
+	return {
+		passed: model.passed,
+		failed: model.failed,
+		skipped: model.skipped,
+		statusPass: statusPass,
+		statusText: statusPass
+			? 'SUCCESS' + (model.failed || model.skipped ? ' (with allowed no. of fails/skips)' : '')
+			: 'FAILURE'
+	};
 }
 
 async function waitTestsToFinish(page, ttl) {
