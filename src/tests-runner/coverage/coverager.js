@@ -1,5 +1,6 @@
 const
 	os = require('os'),
+	{ URL } = require('url'),
 	fsExtra = require('fs-extra'),
 	coverageToLcov = require('./coverage-to-lcov');
 
@@ -27,7 +28,7 @@ async function report(nativePage, covConf, reportPath, serverUrl) {
 			}]
 		};
 	for (const entry of jsCoverage) {
-		const relFilePath = entry.url.replace(serverUrl, '');
+		const relFilePath = new URL(entry.url).pathname;
 
 		//	pass through include - while list
 		if (Array.isArray(covConf.include) && !covConf.include.some(one => one.test(relFilePath))) {
