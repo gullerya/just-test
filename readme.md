@@ -1,6 +1,8 @@
 [![License GitHub](https://img.shields.io/github/license/gullerya/just-test.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/just-test.svg?logo=npm)](https://www.npmjs.com/package/just-test)
 [![Travis (.org) branch](https://img.shields.io/travis/gullerya/just-test/master.svg?logo=travis)](https://travis-ci.org/gullerya/just-test)
+[![Codecov](https://img.shields.io/codecov/c/github/gullerya/just-test/master.svg)](https://codecov.io/gh/gullerya/just-test/branch/master)
+[![Codacy](https://img.shields.io/codacy/grade/9aa34b1cf3c248fea0164e71137dce1c.svg?logo=codacy)](https://www.codacy.com/app/gullerya/just-test)
 
 # Summary
 
