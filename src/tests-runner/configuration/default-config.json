@@ -14,7 +14,9 @@
 		"format": "lcov",
 		"reportFilename": "coverage.lcov",
 		"include": null,
-		"exclude": null
+		"exclude": [
+			".+\\.min\\.js$"
+		]
 	},
 	"reports": {
 		"folder": "./just-test-reports"
