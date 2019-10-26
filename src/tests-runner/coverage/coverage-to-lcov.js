@@ -64,6 +64,7 @@ function convert(coverageData) {
 
 			testReport += 'LF:' + coverableLines + os.EOL;
 			testReport += 'LH:' + hitLines + os.EOL;
+			testReport += os.EOL;
 		});
 
 		//	end of record

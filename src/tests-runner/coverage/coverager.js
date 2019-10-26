@@ -44,7 +44,7 @@ async function report(nativePage, covConf, reportPath, serverUrl) {
 			ranges: []
 		};
 
-		console.info('JustTest [coverager]: processing "' + fileCoverage.path + '"');
+		console.info('JustTest [coverager]: ... "' + fileCoverage.path + '"');
 
 		//	existing ranges are a COVERED sections
 		//	ranges' in-between parts are a NON-COVERED sections

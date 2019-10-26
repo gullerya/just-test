@@ -127,14 +127,30 @@ function validateCoverageConf(cc) {
 	if (!cc) {
 		throw new Error('"coverage" configuration part is missing');
 	}
+
 	if (cc.skip) {
 		return;
 	}
+
 	if (!coverageFormats.includes(cc.format)) {
 		throw new Error('"coverage" configuration has invalid "format": ' + cc.format + '; supported formats are: ' + coverageFormats);
 	}
 	if (!cc.reportFilename) {
 		throw new Error('"coverage" configuration is missing "reportFilename" part');
+	}
+	if (cc.include) {
+		if (!Array.isArray(cc.include) || !cc.include.length) {
+			throw new Error('"include" part of "coverage" configuration, if provided, MUST be a non-empty array of RegExp string');
+		} else {
+			cc.include = cc.include.map(one => new RegExp(one));
+		}
+	}
+	if (cc.exclude) {
+		if (!Array.isArray(cc.exclude) || !cc.exclude.length) {
+			throw new Error('"exclude" part of "coverage" configuration, if provided, MUST be a non-empty array of RegExps');
+		} else {
+			cc.exclude = cc.exclude.map(one => new RegExp(one));
+		}
 	}
 }
 

@@ -27,17 +27,24 @@ async function report(nativePage, covConf, reportPath, serverUrl) {
 			}]
 		};
 	for (const entry of jsCoverage) {
-		if (entry.url.endsWith('.min.js')) {
+		const relFilePath = entry.url.replace(serverUrl, '');
+
+		//	pass through include - while list
+		if (Array.isArray(covConf.include) && !covConf.include.some(one => one.test(relFilePath))) {
+			continue;
+		}
+		//	pass through exclude - black list
+		if (Array.isArray(covConf.exclude) && covConf.exclude.some(one => one.test(relFilePath))) {
 			continue;
 		}
 
 		const fileCoverage = {
-			path: entry.url.replace(serverUrl, ''),
+			path: relFilePath,
 			lines: {},
 			ranges: []
 		};
 
-		console.info('JustTest [coverager]: processing "' + fileCoverage.path + '"');
+		console.info('JustTest [coverager]: ... "' + fileCoverage.path + '"');
 
 		//	existing ranges are a COVERED sections
 		//	ranges' in-between parts are a NON-COVERED sections
