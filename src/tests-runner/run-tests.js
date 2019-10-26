@@ -2,15 +2,14 @@ const
 	os = require('os'),
 	path = require('path'),
 	util = require('util'),
-	{ performance } = require('perf_hooks'),
 	puppeteer = require('puppeteer'),
 	configurer = require('./configuration/configurer'),
 	localServer = require('./local-server/local-server'),
+	tester = require('./tests/tester'),
 	coverager = require('./coverage/coverager');
 
-let
-	browser,
-	testResults = {};
+let browser,
+	passed = false;
 
 //	configuration
 const conf = configurer.configuration;
@@ -26,9 +25,9 @@ const conf = configurer.configuration;
 	//	browser
 	console.info(os.EOL);
 	console.info('JustTest: tests (AUT) URL resolved to "' + testsUrl + '", launching browsing env...');
-	browser = await puppeteer.launch(), browserDetails = await browser.userAgent();
+	browser = await puppeteer.launch();
 	console.info('JustTest: ... browsing env launched; details (taken by "userAgent") as following');
-	console.info(util.inspect(browserDetails, false, null, true));
+	console.info(util.inspect(await browser.userAgent(), false, null, true));
 
 	//	general page handling
 	const page = await browser.newPage();
@@ -55,22 +54,19 @@ const conf = configurer.configuration;
 	}
 	console.info('JustTest: ... tests (AUT) page opened, we are in bussiness :)');
 
-	//	wait till all of the tests settled (no running classes)
-	await waitTestsToFinish(page, conf.tests.ttl);
-
-	//	analyze test results, create report
-	await processTestResults(page);
+	//	process test results, create report
+	passed = await tester.report(page, conf.tests);
 
 	//	process coverage, create report
 	if (!conf.coverage.skip) {
-		await coverager.report(page, conf.coverage, conf.reportsFolder, autServerUrl);
+		await coverager.report(page, conf.coverage, path.resolve(conf.reportsFolder, conf.coverage.reportFilename), autServerUrl);
 	}
 })()
 	.then(async () => {
 		console.info(os.EOL);
 		console.info('JustTest: tests run finished normally');
 		await finalizeRun();
-		process.exit(testResults.failed ? 1 : 0);
+		process.exit(passed ? 0 : 1);
 	})
 	.catch(async error => {
 		console.info(os.EOL);
@@ -78,40 +74,6 @@ const conf = configurer.configuration;
 		await finalizeRun();
 		process.exit(1);
 	});
-
-async function waitTestsToFinish(page, ttl) {
-	let started = performance.now(),
-		testsDone;
-
-	console.info(os.EOL);
-	console.info('JustTest: start waiting for tests to finish (max TTL set to ' + ttl + 'ms)...');
-	do {
-		const elems = await page.$$('just-test-view');
-		if (elems.length) {
-			testsDone = await (await elems[0].getProperty('done')).jsonValue();
-		}
-		const currentTL = performance.now() - started;
-		if (currentTL > ttl) {
-			console.error('JustTest: ... max tests run TTL was set to ' + ttl + 'ms, but already running for ' + Math.floor(currentTL) + 'ms, abandoning')
-			throw new Error('tests run timeout');
-		}
-		if (testsDone) {
-			console.info('JustTest: ... tests run finished in ' + Math.floor(currentTL) + 'ms');
-		}
-	} while (!testsDone);
-
-}
-
-async function processTestResults(page) {
-	const jt = (await page.$$('just-test-view'))[0];
-	testResults.passed = await (await jt.getProperty('passed')).jsonValue();
-	testResults.failed = await (await jt.getProperty('failed')).jsonValue();
-	testResults.skipped = await (await jt.getProperty('skipped')).jsonValue();
-
-	console.info('passed: ' + testResults.passed);
-	console.info('failed: ' + testResults.failed);
-	console.info('skipped: ' + testResults.skipped);
-}
 
 async function finalizeRun() {
 	console.info(os.EOL);

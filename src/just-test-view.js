@@ -155,10 +155,11 @@ customElements.define('just-test-view', class extends HTMLElement {
 			if (done === total) {
 				clearInterval(wi);
 				this.done = true;
-				this.passed = parseInt(this.shadowRoot.querySelector('.header > .counter.pass').textContent);
-				this.failed = parseInt(this.shadowRoot.querySelector('.header > .counter.fail').textContent);
-				this.skipped = parseInt(this.shadowRoot.querySelector('.header > .counter.skip').textContent);
 			}
 		}, 200);
+	}
+
+	get defaultTieTarget() {
+		return 'model';
 	}
 });

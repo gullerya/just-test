@@ -92,11 +92,24 @@ function validateServerConf(sc) {
 	if (!sc) {
 		throw new Error('AUT "server" configuration part is missing');
 	}
-	if (sc.local && !sc.port) {
-		throw new Error('AUT "server" said to be local but "port" is missing');
+
+	if (sc.local) {
+		if (!sc.port) {
+			throw new Error('AUT "server" said to be local but "port" is missing');
+		}
+		if (!sc.resourcesFolder) {
+			throw new Error('AUT "server" said to be local but "resoucesFolder" is missing');
+		}
+		const fullResourcesPath = path.resolve(process.cwd(), sc.resourcesFolder);
+		if (!fs.existsSync(fullResourcesPath) || !fs.lstatSync(fullResourcesPath).isDirectory()) {
+			throw new Error('AUT "server" said to be local but specified "resoucesFolder" ("' + sc.resourcesFolder + '") not exists or not a directory');
+		}
 	}
-	if (!sc.local && !sc.remoteUrl) {
-		throw new Error('AUT "server" said to be remote but "remoteUrl" is missing');
+
+	if (!sc.local) {
+		if (!sc.remoteUrl) {
+			throw new Error('AUT "server" said to be remote but "remoteUrl" is missing');
+		}
 	}
 }
 
@@ -119,6 +132,9 @@ function validateCoverageConf(cc) {
 	}
 	if (!coverageFormats.includes(cc.format)) {
 		throw new Error('"coverage" configuration has invalid "format": ' + cc.format + '; supported formats are: ' + coverageFormats);
+	}
+	if (!cc.reportFilename) {
+		throw new Error('"coverage" configuration is missing "reportFilename" part');
 	}
 }
 

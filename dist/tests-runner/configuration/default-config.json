@@ -2,14 +2,17 @@
 	"server": {
 		"local": true,
 		"port": 3000,
+		"resourcesFolder": "./",
 		"remoteUrl": null
 	},
 	"tests": {
-		"url": null
+		"url": null,
+		"ttl": 23000
 	},
 	"coverage": {
 		"skip": false,
 		"format": "lcov",
+		"reportFilename": "coverage.lcov",
 		"include": null,
 		"exclude": null
 	},

@@ -133,6 +133,9 @@ function validateCoverageConf(cc) {
 	if (!coverageFormats.includes(cc.format)) {
 		throw new Error('"coverage" configuration has invalid "format": ' + cc.format + '; supported formats are: ' + coverageFormats);
 	}
+	if (!cc.reportFilename) {
+		throw new Error('"coverage" configuration is missing "reportFilename" part');
+	}
 }
 
 function validateReportsFolder(rc) {

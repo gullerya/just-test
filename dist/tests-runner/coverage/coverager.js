@@ -1,5 +1,4 @@
 const
-	path = require('path'),
 	fsExtra = require('fs-extra'),
 	coverageToLcov = require('./coverage-to-lcov');
 
@@ -12,7 +11,7 @@ async function start(nativePage) {
 	return nativePage.coverage.startJSCoverage();
 }
 
-async function report(nativePage, covConf, reportsFolder, serverUrl) {
+async function report(nativePage, covConf, reportPath, serverUrl) {
 	const
 		jsCoverage = await nativePage.coverage.stopJSCoverage(),
 		covData = {
@@ -85,14 +84,14 @@ async function report(nativePage, covConf, reportsFolder, serverUrl) {
 	}
 
 	//	produce report
-	writeReport(covData, reportsFolder, covConf.format);
+	writeReport(covData, reportPath, covConf.format);
 }
 
-function writeReport(covData, folder, format) {
+function writeReport(covData, reportPath, format) {
 	switch (format) {
 		case 'lcov':
 			const lcov = coverageToLcov.convert(covData);
-			fsExtra.outputFileSync(path.resolve(folder, 'coverage.lcov'), lcov);
+			fsExtra.outputFileSync(reportPath, lcov);
 			break;
 		default:
 			console.error('JustTest: invalid coverage format "' + covConf.format + '" required');

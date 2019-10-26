@@ -9,44 +9,42 @@ const
 		'.json': 'application/json'
 	};
 
-let
-	server,
-	sockets = [];
+const sockets = [];
+let server;
 
 module.exports = {
 	launch: launch,
 	stop: stop
 };
 
-function launch(port) {
+function launch(port, resourcesFolder) {
 	console.info('JustTest: starting local server on port ' + port + '...');
-	server = http.createServer((request, response) => {
-
-		let filePath = '.' + request.url,
+	server = http.createServer((req, res) => {
+		const
+			filePath = '.' + req.url,
 			extension = path.extname(filePath),
 			contentType = extMap[extension] ? extMap[extension] : 'text/plain';
 
-		fs.readFile(path.join(__dirname, '..', '..', filePath), (error, content) => {
+		fs.readFile(path.resolve(resourcesFolder, filePath), (error, content) => {
 			if (!error) {
-				response.writeHead(200, { 'Content-Type': contentType });
-				response.end(content, 'utf-8');
+				res.writeHead(200, { 'Content-Type': contentType });
+				res.end(content, 'utf-8');
 			} else {
 				if (error.code === 'ENOENT') {
-					response.writeHead(404, { 'Content-Type': 'text/plain' });
-					response.end('requested resource "' + filePath + '" not found', 'utf-8');
+					res.writeHead(404, { 'Content-Type': 'text/plain' });
+					res.end('requested resource "' + filePath + '" not found', 'utf-8');
 				} else {
-					response.writeHead(500, { 'Content-Type': 'text/plain' });
-					response.end('unexpected error: ' + JSON.stringify(error), 'utf-8');
+					res.writeHead(500, { 'Content-Type': 'text/plain' });
+					res.end('unexpected error: ' + JSON.stringify(error), 'utf-8');
 				}
 			}
 		});
-
 	}).listen(port);
 
 	server.on('connection', socket => {
 		sockets.push(socket);
 		socket.on('close', () => {
-			let indexOfSocket = sockets.indexOf(socket);
+			const indexOfSocket = sockets.indexOf(socket);
 			if (indexOfSocket >= 0) {
 				sockets.splice(indexOfSocket, 1);
 			}

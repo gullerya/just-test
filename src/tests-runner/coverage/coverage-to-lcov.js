@@ -43,14 +43,13 @@ module.exports = {
 function convert(coverageData) {
 	verifyCoverageData(coverageData);
 
-	let testReports = [];
+	const testReports = [];
 	coverageData.tests.forEach(test => {
 		//	test name
 		let testReport = 'TN:' + test.testName + os.EOL + os.EOL;
 
 		//	files
 		test.coverage.files.forEach(file => {
-
 			//	file name
 			testReport += 'SF:' + file.path + os.EOL;
 

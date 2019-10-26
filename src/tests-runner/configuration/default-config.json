@@ -12,6 +12,7 @@
 	"coverage": {
 		"skip": false,
 		"format": "lcov",
+		"reportFilename": "coverage.lcov",
 		"include": null,
 		"exclude": null
 	},

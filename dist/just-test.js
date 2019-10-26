@@ -38,6 +38,7 @@ if (!initParams.headless && !document.querySelectorAll('just-test-view').length)
 			if (initParams.minimized) {
 				justTestView.classList.add('minimized');
 			}
+			justTestView.dataset.tie = 'jtModel';
 			document.body.appendChild(justTestView);
 		});
 }
