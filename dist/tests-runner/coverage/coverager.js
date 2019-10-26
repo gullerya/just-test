@@ -9,12 +9,12 @@ module.exports = {
 };
 
 async function start(nativePage) {
-	return nativePage.startJSCoverage();
+	return nativePage.coverage.startJSCoverage();
 }
 
 async function report(nativePage, covConf, reportsFolder, serverUrl) {
 	const
-		jsCoverage = await nativePage.stopJSCoverage(),
+		jsCoverage = await nativePage.coverage.stopJSCoverage(),
 		covData = {
 			tests: [{
 				testName: 'anonymous.anonymous',

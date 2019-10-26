@@ -22,17 +22,25 @@ const conf = configurer.configuration;
 		testsUrl = autServerUrl + conf.tests.url;
 
 	//	browser
+	console.info(os.EOL);
 	console.info('JustTest: tests (AUT) URL resolved to "' + testsUrl + '", launching browsing env...');
 	const browser = await puppeteer.launch(), browserDetails = await browser.userAgent();
 	console.info('JustTest: ... browsing env launched; details (taken by "userAgent") as following');
 	console.info(util.inspect(browserDetails, false, null, true));
 
-	//	page in general
+	//	general page handling
 	const page = await browser.newPage();
+	page.on('error', e => {
+		console.error('error: ', e);
+	});
+	page.on('pageerror', e => {
+		console.error('pageerror: ', e);
+	})
 
 	//	coverage
 	if (!conf.coverage.skip) {
 		await coverager.start(page);
+		console.info(os.EOL);
 		console.info('JustTest: JS coverager started');
 	}
 
