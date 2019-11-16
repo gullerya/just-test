@@ -10,6 +10,7 @@ let
 
 export function Suite(options, jtModel) {
 	const opts = Object.assign({}, DEFAULT_SUITE_OPTIONS, options);
+	this.lastSyncTestPromise = Promise.resolve();
 
 	this.id = suiteIDSequencer++;
 	this.name = opts.name;
@@ -32,27 +33,56 @@ export function Suite(options, jtModel) {
 		const test = new Test(testParams, testCode);
 		this.tests.push(test);
 		const tiedTest = this.tests[this.tests.length - 1];
-		tiedTest.run()
-			.finally(() => {
-				switch (tiedTest.status) {
-					case 'pass':
-						this.passed++;
-						jtModel.passed++;
-						break;
-					case 'fail':
-						this.failed++;
-						jtModel.failed++;
-						break;
-					case 'skip':
-						this.skipped++;
-						jtModel.skipped++;
-						break;
-					default:
-						break;
-				}
-				this.duration = stringifyDuration(performance.now() - this.started);
-				jtModel.done++;
+		if (tiedTest.sync) {
+			this.lastSyncTestPromise = this.lastSyncTestPromise.finally(() => {
+				return new Promise(resolve =>
+					tiedTest.run()
+						.finally(() => {
+							switch (tiedTest.status) {
+								case 'pass':
+									this.passed++;
+									jtModel.passed++;
+									break;
+								case 'fail':
+									this.failed++;
+									jtModel.failed++;
+									break;
+								case 'skip':
+									this.skipped++;
+									jtModel.skipped++;
+									break;
+								default:
+									break;
+							}
+							this.duration = stringifyDuration(performance.now() - this.started);
+							jtModel.done++;
+							resolve();
+						})
+				);
 			});
+		} else {
+			tiedTest.run()
+				.finally(() => {
+					switch (tiedTest.status) {
+						case 'pass':
+							this.passed++;
+							jtModel.passed++;
+							break;
+						case 'fail':
+							this.failed++;
+							jtModel.failed++;
+							break;
+						case 'skip':
+							this.skipped++;
+							jtModel.skipped++;
+							break;
+						default:
+							break;
+					}
+					this.duration = stringifyDuration(performance.now() - this.started);
+					jtModel.done++;
+				});
+		}
 
 		if (!this.started) {
 			this.started = performance.now();

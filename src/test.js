@@ -1,6 +1,7 @@
 const
 	DEFAULT_TEST_OPTIONS = Object.freeze({
 		name: 'nameless',
+		sync: false,
 		skip: false,
 		timeout: 10000
 	});
@@ -13,6 +14,7 @@ export function Test(options, testCode) {
 		? { name: options }
 		: options);
 	this.name = opts.name;
+	this.sync = opts.sync;
 	this.skip = opts.skip;
 	this.error = null;
 	this.duration = null;

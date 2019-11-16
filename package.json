@@ -1,6 +1,6 @@
 {
   "name": "just-test",
-  "version": "1.6.0",
+  "version": "1.6.4",
   "description": "Client side JavaScript tests runner",
   "keywords": [
     "javascript",
@@ -35,12 +35,12 @@
   },
   "dependencies": {
     "puppeteer": "^2.0.0",
-    "data-tier": "^1.12.0",
+    "data-tier": "^1.12.1",
     "data-tier-list": "^0.5.0"
   },
   "devDependencies": {
-    "npm": "^6.12.0",
-    "eslint": "^6.5.1",
+    "npm": "^6.13.0",
+    "eslint": "^6.6.0",
     "babel-eslint": "^10.0.3",
     "eslint-plugin-node": "^10.0.0",
     "eslint-plugin-import": "^2.18.2",
