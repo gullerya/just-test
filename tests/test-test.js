@@ -1,5 +1,5 @@
 ﻿import { createSuite } from '../dist/just-test.js?minimized=true';
-import { Test, STATUSES, AssertError, TimeoutError } from '../dist/test.js';
+import { Test, STATUSES } from '../dist/test.js';
 
 const suite = createSuite({ name: 'Single test tests' });
 
@@ -76,7 +76,6 @@ suite.runTest({ name: 'test - fail by AssertError' }, async test => {
 	await t.run();
 	test.assertTrue(r);
 	test.assertEqual(t.status, STATUSES.FAILED);
-	test.assertTrue(t.error instanceof AssertError);
 	test.assertEqual(t.error.type, 'AssertError');
 	test.assertTrue(Array.isArray(t.error.stackLines));
 	test.assertTrue(t.error.stackLines.length > 2);
@@ -95,7 +94,6 @@ suite.runTest({ name: 'test - fail by fail' }, async test => {
 	await t.run();
 	test.assertTrue(r);
 	test.assertEqual(t.status, STATUSES.FAILED);
-	test.assertTrue(t.error instanceof AssertError);
 	test.assertEqual(t.error.type, 'AssertError');
 	test.assertTrue(Array.isArray(t.error.stackLines));
 	test.assertTrue(t.error.stackLines.length > 2);
@@ -111,7 +109,6 @@ suite.runTest({ name: 'test - fail by expect error and none' }, async test => {
 	await t.run();
 	test.assertTrue(r);
 	test.assertEqual(t.status, STATUSES.FAILED);
-	test.assertTrue(t.error instanceof AssertError);
 	test.assertEqual(t.error.type, 'AssertError');
 	test.assertTrue(Array.isArray(t.error.stackLines));
 	test.assertTrue(t.error.stackLines.length > 2);
@@ -142,13 +139,13 @@ suite.runTest({ name: 'test - timeout' }, async test => {
 	const duration = performance.now() - started;
 	test.assertTrue(r);
 	test.assertEqual(t.status, STATUSES.FAILED);
-	test.assertTrue(t.error instanceof TimeoutError);
+	test.assertEqual(t.error.type, 'TimeoutError');
 	test.assertTrue(t.duration > 1000 && t.duration < 1050);
 
 	test.assertTrue(duration > 1000 && t.duration < 1050);
 	await test.waitMillis(1200);
 	test.assertEqual(t.status, STATUSES.FAILED);
-	test.assertTrue(t.error instanceof TimeoutError);
+	test.assertEqual(t.error.type, 'TimeoutError');
 	test.assertTrue(t.duration > 1000 && t.duration < 1050);
 });
 

@@ -13,9 +13,7 @@ class AssertError extends Error { }
 class TimeoutError extends AssertError { }
 
 export {
-	STATUSES,
-	AssertError,
-	TimeoutError
+	STATUSES
 }
 
 export class Test {
