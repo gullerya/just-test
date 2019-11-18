@@ -3,7 +3,7 @@
 const
 	suite = createSuite({ name: 'Suite object APIs' });
 
-suite.runTest('Suite object created (no options)', test => {
+suite.runTest({ name: 'Suite object created (no options)' }, test => {
 	const tmpSuite = createSuite();
 
 	test.assertTrue(Boolean(tmpSuite));
@@ -11,7 +11,7 @@ suite.runTest('Suite object created (no options)', test => {
 	test.assertEqual(typeof tmpSuite.runTest, 'function');
 });
 
-suite.runTest('Suite object created (with options)', test => {
+suite.runTest({ name: 'Suite object created (with options)' }, test => {
 	const tmpSuite = createSuite({ name: 'name' });
 
 	test.assertEqual(tmpSuite.name, 'name');

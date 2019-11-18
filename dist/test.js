@@ -1,108 +1,118 @@
 const
+	STATUSES = Object.freeze({ QUEUED: 0, SKIPPED: 1, RUNNING: 2, PASSED: 3, FAILED: 4, ERRORED: 5 }),
 	DEFAULT_TEST_OPTIONS = Object.freeze({
-		name: 'nameless',
 		sync: false,
 		skip: false,
 		timeout: 10000
-	});
+	}),
+	FINALIZE_KEY = Symbol('finalize.key');
 
-export function Test(options, testCode) {
-	if (typeof testCode !== 'function') {
-		throw new Error('test code MUST be a function');
-	}
-	const opts = Object.assign({}, DEFAULT_TEST_OPTIONS, typeof options === 'string'
-		? { name: options }
-		: options);
-	this.name = opts.name;
-	this.sync = opts.sync;
-	this.skip = opts.skip;
-	this.error = null;
-	this.duration = null;
-	this.testCode = testCode;
-
-	enrichSelf(this);
-
-	this.run = function () {
-		if (this.skip) {
-			this.status = 'skip';
-			return Promise.resolve();
-		}
-
-		return new Promise(resolve => {
-			//	setup timeout watcher
-			this.timeoutWatcher = setTimeout(() => {
-				const timeoutError = new Error('timeout, have you forgotten to set custom timeout?');
-				this.finalize('fail', timeoutError);
-				resolve();
-			}, opts.timeout);
-
-			//	running the test code requires:
-			//	- get synchronous result	= test PASSED unless explisitly false returned, which means test FAILED
-			//	- catch synchronous error	= test FAILED
-			//	- get asynchronous resolve	= test PASSED
-			//	- catch asynchronous reject	= test FAILED
-			try {
-				this.status = 'runs';
-				this.start = performance.now();
-				const testResult = this.testCode(this);
-				if (testResult instanceof Promise) {
-					testResult
-						.then(result => {
-							if (result === false) {
-								this.finalize('fail', 'explicit false returned');
-								resolve();
-							} else {
-								this.finalize('pass');
-								resolve();
-							}
-						})
-						.catch(e => {
-							this.finalize('fail', e);
-							resolve();
-						});
-				} else {
-					if (testResult === false) {
-						this.finalize('fail', 'explicit false returned');
-						resolve();
-					} else {
-						this.finalize('pass');
-						resolve();
-					}
-				}
-			} catch (e) {
-				this.finalize('fail', e);
-				resolve();
-			}
-		});
-	}
+export {
+	STATUSES
 }
 
-function enrichSelf(self) {
-	self.finalize = function (status, error) {
-		this.duration = performance.now() - this.start;
-		if (this.timeoutWatcher) {
-			clearInterval(this.timeoutWatcher);
-			this.timeoutWatcher = null;
+export class Test {
+	constructor(options, testCode) {
+		if (!options || typeof options !== 'object') {
+			throw new Error('options MUST be a non-null object');
 		}
-		this.status = status;
-		this.error = error;
-	};
+		if (!options.name || typeof options.name !== 'string') {
+			throw new Error('name MUST be a non empty string within the options');
+		}
 
-	self.waitNextMicrotask = async () => new Promise(resolve => setTimeout(resolve, 0));
-	self.waitMillis = async (waitMillis) => new Promise(resolve => setTimeout(resolve, waitMillis));
-	self.assertEqual = (actual, expected) => {
+		Object.assign(
+			this,
+			DEFAULT_TEST_OPTIONS,
+			options
+		);
+		this.timeoutWatcher = null;
+		this.code = testCode;
+		this.start = null;
+		this.duration = null;
+		this.status = this.skip ? STATUSES.SKIPPED : STATUSES.QUEUED;
+		this.error = null;
+		Object.seal(this);
+	}
+
+	async run() {
+		if (this.skip) {
+			this[FINALIZE_KEY](STATUSES.SKIPPED);
+		} else {
+			//	setup timeout watcher
+			this.timeoutWatcher = setTimeout(() => {
+				const timeoutError = new Error('timeout; remember - you can set a custom timeout if relevant');
+				this[FINALIZE_KEY](STATUSES.FAILED, timeoutError);
+			}, this.timeout);
+
+			this.status = STATUSES.RUNNING;
+			this.start = performance.now();
+			try {
+				const result = await Promise.resolve(this.code(this))
+				if (result === false) {
+					this[FINALIZE_KEY](STATUSES.FAILED, 'explicit false returned');
+				} else {
+					this[FINALIZE_KEY](STATUSES.PASSED);
+				}
+			} catch (e) {
+				this[FINALIZE_KEY](STATUSES.ERRORED, e);
+			}
+		}
+
+		return this.status;
+	}
+
+	[FINALIZE_KEY](status, error) {
+		if (this.status === STATUSES.RUNNING) {
+			this.duration = performance.now() - this.start;
+			if (this.timeoutWatcher) {
+				clearInterval(this.timeoutWatcher);
+				this.timeoutWatcher = null;
+			}
+			this.status = status;
+			this.error = error;
+		}
+	}
+
+	async waitNextMicrotask() { return new Promise(resolve => setTimeout(resolve, 0)); }
+
+	async waitMillis(millis) { return new Promise(resolve => setTimeout(resolve, millis)); }
+
+	assertEqual(expected, actual) {
 		if (expected !== actual) {
 			throw new Error('expected: ' + expected + ', found: ' + actual);
 		}
-	};
-	self.assertFalse = expression => {
+	}
+
+	assertNotEqual(expected, actual) {
+		if (expected === actual) {
+			throw new Error('expected: ' + expected + ', found: ' + actual);
+		}
+	}
+
+	assertFalse(expression) {
 		if (expression !== false) {
 			throw new Error('expected: false, found: ' + expression);
 		}
-	};
-	self.assertTrue = expression => {
+	}
+
+	assertTrue(expression) {
 		if (expression !== true) {
 			throw new Error('expected: true, found: ' + expression);
 		}
-	};
+	}
+
+	fail(message) {
+		throw new Error(message);
+	}
 }
+
+/* <testsuite name="nosetests" tests="1" errors="1" failures="0" skip="0">
+	<testcase classname="path_to_test_suite.TestSomething"
+		name="test_it" time="0">
+		<error type="exceptions.TypeError" message="oops, wrong type">
+			Traceback (most recent call last):
+			...
+			TypeError: oops, wrong type
+        </error>
+	</testcase>
+</testsuite> */

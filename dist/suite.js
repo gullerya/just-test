@@ -1,8 +1,10 @@
-import { Test } from './test.js';
+import { Test, STATUSES } from './test.js';
 
 const
 	DEFAULT_SUITE_OPTIONS = Object.freeze({
-		name: 'nameless'
+		name: 'nameless',
+		sync: false,
+		skip: false
 	});
 
 let
@@ -14,7 +16,6 @@ export function Suite(options, jtModel) {
 
 	this.id = suiteIDSequencer++;
 	this.name = opts.name;
-	this.tests = [];
 
 	this.passed = 0;
 	this.failed = 0;
@@ -23,31 +24,32 @@ export function Suite(options, jtModel) {
 	this.duration = null;
 
 	this.runTest = function (testParams, testCode) {
-		if (!testParams || (typeof testParams !== 'string' && typeof testParams !== 'object')) {
-			throw new Error('test parameters MUST be a non empty string or an object; got ' + testParams);
+		if (!testParams || typeof testParams !== 'object') {
+			throw new Error('test parameters MUST be a non-null object; got ' + testParams);
 		}
 		if (typeof testCode !== 'function') {
 			throw new Error('test code MUST be a function; got ' + testCode);
 		}
 
+		//	prepare test DTO
+		//	run it immediatelly or queue to sync execution
+
 		const test = new Test(testParams, testCode);
-		this.tests.push(test);
-		const tiedTest = this.tests[this.tests.length - 1];
-		if (tiedTest.sync) {
+		if (test.sync) {
 			this.lastSyncTestPromise = this.lastSyncTestPromise.finally(() => {
 				return new Promise(resolve =>
-					tiedTest.run()
+					test.run()
 						.finally(() => {
-							switch (tiedTest.status) {
-								case 'pass':
+							switch (test.status) {
+								case STATUSES.PASSED:
 									this.passed++;
 									jtModel.passed++;
 									break;
-								case 'fail':
+								case STATUSES.FAILED:
 									this.failed++;
 									jtModel.failed++;
 									break;
-								case 'skip':
+								case STATUSES.SKIPPED:
 									this.skipped++;
 									jtModel.skipped++;
 									break;
@@ -61,18 +63,18 @@ export function Suite(options, jtModel) {
 				);
 			});
 		} else {
-			tiedTest.run()
+			test.run()
 				.finally(() => {
-					switch (tiedTest.status) {
-						case 'pass':
+					switch (test.status) {
+						case STATUSES.PASSED:
 							this.passed++;
 							jtModel.passed++;
 							break;
-						case 'fail':
+						case STATUSES.FAILED:
 							this.failed++;
 							jtModel.failed++;
 							break;
-						case 'skip':
+						case STATUSES.SKIPPED:
 							this.skipped++;
 							jtModel.skipped++;
 							break;
