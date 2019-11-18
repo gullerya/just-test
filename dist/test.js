@@ -5,10 +5,17 @@ const
 		skip: false,
 		timeout: 10000
 	}),
-	FINALIZE_KEY = Symbol('finalize.key');
+	FINALIZE_KEY = Symbol('finalize.key'),
+	PROCESS_ERROR_KEY = Symbol('process.stack.key');
+
+class AssertError extends Error { }
+
+class TimeoutError extends AssertError { }
 
 export {
-	STATUSES
+	STATUSES,
+	AssertError,
+	TimeoutError
 }
 
 export class Test {
@@ -18,6 +25,9 @@ export class Test {
 		}
 		if (!options.name || typeof options.name !== 'string') {
 			throw new Error('name MUST be a non empty string within the options');
+		}
+		if (typeof testCode !== 'function') {
+			throw new Error('test code MUST be a function');
 		}
 
 		Object.assign(
@@ -36,41 +46,69 @@ export class Test {
 
 	async run() {
 		if (this.skip) {
-			this[FINALIZE_KEY](STATUSES.SKIPPED);
+			this.status = STATUSES.SKIPPED;
 		} else {
 			//	setup timeout watcher
 			this.timeoutWatcher = setTimeout(() => {
-				const timeoutError = new Error('timeout; remember - you can set a custom timeout if relevant');
-				this[FINALIZE_KEY](STATUSES.FAILED, timeoutError);
+				this[FINALIZE_KEY](new TimeoutError('timeout; remember - you can set a custom timeout if relevant'));
 			}, this.timeout);
 
 			this.status = STATUSES.RUNNING;
 			this.start = performance.now();
 			try {
-				const result = await Promise.resolve(this.code(this))
-				if (result === false) {
-					this[FINALIZE_KEY](STATUSES.FAILED, 'explicit false returned');
-				} else {
-					this[FINALIZE_KEY](STATUSES.PASSED);
-				}
+				this[FINALIZE_KEY](await Promise.resolve(this.code(this)));
 			} catch (e) {
-				this[FINALIZE_KEY](STATUSES.ERRORED, e);
+				this[FINALIZE_KEY](e);
 			}
 		}
 
 		return this.status;
 	}
 
-	[FINALIZE_KEY](status, error) {
-		if (this.status === STATUSES.RUNNING) {
-			this.duration = performance.now() - this.start;
-			if (this.timeoutWatcher) {
-				clearInterval(this.timeoutWatcher);
-				this.timeoutWatcher = null;
-			}
-			this.status = status;
-			this.error = error;
+	[FINALIZE_KEY](error) {
+		if (this.status !== STATUSES.RUNNING) {
+			return;
 		}
+
+		this.duration = performance.now() - this.start;
+		if (this.timeoutWatcher) {
+			clearInterval(this.timeoutWatcher);
+			this.timeoutWatcher = null;
+		}
+
+		if (error === false) {
+			this.status = STATUSES.FAILED;
+		} else if (error instanceof Error) {
+			const pe = this[PROCESS_ERROR_KEY](error);
+			if (this.expectError && (pe.type === this.expectError || pe.message.indexOf(this.expectError) >= 0)) {
+				this.status = STATUSES.PASSED;
+			} else {
+				this.error = pe;
+				if (error instanceof AssertError) {
+					this.status = STATUSES.FAILED;
+				} else {
+					this.status = STATUSES.ERRORED;
+				}
+			}
+		} else {
+			if (this.expectError) {
+				this.status = STATUSES.FAILED;
+				this.error = this[PROCESS_ERROR_KEY](new AssertError('expected an error ("' + this.expectError + '") but not seen'));
+			} else {
+				this.status = STATUSES.PASSED;
+			}
+		}
+	}
+
+	[PROCESS_ERROR_KEY](error) {
+		const replacable = window.location.origin;
+		error.type = error.constructor.name;
+		error.stackLines = error.stack.split(/\r\n|\r|\n/)
+			.map(l => l.trim())
+			.map(l => l.replace(replacable, ''));
+		error.stackLines.shift();
+		//	TODO: probably extract file location from each line...
+		return error;
 	}
 
 	async waitNextMicrotask() { return new Promise(resolve => setTimeout(resolve, 0)); }
@@ -79,30 +117,30 @@ export class Test {
 
 	assertEqual(expected, actual) {
 		if (expected !== actual) {
-			throw new Error('expected: ' + expected + ', found: ' + actual);
+			throw new AssertError('expected: ' + expected + ', found: ' + actual);
 		}
 	}
 
 	assertNotEqual(expected, actual) {
 		if (expected === actual) {
-			throw new Error('expected: ' + expected + ', found: ' + actual);
+			throw new AssertError('expected: ' + expected + ', found: ' + actual);
 		}
 	}
 
 	assertFalse(expression) {
 		if (expression !== false) {
-			throw new Error('expected: false, found: ' + expression);
+			throw new AssertError('expected: false, found: ' + expression);
 		}
 	}
 
 	assertTrue(expression) {
 		if (expression !== true) {
-			throw new Error('expected: true, found: ' + expression);
+			throw new AssertError('expected: true, found: ' + expression);
 		}
 	}
 
 	fail(message) {
-		throw new Error(message);
+		throw new AssertError(message);
 	}
 }
 
