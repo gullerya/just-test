@@ -45,6 +45,11 @@ if (!initParams.headless && !document.querySelectorAll('just-test-view').length)
 
 function createSuite(options) {
 	const s = new Suite(options, model);
+	s.addEventListener('testFinished', e => {
+		console.dir(e.detail.testName);
+		console.log(s.tests.length);
+	});
 	model.suites.push(s);
-	return model.suites[model.suites.length - 1];
+	// return model.suites[model.suites.length - 1];
+	return s;
 }

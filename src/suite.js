@@ -2,104 +2,81 @@ import { Test, STATUSES } from './test.js';
 
 const
 	DEFAULT_SUITE_OPTIONS = Object.freeze({
-		name: 'nameless',
 		sync: false,
 		skip: false
-	});
+	}),
+	FINISHED_RESOLVE_KEY = Symbol('finished.resolve.key'),
+	FINALIZE_SUITE_KEY = Symbol('finalize.suite.key');
 
-let
-	suiteIDSequencer = 0;
-
-export function Suite(options, jtModel) {
-	const opts = Object.assign({}, DEFAULT_SUITE_OPTIONS, options);
-	this.lastSyncTestPromise = Promise.resolve();
-
-	this.id = suiteIDSequencer++;
-	this.name = opts.name;
-
-	this.passed = 0;
-	this.failed = 0;
-	this.skipped = 0;
-	this.started = null;
-	this.duration = null;
-
-	this.runTest = function (testParams, testCode) {
-		if (!testParams || typeof testParams !== 'object') {
-			throw new Error('test parameters MUST be a non-null object; got ' + testParams);
+export class Suite extends EventTarget {
+	constructor(options) {
+		super();
+		if (!options || typeof options !== 'object') {
+			throw new Error('options MUST be a non-null object');
 		}
-		if (typeof testCode !== 'function') {
-			throw new Error('test code MUST be a function; got ' + testCode);
+		if (!options.name || typeof options.name !== 'string') {
+			throw new Error('name MUST be a non empty string within the options');
 		}
 
-		//	prepare test DTO
-		//	run it immediatelly or queue to sync execution
-
-		const test = new Test(testParams, testCode);
-		if (test.sync) {
-			this.lastSyncTestPromise = this.lastSyncTestPromise.finally(() => {
-				return new Promise(resolve =>
-					test.run()
-						.finally(() => {
-							switch (test.status) {
-								case STATUSES.PASSED:
-									this.passed++;
-									jtModel.passed++;
-									break;
-								case STATUSES.FAILED:
-									this.failed++;
-									jtModel.failed++;
-									break;
-								case STATUSES.SKIPPED:
-									this.skipped++;
-									jtModel.skipped++;
-									break;
-								default:
-									break;
-							}
-							this.duration = stringifyDuration(performance.now() - this.started);
-							jtModel.done++;
-							resolve();
-						})
-				);
-			});
-		} else {
-			test.run()
-				.finally(() => {
-					switch (test.status) {
-						case STATUSES.PASSED:
-							this.passed++;
-							jtModel.passed++;
-							break;
-						case STATUSES.FAILED:
-							this.failed++;
-							jtModel.failed++;
-							break;
-						case STATUSES.SKIPPED:
-							this.skipped++;
-							jtModel.skipped++;
-							break;
-						default:
-							break;
-					}
-					this.duration = stringifyDuration(performance.now() - this.started);
-					jtModel.done++;
-				});
-		}
-
-		if (!this.started) {
-			this.started = performance.now();
-		}
-
-		jtModel.total++;
-	};
-}
-
-function stringifyDuration(duration) {
-	let ds = '';
-	if (typeof duration === 'number') {
-		if (duration > 99) ds = (duration / 1000).toFixed(1) + ' s' + String.fromCharCode(160);
-		else if (duration > 59900) ds = (duration / 60000).toFixed(1) + ' m' + String.fromCharCode(160);
-		else ds = duration.toFixed(1) + ' ms';
+		Object.assign(this, DEFAULT_SUITE_OPTIONS, options);
+		this.tests = [];
+		this.start = null;
+		this.duration = null;
+		this.syncTail = Promise.resolve();
+		this.finished = new Promise(resolve => { this[FINISHED_RESOLVE_KEY] = resolve });
+		Object.seal(this);
 	}
-	return ds;
+
+	async runTest(testParams, testCode) {
+		if (this.skip) {
+			return;
+		}
+
+		if (!this.start) {
+			this.start = performance.now();
+		}
+
+		try {
+			const test = new Test(testParams, testCode);
+			this.tests.push(test);
+			if (test.sync) {
+				this.syncTail = this.syncTail.then(test.run);
+				this.syncTail.then(() => this[FINALIZE_SUITE_KEY](test.name));
+			} else {
+				await test.run();
+				this[FINALIZE_SUITE_KEY](test.name);
+			}
+		} catch (e) {
+			console.error('failed to run test', e);
+			this[FINALIZE_SUITE_KEY]();
+		}
+	}
+
+	get counters() {
+		const r = {};
+		this.tests.forEach(t => {
+			t.status in r ? r[t.status]++ : r[t.status] = 1;
+		});
+		return r;
+	}
+
+	[FINALIZE_SUITE_KEY](testName) {
+		this.dispatchEvent(new CustomEvent('testFinished', { detail: { testName: testName } }));
+		setTimeout(() => {
+			if (this.tests.every(t => t.status > STATUSES.RUNNING)) {
+				this.duration = performance.now() - this.start;
+				this.resolve();
+			}
+		}, 100);
+	}
 }
+
+// function stringifyDuration(duration) {
+// 	let ds = '';
+// 	if (typeof duration === 'number') {
+// 		if (duration > 99) ds = (duration / 1000).toFixed(1) + ' s' + String.fromCharCode(160);
+// 		else if (duration > 59900) ds = (duration / 60000).toFixed(1) + ' m' + String.fromCharCode(160);
+// 		else ds = duration.toFixed(1) + ' ms';
+// 	}
+// 	return ds;
+// }

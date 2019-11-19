@@ -5,7 +5,7 @@ const
 		skip: false,
 		timeout: 10000
 	}),
-	FINALIZE_KEY = Symbol('finalize.key'),
+	FINALIZE_TEST_KEY = Symbol('finalize.test.key'),
 	PROCESS_ERROR_KEY = Symbol('process.stack.key');
 
 class AssertError extends Error { }
@@ -28,42 +28,43 @@ export class Test {
 			throw new Error('test code MUST be a function');
 		}
 
-		Object.assign(
-			this,
-			DEFAULT_TEST_OPTIONS,
-			options
-		);
+		Object.assign(this, DEFAULT_TEST_OPTIONS, options);
 		this.timeoutWatcher = null;
 		this.code = testCode;
 		this.start = null;
 		this.duration = null;
-		this.status = this.skip ? STATUSES.SKIPPED : STATUSES.QUEUED;
+		this.status = STATUSES.QUEUED;
 		this.error = null;
 		Object.seal(this);
 	}
 
 	async run() {
+		if (this.status === STATUSES.RUNNING) {
+			throw new Error('the test is still running');
+		}
+
 		if (this.skip) {
 			this.status = STATUSES.SKIPPED;
 		} else {
 			//	setup timeout watcher
 			this.timeoutWatcher = setTimeout(() => {
-				this[FINALIZE_KEY](new TimeoutError('timeout; remember - you can set a custom timeout if relevant'));
+				this[FINALIZE_TEST_KEY](new TimeoutError('timeout; remember - you can set a custom timeout if relevant'));
 			}, this.timeout);
 
+			this.duration = null;
 			this.status = STATUSES.RUNNING;
 			this.start = performance.now();
 			try {
-				this[FINALIZE_KEY](await Promise.resolve(this.code(this)));
+				this[FINALIZE_TEST_KEY](await Promise.resolve(this.code(this)));
 			} catch (e) {
-				this[FINALIZE_KEY](e);
+				this[FINALIZE_TEST_KEY](e);
 			}
 		}
 
 		return this.status;
 	}
 
-	[FINALIZE_KEY](error) {
+	[FINALIZE_TEST_KEY](error) {
 		if (this.status !== STATUSES.RUNNING) {
 			return;
 		}
@@ -119,9 +120,9 @@ export class Test {
 		}
 	}
 
-	assertNotEqual(expected, actual) {
-		if (expected === actual) {
-			throw new AssertError('expected: ' + expected + ', found: ' + actual);
+	assertNotEqual(unexpected, actual) {
+		if (unexpected === actual) {
+			throw new AssertError('unexpected: ' + unexpected + ', found: ' + actual);
 		}
 	}
 

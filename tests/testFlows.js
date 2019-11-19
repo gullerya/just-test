@@ -1,4 +1,4 @@
-﻿import { createSuite } from '../dist/just-test.js?minimized=true';
+﻿import { createSuite } from '../dist/just-test.js';
 
 const suite = createSuite({ name: 'Test sync/async assets' });
 

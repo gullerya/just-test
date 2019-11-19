@@ -1,18 +1,18 @@
-﻿import { createSuite } from '../dist/just-test.js?minimized=true';
+﻿import { createSuite } from '../dist/just-test.js';
+import { Suite } from '../dist/suite.js';
 
 const
 	suite = createSuite({ name: 'Suite object APIs' });
 
-suite.runTest({ name: 'Suite object created (no options)' }, test => {
-	const tmpSuite = createSuite();
+suite.runTest({ name: 'suite - basic full flow' }, async test => {
+	const s = new Suite({ name: 'suite-under-test' });
 
-	test.assertTrue(Boolean(tmpSuite));
-	test.assertEqual(tmpSuite.name, 'nameless');
-	test.assertEqual(typeof tmpSuite.runTest, 'function');
-});
+	s.runTest({ name: 't1' }, () => { });
+	s.runTest({ name: 't2' }, () => { });
 
-suite.runTest({ name: 'Suite object created (with options)' }, test => {
-	const tmpSuite = createSuite({ name: 'name' });
+	await s.allDone;
 
-	test.assertEqual(tmpSuite.name, 'name');
+	test.assertEqual(2, s.tests.length);
+	test.assertNotEqual(null, s.duration);
+	test.assertTrue(s.duration > 0);
 });
