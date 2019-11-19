@@ -1,4 +1,4 @@
-import './libs/data-tier-list/data-tier-list.min.js';
+import '../libs/data-tier-list/data-tier-list.min.js';
 import './test-view.js';
 
 const
@@ -113,15 +113,15 @@ template.innerHTML = `
 	<div class="header">
 		<span class="name">JustTest</span>
 		<span class="runtime">
-			<span class="done" data-tie="jtModel:done"></span>&#47;<span class="total" data-tie="jtModel:total"></span>
+			<span class="done" data-tie="justTestModel:done"></span>&#47;<span class="total" data-tie="justTestModel:total"></span>
 		</span>
-		<span class="counter pass" data-tie="jtModel:passed"></span>
-		<span class="counter fail" data-tie="jtModel:failed"></span>
-		<span class="counter skip" data-tie="jtModel:skipped"></span>
+		<span class="counter pass" data-tie="justTestModel:passed"></span>
+		<span class="counter fail" data-tie="justTestModel:failed"></span>
+		<span class="counter skip" data-tie="justTestModel:skipped"></span>
 		<span class="scroll-spacer"></span>
 	</div>
 	<div class="content">
-		<template is="data-tier-item-template" data-tie="jtModel:suites">
+		<template is="data-tier-item-template" data-tie="justTestModel:suites">
 			<div class="suite-view">
 				<div class="header">
 					<span class="name" data-tie="item:name"></span>

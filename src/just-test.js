@@ -1,4 +1,5 @@
 import * as DataTier from './libs/data-tier/data-tier.min.js';
+import { STATUSES } from './test.js';
 import { Suite } from './suite.js';
 
 export {
@@ -7,7 +8,7 @@ export {
 
 const
 	initParams = {},
-	model = DataTier.ties.create('jtModel', {
+	model = DataTier.ties.create('justTestModel', {
 		passed: 0,
 		failed: 0,
 		skipped: 0,
@@ -32,24 +33,32 @@ if (Object.keys(initParams).length) {
 
 //	only if not explicitly required headless and not already created
 if (!initParams.headless && !document.querySelectorAll('just-test-view').length) {
-	import('./just-test-view.js')
+	import('./views/just-test-view.js')
 		.then(() => {
 			const justTestView = document.createElement('just-test-view');
 			if (initParams.minimized) {
 				justTestView.classList.add('minimized');
 			}
-			justTestView.dataset.tie = 'jtModel';
+			justTestView.dataset.tie = 'justTestModel';
 			document.body.appendChild(justTestView);
 		});
 }
 
 function createSuite(options) {
 	const s = new Suite(options, model);
-	s.addEventListener('testFinished', e => {
-		console.dir(e.detail.testName);
-		console.log(s.tests.length);
+	s.addEventListener('testAdded', () => {
+		model.total++;
+	});
+	s.addEventListener('testFinished', tfe => {
+		if (tfe.detail.status === STATUSES.PASSED) {
+			model.passed++;
+		} else if (tfe.detail.status === STATUSES.FAILED || tfe.detail.status === STATUSES.ERRORED) {
+			model.failed++;
+		} else if (tfe.detail.status === STATUSES.SKIPPED) {
+			model.skipped++;
+		}
+		model.done++;
 	});
 	model.suites.push(s);
-	// return model.suites[model.suites.length - 1];
 	return s;
 }

@@ -5,6 +5,7 @@ const
 		sync: false,
 		skip: false
 	}),
+	FINISHED_RESOLVE_KEY = Symbol('finished.resolve.key'),
 	FINALIZE_SUITE_KEY = Symbol('finalize.suite.key');
 
 export class Suite extends EventTarget {
@@ -22,7 +23,7 @@ export class Suite extends EventTarget {
 		this.start = null;
 		this.duration = null;
 		this.syncTail = Promise.resolve();
-		this.allDone = new Promise(resolve => { this.resolve = resolve });
+		this.finished = new Promise(resolve => { this[FINISHED_RESOLVE_KEY] = resolve });
 		Object.seal(this);
 	}
 
@@ -38,69 +39,18 @@ export class Suite extends EventTarget {
 		try {
 			const test = new Test(testParams, testCode);
 			this.tests.push(test);
+			this.dispatchEvent(new Event('testAdded'));
 			if (test.sync) {
 				this.syncTail = this.syncTail.then(test.run);
-				this.syncTail.then(() => this[FINALIZE_SUITE_KEY](test.name));
+				this.syncTail.then(() => this[FINALIZE_SUITE_KEY](test.name, test.status));
 			} else {
 				await test.run();
-				this[FINALIZE_SUITE_KEY](test.name);
+				this[FINALIZE_SUITE_KEY](test.name, test.status);
 			}
 		} catch (e) {
 			console.error('failed to run test', e);
+			this[FINALIZE_SUITE_KEY](testParams.name, STATUSES.ERRORED);
 		}
-
-		// if (test.sync) {
-		// 	this.lastSyncTestPromise = this.lastSyncTestPromise.finally(() => {
-		// 		return new Promise(resolve =>
-		// 			test.run()
-		// 				.finally(() => {
-		// 					switch (test.status) {
-		// 						case STATUSES.PASSED:
-		// 							this.passed++;
-		// 							jtModel.passed++;
-		// 							break;
-		// 						case STATUSES.FAILED:
-		// 							this.failed++;
-		// 							jtModel.failed++;
-		// 							break;
-		// 						case STATUSES.SKIPPED:
-		// 							this.skipped++;
-		// 							jtModel.skipped++;
-		// 							break;
-		// 						default:
-		// 							break;
-		// 					}
-		// 					this.duration = stringifyDuration(performance.now() - this.started);
-		// 					jtModel.done++;
-		// 					resolve();
-		// 				})
-		// 		);
-		// 	});
-		// } else {
-		// 	test.run()
-		// 		.finally(() => {
-		// 			switch (test.status) {
-		// 				case STATUSES.PASSED:
-		// 					this.passed++;
-		// 					jtModel.passed++;
-		// 					break;
-		// 				case STATUSES.FAILED:
-		// 					this.failed++;
-		// 					jtModel.failed++;
-		// 					break;
-		// 				case STATUSES.SKIPPED:
-		// 					this.skipped++;
-		// 					jtModel.skipped++;
-		// 					break;
-		// 				default:
-		// 					break;
-		// 			}
-		// 			this.duration = stringifyDuration(performance.now() - this.started);
-		// 			jtModel.done++;
-		// 		});
-		// }
-
-		// jtModel.total++;
 	}
 
 	get counters() {
@@ -111,14 +61,18 @@ export class Suite extends EventTarget {
 		return r;
 	}
 
-	[FINALIZE_SUITE_KEY](testName) {
-		this.dispatchEvent(new CustomEvent('testFinished', { detail: { testName: testName } }));
-		setTimeout(() => {
-			if (this.tests.every(t => t.status > STATUSES.RUNNING)) {
-				this.duration = performance.now() - this.start;
-				this.resolve();
-			}
-		}, 100);
+	[FINALIZE_SUITE_KEY](testName, testStatus) {
+		this.dispatchEvent(new CustomEvent('testFinished', { detail: { name: testName, status: testStatus } }));
+
+		//	if none running - let some time pass and check for suite full stop
+		if (this.tests.every(t => t.status > STATUSES.RUNNING)) {
+			setTimeout(() => {
+				if (this.tests.every(t => t.status > STATUSES.RUNNING)) {
+					this.duration = performance.now() - this.start;
+					this[FINISHED_RESOLVE_KEY]();
+				}
+			}, 96);
+		}
 	}
 }
 

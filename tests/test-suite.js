@@ -10,7 +10,7 @@ suite.runTest({ name: 'suite - basic full flow' }, async test => {
 	s.runTest({ name: 't1' }, () => { });
 	s.runTest({ name: 't2' }, () => { });
 
-	await s.allDone;
+	await s.finished;
 
 	test.assertEqual(2, s.tests.length);
 	test.assertNotEqual(null, s.duration);

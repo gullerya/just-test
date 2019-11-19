@@ -39,16 +39,17 @@ export class Suite extends EventTarget {
 		try {
 			const test = new Test(testParams, testCode);
 			this.tests.push(test);
+			this.dispatchEvent(new Event('testAdded'));
 			if (test.sync) {
 				this.syncTail = this.syncTail.then(test.run);
-				this.syncTail.then(() => this[FINALIZE_SUITE_KEY](test.name));
+				this.syncTail.then(() => this[FINALIZE_SUITE_KEY](test.name, test.status));
 			} else {
 				await test.run();
-				this[FINALIZE_SUITE_KEY](test.name);
+				this[FINALIZE_SUITE_KEY](test.name, test.status);
 			}
 		} catch (e) {
 			console.error('failed to run test', e);
-			this[FINALIZE_SUITE_KEY]();
+			this[FINALIZE_SUITE_KEY](testParams.name, STATUSES.ERRORED);
 		}
 	}
 
@@ -60,14 +61,18 @@ export class Suite extends EventTarget {
 		return r;
 	}
 
-	[FINALIZE_SUITE_KEY](testName) {
-		this.dispatchEvent(new CustomEvent('testFinished', { detail: { testName: testName } }));
-		setTimeout(() => {
-			if (this.tests.every(t => t.status > STATUSES.RUNNING)) {
-				this.duration = performance.now() - this.start;
-				this.resolve();
-			}
-		}, 100);
+	[FINALIZE_SUITE_KEY](testName, testStatus) {
+		this.dispatchEvent(new CustomEvent('testFinished', { detail: { name: testName, status: testStatus } }));
+
+		//	if none running - let some time pass and check for suite full stop
+		if (this.tests.every(t => t.status > STATUSES.RUNNING)) {
+			setTimeout(() => {
+				if (this.tests.every(t => t.status > STATUSES.RUNNING)) {
+					this.duration = performance.now() - this.start;
+					this[FINISHED_RESOLVE_KEY]();
+				}
+			}, 96);
+		}
 	}
 }
 
