@@ -8,6 +8,8 @@ const
 	FINALIZE_TEST_KEY = Symbol('finalize.test.key'),
 	PROCESS_ERROR_KEY = Symbol('process.stack.key');
 
+let testIdSource = 0;
+
 class AssertError extends Error { }
 
 class TimeoutError extends AssertError { }
@@ -29,6 +31,7 @@ export class Test {
 		}
 
 		Object.assign(this, DEFAULT_TEST_OPTIONS, options);
+		this.id = testIdSource++;
 		this.timeoutWatcher = null;
 		this.code = testCode;
 		this.start = null;

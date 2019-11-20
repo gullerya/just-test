@@ -8,6 +8,8 @@ const
 	FINISHED_RESOLVE_KEY = Symbol('finished.resolve.key'),
 	FINALIZE_SUITE_KEY = Symbol('finalize.suite.key');
 
+let suiteIdSource = 0;
+
 export class Suite extends EventTarget {
 	constructor(options) {
 		super();
@@ -19,6 +21,7 @@ export class Suite extends EventTarget {
 		}
 
 		Object.assign(this, DEFAULT_SUITE_OPTIONS, options);
+		this.id = suiteIdSource++;
 		this.tests = [];
 		this.start = null;
 		this.duration = null;
@@ -36,20 +39,20 @@ export class Suite extends EventTarget {
 			this.start = performance.now();
 		}
 
+		const test = new Test(testParams, testCode);
 		try {
-			const test = new Test(testParams, testCode);
 			this.tests.push(test);
-			this.dispatchEvent(new Event('testAdded'));
+			this.dispatchEvent(new CustomEvent('testAdded', { detail: { suiteId: this.id, test: test } }));
 			if (test.sync) {
 				this.syncTail = this.syncTail.then(test.run);
-				this.syncTail.then(() => this[FINALIZE_SUITE_KEY](test.name, test.status));
+				this.syncTail.then(() => this[FINALIZE_SUITE_KEY](test));
 			} else {
 				await test.run();
-				this[FINALIZE_SUITE_KEY](test.name, test.status);
+				this[FINALIZE_SUITE_KEY](test);
 			}
 		} catch (e) {
 			console.error('failed to run test', e);
-			this[FINALIZE_SUITE_KEY](testParams.name, STATUSES.ERRORED);
+			this[FINALIZE_SUITE_KEY](test);
 		}
 	}
 
@@ -61,15 +64,16 @@ export class Suite extends EventTarget {
 		return r;
 	}
 
-	[FINALIZE_SUITE_KEY](testName, testStatus) {
-		this.dispatchEvent(new CustomEvent('testFinished', { detail: { name: testName, status: testStatus } }));
+	[FINALIZE_SUITE_KEY](test) {
+		this.dispatchEvent(new CustomEvent('testFinished', { detail: { suiteId: this.id, test: test } }));
 
-		//	if none running - let some time pass and check for suite full stop
+		//	if none running - let some time pass and check for a suite full stop
 		if (this.tests.every(t => t.status > STATUSES.RUNNING)) {
 			setTimeout(() => {
 				if (this.tests.every(t => t.status > STATUSES.RUNNING)) {
-					this.duration = performance.now() - this.start;
+					this.duration = performance.now() - this.start - 96;
 					this[FINISHED_RESOLVE_KEY]();
+					this.dispatchEvent(new CustomEvent('finished', { detail: { suite: this } }));
 				}
 			}, 96);
 		}

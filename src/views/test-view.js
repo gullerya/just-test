@@ -1,3 +1,5 @@
+import { STATUSES } from '../test.js';
+
 const
 	template = document.createElement('template');
 
@@ -35,6 +37,10 @@ template.innerHTML = `
 
 		:host > .header > .status {
 			flex-basis: 70px;
+		}
+
+		:host(.wait) > .header > .status {
+			color: #ccc;
 		}
 
 		:host(.runs) > .header > .status {
@@ -116,19 +122,24 @@ customElements.define('test-view', class extends HTMLElement {
 		const se = this.shadowRoot.querySelector('.status');
 		this.classList.remove('pass', 'fail', 'skip');
 		switch (status) {
-			case 'runs':
+			case STATUSES.QUEUED:
+				se.textContent = 'wait';
+				this.classList.add('wait');
+				break;
+			case STATUSES.RUNNING:
 				se.textContent = 'runs';
 				this.classList.add('runs');
 				break;
-			case 'pass':
+			case STATUSES.PASSED:
 				se.textContent = 'pass';
 				this.classList.add('pass');
 				break;
-			case 'fail':
+			case STATUSES.ERRORED:
+			case STATUSES.FAILED:
 				se.textContent = 'fail';
 				this.classList.add('fail');
 				break;
-			case 'skip':
+			case STATUSES.SKIPPED:
 				se.textContent = 'skip';
 				this.classList.add('skip');
 				break;
