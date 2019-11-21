@@ -10,6 +10,19 @@ Test framework to run JavaScript (client) tests. Currently supports Chrome and F
 The main idea behind JustTest is having the client tests available within the development process (call it TDD, if you'd like to). The framework and the tests files are to be added directly to the webapp page. Each reload/refresh of the page will run the tests.<br/>
 JustTest originally developed as a small'n'smart test framework for a personal needs (datatier-js), but I've decided to refactor it a bit and publish to the community as something useful, to my mind. Please feel free to comment, request, contribute.
 
+#### Highlights:
+- running tests in __browser__, most of the cases no server needed, just static files - dev time, literally __TDD__ oriented
+- __re-running__ any test in browser ad-hoc - very cool for debugging
+- friendly __UI__ on top of the page of the tests, allows immediatelly observe the behavior of the code and the test
+- running tests from __NodeJS__ via headless browser (currently: Chromium) to run in __CI/CD automation__
+- generating __test results__ report (format: __xUnit__)
+- collecting __coverage__ and generating report (formats: __lcov__)
+- flexible yet simple ability to run tests in __sync__ as well as __async__ (default) manner
+- in general, a lot of attention was paid to create __simple and usable__ framework even for a not-so-simple cases, like asynchronous tests etc
+
+> Attention: the doc below is still in construction, more updates and detailed one will be published very soon!!!
+> Meanwhile, the best way to actually see how the library should be used is it look onto its own tests in `tests` folder, and for CI/CD case - `travis.yml` is a good start.
+
 <b>Work process:</b><br/>
 	a)	Write your app functionality (API),<br/>
 	b)	Write test that uses/hits that functionality,<br/>
