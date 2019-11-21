@@ -24,6 +24,10 @@ suite.runTest({ name: 'suite - erroring this one (UI/manual test)' }, () => {
 	throw new Error('intentional');
 });
 
+suite.runTest({ name: 'suite - timing out this one (UI/manual test)', timeout: 500 }, async t => {
+	await t.waitMillis(1000);
+});
+
 suite.runTest({ name: 'suite - failing this one (UI/manual test)' }, t => {
 	t.assertNotEqual(1, 1);
 });

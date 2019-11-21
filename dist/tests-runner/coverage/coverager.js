@@ -105,7 +105,7 @@ async function report(nativePage, covConf, reportPath, serverUrl) {
 	//	produce report
 	writeReport(covData, covConf, reportPath);
 
-	console.info('JustTest [coverager]: ... done');
+	console.info('JustTest [coverager]: ... coverage report written ("' + covConf.format + '" format)');
 }
 
 function writeReport(data, conf, reportPath) {

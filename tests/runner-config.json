@@ -1,7 +1,7 @@
 {
 	"tests": {
 		"url": "/tests/test.html",
-		"maxFail": 2,
+		"maxFail": 3,
 		"maxSkip": 1
 	},
 	"coverage": {
