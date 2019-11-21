@@ -2,7 +2,7 @@ import { STATUSES, runTest } from './test.js';
 
 const
 	SUITE_DONE_PROBING_DELAY = 96,
-	FINISHED_RESOLVE_KEY = Symbol('finished.resolve.key'),
+	DONE_RESOLVER_KEY = Symbol('finished.resolve.key'),
 	ON_TEST_FINISHED_KEY = Symbol('finalize.suite.key');
 
 let suiteIdSource = 0;
@@ -29,7 +29,7 @@ export class Suite extends EventTarget {
 
 		this.model = model;
 		this.syncTail = Promise.resolve();
-		this.finished = new Promise(resolve => { this[FINISHED_RESOLVE_KEY] = resolve; });
+		this.done = new Promise(resolve => { this[DONE_RESOLVER_KEY] = resolve; });
 	}
 
 	async runTest(testParams, testCode) {
@@ -77,7 +77,7 @@ export class Suite extends EventTarget {
 			setTimeout(() => {
 				if (this.model.done === this.model.tests.length) {
 					this.model.duration = performance.now() - this.start - SUITE_DONE_PROBING_DELAY;
-					this[FINISHED_RESOLVE_KEY]();
+					this[DONE_RESOLVER_KEY]();
 					this.dispatchEvent(new CustomEvent('finished', { detail: { suiteModel: this.model } }));
 				}
 			}, SUITE_DONE_PROBING_DELAY);

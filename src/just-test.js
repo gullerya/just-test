@@ -39,7 +39,6 @@ if (!initParams.headless && !document.querySelectorAll('just-test-view').length)
 			if (initParams.minimized) {
 				justTestView.classList.add('minimized');
 			}
-			justTestView.dataset.tie = 'justTestModel';
 			document.body.appendChild(justTestView);
 		});
 }
@@ -78,6 +77,14 @@ function onTestFinished(e) {
 function onSuiteFinished(e) {
 	const suiteModel = e.detail.suiteModel;
 	suiteModel.duration = stringifyDuration(suiteModel.duration);
+
+	//	check if all done
+	if (model.suites.every(s => s.done === s.tests.length)) {
+		const jtv = document.querySelector('just-test-view');
+		if (jtv) {
+			jtv.model = model;
+		}
+	}
 }
 
 function stringifyDuration(duration) {

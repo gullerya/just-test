@@ -45,7 +45,7 @@ async function report(nativePage, covConf, reportPath, serverUrl) {
 			ranges: []
 		};
 
-		console.info('JustTest [coverager]: ... "' + fileCoverage.path + '"');
+		process.stdout.write('JustTest [coverager]: ... "' + fileCoverage.path + '"');
 
 		//	existing ranges are a COVERED sections
 		//	ranges' in-between parts are a NON-COVERED sections
@@ -94,6 +94,11 @@ async function report(nativePage, covConf, reportPath, serverUrl) {
 
 			positionInCode = range.end;
 		});
+
+		const lk = Object.keys(fileCoverage.lines);
+		fileCoverage.covered = lk.reduce((pv, cv) => pv + (fileCoverage.lines[cv].hits ? 1 : 0), 0) / lk.length;
+		process.stdout.write('\t'.repeat(2) + Math.round(fileCoverage.covered * 100) + '%' + os.EOL);
+
 		covData.tests[0].coverage.files.push(fileCoverage);
 	}
 

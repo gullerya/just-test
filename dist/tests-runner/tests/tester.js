@@ -45,7 +45,7 @@ async function waitTestsToFinish(page, ttl) {
 	do {
 		testsDone = await page.evaluate(() => {
 			const jtv = document.querySelector('just-test-view');
-			return jtv && jtv.done;
+			return jtv && jtv.model && typeof jtv.model === 'object';
 		});
 
 		const currentTL = performance.now() - started;
