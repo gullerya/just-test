@@ -12,7 +12,7 @@ suite.runTest({ name: 'suite - basic full flow' }, async test => {
 
 	await s.finished;
 
-	test.assertEqual(2, s.tests.length);
-	test.assertNotEqual(null, s.duration);
-	test.assertTrue(s.duration > 0);
+	test.assertEqual(2, s.model.tests.length);
+	test.assertNotEqual(null, s.model.duration);
+	test.assertTrue(s.model.duration > 0);
 });
