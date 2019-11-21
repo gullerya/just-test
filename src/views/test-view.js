@@ -1,7 +1,8 @@
-import { STATUSES } from '../test.js';
+import { STATUSES, runTest } from '../test.js';
 
 const
-	template = document.createElement('template');
+	template = document.createElement('template'),
+	TEST_KEY = Symbol('test.key');
 
 template.innerHTML = `
 	<style>
@@ -11,55 +12,124 @@ template.innerHTML = `
 			overflow: hidden;
 			display: flex;
 			flex-direction: column;
+			line-height: 1.2em;
 		}
 
-		:host > .header {
+		:host(:hover) {
+			background-color: #111;
+		}
+
+		.header {
 			padding: 6px;
 			display: flex;
-			flex-direction: row;
 			align-items: center;
 		}
 
-		:host > .header > .name {
+		.header > .name {
 			flex: 1;
+			color: #999;
+			transition: color 120ms
 		}
 
-		:host > .header > .status, .duration {
+		.header:hover > .name {
+			color: #ccc;
+		}
+
+		.header > .error-type {
+			padding: 0 8px;
+			font-family: monospace;
+			border-radius: 4px;
+			color: #f00;
+		}
+
+		.header > .error-type:hover {
+			background-color: #ccc;
+		}
+
+		.re-run {
+			width: 1.2em;
+			height: 1.2em;
+			margin: 0 8px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-family: monospace;
+			border-radius: 4px;
+			color: #999;
+			opacity: 0;
+			transition: opacity 120ms, color 120ms;
+		}
+
+		.re-run:hover {
+			color: #ccc;
+		}
+
+		.re-run:before {
+			content: "\u25b6";
+		}
+
+		:host(:not(.skip):not(.runs)) > .header:hover > .re-run {
+			opacity: 1;
+		}
+
+		.header > .status, .duration {
 			font-family: Courier;
 			text-align: right;
 		}
 
-		:host > .header > .duration {
+		.header > .duration {
 			flex-basis: 99px;
 			overflow: hidden;
 			white-space: nowrap;
+			color: #999;
+			transition: color 120ms;
 		}
 
-		:host > .header > .status {
-			flex-basis: 70px;
-		}
-
-		:host(.wait) > .header > .status {
+		.header:hover > .duration {
 			color: #ccc;
 		}
 
-		:host(.runs) > .header > .status {
+		.header > .status {
+			width: 1.2em;
+			height: 1.2em;
+			margin-left: 16px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-family: monospace;
+		}
+
+		:host(.wait) > .header > .status::before {
+			color: #ccc;
+			content: "\u22ef";
+		}
+
+		:host(.runs) > .header > .status::before {
 			color: #88f;
+			content: "\u22ef";
 		}
 
-		:host(.pass) > .header > .status {
+		:host(.runs) > .header > .status {
+			transform: rotate(18000deg);
+			transition: transform 100s linear;
+		}
+
+		:host(.pass) > .header > .status::before {
 			color: #6f4;
+			content: "\u2713";
 		}
 
-		:host(.fail) > .header > .status {
+		:host(.fail) > .header > .status::before {
 			color: #f00;
+			content: "\u2718";
 		}
 
-		:host(.skip) > .header > .status {
-			color: gray;
+		:host(.skip) > .header > .status:before {
+			color: #ccc;
+			content: "\u22ef";
 		}
 
-		:host > .error {
+		.error {
 			height: auto;
 			max-height: 0px;
 			transition: max-height 100ms;
@@ -75,7 +145,7 @@ template.innerHTML = `
 			max-height: 240px;
 		}
 
-		:host .error-line {
+		.error-line {
 			padding: 2px 0 2px 24px;
 			font-family: Courier;
 			overflow: hidden;
@@ -85,6 +155,8 @@ template.innerHTML = `
 
 	<div class="header">
 		<span class="name"></span>
+		<span class="error-type"></span>
+		<span class="re-run"></span>
 		<span class="duration"></span>
 		<span class="status"></span>
 	</div>
@@ -96,12 +168,20 @@ customElements.define('test-view', class extends HTMLElement {
 		super();
 		this.attachShadow({ mode: 'open' })
 			.appendChild(template.content.cloneNode(true));
-		this.shadowRoot.querySelector('.header').addEventListener('click', () => {
+		this.shadowRoot.querySelector('.header > .error-type').addEventListener('click', () => {
 			this.classList.toggle('errorOpen');
+		});
+		this.shadowRoot.querySelector('.re-run').addEventListener('click', () => {
+			if (this[TEST_KEY].status !== STATUSES.RUNNING) {
+				runTest(this[TEST_KEY]);
+			} else {
+				console.log('running');
+			}
 		});
 	}
 
 	set test(test) {
+		this[TEST_KEY] = test;
 		this.shadowRoot.querySelector('.name').textContent = test.name;
 		this.status = test.status;
 	}
@@ -117,28 +197,30 @@ customElements.define('test-view', class extends HTMLElement {
 	}
 
 	set status(status) {
-		const se = this.shadowRoot.querySelector('.status');
-		this.classList.remove('pass', 'fail', 'skip');
+		let newState;
+		this.classList.remove('wait', 'runs', 'pass', 'fail', 'skip');
 		if (status === STATUSES.QUEUED) {
-			se.textContent = 'wait';
-			this.classList.add('wait');
+			newState = 'wait';
 		} else if (status === STATUSES.RUNNING) {
-			se.textContent = 'runs';
-			this.classList.add('runs');
+			newState = 'runs';
 		} else if (status === STATUSES.PASSED) {
-			se.textContent = 'pass';
-			this.classList.add('pass');
+			newState = 'pass';
 		} else if (status === STATUSES.FAILED || status === STATUSES.ERRORED) {
-			se.textContent = 'fail';
-			this.classList.add('fail');
+			newState = 'fail';
 		} else if (status === STATUSES.SKIPPED) {
-			se.textContent = 'skip';
-			this.classList.add('skip');
+			newState = 'skip';
 		}
+		setTimeout(() => {
+			this.classList.remove('wait', 'runs', 'pass', 'fail', 'skip');
+			this.classList.add(newState);
+		}, 0);
 	}
 
 	set error(error) {
-		this.shadowRoot.querySelector('.error').innerHTML = '';
+		const ett = this.shadowRoot.querySelector('.error-type');
+		const ee = this.shadowRoot.querySelector('.error');
+		ett.textContent = '';
+		ee.innerHTML = '';
 		if (error) {
 			if (error instanceof Error) {
 				const df = new DocumentFragment();
@@ -157,9 +239,11 @@ customElements.define('test-view', class extends HTMLElement {
 						return el;
 					})
 					.forEach(el => df.appendChild(el));
-				this.shadowRoot.querySelector('.error').appendChild(df);
+
+				ett.textContent = error.type;
+				ee.appendChild(df);
 			} else {
-				this.shadowRoot.querySelector('.error').textContent = error;
+				ee.textContent = error;
 			}
 		}
 	}
