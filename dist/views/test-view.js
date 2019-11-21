@@ -20,6 +20,7 @@ template.innerHTML = `
 		}
 
 		.header {
+			flex-base: 36px;
 			padding: 6px;
 			display: flex;
 			align-items: center;

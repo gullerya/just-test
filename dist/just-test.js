@@ -82,7 +82,7 @@ function onSuiteFinished(e) {
 	if (model.suites.every(s => s.done === s.tests.length)) {
 		const jtv = document.querySelector('just-test-view');
 		if (jtv) {
-			jtv.model = model;
+			jtv.results = model;
 		}
 	}
 }

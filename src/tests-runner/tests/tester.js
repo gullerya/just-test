@@ -13,23 +13,23 @@ async function report(page, conf) {
 	//	extract results
 	console.info(os.EOL);
 	console.info('JustTest [tester]: obtaining test results...');
-	const model = await page.evaluate(() => {
-		const mAsJson = document.querySelector('just-test-view').model;
+	const results = await page.evaluate(() => {
+		const mAsJson = document.querySelector('just-test-view').results;
 		return JSON.parse(JSON.stringify(mAsJson));
 	});
 	console.info('JustTest [tester]: ... test results summary:');
-	console.info(model.passed.toString().padStart(7) + ' passed');
-	console.info(model.failed.toString().padStart(7) + ' failed');
-	console.info(model.skipped.toString().padStart(7) + ' skipped');
+	console.info(results.passed.toString().padStart(7) + ' passed');
+	console.info(results.failed.toString().padStart(7) + ' failed');
+	console.info(results.skipped.toString().padStart(7) + ' skipped');
 
-	const statusPass = model.failed <= conf.maxFail && model.skipped <= conf.maxSkip;
+	const statusPass = results.failed <= conf.maxFail && results.skipped <= conf.maxSkip;
 	const result = {
-		passed: model.passed,
-		failed: model.failed,
-		skipped: model.skipped,
+		passed: results.passed,
+		failed: results.failed,
+		skipped: results.skipped,
 		statusPass: statusPass,
 		statusText: statusPass
-			? 'SUCCESS' + (model.failed || model.skipped ? ' (with allowed no. of fails/skips)' : '')
+			? 'SUCCESS' + (results.failed || results.skipped ? ' (with allowed no. of fails/skips)' : '')
 			: 'FAILURE'
 	}
 
@@ -45,7 +45,7 @@ async function waitTestsToFinish(page, ttl) {
 	do {
 		testsDone = await page.evaluate(() => {
 			const jtv = document.querySelector('just-test-view');
-			return jtv && jtv.model && typeof jtv.model === 'object';
+			return jtv && jtv.results && typeof jtv.results === 'object';
 		});
 
 		const currentTL = performance.now() - started;

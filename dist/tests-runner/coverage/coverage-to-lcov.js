@@ -41,7 +41,11 @@ module.exports = {
 };
 
 function convert(coverageData) {
-	verifyCoverageData(coverageData);
+	const verficationError = verifyCoverageData(coverageData);
+	if (verficationError) {
+		console.error(verficationError);
+		return null;
+	}
 
 	const testReports = [];
 	coverageData.tests.forEach(test => {
@@ -81,6 +85,8 @@ function verifyCoverageData(coverageData) {
 		coverageData.tests.some(test => !test.testName || !/^[a-zA-Z._]+$/.test(test.testName) ||
 			!test.coverage || !Array.isArray(test.coverage.files) || !test.coverage.files.length)
 	) {
-		throw new Error('coverage data is corrupted or incomplete');
+		return 'coverage data is corrupted or incomplete';
+	} else {
+		return null;
 	}
 }

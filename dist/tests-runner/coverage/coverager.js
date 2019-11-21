@@ -118,5 +118,7 @@ function writeReport(data, conf, reportPath) {
 			console.error('JustTest [coverager]: invalid coverage format "' + conf.format + '" required');
 			return;
 	}
-	fsExtra.outputFileSync(reportPath, report);
+	if (report) {
+		fsExtra.outputFileSync(reportPath, report);
+	}
 }

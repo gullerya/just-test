@@ -2,6 +2,7 @@ import '../libs/data-tier-list/data-tier-list.min.js';
 import './test-view.js';
 
 const
+	RESULTS_KEY = Symbol('results.key'),
 	template = document.createElement('template');
 
 template.innerHTML = `
@@ -103,9 +104,19 @@ template.innerHTML = `
 
 		.content > .suite-view {
 			margin-top: 20px;
+			max-height: 36px;
+			overflow: hidden;
+			border-bottom: 1px solid #555;
+			transition: max-height 480ms linear;
+		}
+
+		.content > .suite-view.expanded {
+			max-height: 8000px;
 		}
 
 		.content > .suite-view > .header {
+			height: 36px;
+			box-sizing: border-box;
 			border-bottom: 1px solid #555;
 		}
 	</style>
@@ -148,18 +159,18 @@ customElements.define('just-test-view', class extends HTMLElement {
 			.appendChild(template.content.cloneNode(true));
 
 		this.shadowRoot.querySelector('.header').addEventListener('click', () => this.classList.toggle('minimized'));
-
-		const wi = setInterval(() => {
-			const done = this.shadowRoot.querySelector('.header .runtime .done').textContent;
-			const total = this.shadowRoot.querySelector('.header .runtime .total').textContent;
-			if (done === total) {
-				clearInterval(wi);
-				this.done = true;
+		this.shadowRoot.querySelector('.content').addEventListener('click', e => {
+			if (e.target.matches('.suite-view .header .name')) {
+				e.target.parentElement.parentElement.classList.toggle('expanded');
 			}
-		}, 200);
+		});
 	}
 
-	get defaultTieTarget() {
-		return 'model';
+	set results(results) {
+		this[RESULTS_KEY] = results;
+	}
+
+	get results() {
+		return this[RESULTS_KEY];
 	}
 });
