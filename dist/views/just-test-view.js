@@ -134,7 +134,7 @@ template.innerHTML = `
 	</div>
 	<div class="content">
 		<template is="data-tier-item-template" data-tie="justTestModel:suites">
-			<div class="suite-view">
+			<div class="suite-view expanded">
 				<div class="header">
 					<span class="name" data-tie="item:name"></span>
 					<span class="duration" data-tie="item:duration"></span>
