@@ -128,14 +128,3 @@ TestAssets.prototype.assertFalse = expression => {
 TestAssets.prototype.fail = message => {
 	throw new AssertError(message);
 }
-
-/* <testsuite name="nosetests" tests="1" errors="1" failures="0" skip="0">
-	<testcase classname="path_to_test_suite.TestSomething"
-		name="test_it" time="0">
-		<error type="exceptions.TypeError" message="oops, wrong type">
-			Traceback (most recent call last):
-			...
-			TypeError: oops, wrong type
-        </error>
-	</testcase>
-</testsuite> */

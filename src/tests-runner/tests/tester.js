@@ -1,16 +1,28 @@
 const
 	os = require('os'),
+	fsExtra = require('fs-extra'),
 	{ performance } = require('perf_hooks');
 
 module.exports = {
 	report: report
 }
 
-async function report(page, conf) {
+async function report(page, conf, reportPath) {
 	//	wait for tests to finish
 	await waitTestsToFinish(page, conf.ttl);
 
-	//	extract results
+	//	write full report
+	console.info(os.EOL);
+	console.info('JustTest [tester]: obtaining full report...');
+	const fullReport = await page.evaluate(() => {
+		return document.querySelector('just-test-view').generateXUnitReport();
+	});
+	if (fullReport) {
+		fsExtra.outputFileSync(reportPath, fullReport);
+	}
+	console.info('JustTest [tester]: ... full report written ("' + conf.format + '" format)');
+
+	//	extract principal results
 	console.info(os.EOL);
 	console.info('JustTest [tester]: obtaining test results...');
 	const results = await page.evaluate(() => {

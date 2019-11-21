@@ -20,8 +20,12 @@ suite.runTest({ name: 'suite - basic full flow' }, async test => {
 suite.runTest({ name: 'suite - skipping this one (UI/manual test)', skip: true }, () => {
 });
 
-suite.runTest({ name: 'suite - failing this one (UI/manual test)' }, () => {
+suite.runTest({ name: 'suite - erroring this one (UI/manual test)' }, () => {
 	throw new Error('intentional');
+});
+
+suite.runTest({ name: 'suite - failing this one (UI/manual test)' }, t => {
+	t.assertNotEqual(1, 1);
 });
 
 suite.runTest({ name: 'suite - all async' }, async test => {

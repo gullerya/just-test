@@ -57,7 +57,7 @@ const conf = configurer.configuration;
 	console.info('JustTest: ... tests (AUT) page opened');
 
 	//	process test results, create report
-	result = await tester.report(page, conf.tests);
+	result = await tester.report(page, conf.tests, path.resolve(conf.reports.folder, conf.tests.reportFilename));
 
 	//	process coverage, create report
 	if (!conf.coverage.skip) {

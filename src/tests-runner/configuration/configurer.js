@@ -114,6 +114,7 @@ function validateServerConf(sc) {
 }
 
 function validateTestsConf(tc) {
+	const testResultsFormats = ['xUnit'];
 	if (!tc) {
 		throw new Error('"tests" configuration part is missing');
 	}
@@ -125,6 +126,12 @@ function validateTestsConf(tc) {
 	}
 	if (typeof tc.maxSkip !== 'number') {
 		throw new Error('"maxSkip" configuration of "tests" is not a number');
+	}
+	if (!testResultsFormats.includes(tc.format)) {
+		throw new Error('invalid "format" configuration of "tests": ' + tc.format + '; supported formats are: ' + testResultsFormats);
+	}
+	if (!tc.reportFilename) {
+		throw new Error('"tests" configuration is missing "reportFilename" part');
 	}
 }
 

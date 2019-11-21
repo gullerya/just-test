@@ -9,7 +9,9 @@
 		"url": null,
 		"ttl": 23000,
 		"maxFail": 0,
-		"maxSkip": 0
+		"maxSkip": 0,
+		"format": "xUnit",
+		"reportFilename": "test-results.xml"
 	},
 	"coverage": {
 		"skip": false,
