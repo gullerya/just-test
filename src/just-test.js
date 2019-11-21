@@ -45,15 +45,11 @@ if (!initParams.headless && !document.querySelectorAll('just-test-view').length)
 }
 
 function createSuite(options) {
-	const s = new Suite(options);
 	model.suites.push({
-		id: s.id,
-		name: s.name,
-		passed: 0,
-		failed: 0,
-		skipped: 0,
-		tests: []
+		name: options.name
 	});
+
+	const s = new Suite(model.suites[model.suites.length - 1]);
 
 	s.addEventListener('testAdded', onTestAdded);
 	s.addEventListener('testFinished', onTestFinished);
@@ -62,47 +58,26 @@ function createSuite(options) {
 	return s;
 }
 
-function onTestAdded(e) {
-	const
-		test = e.detail.test,
-		suiteModel = model.suites.find(s => s.id === e.detail.suiteId);
-
+function onTestAdded() {
 	model.total++;
-	suiteModel.tests.push({
-		id: test.id,
-		name: test.name,
-		status: test.status
-	});
 }
 
 function onTestFinished(e) {
-	const
-		test = e.detail.test,
-		suiteModel = model.suites.find(s => s.id === e.detail.suiteId),
-		testModel = suiteModel.tests.find(t => t.id === test.id);
+	const testResult = e.detail.result;
 
 	model.done++;
-	if (test.status === STATUSES.PASSED) {
+	if (testResult === STATUSES.PASSED) {
 		model.passed++;
-		suiteModel.passed++;
-	} else if (test.status === STATUSES.FAILED || test.status === STATUSES.ERRORED) {
+	} else if (testResult instanceof Error || testResult === STATUSES.FAILED || testResult === STATUSES.ERRORED) {
 		model.failed++;
-		suiteModel.failed++;
-	} else if (test.status === STATUSES.SKIPPED) {
+	} else if (testResult === STATUSES.SKIPPED) {
 		model.skipped++;
-		suiteModel.skipped++;
 	}
-
-	testModel.status = test.status;
-	testModel.error = test.error;
-	testModel.duration = test.duration;
 }
 
 function onSuiteFinished(e) {
-	const
-		suite = e.detail.suite,
-		suiteModel = model.suites.find(s => s.id === suite.id);
-	suiteModel.duration = stringifyDuration(suite.duration);
+	const suiteModel = e.detail.suiteModel;
+	suiteModel.duration = stringifyDuration(suiteModel.duration);
 }
 
 function stringifyDuration(duration) {

@@ -62,7 +62,6 @@ template.innerHTML = `
 		:host > .error {
 			height: auto;
 			max-height: 0px;
-			margin-left: 20px;
 			transition: max-height 100ms;
 			overflow-x: hidden;
 			overflow-y: auto;
@@ -73,11 +72,11 @@ template.innerHTML = `
 		}
 
 		:host(.errorOpen) > .error {
-			max-height: 120px;
+			max-height: 240px;
 		}
 
 		:host .error-line {
-			padding: 2px;
+			padding: 2px 0 2px 24px;
 			font-family: Courier;
 			overflow: hidden;
 			white-space: nowrap;
@@ -95,8 +94,7 @@ template.innerHTML = `
 customElements.define('test-view', class extends HTMLElement {
 	constructor() {
 		super();
-		this
-			.attachShadow({ mode: 'open' })
+		this.attachShadow({ mode: 'open' })
 			.appendChild(template.content.cloneNode(true));
 		this.shadowRoot.querySelector('.header').addEventListener('click', () => {
 			this.classList.toggle('errorOpen');
@@ -121,30 +119,21 @@ customElements.define('test-view', class extends HTMLElement {
 	set status(status) {
 		const se = this.shadowRoot.querySelector('.status');
 		this.classList.remove('pass', 'fail', 'skip');
-		switch (status) {
-			case STATUSES.QUEUED:
-				se.textContent = 'wait';
-				this.classList.add('wait');
-				break;
-			case STATUSES.RUNNING:
-				se.textContent = 'runs';
-				this.classList.add('runs');
-				break;
-			case STATUSES.PASSED:
-				se.textContent = 'pass';
-				this.classList.add('pass');
-				break;
-			case STATUSES.ERRORED:
-			case STATUSES.FAILED:
-				se.textContent = 'fail';
-				this.classList.add('fail');
-				break;
-			case STATUSES.SKIPPED:
-				se.textContent = 'skip';
-				this.classList.add('skip');
-				break;
-			default:
-				se.textContent = '';
+		if (status === STATUSES.QUEUED) {
+			se.textContent = 'wait';
+			this.classList.add('wait');
+		} else if (status === STATUSES.RUNNING) {
+			se.textContent = 'runs';
+			this.classList.add('runs');
+		} else if (status === STATUSES.PASSED) {
+			se.textContent = 'pass';
+			this.classList.add('pass');
+		} else if (status === STATUSES.FAILED || status === STATUSES.ERRORED) {
+			se.textContent = 'fail';
+			this.classList.add('fail');
+		} else if (status === STATUSES.SKIPPED) {
+			se.textContent = 'skip';
+			this.classList.add('skip');
 		}
 	}
 
@@ -152,18 +141,22 @@ customElements.define('test-view', class extends HTMLElement {
 		this.shadowRoot.querySelector('.error').innerHTML = '';
 		if (error) {
 			if (error instanceof Error) {
-				const
-					lines = error.stack.split(/[\r\n]/),
-					df = new DocumentFragment();
-				lines
-					.filter(l => l.length)
+				const df = new DocumentFragment();
+
+				//	error title
+				const et = document.createElement('div');
+				et.textContent = error.type + ' - ' + error.message;
+				df.appendChild(et);
+
+				//	error lines
+				error.stackLines
 					.map(l => {
-						const le = document.createElement('div');
-						le.classList.add('error-line');
-						le.textContent = l;
-						return le;
+						const el = document.createElement('div');
+						el.classList.add('error-line');
+						el.textContent = l;
+						return el;
 					})
-					.forEach(le => df.appendChild(le));
+					.forEach(el => df.appendChild(el));
 				this.shadowRoot.querySelector('.error').appendChild(df);
 			} else {
 				this.shadowRoot.querySelector('.error').textContent = error;

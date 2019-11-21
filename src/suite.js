@@ -1,33 +1,35 @@
-import { Test, STATUSES } from './test.js';
+import { STATUSES, runTest } from './test.js';
 
 const
-	DEFAULT_SUITE_OPTIONS = Object.freeze({
-		sync: false,
-		skip: false
-	}),
+	SUITE_DONE_PROBING_DELAY = 96,
 	FINISHED_RESOLVE_KEY = Symbol('finished.resolve.key'),
-	FINALIZE_SUITE_KEY = Symbol('finalize.suite.key');
+	ON_TEST_FINISHED_KEY = Symbol('finalize.suite.key');
 
 let suiteIdSource = 0;
 
 export class Suite extends EventTarget {
-	constructor(options) {
+	constructor(model) {
 		super();
-		if (!options || typeof options !== 'object') {
-			throw new Error('options MUST be a non-null object');
+		if (!model || typeof model !== 'object') {
+			throw new Error('suite model MUST be a non-null object');
 		}
-		if (!options.name || typeof options.name !== 'string') {
-			throw new Error('name MUST be a non empty string within the options');
+		if (!model.name || typeof model.name !== 'string') {
+			throw new Error('name MUST be a non empty string in the suite model');
 		}
 
-		Object.assign(this, DEFAULT_SUITE_OPTIONS, options);
-		this.id = suiteIdSource++;
-		this.tests = [];
-		this.start = null;
-		this.duration = null;
+		Object.assign(model, {
+			id: suiteIdSource++,
+			tests: [],
+			done: 0,
+			passed: 0,
+			failed: 0,
+			skipped: 0,
+			duration: null
+		});
+
+		this.model = model;
 		this.syncTail = Promise.resolve();
-		this.finished = new Promise(resolve => { this[FINISHED_RESOLVE_KEY] = resolve });
-		Object.seal(this);
+		this.finished = new Promise(resolve => { this[FINISHED_RESOLVE_KEY] = resolve; });
 	}
 
 	async runTest(testParams, testCode) {
@@ -39,43 +41,46 @@ export class Suite extends EventTarget {
 			this.start = performance.now();
 		}
 
-		const test = new Test(testParams, testCode);
 		try {
-			this.tests.push(test);
-			this.dispatchEvent(new CustomEvent('testAdded', { detail: { suiteId: this.id, test: test } }));
-			if (test.sync) {
-				this.syncTail = this.syncTail.then(test.run);
-				this.syncTail.then(() => this[FINALIZE_SUITE_KEY](test));
+			this.model.tests.push(testParams);
+			const testModel = this.model.tests[this.model.tests.length - 1];
+			testModel.code = testCode;
+			testModel.status = STATUSES.QUEUED;
+			this.dispatchEvent(new Event('testAdded'));
+			if (testModel.sync) {
+				this.syncTail = this.syncTail.finally(async () => {
+					const tr = await runTest(testModel);
+					this[ON_TEST_FINISHED_KEY](tr);
+				});
 			} else {
-				await test.run();
-				this[FINALIZE_SUITE_KEY](test);
+				const tr = await runTest(testModel)
+				this[ON_TEST_FINISHED_KEY](tr);
 			}
 		} catch (e) {
-			console.error('failed to run test', e);
-			this[FINALIZE_SUITE_KEY](test);
+			this[ON_TEST_FINISHED_KEY](e);
 		}
 	}
 
-	get counters() {
-		const r = {};
-		this.tests.forEach(t => {
-			t.status in r ? r[t.status]++ : r[t.status] = 1;
-		});
-		return r;
-	}
+	[ON_TEST_FINISHED_KEY](result) {
+		this.model.done++
+		if (result === STATUSES.PASSED) {
+			this.model.passed++;
+		} else if (result instanceof Error || result === STATUSES.FAILED || result === STATUSES.ERRORED) {
+			this.model.failed++;
+		} else if (result === STATUSES.SKIPPED) {
+			this.model.skipped++;
+		}
 
-	[FINALIZE_SUITE_KEY](test) {
-		this.dispatchEvent(new CustomEvent('testFinished', { detail: { suiteId: this.id, test: test } }));
+		this.dispatchEvent(new CustomEvent('testFinished', { detail: { result: result } }));
 
-		//	if none running - let some time pass and check for a suite full stop
-		if (this.tests.every(t => t.status > STATUSES.RUNNING)) {
+		if (this.model.done === this.model.tests.length) {
 			setTimeout(() => {
-				if (this.tests.every(t => t.status > STATUSES.RUNNING)) {
-					this.duration = performance.now() - this.start - 96;
+				if (this.model.done === this.model.tests.length) {
+					this.model.duration = performance.now() - this.start - SUITE_DONE_PROBING_DELAY;
 					this[FINISHED_RESOLVE_KEY]();
-					this.dispatchEvent(new CustomEvent('finished', { detail: { suite: this } }));
+					this.dispatchEvent(new CustomEvent('finished', { detail: { suiteModel: this.model } }));
 				}
-			}, 96);
+			}, SUITE_DONE_PROBING_DELAY);
 		}
 	}
 }
