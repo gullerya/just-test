@@ -15,7 +15,7 @@ const
 		total: 0,
 		done: 0,
 		suites: []
-	}).model;
+	});
 
 //  read init params
 Array
