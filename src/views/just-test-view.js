@@ -169,7 +169,6 @@ customElements.define('just-test-view', class extends HTMLElement {
 
 	set results(results) {
 		this[RESULTS_KEY] = results;
-		this.generateXUnitReport();
 	}
 
 	get results() {

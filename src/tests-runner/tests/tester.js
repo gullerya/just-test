@@ -34,6 +34,22 @@ async function report(page, conf, reportPath) {
 	console.info(results.failed.toString().padStart(7) + ' failed');
 	console.info(results.skipped.toString().padStart(7) + ' skipped');
 
+	if (results.failed) {
+		console.info(os.EOL);
+		results.suites
+			.filter(s => s.failed)
+			.forEach(s => {
+				s.tests
+					.filter(t => t.status === 4 || t.status === 5)
+					.forEach(t => {
+						console.info('Test ' + (t.status === 4 ? 'FAILURE' : 'ERROR') + ':');
+						console.info('\tTest: ' + t.name);
+						console.info('\tSuite: ' + s.name);
+						console.info('\tError: ' + t.error.type + ' - ' + (t.error.message ? t.error.message : 'no message'));
+					});
+			});
+	}
+
 	const statusPass = results.failed <= conf.maxFail && results.skipped <= conf.maxSkip;
 	const result = {
 		passed: results.passed,
