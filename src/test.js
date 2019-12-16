@@ -107,6 +107,9 @@ TestAssets.prototype.waitNextMicrotask = async () => { return new Promise(resolv
 TestAssets.prototype.waitMillis = async millis => { return new Promise(resolve => setTimeout(resolve, millis)); }
 
 TestAssets.prototype.getRandom = length => {
+	if (!length || typeof length !== 'number' || isNaN(length) || length > 128) {
+		throw new Error('invalid length ' + length);
+	}
 	let result = '';
 	const source = sourceNum + sourceTxtLower + sourceTxtUpper;
 	const random = crypto.getRandomValues(new Uint8Array(length));
