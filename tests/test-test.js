@@ -219,3 +219,16 @@ suite.runTest({ name: 'test - API negative C', expectError: 'test code MUST be a
 suite.runTest({ name: 'test - API negative D', expectError: 'test code MUST be a function' }, async () => {
 	const t = await runTest({ name: 'some name', code: {} });
 });
+
+suite.runTest({ name: 'test assets - random' }, test => {
+	const it = 100;
+	const rl = 8;
+	const sm = {};
+	for (let i = 0; i < it; i++) {
+		const rt = test.getRandom(rl);
+		sm[rt] = true;
+	}
+
+	test.assertEqual(it, Object.keys(sm).length);
+	Object.keys(sm).forEach(k => test.assertEqual(rl, k.length));
+});

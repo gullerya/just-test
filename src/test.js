@@ -1,6 +1,9 @@
 const
 	STATUSES = Object.freeze({ QUEUED: 0, SKIPPED: 1, RUNNING: 2, PASSED: 3, FAILED: 4, ERRORED: 5 }),
-	DEFAULT_TIMEOUT_MILLIS = 10000;
+	DEFAULT_TIMEOUT_MILLIS = 10000,
+	sourceNum = '0123456789',
+	sourceTxtLower = 'abcdefghijklmnopqrstuvwxyz',
+	sourceTxtUpper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 export { STATUSES, runTest }
 
@@ -95,31 +98,47 @@ function processError(error) {
 	return error;
 }
 
-function TestAssets() { }
+function TestAssets() {
+	this.asserts = 0;
+}
 
 TestAssets.prototype.waitNextMicrotask = async () => { return new Promise(resolve => setTimeout(resolve, 0)); }
 
 TestAssets.prototype.waitMillis = async millis => { return new Promise(resolve => setTimeout(resolve, millis)); }
 
-TestAssets.prototype.assertEqual = (expected, actual) => {
+TestAssets.prototype.getRandom = length => {
+	let result = '';
+	const source = sourceNum + sourceTxtLower + sourceTxtUpper;
+	const random = crypto.getRandomValues(new Uint8Array(length));
+	for (let i = 0; i < length; i++) {
+		result += source.charAt(source.length * random[i] / 256);
+	}
+	return result;
+};
+
+TestAssets.prototype.assertEqual = function (expected, actual) {
+	this.asserts++;
 	if (expected !== actual) {
 		throw new AssertError('expected: ' + expected + ', found: ' + actual);
 	}
 }
 
-TestAssets.prototype.assertNotEqual = (unexpected, actual) => {
+TestAssets.prototype.assertNotEqual = function (unexpected, actual) {
+	this.asserts++;
 	if (unexpected === actual) {
 		throw new AssertError('unexpected: ' + unexpected + ', found: ' + actual);
 	}
 }
 
-TestAssets.prototype.assertTrue = expression => {
+TestAssets.prototype.assertTrue = function (expression) {
+	this.asserts++;
 	if (expression !== true) {
 		throw new AssertError('expected: true, found: ' + expression);
 	}
 }
 
-TestAssets.prototype.assertFalse = expression => {
+TestAssets.prototype.assertFalse = function (expression) {
+	this.asserts++;
 	if (expression !== false) {
 		throw new AssertError('expected: false, found: ' + expression);
 	}
