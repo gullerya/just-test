@@ -7,7 +7,9 @@ import {
 	addChangeListener,
 	delChangeListener,
 	getPath,
-	setPath
+	setPath,
+	setViewProperty,
+	callViewFunction
 } from './dt-utils.js';
 
 export {
@@ -27,11 +29,7 @@ export const addRootDocument = rootDocument => {
 
 	initDocumentObserver(rootDocument);
 
-	console.debug('DT: scanning the document for a views...');
-	const baseDocumentScanStartTime = performance.now();
 	addTree(rootDocument);
-	console.debug('DT: ... scanning the ' + rootDocument + ' for a views DONE (took ' +
-		Math.floor((performance.now() - baseDocumentScanStartTime) * 100) / 100 + 'ms');
 	roots.add(rootDocument);
 	return true;
 };
@@ -58,7 +56,8 @@ const
 class Tie {
 	constructor(key, model) {
 		this.key = key;
-		this.model = model;
+		this.model = ensureObservable(model);
+		this.ownModel = this.model !== model;
 		this.observer = Tie.processDataChanges.bind(this);
 		this.model.observe(this.observer);
 		Object.freeze(this);
@@ -133,13 +132,17 @@ function Ties() {
 		}
 		validateTieKey(key);
 
+		if (model === null) {
+			throw new Error('initial model, when provided, MUST NOT be null');
+		}
+
 		if (!(key in views)) views[key] = {};
 
-		const m = ensureObservable(model);
-		ts[key] = new Tie(key, m);
+		const t = new Tie(key, model);
+		ts[key] = t;
 		ts[key].observer([{ path: [] }]);
 
-		return m;
+		return t.model;
 	};
 
 	this.remove = function remove(tieToRemove) {
@@ -155,7 +158,7 @@ function Ties() {
 		delete views[tieNameToRemove];
 		const tie = ts[tieNameToRemove];
 		if (tie) {
-			if (tie.model) {
+			if (tie.model && tie.ownModel) {
 				tie.model.revoke();
 			}
 			delete ts[tieNameToRemove];
@@ -201,19 +204,34 @@ function add(element) {
 
 	if (element.matches(':defined')) {
 		const viewParams = extractViewParams(element);
-		let i = viewParams.length;
-		while (i) {
-			const next = viewParams[--i];
-			const tieKey = next.tieKey;
-			const rawPath = next.rawPath;
-			const tieViews = views[tieKey] || (views[tieKey] = {});
-			const pathViews = tieViews[rawPath] || (tieViews[rawPath] = []);
-			if (pathViews.indexOf(element) < 0) {
-				pathViews.push(element);
-				element[VIEW_PARAMS_KEY] = viewParams;
-				updateFromView(element);
-				addChangeListener(element, changeListener);
+		let i;
+
+		if (viewParams && (i = viewParams.length)) {
+			element[VIEW_PARAMS_KEY] = viewParams;
+			while (i) {
+				const next = viewParams[--i];
+				if (next.isFunctional) {
+					next.fParams.forEach(fp => {
+						const tieKey = fp.tieKey;
+						const rawPath = fp.rawPath;
+						const tieViews = views[tieKey] || (views[tieKey] = {});
+						const pathViews = tieViews[rawPath] || (tieViews[rawPath] = []);
+						if (pathViews.indexOf(element) < 0) {
+							pathViews.push(element);
+						}
+					});
+				} else {
+					const tieKey = next.tieKey;
+					const rawPath = next.rawPath;
+					const tieViews = views[tieKey] || (views[tieKey] = {});
+					const pathViews = tieViews[rawPath] || (tieViews[rawPath] = []);
+					if (pathViews.indexOf(element) < 0) {
+						pathViews.push(element);
+					}
+				}
 			}
+			updateFromView(element);
+			addChangeListener(element, changeListener);
 		}
 
 		if (element.shadowRoot) {
@@ -246,28 +264,42 @@ function updateFromTie(element, changedPath, change, tieKey, tieModel) {
 	let i = viewParams.length;
 	while (i) {
 		const param = viewParams[--i];
-		if (param.tieKey !== tieKey) {
-			continue;
-		}
+		if (param.isFunctional) {
+			if (param.fParams.some(fp => fp.tieKey === tieKey && fp.rawPath.indexOf(changedPath) === 0)) {
+				let someData = false;
+				const args = [];
+				param.fParams.forEach(fp => {
+					let arg;
+					const tie = ties.get(fp.tieKey);
+					if (tie) {
+						arg = getPath(tie, fp.path);
+						someData = true;
+					}
+					args.push(arg);
+				});
+				if (someData) {
+					args.push([change]);
+					callViewFunction(element, param.targetProperty, args);
+				}
+			}
+		} else {
+			if (param.tieKey !== tieKey) {
+				continue;
+			}
+			if (param.rawPath.indexOf(changedPath) !== 0) {
+				continue;
+			}
 
-		if (param.rawPath.indexOf(changedPath) === 0) {
 			let newValue;
-			if (changedPath !== param.rawPath || typeof change.value === 'undefined') {
+			if (!change || typeof change.value === 'undefined' || changedPath !== param.rawPath) {
 				newValue = getPath(tieModel, param.path);
-			} else {
+			} else if (change) {
 				newValue = change.value;
 			}
 			if (typeof newValue === 'undefined') {
 				newValue = '';
 			}
-			const tp = param.targetProperty;
-			if (tp === 'value' && element.nodeName === 'INPUT' && element.type === 'checkbox') {
-				element.checked = newValue;
-			} else if (tp === 'href') {
-				element.href.baseVal = newValue;
-			} else {
-				element[tp] = newValue;
-			}
+			setViewProperty(element, param.targetProperty, newValue);
 		}
 	}
 }
@@ -277,24 +309,35 @@ function updateFromView(element, changedPath) {
 	let i = viewParams.length;
 	while (i) {
 		const param = viewParams[--i];
-		const tie = ties.get(param.tieKey);
-
-		if (undefined === tie) {
-			continue;
-		}
-
-		if (!changedPath || param.rawPath.indexOf(changedPath) === 0) {
-			let value = getPath(tie, param.path);
-			if (typeof value === 'undefined') {
-				value = '';
+		if (param.isFunctional) {
+			if (!changedPath || param.fParams.some(fp => fp.rawPath.indexOf(changedPath) === 0)) {
+				let someData = false;
+				const args = [];
+				param.fParams.forEach(fp => {
+					let arg;
+					const tie = ties.get(fp.tieKey);
+					if (tie) {
+						arg = getPath(tie, fp.path);
+						someData = true;
+					}
+					args.push(arg);
+				});
+				if (someData) {
+					args.push(null);
+					callViewFunction(element, param.targetProperty, args);
+				}
 			}
-			const tp = param.targetProperty;
-			if (tp === 'value' && element.nodeName === 'INPUT' && element.type === 'checkbox') {
-				element.checked = value;
-			} else if (tp === 'href') {
-				element.href.baseVal = value;
-			} else {
-				element[tp] = value;
+		} else {
+			if (!changedPath || param.rawPath.indexOf(changedPath) === 0) {
+				const tie = ties.get(param.tieKey);
+				if (undefined === tie) {
+					continue;
+				}
+				let value = getPath(tie, param.path);
+				if (typeof value === 'undefined') {
+					value = '';
+				}
+				setViewProperty(element, param.targetProperty, value);
 			}
 		}
 	}
@@ -360,11 +403,12 @@ function dropTree(root) {
 }
 
 function move(element, oldParam, newParam) {
-	let viewParams, i, l, index;
+	let viewParams, i, index;
 	if (oldParam) {
 		viewParams = element[VIEW_PARAMS_KEY];
-		for (i = 0, l = viewParams.length; i < l; i++) {
-			const tieParam = viewParams[i];
+		i = viewParams.length;
+		while (i) {
+			const tieParam = viewParams[--i];
 			if (!views[tieParam.tieKey]) continue;
 			const pathViews = views[tieParam.tieKey][tieParam.rawPath];
 			if (pathViews) {
@@ -379,17 +423,19 @@ function move(element, oldParam, newParam) {
 
 	if (newParam) {
 		viewParams = extractViewParams(element);
-		element[VIEW_PARAMS_KEY] = viewParams;
-		for (i = 0, l = viewParams.length; i < l; i++) {
-			const tieParam = viewParams[i];
-			const tieViews = views[tieParam.tieKey] || (views[tieParam.tieKey] = {});
-			const pathViews = tieViews[tieParam.rawPath] || (tieViews[tieParam.rawPath] = []);
-			if (pathViews.indexOf(element) < 0) {
-				pathViews.push(element);
-				updateFromView(element, tieParam.rawPath);
+		if (viewParams && (i = viewParams.length)) {
+			element[VIEW_PARAMS_KEY] = viewParams;
+			while (i) {
+				const tieParam = viewParams[--i];
+				const tieViews = views[tieParam.tieKey] || (views[tieParam.tieKey] = {});
+				const pathViews = tieViews[tieParam.rawPath] || (tieViews[tieParam.rawPath] = []);
+				if (pathViews.indexOf(element) < 0) {
+					pathViews.push(element);
+					updateFromView(element, tieParam.rawPath);
+				}
 			}
+			addChangeListener(element, changeListener);
 		}
-		addChangeListener(element, changeListener);
 	}
 }
 
@@ -431,7 +477,6 @@ function processDomChanges(changes) {
 }
 
 function initDocumentObserver(document) {
-	console.debug('DT: initializing DOM observer on document');
 	const domObserver = new MutationObserver(processDomChanges);
 	domObserver.observe(document, {
 		childList: true,
