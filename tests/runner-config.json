@@ -1,6 +1,6 @@
 {
 	"browser": {
-		"type": "firefox"
+		"type": "chrome"
 	},
 	"tests": {
 		"url": "/tests/test.html",
