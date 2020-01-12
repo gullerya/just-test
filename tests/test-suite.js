@@ -41,7 +41,7 @@ suite.runTest({ name: 'suite - all async' }, async test => {
 	await s.done;
 
 	test.assertEqual(2, s.model.tests.length);
-	test.assertTrue(s.model.duration > 900);
+	test.assertTrue(s.model.duration > 897);
 });
 
 suite.runTest({ name: 'suite - all sync' }, async test => {
