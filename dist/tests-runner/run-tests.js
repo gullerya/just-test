@@ -61,7 +61,7 @@ const conf = configurer.configuration;
 
 	//	process coverage, create report
 	if (!conf.coverage.skip) {
-		await coverager.report(page, conf.coverage, path.resolve(conf.reports.folder, conf.coverage.reportFilename), autServerUrl);
+		await coverager.report(page, conf.coverage, path.resolve(conf.reports.folder, conf.coverage.reportFilename));
 	}
 })()
 	.then(async () => {

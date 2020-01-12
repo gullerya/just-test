@@ -4,16 +4,27 @@ const
 	fsExtra = require('fs-extra'),
 	coverageToLcov = require('./coverage-to-lcov');
 
+let nativeCoverageSupported = false;
+
 module.exports = {
 	start: start,
 	report: report
 };
 
 async function start(nativePage) {
-	return nativePage.coverage.startJSCoverage();
+	if (nativePage.coverage) {
+		nativeCoverageSupported = true;
+		await nativePage.coverage.startJSCoverage();
+	} else {
+		console.warn('coverage is NOT supported on this env');
+	}
 }
 
-async function report(nativePage, covConf, reportPath, serverUrl) {
+async function report(nativePage, covConf, reportPath) {
+	if (!nativeCoverageSupported) {
+		return;
+	}
+
 	console.info(os.EOL);
 	console.info('JustTest [coverager]: processing coverage data...');
 
