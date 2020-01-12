@@ -4,7 +4,7 @@ const
 	fsExtra = require('fs-extra'),
 	coverageToLcov = require('./coverage-to-lcov');
 
-let nativeCoverage = null;
+let nativeCoverageSupported = false;
 
 module.exports = {
 	start: start,
@@ -13,15 +13,16 @@ module.exports = {
 
 async function start(nativePage) {
 	if (nativePage.coverage) {
-		nativeCoverage = true;
+		nativeCoverageSupported = true;
 		await nativePage.coverage.startJSCoverage();
+		console.info('JustTest [coverager]: started');
 	} else {
 		console.warn('coverage is NOT supported on this env');
 	}
 }
 
 async function report(nativePage, covConf, reportPath) {
-	if (!nativeCoverage) {
+	if (!nativeCoverageSupported) {
 		return;
 	}
 
