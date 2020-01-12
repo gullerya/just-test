@@ -3,13 +3,22 @@ const
 	fs = require('fs'),
 	path = require('path'),
 	util = require('util'),
+	npm = require('npm'),
 	fsExtra = require('fs-extra'),
 	ARG_KEYS = ['--config'],
 	DEFAULT_CONFIG = require('./default-config.json'),
 	effectiveConf = {};
 
+const
+	PUPPETEER_CHROME_ADDR = 'puppeteer@2.0.0',
+	PUPPETEER_FIREFOX_ADDR = 'puppeteer-firefox@0.5.1';
+
+let puppeteerChrome = null,
+	puppeteerFirefox = null;
+
 module.exports = {
-	configuration: effectiveConf
+	configuration: effectiveConf,
+	getBrowserRunner: getBrowserRunner
 };
 
 const
@@ -177,4 +186,65 @@ function validateReportsFolder(rc) {
 	const reportsFolderPath = path.resolve(process.cwd(), rc.folder);
 	fsExtra.emptyDirSync(reportsFolderPath);
 	console.info('JustTest: reports folder resolve to and initialized in "' + reportsFolderPath + '"');
+}
+
+async function getBrowserRunner() {
+	return new Promise((resolve, reject) => {
+		if (effectiveConf.browser.type === 'chrome') {
+			if (!puppeteerChrome) {
+				try {
+					puppeteerChrome = require('puppeteer');
+					resolve(puppeteerChrome);
+				} catch (e) {
+					npmInstall(PUPPETEER_CHROME_ADDR)
+						.then(() => {
+							puppeteerChrome = require('puppeteer');
+							resolve(puppeteerChrome);
+						})
+						.catch(reject);
+				}
+			} else {
+				resolve(puppeteerChrome);
+			}
+		} else if (effectiveConf.browser.type === 'firefox') {
+			if (!puppeteerFirefox) {
+				try {
+					puppeteerFirefox = require('puppeteer-firefox');
+					resolve(puppeteerFirefox);
+				} catch (e) {
+					npmInstall(PUPPETEER_FIREFOX_ADDR)
+						.then(() => {
+							puppeteerFirefox = require('puppeteer-firefox');
+							resolve(puppeteerFirefox);
+						})
+						.catch(reject);
+				}
+			} else {
+				resolve(puppeteerFirefox);
+			}
+		}
+	});
+}
+
+async function npmInstall(addr) {
+	return new Promise((resolve, reject) => {
+		npm.load({
+			loaded: false,
+			progress: false,
+			'no-audit': true
+		}, e1 => {
+			if (e1) {
+				reject(e1);
+			} else {
+				npm.commands.install([addr, '--no-save'], e2 => {
+					if (e2) {
+						console.dir(e2);
+						reject(e2);
+					} else {
+						resolve();
+					}
+				});
+			}
+		});
+	});
 }

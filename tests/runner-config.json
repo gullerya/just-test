@@ -1,4 +1,7 @@
 {
+	"browser": {
+		"type": "chrome"
+	},
 	"tests": {
 		"url": "/tests/test.html",
 		"maxFail": 3,

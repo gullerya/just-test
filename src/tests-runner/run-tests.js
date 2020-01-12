@@ -2,7 +2,6 @@ const
 	os = require('os'),
 	path = require('path'),
 	util = require('util'),
-	puppeteer = require('puppeteer'),
 	configurer = require('./configuration/configurer'),
 	localServer = require('./local-server/local-server'),
 	tester = require('./tests/tester'),
@@ -25,6 +24,7 @@ const conf = configurer.configuration;
 	//	browser
 	console.info(os.EOL);
 	console.info('JustTest: tests (AUT) URL resolved to "' + testsUrl + '", launching browsing env...');
+	const puppeteer = await configurer.getBrowserRunner();
 	browser = await puppeteer.launch();
 	console.info('JustTest: ... browsing env launched; details (taken by "userAgent") as following');
 	console.info(util.inspect(await browser.userAgent(), false, null, true));
@@ -80,8 +80,10 @@ const conf = configurer.configuration;
 
 async function finalizeRun() {
 	console.info(os.EOL);
-	console.info('JustTest: closing browser...');
-	await browser.close();
+	if (browser) {
+		console.info('JustTest: closing browser...');
+		await browser.close();
+	}
 	if (conf.server.local) {
 		console.info('JustTest: stopping local server');
 		localServer.stop();
