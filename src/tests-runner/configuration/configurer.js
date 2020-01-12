@@ -10,6 +10,9 @@ const
 	effectiveConf = {};
 
 const
+	browserTypes = ['chrome', 'firefox'],
+	testResultsFormats = ['xUnit'],
+	coverageFormats = ['lcov'],
 	PUPPETEER_CHROME_ADDR = 'puppeteer@2.0.0',
 	PUPPETEER_FIREFOX_ADDR = 'puppeteer-firefox@0.5.1';
 
@@ -87,6 +90,7 @@ function buildEffectiveConfiguration(inputConfig) {
 
 function validateEffectiveConf() {
 	try {
+		validateBrowserConf(effectiveConf.browser);
 		validateServerConf(effectiveConf.server);
 		validateTestsConf(effectiveConf.tests);
 		validateCoverageConf(effectiveConf.coverage);
@@ -94,6 +98,19 @@ function validateEffectiveConf() {
 	} catch (e) {
 		console.error('Error: invalid configuration', e);
 		process.exit(1);
+	}
+}
+
+function validateBrowserConf(bc) {
+	if (!bc) {
+		throw new Error('"browser" configuration part is missing');
+	}
+
+	if (!bc.type) {
+		throw new Error('"browser" configuration is missing "type" part');
+	}
+	if (!browserTypes.includes(bc.type)) {
+		throw new Error('"type" of "browser" is not a one of the supported ones (' + browserTypes.join(', ') + ')');
 	}
 }
 
@@ -123,7 +140,6 @@ function validateServerConf(sc) {
 }
 
 function validateTestsConf(tc) {
-	const testResultsFormats = ['xUnit'];
 	if (!tc) {
 		throw new Error('"tests" configuration part is missing');
 	}
@@ -145,7 +161,6 @@ function validateTestsConf(tc) {
 }
 
 function validateCoverageConf(cc) {
-	const coverageFormats = ['lcov'];
 	if (!cc) {
 		throw new Error('"coverage" configuration part is missing');
 	}
@@ -229,14 +244,16 @@ async function getBrowserRunner() {
 async function npmInstall(addr) {
 	return new Promise((resolve, reject) => {
 		npm.load({
+			audit: false,
 			loaded: false,
 			progress: false,
-			'no-audit': true
+			loglevel: 'error',
+			save: false
 		}, e1 => {
 			if (e1) {
 				reject(e1);
 			} else {
-				npm.commands.install([addr, '--no-save'], e2 => {
+				npm.commands.install([addr], e2 => {
 					if (e2) {
 						console.dir(e2);
 						reject(e2);
