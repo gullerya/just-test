@@ -155,7 +155,7 @@ suite.runTest({ name: 'test - timeout' }, async test => {
 	test.assertTrue(r);
 	test.assertEqual(m.status, STATUSES.FAILED);
 	test.assertEqual(m.error.type, 'TimeoutError');
-	test.assertTrue(m.duration > 1000 && m.duration < 1050);
+	test.assertTrue(m.duration > 997 && m.duration < 1050);
 	test.assertTrue(duration > 1000 && duration < 1050);
 
 	await test.waitMillis(1200);
@@ -200,7 +200,7 @@ suite.runTest({ name: 'few async tests - normal flow' }, async test => {
 	test.assertEqual(m2.status, STATUSES.FAILED);
 
 	test.assertTrue(m1.duration >= 1300);
-	test.assertTrue(m2.duration >= 1500);
+	test.assertTrue(m2.duration >= 1497);
 	test.assertTrue(duration >= 1300 && duration <= 1550);
 });
 
