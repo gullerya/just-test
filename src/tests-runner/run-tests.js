@@ -42,7 +42,6 @@ const conf = configurer.configuration;
 	console.info(os.EOL);
 	if (!conf.coverage.skip) {
 		await coverager.start(page);
-		console.info('JustTest: JS coverager started');
 	} else {
 		console.info('JustTest: skipping JS coverage as per configuration');
 	}

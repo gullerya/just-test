@@ -15,6 +15,7 @@ async function start(nativePage) {
 	if (nativePage.coverage) {
 		nativeCoverageSupported = true;
 		await nativePage.coverage.startJSCoverage();
+		console.info('JustTest [coverager]: started');
 	} else {
 		console.warn('coverage is NOT supported on this env');
 	}
