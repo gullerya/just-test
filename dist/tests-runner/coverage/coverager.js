@@ -42,7 +42,7 @@ async function report(nativePage, covConf, reportPath) {
 	for (const entry of jsCoverage) {
 		const relFilePath = new URL(entry.url).pathname;
 
-		//	pass through include - while list
+		//	pass through include - white list
 		if (Array.isArray(covConf.include) && !covConf.include.some(one => one.test(relFilePath))) {
 			continue;
 		}
@@ -51,13 +51,17 @@ async function report(nativePage, covConf, reportPath) {
 			continue;
 		}
 
-		const fileCoverage = {
-			path: relFilePath,
-			lines: {},
-			ranges: []
-		};
+		//	create file coverage DTO, but first lookup for an already existing one (query params case)
+		let fileCoverage = covData.tests[0].coverage.files.find(f => f.path === relFilePath);
+		if (!fileCoverage) {
+			fileCoverage = {
+				path: relFilePath,
+				lines: {},
+				ranges: []
+			};
+		}
 
-		process.stdout.write('JustTest [coverager]: ... "' + fileCoverage.path + '"');
+		console.info(`JustTest [coverager]: ... "${fileCoverage.path}"`);
 
 		//	existing ranges are a COVERED sections
 		//	ranges' in-between parts are a NON-COVERED sections
@@ -117,7 +121,7 @@ async function report(nativePage, covConf, reportPath) {
 	//	produce report
 	writeReport(covData, covConf, reportPath);
 
-	console.info('JustTest [coverager]: ... coverage report written ("' + covConf.format + '" format)');
+	console.info(`JustTest [coverager]: ... coverage report written ("${covConf.format}" format)`);
 }
 
 function writeReport(data, conf, reportPath) {
@@ -127,7 +131,7 @@ function writeReport(data, conf, reportPath) {
 			report = coverageToLcov.convert(data);
 			break;
 		default:
-			console.error('JustTest [coverager]: invalid coverage format "' + conf.format + '" required');
+			console.error(`JustTest [coverager]: invalid coverage format "${conf.format}" required`);
 			return;
 	}
 	if (report) {
