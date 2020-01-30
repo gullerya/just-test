@@ -1,6 +1,7 @@
 import { STATUSES, runTest } from './test.js';
 
 const
+	SUITE_CTOR_PARAMS = ['name'],
 	SUITE_DONE_PROBING_DELAY = 96,
 	DONE_RESOLVER_KEY = Symbol('finished.resolve.key'),
 	ON_TEST_FINISHED_KEY = Symbol('finalize.suite.key');
@@ -16,6 +17,11 @@ export class Suite extends EventTarget {
 		if (!model.name || typeof model.name !== 'string') {
 			throw new Error('name MUST be a non empty string in the suite model');
 		}
+		Object.keys(model).forEach(key => {
+			if (!SUITE_CTOR_PARAMS.includes(key)) {
+				console.error(`unexpected parameter '${key}' passed to suite c-tor`);
+			}
+		});
 
 		Object.assign(model, {
 			id: suiteIdSource++,
@@ -84,13 +90,3 @@ export class Suite extends EventTarget {
 		}
 	}
 }
-
-// function stringifyDuration(duration) {
-// 	let ds = '';
-// 	if (typeof duration === 'number') {
-// 		if (duration > 99) ds = (duration / 1000).toFixed(1) + ' s' + String.fromCharCode(160);
-// 		else if (duration > 59900) ds = (duration / 60000).toFixed(1) + ' m' + String.fromCharCode(160);
-// 		else ds = duration.toFixed(1) + ' ms';
-// 	}
-// 	return ds;
-// }

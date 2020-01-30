@@ -1,4 +1,5 @@
 const
+	TEST_PARAMS = ['name', 'timeout', 'sync', 'skip', 'expectError', 'code', 'status'],
 	STATUSES = Object.freeze({ QUEUED: 0, SKIPPED: 1, RUNNING: 2, PASSED: 3, FAILED: 4, ERRORED: 5 }),
 	DEFAULT_TIMEOUT_MILLIS = 10000,
 	sourceNum = '0123456789',
@@ -59,6 +60,11 @@ function validateModel(test) {
 	if (typeof test.code !== 'function') {
 		throw new Error('test code MUST be a function');
 	}
+	Object.keys(test).forEach(key => {
+		if (!TEST_PARAMS.includes(key)) {
+			console.error(`unexpected parameter '${key}' passed to run test`);
+		}
+	});
 }
 
 function finalizeTest(test, error) {
@@ -80,7 +86,7 @@ function finalizeTest(test, error) {
 	} else {
 		if (test.expectError) {
 			test.status = STATUSES.FAILED;
-			test.error = processError(new AssertError('expected an error ("' + test.expectError + '") but not seen'));
+			test.error = processError(new AssertError(`expected an error "${test.expectError}" but not seen`));
 		} else {
 			test.status = STATUSES.PASSED;
 		}
@@ -108,7 +114,7 @@ TestAssets.prototype.waitMillis = async millis => { return new Promise(resolve =
 
 TestAssets.prototype.getRandom = length => {
 	if (!length || typeof length !== 'number' || isNaN(length) || length > 128) {
-		throw new Error('invalid length ' + length);
+		throw new Error(`invalid length ${length}`);
 	}
 	let result = '';
 	const source = sourceNum + sourceTxtLower + sourceTxtUpper;
@@ -122,28 +128,28 @@ TestAssets.prototype.getRandom = length => {
 TestAssets.prototype.assertEqual = function (expected, actual) {
 	this.asserts++;
 	if (expected !== actual) {
-		throw new AssertError('expected: ' + expected + ', found: ' + actual);
+		throw new AssertError(`expected: ${expected}, found: ${actual}`);
 	}
 }
 
 TestAssets.prototype.assertNotEqual = function (unexpected, actual) {
 	this.asserts++;
 	if (unexpected === actual) {
-		throw new AssertError('unexpected: ' + unexpected + ', found: ' + actual);
+		throw new AssertError(`unexpected: ${unexpected}, found: ${actual}`);
 	}
 }
 
 TestAssets.prototype.assertTrue = function (expression) {
 	this.asserts++;
 	if (expression !== true) {
-		throw new AssertError('expected: true, found: ' + expression);
+		throw new AssertError(`expected: true, found: ${expression}`);
 	}
 }
 
 TestAssets.prototype.assertFalse = function (expression) {
 	this.asserts++;
 	if (expression !== false) {
-		throw new AssertError('expected: false, found: ' + expression);
+		throw new AssertError(`expected: false, found: ${expression}`);
 	}
 }
 
