@@ -24,6 +24,10 @@ process.stdout.write('installing "data-tier-list" into libs...');
 fsExtra.copySync('./node_modules/data-tier-list/dist', './src/libs/data-tier-list');
 process.stdout.write('\t\x1B[32mOK\x1B[0m' + os.EOL);
 
+process.stdout.write('installing "rich-component" into libs...');
+fsExtra.copySync('./node_modules/rich-component/dist', './src/libs/rich-component');
+process.stdout.write('\t\x1B[32mOK\x1B[0m' + os.EOL);
+
 process.stdout.write('copying "src" to "dist"...');
 fsExtra.copySync('./src', './dist');
 process.stdout.write('\t\t\t\x1B[32mOK\x1B[0m' + os.EOL);
