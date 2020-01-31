@@ -10,6 +10,9 @@ initComponent('test-view', class extends ComponentBase {
 		});
 		this.shadowRoot.querySelector('.re-run').addEventListener('click', () => {
 			if (this[TEST_KEY].status !== STATUSES.RUNNING) {
+				delete this[TEST_KEY].error;
+				delete this[TEST_KEY].start;
+				delete this[TEST_KEY].duration;
 				runTest(this[TEST_KEY]);
 			} else {
 				console.log('running');

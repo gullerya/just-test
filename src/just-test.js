@@ -4,10 +4,12 @@ import { Suite } from './suite.js';
 import './views/just-test-view.js';
 
 export {
+	getSuite,
 	createSuite
 }
 
 const
+	suites = {},
 	model = DataTier.ties.create('justTestModel', {
 		passed: 0,
 		failed: 0,
@@ -23,16 +25,33 @@ if (!document.querySelectorAll('just-test-view').length) {
 	document.body.appendChild(justTestView);
 }
 
+function getSuite(options) {
+	let s;
+
+	s = suites[options.id];
+	if (!s) {
+		model.suites.push(options);
+		s = new Suite(model.suites[model.suites.length - 1]);
+		s.addEventListener('testAdded', onTestAdded);
+		s.addEventListener('testFinished', onTestFinished);
+		s.addEventListener('finished', onSuiteFinished);
+		suites[s.id] = s;
+	}
+
+	return s;
+}
+
 function createSuite(options) {
-	model.suites.push({
-		name: options.name
-	});
+	console.warn('deprecated API; will be removed in a few versions forth; please use "getSuite" instead');
+
+	model.suites.push(options);
 
 	const s = new Suite(model.suites[model.suites.length - 1]);
 
 	s.addEventListener('testAdded', onTestAdded);
 	s.addEventListener('testFinished', onTestFinished);
 	s.addEventListener('finished', onSuiteFinished);
+	suites[s.id] = s;
 
 	return s;
 }

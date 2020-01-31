@@ -1,7 +1,7 @@
-﻿import { createSuite } from '../dist/just-test.js';
+﻿import { getSuite } from '../dist/just-test.js';
 import { STATUSES, runTest } from '../dist/test.js';
 
-const suite = createSuite({ name: 'Single test tests' });
+const suite = getSuite({ name: 'Single test tests' });
 
 suite.runTest({ name: 'test - normal flow all properties' }, async test => {
 	let r = false;

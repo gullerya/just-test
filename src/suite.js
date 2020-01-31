@@ -1,7 +1,7 @@
 import { STATUSES, runTest } from './test.js';
 
 const
-	SUITE_CTOR_PARAMS = ['name'],
+	SUITE_CTOR_PARAMS = ['id', 'name'],
 	SUITE_DONE_PROBING_DELAY = 96,
 	DONE_RESOLVER_KEY = Symbol('finished.resolve.key'),
 	ON_TEST_FINISHED_KEY = Symbol('finalize.suite.key');
@@ -14,9 +14,18 @@ export class Suite extends EventTarget {
 		if (!model || typeof model !== 'object') {
 			throw new Error('suite model MUST be a non-null object');
 		}
-		if (!model.name || typeof model.name !== 'string') {
-			throw new Error('name MUST be a non empty string in the suite model');
+
+		//	normalize id and name option
+		if (!('id' in model)) {
+			model.id = suiteIdSource++;
+		} else if (!['number', 'string'].includes(typeof model.id)) {
+			console.warn(`suite 'id' MUST be either number or string; got '${model.id}'; falling back to the internal one`);
+			model.id = suiteIdSource++;
 		}
+		if (!model.name) {
+			model.name = model.id;
+		}
+
 		Object.keys(model).forEach(key => {
 			if (!SUITE_CTOR_PARAMS.includes(key)) {
 				console.error(`unexpected parameter '${key}' passed to suite c-tor`);
@@ -24,7 +33,6 @@ export class Suite extends EventTarget {
 		});
 
 		Object.assign(model, {
-			id: suiteIdSource++,
 			tests: [],
 			done: 0,
 			passed: 0,
@@ -33,6 +41,7 @@ export class Suite extends EventTarget {
 			duration: null
 		});
 
+		this.id = model.id;
 		this.model = model;
 		this.syncTail = Promise.resolve();
 		this.done = new Promise(resolve => { this[DONE_RESOLVER_KEY] = resolve; });

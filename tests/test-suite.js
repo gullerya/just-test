@@ -1,8 +1,8 @@
-﻿import { createSuite } from '../dist/just-test.js';
+﻿import { getSuite } from '../dist/just-test.js';
 import { Suite } from '../dist/suite.js';
 
 const
-	suite = createSuite({ name: 'Suite object APIs' });
+	suite = getSuite({ name: 'Suite object APIs' });
 
 suite.runTest({ name: 'suite - basic full flow' }, async test => {
 	const s = new Suite({ name: 'suite-under-test' });
@@ -60,10 +60,10 @@ suite.runTest({ name: 'suite - API negative A', expectError: 'suite model MUST b
 	new Suite();
 });
 
-suite.runTest({ name: 'suite - API negative B', expectError: 'suite model MUST be a non-null object' }, () => {
-	new Suite('some non object');
-});
-
-suite.runTest({ name: 'suite - API negative C', expectError: 'name MUST be a non empty string' }, () => {
-	new Suite({});
+//	this is the test to play with uncaughtrejection, just remove the return keyword from below
+suite.runTest({ name: 'suite - uncaught error from wrong asyns test', expectError: 'wrongly done async test' }, test => {
+	return test.waitNextMicrotask()
+		.then(() => {
+			throw new Error('wrongly done async test');
+		});
 });

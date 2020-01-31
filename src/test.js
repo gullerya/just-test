@@ -1,5 +1,5 @@
 const
-	TEST_PARAMS = ['name', 'timeout', 'sync', 'skip', 'expectError', 'code', 'status'],
+	TEST_PARAMS = ['id', 'name', 'timeout', 'sync', 'skip', 'expectError', 'code', 'status'],
 	STATUSES = Object.freeze({ QUEUED: 0, SKIPPED: 1, RUNNING: 2, PASSED: 3, FAILED: 4, ERRORED: 5 }),
 	DEFAULT_TIMEOUT_MILLIS = 10000,
 	sourceNum = '0123456789',
