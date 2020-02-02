@@ -40,7 +40,9 @@ async function report(nativePage, covConf, reportPath) {
 			}]
 		};
 	for (const entry of jsCoverage) {
-		const relFilePath = new URL(entry.url).pathname;
+		const
+			entryURL = new URL(entry.url),
+			relFilePath = entryURL.pathname;
 
 		//	pass through include - white list
 		if (Array.isArray(covConf.include) && !covConf.include.some(one => one.test(relFilePath))) {
@@ -61,7 +63,7 @@ async function report(nativePage, covConf, reportPath) {
 			};
 		}
 
-		process.stdout.write(`JustTest [coverager]: ... "${fileCoverage.path}"`);
+		process.stdout.write(`JustTest [coverager]: ... "${fileCoverage.path}"` + (entryURL.search ? ` (${entryURL.search})` : ''));
 
 		//	existing ranges are a COVERED sections
 		//	ranges' in-between parts are a NON-COVERED sections

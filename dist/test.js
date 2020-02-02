@@ -1,12 +1,19 @@
 const
 	TEST_PARAMS = ['id', 'name', 'timeout', 'sync', 'skip', 'expectError', 'code', 'status'],
 	STATUSES = Object.freeze({ QUEUED: 0, SKIPPED: 1, RUNNING: 2, PASSED: 3, FAILED: 4, ERRORED: 5 }),
-	DEFAULT_TIMEOUT_MILLIS = 10000,
-	sourceNum = '0123456789',
-	sourceTxtLower = 'abcdefghijklmnopqrstuvwxyz',
-	sourceTxtUpper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	DEFAULT_TIMEOUT_MILLIS = 10000;
 
-export { STATUSES, runTest }
+const
+	RANDOM_CHARSETS = Object.freeze({ numeric: '0123456789', alphaLower: 'abcdefghijklmnopqrstuvwxyz', alphaUpper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' }),
+	DEFAULT_CHARSET = RANDOM_CHARSETS.alphaLower + RANDOM_CHARSETS.alphaUpper + RANDOM_CHARSETS.numeric;
+
+export { STATUSES, RANDOM_CHARSETS, runTest }
+
+class TestAssets {
+	constructor() {
+		this.asserts = 0;
+	}
+}
 
 class AssertError extends Error { }
 
@@ -104,20 +111,23 @@ function processError(error) {
 	return error;
 }
 
-function TestAssets() {
-	this.asserts = 0;
+TestAssets.prototype.waitNextMicrotask = async () => {
+	return new Promise(resolve => setTimeout(resolve, 0));
 }
 
-TestAssets.prototype.waitNextMicrotask = async () => { return new Promise(resolve => setTimeout(resolve, 0)); }
+TestAssets.prototype.waitMillis = async millis => {
+	return new Promise(resolve => setTimeout(resolve, millis));
+}
 
-TestAssets.prototype.waitMillis = async millis => { return new Promise(resolve => setTimeout(resolve, millis)); }
-
-TestAssets.prototype.getRandom = length => {
+TestAssets.prototype.getRandom = (length, randomCharsets) => {
 	if (!length || typeof length !== 'number' || isNaN(length) || length > 128) {
 		throw new Error(`invalid length ${length}`);
 	}
+	if (randomCharsets && (!Array.isArray(randomCharsets) || !randomCharsets.every(c => typeof c === 'string'))) {
+		throw new Error(`invalid 'randomCharsets' parameter (${randomCharsets})`);
+	}
 	let result = '';
-	const source = sourceNum + sourceTxtLower + sourceTxtUpper;
+	const source = randomCharsets ? randomCharsets.join('') : DEFAULT_CHARSET;
 	const random = crypto.getRandomValues(new Uint8Array(length));
 	for (let i = 0; i < length; i++) {
 		result += source.charAt(source.length * random[i] / 256);
