@@ -123,8 +123,12 @@ TestAssets.prototype.getRandom = (length, randomCharsets) => {
 	if (!length || typeof length !== 'number' || isNaN(length) || length > 128) {
 		throw new Error(`invalid length ${length}`);
 	}
-	if (randomCharsets && (!Array.isArray(randomCharsets) || !randomCharsets.every(c => typeof c === 'string'))) {
-		throw new Error(`invalid 'randomCharsets' parameter (${randomCharsets})`);
+	if (randomCharsets) {
+		if (!Array.isArray(randomCharsets)) {
+			throw new Error('invalid "randomCharsets" parameter - array expected');
+		} else if (!randomCharsets.every(c => c && typeof c === 'string')) {
+			throw new Error('invalid "randomCharsets" parameter - all members expected to be a non-empty strings');
+		}
 	}
 	let result = '';
 	const source = randomCharsets ? randomCharsets.join('') : DEFAULT_CHARSET;
