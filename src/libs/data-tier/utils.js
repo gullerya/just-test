@@ -16,11 +16,13 @@ const
 	},
 	DEFAULT_CHANGE_ELEMENTS = {
 		INPUT: 1, SELECT: 1, TEXTAREA: 1
-	};
+	},
+	randomKeySource = 'abcdefghijklmnopqrstuvwxyz0123456789',
+	randomKeySourceLen = randomKeySource.length;
 
 export {
-	ensureObservable,
 	DEFAULT_TIE_TARGET_PROVIDER,
+	ensureObservable,
 	getTargetProperty,
 	extractViewParams,
 	CHANGE_EVENT_NAME_PROVIDER,
@@ -28,8 +30,8 @@ export {
 	delChangeListener,
 	getPath,
 	setPath,
-	setViewProperty,
-	callViewFunction
+	callViewFunction,
+	getRandomKey
 }
 
 class Parameter {
@@ -40,6 +42,7 @@ class Parameter {
 		this.targetProperty = targetProperty;
 		this.isFunctional = isFunctional;
 		this.fParams = fParams;
+		this.iClasses = null;
 	}
 }
 
@@ -72,16 +75,16 @@ function getTargetProperty(element) {
 	return result;
 }
 
-function extractViewParams(element) {
-	const rawParam = element.dataset.tie;
+function extractViewParams(element, scopeRootKey) {
+	const rawParam = element.getAttribute('data-tie');
 	if (rawParam) {
-		return parseViewParams(rawParam, element);
+		return parseViewParams(rawParam, element, scopeRootKey);
 	} else {
 		return null;
 	}
 }
 
-function parseViewParams(multiParam, element) {
+function parseViewParams(multiParam, element, scopeRootKey) {
 	const
 		result = [],
 		keysTest = {},
@@ -104,25 +107,25 @@ function parseViewParams(multiParam, element) {
 		}
 		try {
 			if (fnext) {
-				parsedParam = parseFunctionParam(fnext);
+				parsedParam = parseFunctionParam(fnext, scopeRootKey);
 				fnext = null;
 			} else {
-				parsedParam = parsePropertyParam(next, element);
+				parsedParam = parsePropertyParam(next, element, scopeRootKey);
 			}
 			if (parsedParam.targetProperty in keysTest) {
-				console.error('elements\'s property "' + parsedParam.targetProperty + '" tied more than once; all but first dismissed');
+				console.error(`elements's property '${parsedParam.targetProperty}' tied more than once; all but first dismissed`);
 			} else {
 				result.push(parsedParam);
 				keysTest[parsedParam.targetProperty] = true;
 			}
 		} catch (e) {
-			console.error('failed to parse one of a multi param parts (' + next + '), skipping it', e)
+			console.error(`failed to parse one of a multi param parts (${next}), skipping it`, e)
 		}
 	}
 	return result;
 }
 
-function parseFunctionParam(rawParam) {
+function parseFunctionParam(rawParam, scopeRootKey) {
 	const parts = rawParam.split(/[()]/);
 	const fParams = parts[1].split(/\s*,\s*/).map(fp => {
 		const origin = fp.split(':');
@@ -137,13 +140,13 @@ function parseFunctionParam(rawParam) {
 		};
 	});
 	if (!fParams.length) {
-		throw new Error('functional tie parameter MUST have at least one tied argument');
+		throw new Error(`functional tie parameter MUST have at least one tied argument, '${rawParam}' doesn't`);
 	}
 
 	return new Parameter(null, null, null, parts[0], true, fParams);
 }
 
-function parsePropertyParam(rawParam, element) {
+function parsePropertyParam(rawParam, element, scopeRootKey) {
 	const parts = rawParam.split(PARAM_SPLITTER);
 
 	//  add default 'to' property if needed
@@ -154,11 +157,35 @@ function parsePropertyParam(rawParam, element) {
 	//  process 'from' part
 	const origin = parts[0].split(':');
 	if (!origin.length || origin.length > 2 || !origin[0]) {
-		throw new Error('invalid tie value; found: "' + rawParam + '"; expected (example of multi param, one with default target): "orders:0.address.street, orders:0.address.apt => title"');
+		throw new Error(`invalid tie parameter '${rawParam}'; expected (example): "orders:0.address.street, orders:0.address.apt => title"`);
+	}
+
+	let tieKey = origin[0];
+	if (origin[0] === 'scope') {
+		tieKey = getScopeTieKey(element, scopeRootKey);
 	}
 
 	const rawPath = origin.length > 1 ? origin[1] : '';
-	return new Parameter(origin[0], rawPath, rawPath.split('.').filter(node => node), parts[1], false, null);
+
+	const result = new Parameter(tieKey, rawPath, rawPath.split('.').filter(node => node), parts[1], false, null);
+	if (result.targetProperty === 'classList') {
+		result.iClasses = Array.from(element.classList);
+	}
+
+	return result;
+}
+
+function getScopeTieKey(element, scopeRootKey) {
+	let next = element,
+		result = next[scopeRootKey];
+	while (!result && next.parentNode) {
+		next = next.parentNode;
+		if (next.host) {
+			next = next.host;
+		}
+		result = next[scopeRootKey];
+	}
+	return result || null;
 }
 
 function addChangeListener(element, changeListener) {
@@ -187,15 +214,15 @@ function obtainChangeEventName(element) {
 
 function getPath(ref, path) {
 	if (!ref) return null;
-	const l = path.length;
+	const p = path, l = p.length;
 	if (!l) return ref;
-	let i = 0, n;
+	let r = ref, i = 0, n;
 	for (; i < l - 1; i++) {
-		n = path[i];
-		ref = ref[n];
-		if (ref === null || ref === undefined) return ref;
+		n = p[i];
+		r = r[n];
+		if (r === null || typeof r === 'undefined') return r;
 	}
-	return ref[path[i]];
+	return r[p[i]];
 }
 
 function setPath(ref, path, value) {
@@ -207,32 +234,31 @@ function setPath(ref, path, value) {
 		o = ref[n];
 		if (o && typeof o === 'object') {
 			ref = o;
-		} else if (o === undefined || o === null) {
+		} else if (typeof o === 'undefined' || o === null) {
 			ref[n] = {};
 			ref = ref[n];
 		} else if (typeof o !== 'object') {
-			throw new Error('setting deep path MAY NOT override primitives along the way');
+			console.error('setting deep path MAY NOT override primitives along the way');
+			return;
 		}
 	}
 	ref[path[i]] = value;
 }
 
-function setViewProperty(e, p, v) {
+function callViewFunction(elem, func, args) {
 	try {
-		if (p === 'href' && typeof e.href === 'object') {
-			e.href.baseVal = v;
-		} else {
-			e[p] = v;
-		}
+		elem[func].apply(elem, args);
 	} catch (e) {
-		console.error(`failed to set '${p}' of '${e}' to '${v}'`);
+		console.error(`failed to call '${func}' of '${elem}' with '${args}'`, e);
 	}
 }
 
-function callViewFunction(e, f, a) {
-	try {
-		e[f].apply(e, a);
-	} catch (e) {
-		console.error(`failed to call '${f}' of '${e}' with '${a}'`);
+function getRandomKey(length) {
+	let result = '', i = length;
+	const random = crypto.getRandomValues(new Uint8Array(length));
+	while (i) {
+		i--;
+		result += randomKeySource.charAt(randomKeySourceLen * random[i] / 256);
 	}
+	return result;
 }

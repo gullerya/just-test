@@ -1,48 +1,16 @@
+import { Ties } from './ties.js';
+import { Views } from './views.js';
 import {
-	ensureObservable,
-	DEFAULT_TIE_TARGET_PROVIDER,
+	DEFAULT_TIE_TARGET_PROVIDER as dttp,
+	CHANGE_EVENT_NAME_PROVIDER as cenp,
 	getTargetProperty,
 	extractViewParams,
-	CHANGE_EVENT_NAME_PROVIDER,
 	addChangeListener,
 	delChangeListener,
 	getPath,
 	setPath,
-	setViewProperty,
 	callViewFunction
-} from './dt-utils.js';
-
-export {
-	DEFAULT_TIE_TARGET_PROVIDER,
-	CHANGE_EVENT_NAME_PROVIDER
-}
-
-export const ties = new Ties();
-export const addRootDocument = rootDocument => {
-	if (!rootDocument || (Node.DOCUMENT_NODE !== rootDocument.nodeType && Node.DOCUMENT_FRAGMENT_NODE !== rootDocument.nodeType)) {
-		throw new Error('invalid argument, NULL or not one of: DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE');
-	}
-	if (roots.has(rootDocument)) {
-		console.warn('any root document may be added only once');
-		return false;
-	}
-
-	initDocumentObserver(rootDocument);
-
-	addTree(rootDocument);
-	roots.add(rootDocument);
-	return true;
-};
-export const removeRootDocument = rootDocument => {
-	if (roots.has(rootDocument)) {
-		dropTree(rootDocument);
-		roots.delete(rootDocument);
-		return true;
-	} else {
-		console.warn('no root document ' + rootDocument + ' known');
-		return false;
-	}
-};
+} from './utils.js';
 
 console.info('DT: starting initialization...');
 const initStartTime = performance.now();
@@ -57,149 +25,68 @@ const
 		characterData: false,
 		characterDataOldValue: false
 	},
-	ELEMENT_PROCESSED_SYMBOL = Symbol('element-processed'),
-	VIEW_PARAMS_KEY = Symbol('view.params.key'),
-	roots = new WeakSet(),
-	views = {};
+	roots = new WeakSet();
 
-class Tie {
-	constructor(key, model) {
-		this.key = key;
-		this.model = ensureObservable(model);
-		this.views = null;
-		this.ownModel = this.model !== model;
-		this.model.observe(changes => this.processDataChanges(changes));
+class Instance {
+	constructor() {
+		this.params = Object.freeze(Array.from(new URL(import.meta.url).searchParams).reduce((a, c) => { a[c[0]] = c[1]; return a; }, {}));
+
+		this.paramsKey = Symbol('view.params');
+		this.scopeRootKey = Symbol('scope.root');
+		this.ties = new Ties(this);
+		this.views = new Views(this);
 	}
 
-	processDataChanges(changes) {
-		const
-			tieKey = this.key,
-			tieModel = this.model,
-			tieViews = this.views || (this.views = views[tieKey]),
-			tiedPaths = Object.keys(tieViews),
-			fullUpdatesMap = {};
-		let i, l, change, changedObject, arrPath, changedPath = '', pl, tiedPath, pathViews, pvl;
-
-		if (!tiedPaths.length) return;
-
-		for (i = 0, l = changes.length; i < l; i++) {
-			change = changes[i];
-			changedObject = change.object;
-			arrPath = change.path;
-
-			if (Array.isArray(changedObject) &&
-				(change.type === 'insert' || change.type === 'delete') &&
-				!isNaN(arrPath[arrPath.length - 1])) {
-				changedPath = arrPath.slice(0, -1).join('.');
-				if (fullUpdatesMap[changedPath] === changedObject) {
-					continue;
-				} else {
-					fullUpdatesMap[changedPath] = changedObject;
-					change = null;
-				}
-			} else {
-				const apl = arrPath.length;
-				if (apl > 1) {
-					for (let k = 0; k < apl - 1; k++) {
-						changedPath += arrPath[k] + '.';
-					}
-					changedPath += arrPath[apl - 1];
-				} else if (apl === 1) {
-					changedPath = arrPath[0];
-				}
-			}
-
-			pl = tiedPaths.length;
-			while (pl) {
-				tiedPath = tiedPaths[--pl];
-				if (tiedPath.indexOf(changedPath) === 0) {
-					pathViews = tieViews[tiedPath];
-					pvl = pathViews.length;
-					while (pvl) {
-						updateFromTie(pathViews[--pvl], changedPath, change, tieKey, tieModel);
-					}
-				}
-			}
+	addRootDocument(rootDocument) {
+		if (!rootDocument || (Node.DOCUMENT_NODE !== rootDocument.nodeType && Node.DOCUMENT_FRAGMENT_NODE !== rootDocument.nodeType)) {
+			throw new Error('invalid argument, NULL or not one of: DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE');
 		}
-	}
-}
+		if (roots.has(rootDocument)) {
+			console.warn('any root document may be added only once');
+			return false;
+		}
 
-function Ties() {
-	const
-		ts = {},
-		vp = /^[a-zA-Z0-9]+$/;
+		new MutationObserver(processDomChanges).observe(rootDocument, MUTATION_OBSERVER_OPTIONS);
 
-	this.get = function get(key) {
-		const t = ts[key];
-		return t ? t.model : undefined;
+		addTree(rootDocument);
+		roots.add(rootDocument);
+		return true;
 	};
 
-	this.create = function create(key, model) {
-		if (ts[key]) {
-			throw new Error('tie "' + key + '" already exists');
-		}
-		validateTieKey(key);
-
-		if (model === null) {
-			throw new Error('initial model, when provided, MUST NOT be null');
-		}
-
-		if (!(key in views)) views[key] = {};
-
-		const t = new Tie(key, model);
-		ts[key] = t;
-		ts[key].processDataChanges([{ path: [] }]);
-
-		return t.model;
-	};
-
-	this.remove = function remove(tieToRemove) {
-		let tieNameToRemove;
-		if (typeof tieToRemove === 'object') {
-			tieNameToRemove = Object.keys(ts).find(key => ts[key].model === tieToRemove);
-		} else if (typeof tieToRemove === 'string') {
-			tieNameToRemove = tieToRemove;
+	removeRootDocument(rootDocument) {
+		if (roots.has(rootDocument)) {
+			dropTree(rootDocument);
+			roots.delete(rootDocument);
+			return true;
 		} else {
-			throw new Error('tie to remove MUST either be a valid tie key or tie self');
-		}
-
-		delete views[tieNameToRemove];
-		const tie = ts[tieNameToRemove];
-		if (tie) {
-			if (tie.model && tie.ownModel) {
-				tie.model.revoke();
-			}
-			delete ts[tieNameToRemove];
+			console.warn('no root document ' + rootDocument + ' known');
+			return false;
 		}
 	};
-
-	function validateTieKey(key) {
-		if (!key || typeof key !== 'string') {
-			throw new Error('tie key MUST be a non empty string');
-		}
-		if (!vp.test(key)) {
-			throw new Error('tie key MUST match ' + vp + '; "' + key + '" is not');
-		}
-	}
-
-	Object.freeze(this);
 }
+
+const instance = new Instance();
+export const ties = instance.ties;
+export const DEFAULT_TIE_TARGET_PROVIDER = dttp;
+export const CHANGE_EVENT_NAME_PROVIDER = cenp;
+export const addRootDocument = instance.addRootDocument;
+export const removeRootDocument = instance.removeRootDocument;
 
 function changeListener(event) {
 	const
 		element = event.currentTarget,
 		targetProperty = getTargetProperty(element),
-		viewParams = element[VIEW_PARAMS_KEY];
+		viewParams = element[instance.paramsKey];
 	let tieParam, tie, newValue;
 
 	let i = viewParams.length;
-	while (i) {
-		tieParam = viewParams[--i];
+	while (i--) {
+		tieParam = viewParams[i];
 		if (tieParam.targetProperty !== targetProperty) {
 			continue;
 		}
 
-		tie = ties.get(tieParam.tieKey);
+		tie = instance.ties.get(tieParam.tieKey);
 		if (tie) {
 			newValue = element[targetProperty];
 			setPath(tie, tieParam.path, newValue);
@@ -208,42 +95,16 @@ function changeListener(event) {
 }
 
 function add(element) {
-	element[ELEMENT_PROCESSED_SYMBOL] = true;
-
 	if (element.matches(':defined')) {
-		const viewParams = extractViewParams(element);
-		let i;
-
-		if (viewParams && (i = viewParams.length)) {
-			element[VIEW_PARAMS_KEY] = viewParams;
-			while (i) {
-				const next = viewParams[--i];
-				if (next.isFunctional) {
-					next.fParams.forEach(fp => {
-						const tieKey = fp.tieKey;
-						const rawPath = fp.rawPath;
-						const tieViews = views[tieKey] || (views[tieKey] = {});
-						const pathViews = tieViews[rawPath] || (tieViews[rawPath] = []);
-						if (pathViews.indexOf(element) < 0) {
-							pathViews.push(element);
-						}
-					});
-				} else {
-					const tieKey = next.tieKey;
-					const rawPath = next.rawPath;
-					const tieViews = views[tieKey] || (views[tieKey] = {});
-					const pathViews = tieViews[rawPath] || (tieViews[rawPath] = []);
-					if (pathViews.indexOf(element) < 0) {
-						pathViews.push(element);
-					}
-				}
-			}
-			updateFromView(element);
+		const viewParams = extractViewParams(element, instance.scopeRootKey);
+		if (viewParams) {
+			instance.views.addView(element, viewParams);
+			updateFromView(element, viewParams);
 			addChangeListener(element, changeListener);
 		}
 
-		if (element.shadowRoot) {
-			addRootDocument(element.shadowRoot);
+		if (element.shadowRoot && !element.hasAttribute('data-tie-blackbox')) {
+			instance.addRootDocument(element.shadowRoot);
 		}
 	} else {
 		waitUndefined(element);
@@ -251,7 +112,7 @@ function add(element) {
 }
 
 function waitUndefined(element) {
-	let tag = '';
+	let tag;
 	if (element.localName.indexOf('-') > 0) {
 		tag = element.localName;
 	} else {
@@ -267,104 +128,52 @@ function waitUndefined(element) {
 	}
 }
 
-function updateFromTie(element, changedPath, change, tieKey, tieModel) {
-	const viewParams = element[VIEW_PARAMS_KEY];
+function updateFromView(element, viewParams) {
 	let i = viewParams.length;
-	while (i) {
-		const param = viewParams[--i];
+	while (i--) {
+		const param = viewParams[i];
 		if (param.isFunctional) {
-			if (param.fParams.some(fp => fp.tieKey === tieKey && fp.rawPath.indexOf(changedPath) === 0)) {
-				let someData = false;
-				const args = [];
-				param.fParams.forEach(fp => {
-					let arg;
-					const tie = ties.get(fp.tieKey);
-					if (tie) {
-						arg = getPath(tie, fp.path);
-						someData = true;
-					}
-					args.push(arg);
-				});
-				if (someData) {
-					args.push([change]);
-					callViewFunction(element, param.targetProperty, args);
+			let someData = false;
+			const args = [];
+			param.fParams.forEach(fp => {
+				let arg;
+				const tie = instance.ties.get(fp.tieKey);
+				if (tie) {
+					arg = getPath(tie, fp.path);
+					someData = true;
 				}
+				args.push(arg);
+			});
+			if (someData) {
+				args.push(null);
+				callViewFunction(element, param.targetProperty, args);
 			}
 		} else {
-			if (param.tieKey !== tieKey) {
+			const tie = instance.ties.get(param.tieKey);
+			if (!tie) {
 				continue;
 			}
-			if (param.rawPath.indexOf(changedPath) !== 0) {
-				continue;
+			let value = getPath(tie, param.path);
+			if (typeof value === 'undefined') {
+				value = '';
 			}
-
-			let newValue;
-			if (!change || typeof change.value === 'undefined' || changedPath !== param.rawPath) {
-				newValue = getPath(tieModel, param.path);
-			} else if (change) {
-				newValue = change.value;
-			}
-			if (typeof newValue === 'undefined') {
-				newValue = '';
-			}
-			setViewProperty(element, param.targetProperty, newValue);
-		}
-	}
-}
-
-function updateFromView(element, changedPath) {
-	const viewParams = element[VIEW_PARAMS_KEY];
-	let i = viewParams.length;
-	while (i) {
-		const param = viewParams[--i];
-		if (param.isFunctional) {
-			if (!changedPath || param.fParams.some(fp => fp.rawPath.indexOf(changedPath) === 0)) {
-				let someData = false;
-				const args = [];
-				param.fParams.forEach(fp => {
-					let arg;
-					const tie = ties.get(fp.tieKey);
-					if (tie) {
-						arg = getPath(tie, fp.path);
-						someData = true;
-					}
-					args.push(arg);
-				});
-				if (someData) {
-					args.push(null);
-					callViewFunction(element, param.targetProperty, args);
-				}
-			}
-		} else {
-			if (!changedPath || param.rawPath.indexOf(changedPath) === 0) {
-				const tie = ties.get(param.tieKey);
-				if (undefined === tie) {
-					continue;
-				}
-				let value = getPath(tie, param.path);
-				if (typeof value === 'undefined') {
-					value = '';
-				}
-				setViewProperty(element, param.targetProperty, value);
-			}
+			instance.views.setViewProperty(element, param, value);
 		}
 	}
 }
 
 function addTree(root) {
-	let list;
+	let list = [root], next;
 	if (root.childElementCount) {
 		list = Array.from(root.querySelectorAll('*'));
 		list.unshift(root);
-	} else {
-		list = [root];
 	}
 
-	let i = list.length;
-	while (i) {
+	const l = list.length;
+	for (let i = 0; i < l; i++) {
 		try {
-			const next = list[--i];
-			if (Node.ELEMENT_NODE === next.nodeType && !next[ELEMENT_PROCESSED_SYMBOL]) {
+			next = list[i];
+			if (Node.ELEMENT_NODE === next.nodeType && !next[instance.paramsKey]) {
 				add(next);
 			}
 		} catch (e) {
@@ -374,76 +183,45 @@ function addTree(root) {
 }
 
 function dropTree(root) {
-	let list;
+	let list = [root], i, next, viewParams;
 	if (root.childElementCount) {
 		list = Array.from(root.querySelectorAll('*'));
 		list.unshift(root);
-	} else {
-		list = [root];
 	}
 
-	let i = list.length;
-	while (i) {
-		const next = list[--i];
-		const viewParams = next[VIEW_PARAMS_KEY];
+	i = list.length;
+	while (i--) {
+		next = list[i];
+		viewParams = next[instance.paramsKey];
 
 		//	untie
 		if (viewParams) {
-			let j = viewParams.length;
-			while (j) {
-				const tieParam = viewParams[--j];
-				if (!views[tieParam.tieKey]) continue;
-				const pathViews = views[tieParam.tieKey][tieParam.rawPath];
-				const index = pathViews.indexOf(next);
-				if (index >= 0) {
-					pathViews.splice(index, 1);
-					delChangeListener(next, changeListener);
-				}
-			}
-			delete next[VIEW_PARAMS_KEY];
+			instance.views.delView(next, viewParams);
+			delChangeListener(next, changeListener);
 		}
 
 		//	remove as root
-		if (next.shadowRoot) {
-			removeRootDocument(next.shadowRoot);
+		if (next.shadowRoot && !next.hasAttribute('data-tie-blackbox')) {
+			instance.removeRootDocument(next.shadowRoot);
 		}
 	}
 }
 
-function move(element, oldParam, newParam) {
-	let viewParams, i, index;
+function onTieParamChange(element, oldParam, newParam) {
+	let viewParams;
 	if (oldParam) {
-		viewParams = element[VIEW_PARAMS_KEY];
+		viewParams = element[instance.paramsKey];
 		if (viewParams) {
-			i = viewParams.length;
-			while (i) {
-				const tieParam = viewParams[--i];
-				if (!views[tieParam.tieKey]) continue;
-				const pathViews = views[tieParam.tieKey][tieParam.rawPath];
-				if (pathViews) {
-					index = pathViews.indexOf(element);
-					if (index >= 0) {
-						pathViews.splice(index, 1);
-					}
-				}
-			}
+			instance.views.delView(element, viewParams);
 			delChangeListener(element, changeListener);
 		}
 	}
 
 	if (newParam) {
-		viewParams = extractViewParams(element);
-		if (viewParams && (i = viewParams.length)) {
-			element[VIEW_PARAMS_KEY] = viewParams;
-			while (i) {
-				const tieParam = viewParams[--i];
-				const tieViews = views[tieParam.tieKey] || (views[tieParam.tieKey] = {});
-				const pathViews = tieViews[tieParam.rawPath] || (tieViews[tieParam.rawPath] = []);
-				if (pathViews.indexOf(element) < 0) {
-					pathViews.push(element);
-					updateFromView(element, tieParam.rawPath);
-				}
-			}
+		viewParams = extractViewParams(element, instance.scopeRootKey);
+		if (viewParams) {
+			instance.views.addView(element, viewParams);
+			updateFromView(element, viewParams);
 			addChangeListener(element, changeListener);
 		}
 	}
@@ -452,6 +230,8 @@ function move(element, oldParam, newParam) {
 function processDomChanges(changes) {
 	const l = changes.length;
 	let i = 0, node, nodeType, change, changeType, added, i2, removed, i3;
+	//	collect all the changes to process and then do the processing
+
 	for (; i < l; i++) {
 		change = changes[i];
 		changeType = change.type;
@@ -462,14 +242,14 @@ function processDomChanges(changes) {
 				oldValue = change.oldValue,
 				newValue = node.getAttribute(attributeName);
 			if (oldValue !== newValue) {
-				move(node, oldValue, newValue);
+				onTieParamChange(node, oldValue, newValue);
 			}
 		} else if (changeType === 'childList') {
 			//	process added nodes
 			added = change.addedNodes;
 			i2 = added.length;
-			while (i2) {
-				node = added[--i2];
+			while (i2--) {
+				node = added[i2];
 				nodeType = node.nodeType;
 				if (Node.ELEMENT_NODE === nodeType) {
 					addTree(node);
@@ -479,8 +259,8 @@ function processDomChanges(changes) {
 			//	process removed nodes
 			removed = change.removedNodes;
 			i3 = removed.length;
-			while (i3) {
-				node = removed[--i3];
+			while (i3--) {
+				node = removed[i3];
 				nodeType = node.nodeType;
 				if (Node.ELEMENT_NODE === nodeType) {
 					dropTree(node);
@@ -490,11 +270,8 @@ function processDomChanges(changes) {
 	}
 }
 
-function initDocumentObserver(document) {
-	const domObserver = new MutationObserver(processDomChanges);
-	domObserver.observe(document, MUTATION_OBSERVER_OPTIONS);
+if (instance.params.autostart !== 'false' && instance.params.autostart !== false) {
+	instance.addRootDocument(document);
 }
-
-addRootDocument(document);
 
 console.info('DT: ... initialization DONE (took ' + Math.floor((performance.now() - initStartTime) * 100) / 100 + 'ms)');
