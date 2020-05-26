@@ -17,6 +17,12 @@
         "SwitchCase": 1
       }
     ],
+    "accessor-pairs": [
+      "error",
+      {
+        "setWithoutGet": false
+      }
+    ],
     "no-tabs": 0,
     "semi": "off",
     "space-before-function-paren": "off",
