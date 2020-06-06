@@ -80,6 +80,29 @@ async function report(nativePage, covConf, reportPath) {
 
 		let positionInCode = 0,
 			currentLine = 1;
+
+		//	order all ranges accross the functions
+		const ranges = [];
+		entry.functions.forEach(f => {
+			f.ranges.forEach(r => {
+				const found = ranges.some((tr, ti, ta) => {
+					if (r.startOffset < tr.startOffset) {
+						ta.splice(ti, 0, r);
+						return true;
+					} else {
+						return false;
+					}
+				});
+				if (!found) {
+					ranges.push(r);
+				}
+			});
+		});
+
+		if (fileCoverage.ranges) {
+			return;
+		}
+
 		entry.ranges.forEach(range => {
 			fileCoverage.ranges.push(range);
 
