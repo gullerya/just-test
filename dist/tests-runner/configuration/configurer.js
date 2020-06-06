@@ -221,7 +221,9 @@ async function obtainRunner(packageName, packageVersion, exportedProperty) {
 	try {
 		result = require(packageFQN)[exportedProperty];
 	} catch (e) {
+		console.info(`failed to require ${packageName} with ${e}, assuming not installed yet, installing...`)
 		await new Promise((resolve, reject) => {
+			console.info(`\tpreparing npm...`)
 			npm.load({
 				audit: false,
 				loaded: false,
@@ -232,11 +234,13 @@ async function obtainRunner(packageName, packageVersion, exportedProperty) {
 				if (e1) {
 					reject(e1);
 				} else {
+					console.info(`\tinstalling ${packageFQN}...`)
 					npm.commands.install([packageFQN], e2 => {
 						if (e2) {
 							reject(e2);
 						} else {
 							resolve();
+							console.info(`\tdone with success`);
 						}
 					});
 				}
