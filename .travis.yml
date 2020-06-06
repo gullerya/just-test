@@ -5,10 +5,13 @@ node_js:
 install:
 - npm install
 
-script:
-- npm run lint
-- npm run test
-- bash <(curl -s https://codecov.io/bash)
+jobs:
+  include:
+    - stage: lint & test
+      script: npm run lint
+      script: npm run test
+    - stage: report
+      script: bash <(curl -s https://codecov.io/bash)
 
 cache:
   directories:
