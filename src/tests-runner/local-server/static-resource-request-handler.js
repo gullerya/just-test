@@ -38,6 +38,8 @@ class StaticResourceRequestHandler extends RequestHandlerBase {
 				}
 			}
 		});
+
+		req.handled = true;
 	};
 }
 

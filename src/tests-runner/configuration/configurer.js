@@ -219,11 +219,11 @@ async function obtainRunner(packageName, packageVersion, exportedProperty) {
 	const packageFQN = `${packageName}@${packageVersion}`;
 	let result;
 	try {
-		result = require(packageFQN)[exportedProperty];
+		result = require(packageName)[exportedProperty];
 	} catch (e) {
-		console.info(`failed to require ${packageName} with ${e}, assuming not installed yet, installing...`)
+		console.info(`failed to require ${packageName}, assuming not installed yet, installing...`)
 		await new Promise((resolve, reject) => {
-			console.info(`\tpreparing npm...`)
+			console.info('\tpreparing npm...')
 			npm.load({
 				audit: false,
 				loaded: false,
@@ -240,13 +240,12 @@ async function obtainRunner(packageName, packageVersion, exportedProperty) {
 							reject(e2);
 						} else {
 							resolve();
-							console.info(`\tdone with success`);
 						}
 					});
 				}
 			});
 		});
-		result = require(packageFQN)[exportedProperty];
+		result = require(packageName)[exportedProperty];
 	}
 	return result;
 }

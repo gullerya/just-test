@@ -35,7 +35,6 @@ function getMainRequestDispatcher(handlers) {
 	return function mainRequestHandler(req, res) {
 		handlers.some(handler => {
 			handler.handle(req, res);
-			console.debug('req handled - ' + req.handled);
 			return req.handled;
 		});
 	};

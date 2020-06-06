@@ -15,9 +15,11 @@ async function start(nativePage) {
 	if (nativePage.coverage) {
 		nativeCoverageSupported = true;
 		await nativePage.coverage.startJSCoverage();
-		console.info('JustTest [coverager]: started');
+		console.info('JustTest [coverager]: coverage collection started');
+		return true;
 	} else {
-		console.warn('coverage is NOT supported on this env');
+		console.warn('JustTest [coverager]: coverage is NOT supported on this env');
+		return false;
 	}
 }
 
@@ -30,7 +32,7 @@ async function report(nativePage, covConf, reportPath) {
 	console.info('JustTest [coverager]: processing coverage data...');
 
 	const
-		jsCoverage = await nativePage.coverage.stopJSCoverage(),
+		jsCoverageReports = await nativePage.coverage.stopJSCoverage(),
 		covData = {
 			tests: [{
 				testName: 'anonymous.anonymous',
@@ -39,7 +41,7 @@ async function report(nativePage, covConf, reportPath) {
 				}
 			}]
 		};
-	for (const entry of jsCoverage) {
+	for (const entry of jsCoverageReports) {
 		const
 			entryURL = new URL(entry.url),
 			relFilePath = entryURL.pathname;
@@ -61,12 +63,21 @@ async function report(nativePage, covConf, reportPath) {
 				lines: {},
 				ranges: []
 			};
+
+			//	set lines with ranges
+			const lineSepLocations = entry.source.matchAll(/[\r\n]{1,2}/gm);
+			let currentPosition = 0,
+				lineCounter = 1;
+			for (const lineSepLocation of lineSepLocations) {
+				fileCoverage.lines[lineCounter] = { start: currentPosition, end: lineSepLocation.index, hits: 0 };
+				currentPosition = lineSepLocation.index + lineSepLocation[0].length;
+				lineCounter++;
+			}
+			fileCoverage.lines[lineCounter] = { start: currentPosition, end: entry.source.length, hits: 0 };
 		}
 
 		process.stdout.write(`JustTest [coverager]: ... "${fileCoverage.path}"` + (entryURL.search ? ` (${entryURL.search})` : ''));
 
-		//	existing ranges are a COVERED sections
-		//	ranges' in-between parts are a NON-COVERED sections
 		let positionInCode = 0,
 			currentLine = 1;
 		entry.ranges.forEach(range => {

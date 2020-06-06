@@ -1,7 +1,6 @@
 const
 	os = require('os'),
 	path = require('path'),
-	util = require('util'),
 	configurer = require('./configuration/configurer'),
 	localServer = require('./local-server/local-server'),
 	tester = require('./tests/tester'),
@@ -23,14 +22,14 @@ const conf = configurer.configuration;
 
 	//	browser
 	console.info(os.EOL);
-	console.info('JustTest: tests (AUT) URL resolved to "' + testsUrl + '", launching browsing env...');
+	console.info(`JustTest: tests (AUT) URL resolved to "${testsUrl}", launching browsing env...`);
 	const browserRunner = await configurer.getBrowserRunner();
 	browser = await browserRunner.launch();
-	console.info('JustTest: ... browsing env launched; details (taken by "userAgent") as following');
-	console.info(util.inspect(await browser.userAgent(), false, null, true));
+	console.info(`JustTest: ... browser env '${browserRunner.name()}' launched`);
 
 	//	general page handling
-	const page = await browser.newPage();
+	const context = await browser.newContext();
+	const page = await context.newPage();
 	page.on('error', e => {
 		console.error('JustTest: "error" event fired on page', e);
 	});
@@ -39,11 +38,10 @@ const conf = configurer.configuration;
 	})
 
 	//	coverage
+	let coverageOn = false;
 	console.info(os.EOL);
 	if (!conf.coverage.skip) {
-		await coverager.start(page);
-	} else {
-		console.info('JustTest: skipping JS coverage as per configuration');
+		coverageOn = await coverager.start(page);
 	}
 
 	//	navigate to tests - this is where the tests are starting to run
@@ -51,7 +49,7 @@ const conf = configurer.configuration;
 	console.info('JustTest: navigating to tests (AUT) URL...');
 	const pageResult = await page.goto(testsUrl);
 	if (pageResult.status() !== 200) {
-		throw new Error('JustTest: tests (AUT) page gave invalid status ' + pageResult.status() + '; expected 200');
+		throw new Error(`JustTest: tests (AUT) page gave invalid status ${pageResult.status()}; expected 200`);
 	}
 	console.info('JustTest: ... tests (AUT) page opened');
 
@@ -59,7 +57,7 @@ const conf = configurer.configuration;
 	result = await tester.report(page, conf.tests, path.resolve(conf.reports.folder, conf.tests.reportFilename));
 
 	//	process coverage, create report
-	if (!conf.coverage.skip) {
+	if (coverageOn) {
 		await coverager.report(page, conf.coverage, path.resolve(conf.reports.folder, conf.coverage.reportFilename));
 	}
 })()
