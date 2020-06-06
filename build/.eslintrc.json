@@ -1,33 +1,29 @@
 {
-  "extends": "standard",
-  "parser": "babel-eslint",
-  "env": {
-    "browser": true,
-    "es6": true
-  },
-  "parserOptions": {
-    "ecmaVersion": 8,
-    "sourceType": "module"
-  },
-  "rules": {
-    "indent": [
-      2,
-      "tab",
-      {
-        "SwitchCase": 1
-      }
-    ],
-    "accessor-pairs": [
-      "error",
-      {
-        "setWithoutGet": false
-      }
-    ],
-    "no-tabs": 0,
-    "semi": "off",
-    "space-before-function-paren": "off",
-    "object-curly-spacing": "off",
-    "eol-last": "off",
-    "one-var": "off"
-  }
+	"extends": "standard",
+	"env": {
+		"browser": true,
+		"node": true,
+		"es2020": true
+	},
+	"rules": {
+		"indent": [
+			2,
+			"tab",
+			{
+				"SwitchCase": 1
+			}
+		],
+		"accessor-pairs": [
+			"error",
+			{
+				"setWithoutGet": false
+			}
+		],
+		"no-tabs": 0,
+		"semi": "off",
+		"space-before-function-paren": "off",
+		"object-curly-spacing": "off",
+		"eol-last": "off",
+		"one-var": "off"
+	}
 }

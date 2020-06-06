@@ -37,7 +37,7 @@
 	"scripts": {
 		"build": "node ./build/tools/build-dist.mjs",
 		"lint": "eslint -c ./build/.eslintrc.json --ignore-path ./build/.eslintignore ./src/**/*.js",
-		"test": "node ./dist/tests-runner/run-tests.js --config=./tests/runner-config.json"
+		"test": "node ./dist/tests-runner/run-tests.js --config=./tests/tests-config.json"
 	},
 	"dependencies": {
 		"npm": "^6.14.5",
@@ -52,7 +52,6 @@
 		"eslint-plugin-promise": "^4.2.1",
 		"eslint-plugin-import": "^2.20.2",
 		"eslint-plugin-node": "^11.1.0",
-		"babel-eslint": "^10.1.0",
 		"chai": "^4.2.0",
 		"uglify-es": "^3.3.9",
 		"fs-extra": "^9.0.1"

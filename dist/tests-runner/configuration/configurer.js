@@ -10,14 +10,12 @@ const
 	effectiveConf = {};
 
 const
-	browserTypes = ['chrome', 'firefox'],
+	browserTypes = Object.freeze({ chromium: 'chromium', firefox: 'firefox', webkit: 'webkit' }),
 	testResultsFormats = ['xUnit'],
 	coverageFormats = ['lcov'],
-	PUPPETEER_CHROME_ADDR = 'puppeteer@2.0.0',
-	PUPPETEER_FIREFOX_ADDR = 'puppeteer-firefox@0.5.1';
-
-let puppeteerChrome = null,
-	puppeteerFirefox = null;
+	playwrightVersion = '1.0.2';
+// PUPPETEER_CHROME_ADDR = 'puppeteer@2.0.0',
+// 	PUPPETEER_FIREFOX_ADDR = 'puppeteer-firefox@0.5.1';
 
 module.exports = {
 	configuration: effectiveConf,
@@ -109,8 +107,8 @@ function validateBrowserConf(bc) {
 	if (!bc.type) {
 		throw new Error('"browser" configuration is missing "type" part');
 	}
-	if (!browserTypes.includes(bc.type)) {
-		throw new Error('"type" of "browser" is not a one of the supported ones (' + browserTypes.join(', ') + ')');
+	if (!Object.keys(browserTypes).includes(bc.type)) {
+		throw new Error(`"type" of "browser" is not a one of the supported ones(${Object.keys(browserTypes).join(', ')})`);
 	}
 }
 
@@ -204,64 +202,47 @@ function validateReportsFolder(rc) {
 }
 
 async function getBrowserRunner() {
-	return new Promise((resolve, reject) => {
-		if (effectiveConf.browser.type === 'chrome') {
-			if (!puppeteerChrome) {
-				try {
-					puppeteerChrome = require('puppeteer');
-					resolve(puppeteerChrome);
-				} catch (e) {
-					npmInstall(PUPPETEER_CHROME_ADDR)
-						.then(() => {
-							puppeteerChrome = require('puppeteer');
-							resolve(puppeteerChrome);
-						})
-						.catch(reject);
-				}
-			} else {
-				resolve(puppeteerChrome);
-			}
-		} else if (effectiveConf.browser.type === 'firefox') {
-			if (!puppeteerFirefox) {
-				try {
-					puppeteerFirefox = require('puppeteer-firefox');
-					resolve(puppeteerFirefox);
-				} catch (e) {
-					npmInstall(PUPPETEER_FIREFOX_ADDR)
-						.then(() => {
-							puppeteerFirefox = require('puppeteer-firefox');
-							resolve(puppeteerFirefox);
-						})
-						.catch(reject);
-				}
-			} else {
-				resolve(puppeteerFirefox);
-			}
-		}
-	});
+	let browserRunner;
+	if (effectiveConf.browser.type === browserTypes.chromium) {
+		browserRunner = await obtainRunner('playwright-chromium', playwrightVersion, 'chromium');
+	} else if (effectiveConf.browser.type === browserTypes.firefox) {
+		browserRunner = await obtainRunner('playwright-firefox', playwrightVersion, 'firefox');
+	} else if (effectiveConf.browser.type === browserTypes.webkit) {
+		browserRunner = await obtainRunner('playwright-webkit', playwrightVersion, 'webkit');
+	} else {
+		throw new Error(`failed to resolve browser runner package name for '${effectiveConf.browser.type}'`);
+	}
+	return browserRunner;
 }
 
-async function npmInstall(addr) {
-	return new Promise((resolve, reject) => {
-		npm.load({
-			audit: false,
-			loaded: false,
-			progress: false,
-			loglevel: 'error',
-			save: false
-		}, e1 => {
-			if (e1) {
-				reject(e1);
-			} else {
-				npm.commands.install([addr], e2 => {
-					if (e2) {
-						console.dir(e2);
-						reject(e2);
-					} else {
-						resolve();
-					}
-				});
-			}
+async function obtainRunner(packageName, packageVersion, exportedProperty) {
+	const packageFQN = `${packageName}@${packageVersion}`;
+	let result;
+	try {
+		result = require(packageFQN)[exportedProperty];
+	} catch (e) {
+		await new Promise((resolve, reject) => {
+			npm.load({
+				audit: false,
+				loaded: false,
+				progress: false,
+				loglevel: 'error',
+				save: false
+			}, e1 => {
+				if (e1) {
+					reject(e1);
+				} else {
+					npm.commands.install([packageFQN], e2 => {
+						if (e2) {
+							reject(e2);
+						} else {
+							resolve();
+						}
+					});
+				}
+			});
 		});
-	});
+		result = require(packageFQN)[exportedProperty];
+	}
+	return result;
 }

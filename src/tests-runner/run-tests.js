@@ -17,15 +17,15 @@ const conf = configurer.configuration;
 (async () => {
 	const
 		autServerUrl = conf.server.local
-			? localServer.launch(conf.server.port, path.resolve(process.cwd(), conf.server.resourcesFolder))
+			? localServer.start(conf.server.port, path.resolve(process.cwd(), conf.server.resourcesFolder))
 			: conf.server.remoteUrl,
 		testsUrl = autServerUrl + conf.tests.url;
 
 	//	browser
 	console.info(os.EOL);
 	console.info('JustTest: tests (AUT) URL resolved to "' + testsUrl + '", launching browsing env...');
-	const puppeteer = await configurer.getBrowserRunner();
-	browser = await puppeteer.launch();
+	const browserRunner = await configurer.getBrowserRunner();
+	browser = await browserRunner.launch();
 	console.info('JustTest: ... browsing env launched; details (taken by "userAgent") as following');
 	console.info(util.inspect(await browser.userAgent(), false, null, true));
 
