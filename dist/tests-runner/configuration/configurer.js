@@ -5,7 +5,10 @@ const
 	util = require('util'),
 	npm = require('npm'),
 	fsExtra = require('fs-extra'),
-	ARG_KEYS = ['--config'],
+	ARG_KEYS = [
+		'--config',
+		'browser.type'
+	],
 	DEFAULT_CONFIG = require('./default-config.json'),
 	effectiveConf = {};
 
@@ -14,8 +17,6 @@ const
 	testResultsFormats = ['xUnit'],
 	coverageFormats = ['lcov'],
 	playwrightVersion = '1.0.2';
-// PUPPETEER_CHROME_ADDR = 'puppeteer@2.0.0',
-// 	PUPPETEER_FIREFOX_ADDR = 'puppeteer-firefox@0.5.1';
 
 module.exports = {
 	configuration: effectiveConf,
@@ -23,11 +24,11 @@ module.exports = {
 };
 
 const
-	apargs = process.argv.slice(2),
+	clargs = process.argv.slice(2),
 	args = {};
 
 //	collect arguments
-apargs.forEach(arg => {
+clargs.forEach(arg => {
 	const parts = arg.split('=');
 	if (parts.length === 2 && ARG_KEYS.includes(parts[0])) {
 		args[parts[0]] = parts[1];
@@ -84,6 +85,10 @@ function buildEffectiveConfiguration(inputConfig) {
 	Object.keys(DEFAULT_CONFIG).forEach(partKey => {
 		effectiveConf[partKey] = Object.assign({}, DEFAULT_CONFIG[partKey], inputConfig[partKey]);
 	});
+	//	TODO: apply the belo pattern smarter and more generic
+	if (args['browser.type']) {
+		effectiveConf.browser.type = args['browser.type'];
+	}
 }
 
 function validateEffectiveConf() {
