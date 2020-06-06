@@ -9,9 +9,14 @@ install:
 
 jobs:
   include:
-    - stage: qualify
+    - stage: lint
       script: npm run lint
-    - script: npm run test && bash <(curl -s https://codecov.io/bash)
+    - stage: test
+      script: npm run test
+    - script: npm run test
+    - script: npm run test
+    - stage: coverage
+      script: bash <(curl -s https://codecov.io/bash)
 
 cache:
   directories:
