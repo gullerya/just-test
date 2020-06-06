@@ -1,60 +1,60 @@
 {
-  "name": "just-test",
-  "version": "2.3.2",
-  "description": "Client side JavaScript tests runner",
-  "keywords": [
-    "javascript",
-    "testing",
-    "framework",
-    "test",
-    "tests",
-    "coverage",
-    "lcov",
-    "test",
-    "report",
-    "results",
-    "xUnit"
-  ],
-  "homepage": "https://github.com/gullerya/just-test",
-  "bugs": {
-    "url": "https://github.com/gullerya/just-test/issues",
-    "email": "gullerya@gmail.com"
-  },
-  "license": "MIT",
-  "files": [
-    "dist"
-  ],
-  "browser": "../dist/just-test.min.js",
-  "author": {
-    "name": "Guller Yuri",
-    "email": "gullerya@gmail.com"
-  },
-  "funding": "https://paypal.me/gullerya?locale.x=en_US",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/gullerya/just-test"
-  },
-  "scripts": {
-    "build": "node ./build/tools/build-dist.js",
-    "lint": "eslint -c ./build/.eslintrc.json --ignore-path ./build/.eslintignore ./src/**/*.js",
-    "test": "node ./dist/tests-runner/run-tests.js --config=./tests/runner-config.json"
-  },
-  "dependencies": {
-    "npm": "^6.14.5",
-    "data-tier": "^2.9.0",
-    "data-tier-list": "^0.5.0",
-    "rich-component": "^1.4.0"
-  },
-  "devDependencies": {
-    "eslint": "^7.1.0",
-    "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-standard": "^4.0.1",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-import": "^2.20.2",
-    "eslint-plugin-node": "^11.1.0",
-    "babel-eslint": "^10.1.0",
-    "chai": "^4.2.0",
-    "uglify-es": "^3.3.9",
-    "fs-extra": "^9.0.0"
-  }
+	"name": "just-test",
+	"version": "2.3.2",
+	"description": "Client side JavaScript tests runner",
+	"keywords": [
+		"javascript",
+		"testing",
+		"framework",
+		"test",
+		"tests",
+		"coverage",
+		"lcov",
+		"test",
+		"report",
+		"results",
+		"xUnit"
+	],
+	"homepage": "https://github.com/gullerya/just-test",
+	"bugs": {
+		"url": "https://github.com/gullerya/just-test/issues",
+		"email": "gullerya@gmail.com"
+	},
+	"license": "MIT",
+	"files": [
+		"dist"
+	],
+	"browser": "../dist/just-test.min.js",
+	"author": {
+		"name": "Guller Yuri",
+		"email": "gullerya@gmail.com"
+	},
+	"funding": "https://paypal.me/gullerya?locale.x=en_US",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/gullerya/just-test"
+	},
+	"scripts": {
+		"build": "node ./build/tools/build-dist.js",
+		"lint": "eslint -c ./build/.eslintrc.json --ignore-path ./build/.eslintignore ./src/**/*.js",
+		"test": "node ./dist/tests-runner/run-tests.js --config=./tests/runner-config.json"
+	},
+	"dependencies": {
+		"npm": "^6.14.5",
+		"data-tier": "^2.9.0",
+		"data-tier-list": "^0.5.0",
+		"rich-component": "^1.4.0"
+	},
+	"devDependencies": {
+		"eslint": "^7.2.0",
+		"eslint-config-standard": "^14.1.1",
+		"eslint-plugin-standard": "^4.0.1",
+		"eslint-plugin-promise": "^4.2.1",
+		"eslint-plugin-import": "^2.20.2",
+		"eslint-plugin-node": "^11.1.0",
+		"babel-eslint": "^10.1.0",
+		"chai": "^4.2.0",
+		"uglify-es": "^3.3.9",
+		"fs-extra": "^9.0.1"
+	}
 }
