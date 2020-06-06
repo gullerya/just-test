@@ -35,7 +35,7 @@
 		"url": "https://github.com/gullerya/just-test"
 	},
 	"scripts": {
-		"build": "node ./build/tools/build-dist.js",
+		"build": "node ./build/tools/build-dist.mjs",
 		"lint": "eslint -c ./build/.eslintrc.json --ignore-path ./build/.eslintignore ./src/**/*.js",
 		"test": "node ./dist/tests-runner/run-tests.js --config=./tests/runner-config.json"
 	},
