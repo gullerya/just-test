@@ -82,10 +82,9 @@ async function report(nativePage, covConf, reportPath) {
 			currentLine = 1;
 
 		//	order all ranges accross the functions
-		const ranges = [];
 		entry.functions.forEach(f => {
 			f.ranges.forEach(r => {
-				const found = ranges.some((tr, ti, ta) => {
+				const found = fileCoverage.ranges.some((tr, ti, ta) => {
 					if (r.startOffset < tr.startOffset) {
 						ta.splice(ti, 0, r);
 						return true;
@@ -94,58 +93,68 @@ async function report(nativePage, covConf, reportPath) {
 					}
 				});
 				if (!found) {
-					ranges.push(r);
+					fileCoverage.ranges.push(r);
 				}
 			});
 		});
 
-		if (fileCoverage.ranges) {
-			return;
-		}
-
-		entry.ranges.forEach(range => {
-			fileCoverage.ranges.push(range);
-
-			//	handle missed section
-			if (range.start > positionInCode) {
-				const missedCode = entry.text.substring(positionInCode, range.start);
-				if (missedCode.indexOf(os.EOL) >= 0) {
-					const missedLines = missedCode.split(os.EOL);
-					missedLines.forEach(line => {
-						if (!/^\s*$/.test(line) && (!fileCoverage.lines[currentLine] || !fileCoverage.lines[currentLine].hits)) {
-							fileCoverage.lines[currentLine] = { hits: 0 };
-						}
-						currentLine++;
-					});
-					currentLine--;
-				} else {
-					if (!fileCoverage.lines[currentLine] && !/^\s*$/.test(missedCode)) {
-						fileCoverage.lines[currentLine] = { hits: 0 };
-					}
+		//	apply ranges to lines
+		fileCoverage.ranges.forEach(r => {
+			for (const [ln, l] of Object.entries(fileCoverage.lines)) {
+				if (l.start >= r.startOffset && l.end <= r.endOffset) {
+					l.hits = r.count;
+				} else if ((l.start >= r.startOffset && l.start <= r.endOffset) || (l.end >= r.startOffset && l.end <= r.endOffset)) {
+					l.hits = r.count;
+					console.debug(`line ${ln} got partial hit`);
+				} else if (l.startOffset >= r.endOffset) {
+					break;
 				}
 			}
-
-			//	handle covered section
-			const hitCode = entry.text.substring(range.start, range.end);
-			if (hitCode.indexOf(os.EOL) >= 0) {
-				const hitLines = hitCode.split(os.EOL);
-				if (hitLines[0] === '') {
-					hitLines.shift();
-					currentLine++;
-				}
-				hitLines.forEach(line => {
-					if (!/^\s*$/.test(line)) {
-						fileCoverage.lines[currentLine] = { hits: 1 };
-					}
-					currentLine++;
-				});
-				currentLine--;
-			} else {
-				fileCoverage.lines[currentLine].hits++;
-			}
-
-			positionInCode = range.end;
 		});
+
+		// entry.ranges.forEach(range => {
+		// 	fileCoverage.ranges.push(range);
+
+		// 	//	handle missed section
+		// 	if (range.start > positionInCode) {
+		// 		const missedCode = entry.text.substring(positionInCode, range.start);
+		// 		if (missedCode.indexOf(os.EOL) >= 0) {
+		// 			const missedLines = missedCode.split(os.EOL);
+		// 			missedLines.forEach(line => {
+		// 				if (!/^\s*$/.test(line) && (!fileCoverage.lines[currentLine] || !fileCoverage.lines[currentLine].hits)) {
+		// 					fileCoverage.lines[currentLine] = { hits: 0 };
+		// 				}
+		// 				currentLine++;
+		// 			});
+		// 			currentLine--;
+		// 		} else {
+		// 			if (!fileCoverage.lines[currentLine] && !/^\s*$/.test(missedCode)) {
+		// 				fileCoverage.lines[currentLine] = { hits: 0 };
+		// 			}
+		// 		}
+		// 	}
+
+		// 	//	handle covered section
+		// 	const hitCode = entry.text.substring(range.start, range.end);
+		// 	if (hitCode.indexOf(os.EOL) >= 0) {
+		// 		const hitLines = hitCode.split(os.EOL);
+		// 		if (hitLines[0] === '') {
+		// 			hitLines.shift();
+		// 			currentLine++;
+		// 		}
+		// 		hitLines.forEach(line => {
+		// 			if (!/^\s*$/.test(line)) {
+		// 				fileCoverage.lines[currentLine] = { hits: 1 };
+		// 			}
+		// 			currentLine++;
+		// 		});
+		// 		currentLine--;
+		// 	} else {
+		// 		fileCoverage.lines[currentLine].hits++;
+		// 	}
+
+		// 	positionInCode = range.end;
+		// });
 
 		const lk = Object.keys(fileCoverage.lines);
 		fileCoverage.covered = lk.reduce((pv, cv) => pv + (fileCoverage.lines[cv].hits ? 1 : 0), 0) / lk.length;
