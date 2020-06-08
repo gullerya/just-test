@@ -1,6 +1,6 @@
 {
 	"browser": {
-		"type": "chrome"
+		"type": "chromium"
 	},
 	"server": {
 		"local": true,

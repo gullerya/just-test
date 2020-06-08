@@ -18,7 +18,7 @@
 			"name": "Debug tests",
 			"program": "${workspaceFolder}/src/tests-runner/run-tests.js",
 			"args": [
-				"--config=./tests/runner-config.json"
+				"--config=./tests/tests-config.json"
 			],
 			"runtimeArgs": [
 				"--harmony",

@@ -1,14 +1,21 @@
+os: linux
+dist: xenial
 language: node_js
 node_js:
-- "12"
+- "14"
 
 install:
 - npm install
 
-script:
-- npm run lint
-- npm run test
-- bash <(curl -s https://codecov.io/bash)
+jobs:
+  include:
+    - stage: qualify
+      script:
+      - npm run lint
+      - npm run test browser.type=chromium
+      # - npm run test browser.type=firefox
+      # - npm run test browser.type=webkit
+      - bash <(curl -s https://codecov.io/bash)
 
 cache:
   directories:

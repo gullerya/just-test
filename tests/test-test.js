@@ -120,7 +120,7 @@ suite.runTest({ name: 'test - fail by expect error and none' }, async test => {
 	test.assertEqual(m.status, STATUSES.FAILED);
 	test.assertEqual(m.error.type, 'AssertError');
 	test.assertTrue(Array.isArray(m.error.stackLines));
-	test.assertTrue(m.error.stackLines.length > 2);
+	test.assertTrue(m.error.stackLines.length > 1);
 });
 
 suite.runTest({ name: 'test - skip' }, async test => {
