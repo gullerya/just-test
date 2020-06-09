@@ -1,14 +1,16 @@
-const
-	os = require('os'),
-	{ URL } = require('url'),
-	fsExtra = require('fs-extra'),
-	coverageToLcov = require('./coverage-to-lcov');
+import os from 'os';
+import { URL } from 'url';
+import fsExtra from 'fs-extra';
+import RangeCov from './range-cov.js';
+import LineCov from './line-cov.js';
+import FileCov from './file-cov.js';
+import coverageToLcov from './coverage-to-lcov.js';
 
 let nativeCoverageSupported = false;
 
-module.exports = {
-	start: start,
-	report: report
+export default {
+	start,
+	report
 };
 
 async function start(nativePage) {
@@ -55,72 +57,68 @@ async function report(nativePage, covConf, reportPath) {
 			continue;
 		}
 
-		//	create file coverage DTO, but first lookup for an already existing one (query params case)
-		let fileCoverage = covData.tests[0].coverage.files.find(f => f.path === relFilePath);
-		if (!fileCoverage) {
-			fileCoverage = {
-				path: relFilePath,
-				lines: {},
-				ranges: []
-			};
+		//	create file coverage DTO, but first lookup for an already existing one (query params case, same code fetched twice)
+		let fileCov = covData.tests[0].coverage.files.find(f => f.path === relFilePath);
+		if (!fileCov) {
+			fileCov = new FileCov(relFilePath, entry.source);
 
-			//	set lines with ranges
-			const lineSepLocations = entry.source.matchAll(/[\r\n]{1,2}/gm);
-			let currentPosition = 0,
-				lineCounter = 1,
-				lineText;
-			for (const lineSepLocation of lineSepLocations) {
-				if (lineSepLocation.index > currentPosition) {
-					lineText = entry.source.substring(currentPosition, lineSepLocation.index);
-					fileCoverage.lines[lineCounter] = { text: lineText, start: currentPosition, end: lineSepLocation.index, hits: 0 };
-					currentPosition = lineSepLocation.index + lineSepLocation[0].length;
+			//	setup lines from source
+			const eolPoses = fileCov.text.matchAll(/[\r\n]{1,2}/gm);
+			let indexPos = 0,
+				linePos = 1;
+			//	all lines but last
+			for (const eolPos of eolPoses) {
+				if (eolPos.index > indexPos) {		//	otherwise it's and empty line
+					fileCov.lines.push(new LineCov(linePos, indexPos, eolPos.index));
 				}
-				lineCounter++;
+				indexPos = eolPos.index + eolPos[0].length;
+				linePos++;
 			}
-			if (entry.source.length > currentPosition) {
-				lineText = entry.source.substring(currentPosition, entry.source.length);
-				fileCoverage.lines[lineCounter] = { text: lineText, start: currentPosition, end: entry.source.length, hits: 0 };
+			//	last line
+			if (entry.source.length > indexPos) {
+				fileCov.lines.push(new LineCov(linePos, indexPos, entry.source.length));
 			}
 		}
 
-		process.stdout.write(`JustTest [coverager]: ... "${fileCoverage.path}"` + (entryURL.search ? ` (${entryURL.search})` : ''));
+		process.stdout.write(`JustTest [coverager]: ... "${fileCov.path}"` + (entryURL.search ? ` (${entryURL.search})` : ''));
 
 		//	order all ranges accross the functions
 		entry.functions.forEach(f => {
 			f.ranges.forEach(r => {
-				const found = fileCoverage.ranges.some((tr, ti, ta) => {
-					if (r.startOffset < tr.startOffset) {
-						ta.splice(ti, 0, r);
+				const jtr = new RangeCov(r.startOffset, r.endOffset, r.count);
+				const found = fileCov.ranges.some((tr, ti, ta) => {
+					if (jtr.startsBefore(tr)) {
+						ta.splice(ti, 0, jtr);
 						return true;
 					} else {
 						return false;
 					}
 				});
 				if (!found) {
-					fileCoverage.ranges.push(r);
+					fileCov.ranges.push(jtr);
 				}
 			});
 		});
 
 		//	apply ranges to lines
-		fileCoverage.ranges.forEach(r => {
-			for (const [ln, l] of Object.entries(fileCoverage.lines)) {
-				if (l.start >= r.startOffset && l.end <= r.endOffset) {
-					l.hits = r.count;
-				} else if ((l.start >= r.startOffset && l.start <= r.endOffset) || (l.end >= r.startOffset && l.end <= r.endOffset)) {
-					l.hits = r.count;
-					console.debug(`line ${ln} got partial hit`);
-				} else if (l.startOffset >= r.endOffset) {
+		fileCov.ranges.forEach(r => {
+			for (let i = 0, l = fileCov.lines.length; i < l; i++) {
+				const line = fileCov.lines[i];
+				if (line.isWithin(r)) {
+					line.hits = r.hits;
+				} else if (line.overlaps(r)) {
+					line.hits = r.hits;
+					console.debug(`line ${line.number} got partial hit`);
+				} else if (line.beg >= r.end) {
 					break;
 				}
 			}
 		});
 
-		const lk = Object.keys(fileCoverage.lines);
-		fileCoverage.covered = lk.reduce((pv, cv) => pv + (fileCoverage.lines[cv].hits ? 1 : 0), 0) / lk.length;
-		process.stdout.write('\t'.repeat(2) + Math.round(fileCoverage.covered * 100) + '%' + os.EOL);
+		fileCov.covered = fileCov.lines.reduce((v, l) => v + l.hits ? 1 : 0, 0) / fileCov.lines.length;
+		process.stdout.write('\t'.repeat(2) + Math.round(fileCov.covered * 100) + '%' + os.EOL);
 
-		covData.tests[0].coverage.files.push(fileCoverage);
+		covData.tests[0].coverage.files.push(fileCov);
 	}
 
 	//	produce report

@@ -24,6 +24,7 @@
 	"files": [
 		"dist"
 	],
+	"type": "module",
 	"browser": "../dist/just-test.min.js",
 	"author": {
 		"name": "Guller Yuri",
@@ -43,7 +44,8 @@
 		"npm": "^6.14.5",
 		"data-tier": "^2.9.0",
 		"data-tier-list": "^0.5.0",
-		"rich-component": "^1.4.0"
+		"rich-component": "^1.4.0",
+		"playwright-chromium": "^1.0.2"
 	},
 	"devDependencies": {
 		"eslint": "^7.2.0",

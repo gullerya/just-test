@@ -1,12 +1,11 @@
-const
-	http = require('http'),
-	{ StaticResourceRequestHandler } = require('./static-resource-request-handler.js');
+import http from 'http';
+import { StaticResourceRequestHandler } from './static-resource-request-handler.js';
 
 let server;
 
-module.exports = {
-	start: start,
-	stop: stop
+export {
+	start,
+	stop
 };
 
 function start(port, resourcesFolder) {

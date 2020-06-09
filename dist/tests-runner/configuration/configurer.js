@@ -1,26 +1,27 @@
+import os from 'os';
+import fs from 'fs';
+import path from 'path';
+import util from 'util';
+import npm from 'npm';
+import fsExtra from 'fs-extra';
+// import chromium from 'playwright-chromium';
+// import webkit from 'playwright-webkit';
+
 const
-	os = require('os'),
-	fs = require('fs'),
-	path = require('path'),
-	util = require('util'),
-	npm = require('npm'),
-	fsExtra = require('fs-extra'),
 	ARG_KEYS = [
 		'--config',
 		'browser.type'
 	],
-	DEFAULT_CONFIG = require('./default-config.json'),
-	effectiveConf = {};
-
-const
+	DEFAULT_CONFIG = JSON.parse(fs.readFileSync('dist/tests-runner/configuration/default-config.json'), 'utf-8'),
+	effectiveConf = {},
 	browserTypes = Object.freeze({ chromium: 'chromium', firefox: 'firefox', webkit: 'webkit' }),
-	testResultsFormats = ['xUnit'],
+	testResultsFormats = Object.freeze(['xUnit']),
 	coverageFormats = ['lcov'],
 	playwrightVersion = '1.0.2';
 
-module.exports = {
-	configuration: effectiveConf,
-	getBrowserRunner: getBrowserRunner
+export {
+	effectiveConf as configuration,
+	getBrowserRunner
 };
 
 const
@@ -209,11 +210,13 @@ function validateReportsFolder(rc) {
 async function getBrowserRunner() {
 	let browserRunner;
 	if (effectiveConf.browser.type === browserTypes.chromium) {
+		//	return chromium;
 		browserRunner = await obtainRunner('playwright-chromium', playwrightVersion, 'chromium');
 	} else if (effectiveConf.browser.type === browserTypes.firefox) {
 		browserRunner = await obtainRunner('playwright-firefox', playwrightVersion, 'firefox');
 	} else if (effectiveConf.browser.type === browserTypes.webkit) {
-		browserRunner = await obtainRunner('playwright-webkit', playwrightVersion, 'webkit');
+		return webkit;
+		//	browserRunner = await obtainRunner('playwright-webkit', playwrightVersion, 'webkit');
 	} else {
 		throw new Error(`failed to resolve browser runner package name for '${effectiveConf.browser.type}'`);
 	}
@@ -224,7 +227,7 @@ async function obtainRunner(packageName, packageVersion, exportedProperty) {
 	const packageFQN = `${packageName}@${packageVersion}`;
 	let result;
 	try {
-		result = require(packageName)[exportedProperty];
+		result = (await import(packageName)).default[exportedProperty];
 	} catch (e) {
 		console.info(`failed to require ${packageName}, assuming not installed yet, installing...`)
 		await new Promise((resolve, reject) => {
@@ -250,7 +253,7 @@ async function obtainRunner(packageName, packageVersion, exportedProperty) {
 				}
 			});
 		});
-		result = require(packageName)[exportedProperty];
+		result = (await import(packageName))[exportedProperty];
 	}
 	return result;
 }

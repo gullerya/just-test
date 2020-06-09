@@ -1,16 +1,15 @@
-const
-	os = require('os'),
-	path = require('path'),
-	configurer = require('./configuration/configurer'),
-	localServer = require('./local-server/local-server'),
-	tester = require('./tests/tester'),
-	coverager = require('./coverage/coverager');
+import os from 'os';
+import path from 'path';
+import { configuration, getBrowserRunner } from './configuration/configurer.js';
+import * as localServer from './local-server/local-server.js';
+import tester from './tests/tester.js';
+import coverager from './coverage/coverager.js';
 
 let browser,
 	result;
 
 //	configuration
-const conf = configurer.configuration;
+const conf = configuration;
 
 //	main flow runs here, IIF used allow async/await
 (async () => {
@@ -23,7 +22,7 @@ const conf = configurer.configuration;
 	//	browser
 	console.info(os.EOL);
 	console.info(`JustTest: tests (AUT) URL resolved to "${testsUrl}", launching browsing env...`);
-	const browserRunner = await configurer.getBrowserRunner();
+	const browserRunner = await getBrowserRunner();
 	browser = await browserRunner.launch();
 	console.info(`JustTest: ... browser env '${browserRunner.name()}' launched`);
 

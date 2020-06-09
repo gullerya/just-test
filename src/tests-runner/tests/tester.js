@@ -1,10 +1,9 @@
-const
-	os = require('os'),
-	fsExtra = require('fs-extra'),
-	{ performance } = require('perf_hooks');
+import os from 'os';
+import fsExtra from 'fs-extra';
+import { performance } from 'perf_hooks';
 
-module.exports = {
-	report: report
+export default {
+	report
 }
 
 async function report(page, conf, reportPath) {

@@ -1,8 +1,9 @@
+import fs from 'fs';
+import { URL } from 'url';
+import path from 'path';
+import RequestHandlerBase from './request-handler-base.js';
+
 const
-	fs = require('fs'),
-	{ URL } = require('url'),
-	path = require('path'),
-	RequestHandlerBase = require('./request-handler-base.js'),
 	extMap = {
 		'.html': 'text/html',
 		'.js': 'text/javascript',
@@ -43,6 +44,6 @@ class StaticResourceRequestHandler extends RequestHandlerBase {
 	};
 }
 
-module.exports = {
-	StaticResourceRequestHandler: StaticResourceRequestHandler
+export {
+	StaticResourceRequestHandler
 }

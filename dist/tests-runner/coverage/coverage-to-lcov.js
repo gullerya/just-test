@@ -21,11 +21,11 @@
 // 				files: [
 // 					{
 // 						path: '/some/full/path/to/file.js',
-// 						lines: {
-// 							7: {hits: 0},
-// 							8: {hits: 2},
-// 							9: {hits: 1}
-// 						}
+// 						lines: [
+// 							{number: 1, hits: 0},
+// 							{number: 2, hits: 2},
+// 							{number: 3, hits: 1}
+// 						]
 // 					}
 // 				]
 // 			}
@@ -33,11 +33,10 @@
 // 	]
 // };
 
-const
-	os = require('os');
+import os from 'os';
 
-module.exports = {
-	convert: convert
+export default {
+	convert
 };
 
 function convert(coverageData) {
@@ -60,10 +59,10 @@ function convert(coverageData) {
 			//	lines
 			let coverableLines = 0,
 				hitLines = 0;
-			Object.keys(file.lines).forEach(lineNumber => {
-				testReport += 'DA:' + lineNumber + ',' + file.lines[lineNumber].hits + os.EOL;
+			file.lines.forEach(lineCov => {
+				testReport += 'DA:' + lineCov.number + ',' + lineCov.hits + os.EOL;
 				coverableLines++;
-				hitLines += file.lines[lineNumber].hits > 0 ? 1 : 0;
+				hitLines += lineCov.hits > 0 ? 1 : 0;
 			});
 
 			testReport += 'LF:' + coverableLines + os.EOL;
