@@ -4,8 +4,6 @@ import path from 'path';
 import util from 'util';
 import npm from 'npm';
 import fsExtra from 'fs-extra';
-// import chromium from 'playwright-chromium';
-// import webkit from 'playwright-webkit';
 
 const
 	ARG_KEYS = [
@@ -210,13 +208,11 @@ function validateReportsFolder(rc) {
 async function getBrowserRunner() {
 	let browserRunner;
 	if (effectiveConf.browser.type === browserTypes.chromium) {
-		//	return chromium;
 		browserRunner = await obtainRunner('playwright-chromium', playwrightVersion, 'chromium');
 	} else if (effectiveConf.browser.type === browserTypes.firefox) {
 		browserRunner = await obtainRunner('playwright-firefox', playwrightVersion, 'firefox');
 	} else if (effectiveConf.browser.type === browserTypes.webkit) {
-		return webkit;
-		//	browserRunner = await obtainRunner('playwright-webkit', playwrightVersion, 'webkit');
+		browserRunner = await obtainRunner('playwright-webkit', playwrightVersion, 'webkit');
 	} else {
 		throw new Error(`failed to resolve browser runner package name for '${effectiveConf.browser.type}'`);
 	}
