@@ -223,7 +223,7 @@ async function obtainRunner(packageName, packageVersion, exportedProperty) {
 	const packageFQN = `${packageName}@${packageVersion}`;
 	let result;
 	try {
-		result = (await import(packageName)).default[exportedProperty];
+		result = (await import('playwright')).default[exportedProperty];
 	} catch (e) {
 		console.info(`failed to require ${packageName}, assuming not installed yet, installing...`)
 		await new Promise((resolve, reject) => {
