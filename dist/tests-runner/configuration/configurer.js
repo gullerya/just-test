@@ -2,8 +2,8 @@ import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';
-import npm from 'npm';
 import fsExtra from 'fs-extra';
+import playwright from 'playwright';
 
 const
 	ARG_KEYS = [
@@ -14,8 +14,7 @@ const
 	effectiveConf = {},
 	browserTypes = Object.freeze({ chromium: 'chromium', firefox: 'firefox', webkit: 'webkit' }),
 	testResultsFormats = Object.freeze(['xUnit']),
-	coverageFormats = ['lcov'],
-	playwrightVersion = '1.0.2';
+	coverageFormats = ['lcov'];
 
 export {
 	effectiveConf as configuration,
@@ -208,48 +207,13 @@ function validateReportsFolder(rc) {
 async function getBrowserRunner() {
 	let browserRunner;
 	if (effectiveConf.browser.type === browserTypes.chromium) {
-		browserRunner = await obtainRunner('playwright-chromium', playwrightVersion, 'chromium');
+		browserRunner = playwright.chromium;
 	} else if (effectiveConf.browser.type === browserTypes.firefox) {
-		browserRunner = await obtainRunner('playwright-firefox', playwrightVersion, 'firefox');
+		browserRunner = playwright.firefox;
 	} else if (effectiveConf.browser.type === browserTypes.webkit) {
-		browserRunner = await obtainRunner('playwright-webkit', playwrightVersion, 'webkit');
+		browserRunner = playwright.webkit;
 	} else {
 		throw new Error(`failed to resolve browser runner package name for '${effectiveConf.browser.type}'`);
 	}
 	return browserRunner;
-}
-
-async function obtainRunner(packageName, packageVersion, exportedProperty) {
-	const packageFQN = `${packageName}@${packageVersion}`;
-	let result;
-	try {
-		result = (await import('playwright')).default[exportedProperty];
-	} catch (e) {
-		console.info(`failed to require ${packageName}, assuming not installed yet, installing...`)
-		await new Promise((resolve, reject) => {
-			console.info('\tpreparing npm...')
-			npm.load({
-				audit: false,
-				loaded: false,
-				progress: false,
-				loglevel: 'error',
-				save: false
-			}, e1 => {
-				if (e1) {
-					reject(e1);
-				} else {
-					console.info(`\tinstalling ${packageFQN}...`)
-					npm.commands.install([packageFQN], e2 => {
-						if (e2) {
-							reject(e2);
-						} else {
-							resolve();
-						}
-					});
-				}
-			});
-		});
-		result = (await import(packageName))[exportedProperty];
-	}
-	return result;
 }
