@@ -205,15 +205,9 @@ function validateReportsFolder(rc) {
 }
 
 async function getBrowserRunner() {
-	let browserRunner;
-	if (effectiveConf.browser.type === browserTypes.chromium) {
-		browserRunner = playwright.chromium;
-	} else if (effectiveConf.browser.type === browserTypes.firefox) {
-		browserRunner = playwright.firefox;
-	} else if (effectiveConf.browser.type === browserTypes.webkit) {
-		browserRunner = playwright.webkit;
-	} else {
-		throw new Error(`failed to resolve browser runner package name for '${effectiveConf.browser.type}'`);
+	const browserRunner = playwright[effectiveConf.browser.type];
+	if (!browserRunner) {
+		throw new Error(`failed to resolve browser runner '${effectiveConf.browser.type}'`);
 	}
 	return browserRunner;
 }

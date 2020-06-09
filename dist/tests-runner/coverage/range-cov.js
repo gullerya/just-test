@@ -1,5 +1,8 @@
 export default class Range {
 	constructor(beg, end, hits) {
+		if (beg >= end) {
+			throw new Error(`beg MUST preceed end; got beg = ${beg}, end = ${end}`);
+		}
 		this.beg = beg;
 		this.end = end;
 		this.hits = hits;

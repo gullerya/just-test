@@ -6,4 +6,13 @@ export default class LineCov extends RangeCov {
 		this.number = number;
 		this.ranges = [];
 	}
+
+	addRangeCov(range) {
+		if (!this.overlaps(range)) {
+			return;
+		}
+		const tmpRng = new RangeCov(Math.max(this.beg, range.beg), Math.min(this.end, range.end), range.hits);
+		//	TODO: stich the ranges together and in correct place
+		this.ranges.push(tmpRng);
+	}
 }
