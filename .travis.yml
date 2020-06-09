@@ -16,7 +16,3 @@ jobs:
       # - npm run test browser.type=firefox
       # - npm run test browser.type=webkit
       - bash <(curl -s https://codecov.io/bash)
-
-cache:
-  directories:
-  - "node_modules"
