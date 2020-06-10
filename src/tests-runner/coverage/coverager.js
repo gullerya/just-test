@@ -68,7 +68,7 @@ async function report(nativePage, covConf, reportPath) {
 				linePos = 1;
 			//	all lines but last
 			for (const eolPos of eolPoses) {
-				if (eolPos.index > indexPos) {		//	otherwise it's and empty line
+				if (eolPos.index > indexPos) {		//	otherwise it's an empty line
 					fileCov.lines.push(new LineCov(linePos, indexPos, eolPos.index));
 				}
 				indexPos = eolPos.index + eolPos[0].length;
@@ -86,7 +86,7 @@ async function report(nativePage, covConf, reportPath) {
 		entry.functions.forEach(f => {
 			f.ranges.forEach(r => {
 				const jtr = new RangeCov(r.startOffset, r.endOffset, r.count);
-				const found = fileCov.ranges.some((tr, ti, ta) => {
+				const added = fileCov.ranges.some((tr, ti, ta) => {
 					if (jtr.startsBefore(tr)) {
 						ta.splice(ti, 0, jtr);
 						return true;
@@ -94,28 +94,25 @@ async function report(nativePage, covConf, reportPath) {
 						return false;
 					}
 				});
-				if (!found) {
+				if (!added) {
 					fileCov.ranges.push(jtr);
 				}
 			});
 		});
 
 		//	apply ranges to lines
-		fileCov.ranges.forEach(r => {
+		fileCov.ranges.forEach(rangeCov => {
 			for (let i = 0, l = fileCov.lines.length; i < l; i++) {
 				const line = fileCov.lines[i];
-				if (line.isWithin(r)) {
-					line.hits = r.hits;
-				} else if (line.overlaps(r)) {
-					line.hits = r.hits;
-					console.debug(`line ${line.number} got partial hit`);
-				} else if (line.beg >= r.end) {
+				if (rangeCov.overlaps(line)) {
+					line.addRangeCov(rangeCov);
+				} else if (rangeCov.startsAfter(line)) {
 					break;
 				}
 			}
 		});
 
-		fileCov.covered = fileCov.lines.reduce((a, c) => a + (c.hits ? 1 : 0), 0) / fileCov.lines.length;
+		fileCov.covered = fileCov.lines.reduce((a, c) => a + (c.isPartCovered() ? 1 : 0), 0) / fileCov.lines.length;
 		process.stdout.write('\t'.repeat(2) + Math.round(fileCov.covered * 100) + '%' + os.EOL);
 
 		covData.tests[0].coverage.files.push(fileCov);

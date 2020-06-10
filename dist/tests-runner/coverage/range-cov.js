@@ -1,26 +1,8 @@
-export default class Range {
+import Range from './range.js';
+
+export default class RangeCov extends Range {
 	constructor(beg, end, hits) {
-		if (beg >= end) {
-			throw new Error(`beg MUST preceed end; got beg = ${beg}, end = ${end}`);
-		}
-		this.beg = beg;
-		this.end = end;
+		super(beg, end);
 		this.hits = hits;
-	}
-
-	startsBefore(otherRange) {
-		return this.beg < otherRange.beg;
-	}
-
-	endsAfter(otherRange) {
-		return this.end > otherRange.end;
-	}
-
-	isWithin(otherRange) {
-		return this.beg >= otherRange.beg && this.end <= otherRange.end;
-	}
-
-	overlaps(otherRange) {
-		return this.beg < otherRange.end && this.end > otherRange.beg;
 	}
 }
