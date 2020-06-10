@@ -12,33 +12,37 @@ export default class LineCov extends RangeCov {
 	//	- stitch new range cov to the existing strip
 	//	- preserve it's hits value during the stitch
 	addRangeCov(rangeCov) {
-		if (this.overlaps(rangeCov)) {
+		if (rangeCov.overlaps(this)) {
 			const newRange = new RangeCov(Math.max(this.beg, rangeCov.beg), Math.min(this.end, rangeCov.end), rangeCov.hits);
-			const added = this.rangeCovs.some((existingRange, i, a) => {
-				if (newRange.beg <= existingRange.beg) {
-					//	tail of new overlaps
-					if (newRange.end >= existingRange.beg && newRange.hits === existingRange.hits) {
-						existingRange.beg = newRange.beg;
-					} else if (newRange.end >= existingRange.beg && newRange.hits !== existingRange.hits) {
-						if (newRange.end === existingRange.end) {
-							existingRange.hits = newRange.hits;
+			if (this.isWithin(newRange)) {
+				this.rangeCovs = [newRange];
+			} else {
+				const added = this.rangeCovs.some((existingRange, i, a) => {
+					if (newRange.beg <= existingRange.beg) {
+						//	tail of new overlaps
+						if (newRange.end >= existingRange.beg && newRange.hits === existingRange.hits) {
+							existingRange.beg = newRange.beg;
+						} else if (newRange.end >= existingRange.beg && newRange.hits !== existingRange.hits) {
+							if (newRange.end === existingRange.end) {
+								existingRange.hits = newRange.hits;
+							} else {
+								existingRange.beg = newRange.end;
+								a.splice(i, 0, newRange);
+							}
 						} else {
-							existingRange.beg = newRange.end;
 							a.splice(i, 0, newRange);
 						}
-					} else {
-						a.splice(i, 0, newRange);
-					}
-					return true;
-				} else if (newRange.beg < existingRange.end) {
-					//	head of new overlaps
+						return true;
+					} else if (newRange.beg < existingRange.end) {
+						//	head of new overlaps
 
-				} else {
-					return false;
+					} else {
+						return false;
+					}
+				});
+				if (!added) {
+					this.rangeCovs.push(newRange);
 				}
-			});
-			if (!added) {
-				this.rangeCovs.push(newRange);
 			}
 		}
 	}
@@ -55,6 +59,6 @@ export default class LineCov extends RangeCov {
 	}
 
 	isCoveredPart() {
-		return this.rangeCovs.some(rc => rc.hits > 0);
+		return this.rangeCovs.some(rc => rc.hits > 0) && !this.isCoveredFull();
 	}
 }

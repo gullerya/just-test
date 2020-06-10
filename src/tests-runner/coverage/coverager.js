@@ -63,7 +63,7 @@ async function report(nativePage, covConf, reportPath) {
 			fileCov = new FileCov(relFilePath, entry.source);
 
 			//	setup lines from source
-			const eolPoses = fileCov.text.matchAll(/[\r\n]{1,2}/gm);
+			const eolPoses = fileCov.text.matchAll(/[\r\n]/gm);
 			let indexPos = 0,
 				linePos = 1;
 			//	all lines but last
@@ -106,14 +106,22 @@ async function report(nativePage, covConf, reportPath) {
 				const line = fileCov.lines[i];
 				if (rangeCov.overlaps(line)) {
 					line.addRangeCov(rangeCov);
-				} else if (rangeCov.startsAfter(line)) {
+				} else if (line.startsAfter(rangeCov)) {
 					break;
 				}
 			}
 		});
 
-		fileCov.covered = fileCov.lines.reduce((a, c) => a + (c.isCoveredFull() ? 1 : 0), 0) / fileCov.lines.length;
+		fileCov.covered = fileCov.lines.reduce((a, c) => a + (c.isCoveredFull() || c.isCoveredPart() ? 1 : 0), 0) / fileCov.lines.length;
 		process.stdout.write('\t'.repeat(2) + Math.round(fileCov.covered * 100) + '%' + os.EOL);
+
+		if (fileCov.path.indexOf('just-test.js') > 0) {
+			fileCov.lines.forEach(l => {
+				if (l.isCoveredPart()) {
+					console.log(l.number + ' - |' + fileCov.text.substring(l.beg, l.end) + '|');
+				}
+			});
+		}
 
 		covData.tests[0].coverage.files.push(fileCov);
 	}
