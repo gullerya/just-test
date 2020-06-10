@@ -112,7 +112,7 @@ async function report(nativePage, covConf, reportPath) {
 			}
 		});
 
-		fileCov.covered = fileCov.lines.reduce((a, c) => a + (c.isPartCovered() ? 1 : 0), 0) / fileCov.lines.length;
+		fileCov.covered = fileCov.lines.reduce((a, c) => a + (c.isFullCovered() ? 1 : 0), 0) / fileCov.lines.length;
 		process.stdout.write('\t'.repeat(2) + Math.round(fileCov.covered * 100) + '%' + os.EOL);
 
 		covData.tests[0].coverage.files.push(fileCov);

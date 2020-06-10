@@ -34,7 +34,7 @@ export default class LineCov extends RangeCov {
 				rc.hits === 0 ||								//	must have hits
 				(i === 0 && rc.beg > this.beg) ||				//	frist must start with the line
 				(i === a.length - 1 && rc.end < this.end) ||	//	last must end with the line
-				(rc.end < a[i + 1].beg)							//	middle must stitch to the next
+				(i < a.length - 1 && rc.end < a[i + 1].beg)		//	middle must stitch to the next
 			);
 		});
 	}
