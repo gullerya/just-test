@@ -59,7 +59,7 @@ function convert(coverageData) {
 			//	lines
 			let hitLines = 0;
 			file.lines.forEach(lineCov => {
-				const lineHitsMax = lineCov.rangeCovs.reduce((a, c) => Math.max(a, c.hits), 0);
+				const lineHitsMax = lineCov.rangeCovs.reduce((a, c) => Math.max(a, c.hits), 0) > 0 ? 1 : 0;
 				testReport += `DA:${lineCov.number},${lineHitsMax}${os.EOL}`;
 				hitLines += lineHitsMax > 0 ? 1 : 0;
 			});
