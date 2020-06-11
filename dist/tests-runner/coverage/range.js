@@ -15,6 +15,10 @@ export default class Range {
 		return this.beg >= otherRange.beg && this.end <= otherRange.end;
 	}
 
+	includes(point) {
+		return point >= this.beg && point < this.end;
+	}
+
 	startsBefore(otherRange) {
 		return this.beg < otherRange.beg;
 	}

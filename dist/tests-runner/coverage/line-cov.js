@@ -2,9 +2,9 @@ import RangeCov from './range-cov.js';
 
 export default class LineCov extends RangeCov {
 	constructor(number, beg, end) {
-		super(beg, end, 0);
+		super(beg, end);
 		this.number = number;
-		this.rangeCovs = [];
+		this.rangeCovs = [new RangeCov(beg, end, 0)];
 	}
 
 	//	this method should:
@@ -14,36 +14,15 @@ export default class LineCov extends RangeCov {
 	addRangeCov(rangeCov) {
 		if (rangeCov.overlaps(this)) {
 			const newRange = new RangeCov(Math.max(this.beg, rangeCov.beg), Math.min(this.end, rangeCov.end), rangeCov.hits);
-			if (this.isWithin(newRange)) {
-				this.rangeCovs = [newRange];
-			} else {
-				const added = this.rangeCovs.some((existingRange, i, a) => {
-					if (newRange.beg <= existingRange.beg) {
-						//	tail of new overlaps
-						if (newRange.end >= existingRange.beg && newRange.hits === existingRange.hits) {
-							existingRange.beg = newRange.beg;
-						} else if (newRange.end >= existingRange.beg && newRange.hits !== existingRange.hits) {
-							if (newRange.end === existingRange.end) {
-								existingRange.hits = newRange.hits;
-							} else {
-								existingRange.beg = newRange.end;
-								a.splice(i, 0, newRange);
-							}
-						} else {
-							a.splice(i, 0, newRange);
-						}
-						return true;
-					} else if (newRange.beg < existingRange.end) {
-						//	head of new overlaps
-
-					} else {
-						return false;
+			this.rangeCovs.forEach((existingRange, i, a) => {
+				if (newRange.overlaps(existingRange)) {
+					try {
+						a.splice(i, 1, ...RangeCov.merge(existingRange, newRange));
+					} catch (e) {
+						RangeCov.merge(existingRange, newRange);
 					}
-				});
-				if (!added) {
-					this.rangeCovs.push(newRange);
 				}
-			}
+			});
 		}
 	}
 

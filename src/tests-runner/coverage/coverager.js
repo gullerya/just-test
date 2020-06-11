@@ -115,13 +115,20 @@ async function report(nativePage, covConf, reportPath) {
 		fileCov.covered = fileCov.lines.reduce((a, c) => a + (c.isCoveredFull() || c.isCoveredPart() ? 1 : 0), 0) / fileCov.lines.length;
 		process.stdout.write('\t'.repeat(2) + Math.round(fileCov.covered * 100) + '%' + os.EOL);
 
-		if (fileCov.path.indexOf('just-test.js') > 0) {
-			fileCov.lines.forEach(l => {
-				if (l.isCoveredPart()) {
-					console.log(l.number + ' - |' + fileCov.text.substring(l.beg, l.end) + '|');
-				}
-			});
-		}
+		//	TODO: use something like this in an HTML report generator
+		fileCov.lines.forEach(l => {
+			if (l.isCoveredPart()) {
+				let s = '';
+				l.rangeCovs.forEach(lcr => {
+					if (lcr.hits) {
+						s += '^' + fileCov.text.substring(lcr.beg, lcr.end) + '^';
+					} else {
+						s += fileCov.text.substring(lcr.beg, lcr.end);
+					}
+				});
+				console.log(s);
+			}
+		});
 
 		covData.tests[0].coverage.files.push(fileCov);
 	}
