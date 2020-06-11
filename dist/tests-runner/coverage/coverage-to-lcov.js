@@ -60,7 +60,7 @@ function convert(coverageData) {
 			let coverableLines = 0,
 				hitLines = 0;
 			file.lines.forEach(lineCov => {
-				testReport += 'DA:' + lineCov.number + ',' + lineCov.hits + os.EOL;
+				testReport += 'DA:' + lineCov.number + ',' + lineCov.rangeCovs.reduce((a, c) => Math.max(a, c.hits), 0) + os.EOL;
 				coverableLines++;
 				hitLines += lineCov.hits > 0 ? 1 : 0;
 			});
