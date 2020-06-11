@@ -49,25 +49,24 @@ function convert(coverageData) {
 	const testReports = [];
 	coverageData.tests.forEach(test => {
 		//	test name
-		let testReport = 'TN:' + test.testName + os.EOL + os.EOL;
+		let testReport = `TN:${test.testName}${os.EOL}${os.EOL}`;
 
 		//	files
 		test.coverage.files.forEach(file => {
 			//	file name
-			testReport += 'SF:' + file.path + os.EOL;
+			testReport += `SF:${file.path}${os.EOL}`;
 
 			//	lines
-			let coverableLines = 0,
-				hitLines = 0;
+			let hitLines = 0;
 			file.lines.forEach(lineCov => {
-				testReport += 'DA:' + lineCov.number + ',' + lineCov.rangeCovs.reduce((a, c) => Math.max(a, c.hits), 0) + os.EOL;
-				coverableLines++;
-				hitLines += lineCov.hits > 0 ? 1 : 0;
+				const lineHitsMax = lineCov.rangeCovs.reduce((a, c) => Math.max(a, c.hits), 0);
+				testReport += `DA:${lineCov.number},${lineHitsMax}${os.EOL}`;
+				hitLines += lineHitsMax > 0 ? 1 : 0;
 			});
 
-			testReport += 'LF:' + coverableLines + os.EOL;
-			testReport += 'LH:' + hitLines + os.EOL;
-			testReport += 'end_of_record' + os.EOL;
+			testReport += `LF:${file.lines.length}${os.EOL}`;
+			testReport += `LH:${hitLines}${os.EOL}`;
+			testReport += `end_of_record${os.EOL}`;
 		});
 
 		//	end of record
