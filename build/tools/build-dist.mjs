@@ -1,7 +1,5 @@
 ﻿import os from 'os';
-import fs from 'fs';
 import fsExtra from 'fs-extra';
-import uglifyES from 'uglify-es';
 
 process.stdout.write('cleaning "dist"...');
 fsExtra.emptyDirSync('./dist');
@@ -31,8 +29,4 @@ process.stdout.write('copying "src" to "dist"...');
 fsExtra.copySync('./src', './dist');
 process.stdout.write('\t\t\t\x1B[32mOK\x1B[0m' + os.EOL);
 
-process.stdout.write('minifying...');
-const jtSrc = fs.readFileSync('./dist/just-test.js', { encoding: 'utf8' });
-//	TODO: replace refs to minified refs
-fs.writeFileSync('./dist/just-test.min.js', uglifyES.minify(jtSrc).code);
-process.stdout.write('\t\t\t\t\t\x1B[32mOK\x1B[0m' + os.EOL);
+process.stdout.write('\x1B[32mDONE\x1B[0m' + os.EOL);
