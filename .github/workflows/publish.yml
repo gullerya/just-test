@@ -43,7 +43,10 @@ jobs:
         run: npm run test
 
       - name: Report coverage
-        run: bash <(curl -s https://codecov.io/bash)
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./reports/
+          fail_ci_if_error: true
 
       - name: Publish/Deploy
         env:
