@@ -22,9 +22,8 @@
 // 					{
 // 						path: '/some/full/path/to/file.js',
 // 						lines: [
-// 							{number: 1, hits: 0},
-// 							{number: 2, hits: 2},
-// 							{number: 3, hits: 1}
+// 							{number: 1, beg: 12, end: 25, covRanges: [ { beg: 12, end: 15, hits: 0 }, { beg: 15, end: 25, hits: 5 } ]},
+// 							{ ... },
 // 						]
 // 					}
 // 				]
@@ -59,7 +58,7 @@ function convert(coverageData) {
 			//	lines
 			let hitLines = 0;
 			file.lines.forEach(lineCov => {
-				const lineHitsMax = lineCov.rangeCovs.reduce((a, c) => Math.max(a, c.hits), 0);
+				const lineHitsMax = lineCov.covRanges.reduce((a, c) => Math.max(a, c.hits), 0);
 				testReport += `DA:${lineCov.number},${lineHitsMax}${os.EOL}`;
 				hitLines += lineHitsMax > 0 ? 1 : 0;
 			});

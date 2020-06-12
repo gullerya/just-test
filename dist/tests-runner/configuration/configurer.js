@@ -1,4 +1,3 @@
-import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';
@@ -42,11 +41,11 @@ if (!configLocation) {
 	process.exit(1);
 }
 
-logger.info(os.EOL);
+logger.info();
 logger.info('started, execution directory "' + process.cwd() + '"');
 logger.info('execution arguments collected as following');
 logger.info(util.inspect(args, false, null, true));
-logger.info(os.EOL);
+logger.info();
 logger.info('building effective configuration...');
 
 //	read configuration
@@ -74,7 +73,7 @@ validateEffectiveConf();
 //	print out effective configuration
 logger.info('... effective configuration to be used is as following');
 logger.info(util.inspect(effectiveConf, false, null, true));
-logger.info(os.EOL);
+logger.info();
 
 function buildEffectiveConfiguration(inputConfig) {
 	if (!inputConfig || typeof inputConfig !== 'object') {

@@ -1,4 +1,3 @@
-import os from 'os';
 import path from 'path';
 import Logger from './logger/logger.js';
 import { configuration, getBrowserRunner } from './configuration/configurer.js';
@@ -22,7 +21,7 @@ let browser,
 		testsUrl = autServerUrl + conf.tests.url;
 
 	//	browser
-	logger.info(os.EOL);
+	logger.info();
 	logger.info(`tests (AUT) URL resolved to "${testsUrl}", launching browsing env...`);
 	const browserRunner = await getBrowserRunner();
 	browser = await browserRunner.launch();
@@ -40,7 +39,7 @@ let browser,
 
 	//	coverage
 	let coverager;
-	logger.info(os.EOL);
+	logger.info();
 	if (!conf.coverage.skip) {
 		coverager = new Coverager(page);
 		if (coverager.isCoverageSupported()) {
@@ -49,7 +48,7 @@ let browser,
 	}
 
 	//	navigate to tests - this is where the tests are starting to run
-	logger.info(os.EOL);
+	logger.info();
 	logger.info('navigating to tests (AUT) URL...');
 	const pageResult = await page.goto(testsUrl);
 	if (pageResult.status() !== 200) {
@@ -67,21 +66,21 @@ let browser,
 	}
 })()
 	.then(async () => {
-		logger.info(os.EOL);
+		logger.info();
 		logger.info('tests execution finished normally');
 		logger.info('tests status - ' + result.statusText);
 		await finalizeRun();
 		process.exit(result.statusPass ? 0 : 1);
 	})
 	.catch(async error => {
-		logger.info(os.EOL);
+		logger.info();
 		logger.error('tests execution finished erroneously', error);
 		await finalizeRun();
 		process.exit(1);
 	});
 
 async function finalizeRun() {
-	logger.info(os.EOL);
+	logger.info();
 	if (browser) {
 		logger.info('closing browser...');
 		await browser.close();

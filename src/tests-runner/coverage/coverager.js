@@ -1,4 +1,3 @@
-import os from 'os';
 import { URL } from 'url';
 import fsExtra from 'fs-extra';
 import Logger from '../logger/logger.js';
@@ -63,7 +62,7 @@ export class Coverager {
 			return;
 		}
 
-		logger.info(os.EOL);
+		logger.info();
 		logger.info('processing coverage data...');
 
 		const
@@ -113,8 +112,6 @@ export class Coverager {
 				}
 			}
 
-			process.stdout.write(`JustTest [coverager]: ... "${fileCov.path}"` + (entryURL.search ? ` (${entryURL.search})` : ''));
-
 			//	order all ranges accross the functions
 			entry.functions.forEach(f => {
 				f.ranges.forEach(r => {
@@ -146,13 +143,13 @@ export class Coverager {
 			});
 
 			fileCov.covered = fileCov.lines.reduce((a, c) => a + (c.isCoveredFull() || c.isCoveredPart() ? 1 : 0), 0) / fileCov.lines.length;
-			process.stdout.write('\t'.repeat(2) + Math.round(fileCov.covered * 100) + '%' + os.EOL);
+			logger.info(`... "${fileCov.path}"` + (entryURL.search ? ` (${entryURL.search})` : '') + `\t${Math.round(fileCov.covered * 100)}%`);
 
 			//	TODO: use something like this in an HTML report generator
 			fileCov.lines.forEach(l => {
 				if (l.isCoveredPart()) {
 					let s = '';
-					l.rangeCovs.forEach(lcr => {
+					l.covRanges.forEach(lcr => {
 						if (lcr.hits) {
 							s += '^' + fileCov.text.substring(lcr.beg, lcr.end) + '^';
 						} else {

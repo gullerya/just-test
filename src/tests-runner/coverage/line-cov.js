@@ -4,7 +4,7 @@ export default class LineCov extends RangeCov {
 	constructor(number, beg, end) {
 		super(beg, end);
 		this.number = number;
-		this.rangeCovs = [new RangeCov(beg, end, 0)];
+		this.covRanges = [new RangeCov(beg, end, 0)];
 	}
 
 	//	this method should:
@@ -14,7 +14,7 @@ export default class LineCov extends RangeCov {
 	addRangeCov(rangeCov) {
 		if (rangeCov.overlaps(this)) {
 			const newRange = new RangeCov(Math.max(this.beg, rangeCov.beg), Math.min(this.end, rangeCov.end), rangeCov.hits);
-			this.rangeCovs.forEach((existingRange, i, a) => {
+			this.covRanges.forEach((existingRange, i, a) => {
 				if (newRange.overlaps(existingRange)) {
 					try {
 						a.splice(i, 1, ...RangeCov.merge(existingRange, newRange));
@@ -27,7 +27,7 @@ export default class LineCov extends RangeCov {
 	}
 
 	isCoveredFull() {
-		return this.rangeCovs.every((rc, i, a) => {
+		return this.covRanges.every((rc, i, a) => {
 			return !(
 				rc.hits === 0 ||								//	must have hits
 				(i === 0 && rc.beg > this.beg) ||				//	frist must start with the line
@@ -38,6 +38,6 @@ export default class LineCov extends RangeCov {
 	}
 
 	isCoveredPart() {
-		return this.rangeCovs.some(rc => rc.hits > 0) && !this.isCoveredFull();
+		return this.covRanges.some(rc => rc.hits > 0) && !this.isCoveredFull();
 	}
 }

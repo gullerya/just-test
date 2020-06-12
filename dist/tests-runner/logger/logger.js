@@ -20,27 +20,27 @@ export default class Logger {
 	}
 
 	debug() {
-		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'debug');
+		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'DEBUG');
 		this[OUTPUT_KEY]('debug', args);
 	}
 
 	error() {
-		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'error');
+		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'ERROR');
 		this[OUTPUT_KEY]('error', args);
 	}
 
 	info() {
-		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'info');
+		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'INFO');
 		this[OUTPUT_KEY]('info', args);
 	}
 
 	log() {
-		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'log');
+		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'LOG');
 		this[OUTPUT_KEY]('log', args);
 	}
 
 	warn() {
-		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'warn');
+		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'WARN');
 		this[OUTPUT_KEY]('warn', args);
 	}
 

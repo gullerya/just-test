@@ -1,4 +1,3 @@
-import os from 'os';
 import fsExtra from 'fs-extra';
 import { performance } from 'perf_hooks';
 import Logger from '../logger/logger.js';
@@ -14,7 +13,7 @@ async function report(page, conf, reportPath) {
 	await waitTestsToFinish(page, conf.ttl);
 
 	//	write full report
-	logger.info(os.EOL);
+	logger.info();
 	logger.info('obtaining full report...');
 	const fullReport = await page.evaluate(() => {
 		return document.querySelector('just-test-view').generateXUnitReport();
@@ -25,7 +24,7 @@ async function report(page, conf, reportPath) {
 	logger.info('... full report written ("' + conf.format + '" format)');
 
 	//	extract principal results
-	logger.info(os.EOL);
+	logger.info();
 	logger.info('obtaining test results...');
 	const results = await page.evaluate(() => {
 		const mAsJson = document.querySelector('just-test-view').results;
@@ -37,7 +36,7 @@ async function report(page, conf, reportPath) {
 	logger.info(results.skipped.toString().padStart(7) + ' skipped');
 
 	if (results.failed) {
-		logger.info(os.EOL);
+		logger.info();
 		results.suites
 			.filter(s => s.failed)
 			.forEach(s => {
@@ -70,7 +69,7 @@ async function waitTestsToFinish(page, ttl) {
 	const started = performance.now();
 	let testsDone = false;
 
-	logger.info(os.EOL);
+	logger.info();
 	logger.info('waiting for tests to finish (max TTL set to ' + Math.floor(ttl / 1000) + 's)...');
 	do {
 		testsDone = await page.evaluate(() => {
