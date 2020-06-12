@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-node@v2-beta
         with:
           node-version: 14
-          registry-url: https://registry.npmjs.org/
+        #  registry-url: https://registry.npmjs.org/
 
       - name: Try cache
         id: cache
@@ -43,7 +43,7 @@ jobs:
         run: npm run test
 
       - name: Report coverage
-        run: ./.github/workflows/upload_coverage.sh $GITHUB_EVENT_PATH
+        run: bash <(curl -s https://codecov.io/bash)
 
       - name: Publish/Deploy
         env:
