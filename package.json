@@ -25,7 +25,7 @@
 		"dist"
 	],
 	"type": "module",
-	"browser": "../dist/just-test.min.js",
+	"browser": "../dist/just-test.js",
 	"author": {
 		"name": "Guller Yuri",
 		"email": "gullerya@gmail.com"
