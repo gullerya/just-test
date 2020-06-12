@@ -43,9 +43,7 @@ jobs:
         run: npm run test
 
       - name: Report coverage
-        uses: codecov/codecov-action@v1
-        with:
-          fail_ci_if_error: true
+        run: ./.github/workflows/upload_coverage.sh $GITHUB_EVENT_PATH
 
       - name: Publish/Deploy
         env:
