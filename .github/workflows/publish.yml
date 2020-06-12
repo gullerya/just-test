@@ -44,6 +44,6 @@ jobs:
         run: bash <(curl -s https://codecov.io/bash)
 
       - name: Publish/Deploy
-        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
+        run: npm publish --access public
