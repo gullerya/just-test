@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Setup NodeJS
         uses: actions/setup-node@v2-beta
@@ -45,7 +45,6 @@ jobs:
       - name: Report coverage
         uses: codecov/codecov-action@v1
         with:
-          file: ./reports/
           fail_ci_if_error: true
 
       - name: Publish/Deploy
