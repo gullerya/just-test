@@ -2,6 +2,7 @@ name: Publish
 
 on:
   pull_request:
+    types: [closed]
     branches:
       - 'master'
 
@@ -17,6 +18,7 @@ jobs:
         uses: actions/setup-node@v2-beta
         with:
           node-version: 14
+          registry-url: https://registry.npm.org
 
       - name: Try cache
         id: cache
