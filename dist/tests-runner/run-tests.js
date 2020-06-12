@@ -12,8 +12,10 @@ const
 let browser,
 	result;
 
-//	main flow runs here, IIF used allow async/await
+//	main flow runs here, IIFE used allow async/await
 (async () => {
+	logger.info('starting JustTest');
+
 	const
 		autServerUrl = conf.server.local
 			? localServer.start(conf.server.port, path.resolve(process.cwd(), conf.server.resourcesFolder))
