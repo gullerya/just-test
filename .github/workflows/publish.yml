@@ -14,11 +14,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup NodeJS
+      - name: Setup NodeJS (for build/test)
         uses: actions/setup-node@v2-beta
         with:
           node-version: 14
-        #  registry-url: https://registry.npmjs.org/
 
       - name: Try cache
         id: cache
@@ -43,7 +42,13 @@ jobs:
         run: npm run test
 
       - name: Report coverage
-        run: bash <(curl -s https://codecov.io/bash)
+        run: bash <(curl -s https://codecov.io/bash) -v
+
+      - name: Setup NodeJS (for publish)
+        uses: actions/setup-node@v2-beta
+        with:
+          node-version: 14
+          registry-url: https://registry.npmjs.org/
 
       - name: Publish/Deploy
         env:
