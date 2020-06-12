@@ -22,7 +22,7 @@
 	},
 	"license": "MIT",
 	"files": [
-		"dist"
+		"bin"
 	],
 	"type": "module",
 	"browser": "../dist/just-test.js",
@@ -38,8 +38,7 @@
 	"scripts": {
 		"build": "node ./build/tools/build-dist.mjs",
 		"lint": "node ./node_modules/eslint/bin/eslint -c ./build/.eslintrc.json --ignore-path ./build/.eslintignore ./src/**/*.js",
-		"test": "node ./dist/tests-runner/run-tests.js --config=./tests/tests-config.json",
-		"publish": "npm run lint && npm run build && npm run test && npm publish"
+		"test": "node ./dist/tests-runner/run-tests.js --config=./tests/tests-config.json"
 	},
 	"dependencies": {
 		"data-tier": "^2.9.0",
