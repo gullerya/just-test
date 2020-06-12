@@ -17,6 +17,7 @@ jobs:
         uses: actions/setup-node@v2-beta
         with:
           node-version: 14
+          registry-url: https://registry.npm.org
 
       - name: Try cache
         id: cache
