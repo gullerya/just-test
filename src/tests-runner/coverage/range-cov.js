@@ -22,7 +22,6 @@ export default class RangeCov extends Range {
 					result.push(new RangeCov(bp, a[i + 1], rcB.includes(bp) ? rcB.hits : rcA.hits));
 				}
 			});
-
 		}
 		return result.sort((a, b) => a.beg < b.beg ? -1 : 1);
 	}

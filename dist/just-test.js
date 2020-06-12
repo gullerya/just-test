@@ -5,9 +5,7 @@ import './views/just-test-view.js';
 
 export {
 	getSuite,
-	RANDOM_CHARSETS,
-
-	createSuite
+	RANDOM_CHARSETS
 }
 
 const
@@ -39,21 +37,6 @@ function getSuite(options) {
 		s.addEventListener('finished', onSuiteFinished);
 		suites[s.id] = s;
 	}
-
-	return s;
-}
-
-function createSuite(options) {
-	console.warn('deprecated API; will be removed in a few versions forth; please use "getSuite" instead');
-
-	model.suites.push(options);
-
-	const s = new Suite(model.suites[model.suites.length - 1]);
-
-	s.addEventListener('testAdded', onTestAdded);
-	s.addEventListener('testFinished', onTestFinished);
-	s.addEventListener('finished', onSuiteFinished);
-	suites[s.id] = s;
 
 	return s;
 }

@@ -1,9 +1,11 @@
 import fs from 'fs';
 import { URL } from 'url';
 import path from 'path';
+import Logger from '../logger/logger.js';
 import RequestHandlerBase from './request-handler-base.js';
 
 const
+	logger = new Logger('JustTest [static resources handler]'),
 	extMap = {
 		'.html': 'text/html',
 		'.js': 'text/javascript',
@@ -16,7 +18,7 @@ class StaticResourceRequestHandler extends RequestHandlerBase {
 		super();
 		this.resourcesBase = resourcesBase;
 		this.urlBase = urlBase;
-		console.info(`JustTest: \tstatic resources will be served from ${resourcesBase}`);
+		logger.info(`\tstatic resources will be served from ${resourcesBase}`);
 	}
 
 	handle(req, res) {
@@ -31,10 +33,10 @@ class StaticResourceRequestHandler extends RequestHandlerBase {
 				res.writeHead(200, { 'Content-Type': contentType }).end(content);
 			} else {
 				if (error.code === 'ENOENT') {
-					console.warn(`JustTest [local-server]: sending 404 for '${filePath}'`);
+					logger.warn(`sending 404 for '${filePath}'`);
 					res.writeHead(404).end();
 				} else {
-					console.warn(`JustTest [local-server]: sending 500 for '${filePath}'`);
+					logger.warn(`sending 500 for '${filePath}'`);
 					res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify(error));
 				}
 			}

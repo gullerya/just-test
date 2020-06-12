@@ -4,8 +4,10 @@ import path from 'path';
 import util from 'util';
 import fsExtra from 'fs-extra';
 import playwright from 'playwright';
+import Logger from '../logger/logger.js';
 
 const
+	logger = new Logger('JustTest [configurer]'),
 	ARG_KEYS = [
 		'--config',
 		'browser.type'
@@ -36,23 +38,23 @@ clargs.forEach(arg => {
 //	valid required
 const configLocation = args['--config'];
 if (!configLocation) {
-	console.error('Error: missing or invalid argument "--config" (example: --config=/path/to/config.json)');
+	logger.error('Error: missing or invalid argument "--config" (example: --config=/path/to/config.json)');
 	process.exit(1);
 }
 
-console.info(os.EOL);
-console.info('JustTest: started, execution directory "' + process.cwd() + '"');
-console.info('JustTest: execution arguments collected as following');
-console.info(util.inspect(args, false, null, true));
-console.info(os.EOL);
-console.info('JustTest: building effective configuration...');
+logger.info(os.EOL);
+logger.info('started, execution directory "' + process.cwd() + '"');
+logger.info('execution arguments collected as following');
+logger.info(util.inspect(args, false, null, true));
+logger.info(os.EOL);
+logger.info('building effective configuration...');
 
 //	read configuration
 let rawConfiguration;
 try {
 	rawConfiguration = fs.readFileSync(configLocation, { encoding: 'utf8' });
 } catch (e) {
-	console.error('Error: failed to READ configuration', e);
+	logger.error('failed to READ configuration', e);
 	process.exit(1);
 }
 
@@ -61,7 +63,7 @@ let configuration;
 try {
 	configuration = JSON.parse(rawConfiguration);
 } catch (e) {
-	console.error('Error: failed to PARSE configuration', e);
+	logger.error('failed to PARSE configuration', e);
 	process.exit(1);
 }
 buildEffectiveConfiguration(configuration);
@@ -70,9 +72,9 @@ buildEffectiveConfiguration(configuration);
 validateEffectiveConf();
 
 //	print out effective configuration
-console.info('JustTest: ... effective configuration to be used is as following');
-console.info(util.inspect(effectiveConf, false, null, true));
-console.info(os.EOL);
+logger.info('... effective configuration to be used is as following');
+logger.info(util.inspect(effectiveConf, false, null, true));
+logger.info(os.EOL);
 
 function buildEffectiveConfiguration(inputConfig) {
 	if (!inputConfig || typeof inputConfig !== 'object') {
@@ -97,7 +99,7 @@ function validateEffectiveConf() {
 		validateCoverageConf(effectiveConf.coverage);
 		validateReportsFolder(effectiveConf.reports);
 	} catch (e) {
-		console.error('Error: invalid configuration', e);
+		logger.error('invalid configuration', e);
 		process.exit(1);
 	}
 }
@@ -201,7 +203,7 @@ function validateReportsFolder(rc) {
 	}
 	const reportsFolderPath = path.resolve(process.cwd(), rc.folder);
 	fsExtra.emptyDirSync(reportsFolderPath);
-	console.info('JustTest: reports folder resolve to and initialized in "' + reportsFolderPath + '"');
+	logger.info('reports folder resolve to and initialized in "' + reportsFolderPath + '"');
 }
 
 async function getBrowserRunner() {

@@ -14,8 +14,6 @@ initComponent('test-view', class extends ComponentBase {
 				delete this[TEST_KEY].start;
 				delete this[TEST_KEY].duration;
 				runTest(this[TEST_KEY]);
-			} else {
-				console.log('running');
 			}
 		});
 	}

@@ -1,50 +1,53 @@
 import os from 'os';
 import fsExtra from 'fs-extra';
 import { performance } from 'perf_hooks';
+import Logger from '../logger/logger.js';
 
 export default {
 	report
 }
+
+const logger = new Logger('JustTest [tester]');
 
 async function report(page, conf, reportPath) {
 	//	wait for tests to finish
 	await waitTestsToFinish(page, conf.ttl);
 
 	//	write full report
-	console.info(os.EOL);
-	console.info('JustTest [tester]: obtaining full report...');
+	logger.info(os.EOL);
+	logger.info('obtaining full report...');
 	const fullReport = await page.evaluate(() => {
 		return document.querySelector('just-test-view').generateXUnitReport();
 	});
 	if (fullReport) {
 		fsExtra.outputFileSync(reportPath, fullReport);
 	}
-	console.info('JustTest [tester]: ... full report written ("' + conf.format + '" format)');
+	logger.info('... full report written ("' + conf.format + '" format)');
 
 	//	extract principal results
-	console.info(os.EOL);
-	console.info('JustTest [tester]: obtaining test results...');
+	logger.info(os.EOL);
+	logger.info('obtaining test results...');
 	const results = await page.evaluate(() => {
 		const mAsJson = document.querySelector('just-test-view').results;
 		return JSON.parse(JSON.stringify(mAsJson));
 	});
-	console.info('JustTest [tester]: ... test results summary:');
-	console.info(results.passed.toString().padStart(7) + ' passed');
-	console.info(results.failed.toString().padStart(7) + ' failed');
-	console.info(results.skipped.toString().padStart(7) + ' skipped');
+	logger.info('... test results summary:');
+	logger.info(results.passed.toString().padStart(7) + ' passed');
+	logger.info(results.failed.toString().padStart(7) + ' failed');
+	logger.info(results.skipped.toString().padStart(7) + ' skipped');
 
 	if (results.failed) {
-		console.info(os.EOL);
+		logger.info(os.EOL);
 		results.suites
 			.filter(s => s.failed)
 			.forEach(s => {
 				s.tests
 					.filter(t => t.status === 4 || t.status === 5)
 					.forEach(t => {
-						console.info('Test ' + (t.status === 4 ? 'FAILURE' : 'ERROR') + ':');
-						console.info('\tTest: ' + t.name);
-						console.info('\tSuite: ' + s.name);
-						console.info('\tError: ' + t.error.type + ' - ' + (t.error.message ? t.error.message : 'no message'));
+						logger.info('Test ' + (t.status === 4 ? 'FAILURE' : 'ERROR') + ':');
+						logger.info('\tTest: ' + t.name);
+						logger.info('\tSuite: ' + s.name);
+						logger.info('\tError: ' + t.error.type + ' - ' + (t.error.message ? t.error.message : 'no message'));
 					});
 			});
 	}
@@ -67,8 +70,8 @@ async function waitTestsToFinish(page, ttl) {
 	const started = performance.now();
 	let testsDone = false;
 
-	console.info(os.EOL);
-	console.info('JustTest [tester]: waiting for tests to finish (max TTL set to ' + Math.floor(ttl / 1000) + 's)...');
+	logger.info(os.EOL);
+	logger.info('waiting for tests to finish (max TTL set to ' + Math.floor(ttl / 1000) + 's)...');
 	do {
 		testsDone = await page.evaluate(() => {
 			const jtv = document.querySelector('just-test-view');
@@ -77,9 +80,9 @@ async function waitTestsToFinish(page, ttl) {
 
 		const currentTL = performance.now() - started;
 		if (testsDone) {
-			console.info('JustTest [tester]: ... tests run finished in ' + Math.floor(currentTL / 1000) + 's');
+			logger.info('... tests run finished in ' + Math.floor(currentTL / 1000) + 's');
 		} else if (currentTL > ttl) {
-			console.error('JustTest [tester]: ... max tests run TTL was set to ' + ttl + 'ms, but already passed ' + Math.floor(currentTL / 1000) + 's - abandoning')
+			logger.error('... max tests run TTL was set to ' + ttl + 'ms, but already passed ' + Math.floor(currentTL / 1000) + 's - abandoning')
 			throw new Error('tests run timed out after ' + Math.floor(currentTL / 1000) + 's');
 		}
 
