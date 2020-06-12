@@ -29,4 +29,4 @@ process.stdout.write('copying "src" to "bin"...');
 fsExtra.copySync('./src', './bin');
 process.stdout.write('\t\t\t\x1B[32mOK\x1B[0m' + os.EOL);
 
-process.stdout.write('\t\t\t\t\t\x1B[32mOK\x1B[0m' + os.EOL);
+process.stdout.write('\x1B[32mDONE\x1B[0m' + os.EOL);

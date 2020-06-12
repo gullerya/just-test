@@ -1,7 +1,12 @@
-[![License GitHub](https://img.shields.io/github/license/gullerya/just-test.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/just-test.svg?label=npm)](https://www.npmjs.com/package/just-test)
-[![Travis (.org) branch](https://img.shields.io/travis/gullerya/just-test/master.svg?logo=travis)](https://travis-ci.org/gullerya/just-test)
-[![Codecov](https://img.shields.io/codecov/c/github/gullerya/just-test/master.svg)](https://codecov.io/gh/gullerya/just-test/branch/master)
+[![License GitHub](https://img.shields.io/github/license/gullerya/just-test.svg)](https://opensource.org/licenses/MIT)
+
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/gullerya/just-test/Publish/master?label=master)
+[![Codecov](https://img.shields.io/codecov/c/github/gullerya/just-test/master.svg?label=master%20coverage)](https://codecov.io/gh/gullerya/just-test/branch/master)
+
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/gullerya/just-test/Build/develop?label=develop)
+[![Codecov](https://img.shields.io/codecov/c/github/gullerya/just-test/develop.svg?label=develop%20coverage)](https://codecov.io/gh/gullerya/just-test/branch/develop)
+
 [![Codacy](https://img.shields.io/codacy/grade/9aa34b1cf3c248fea0164e71137dce1c.svg?logo=codacy)](https://www.codacy.com/app/gullerya/just-test)
 
 # Summary

@@ -1,6 +1,6 @@
 {
 	"name": "just-test",
-	"version": "2.3.3",
+	"version": "2.3.10",
 	"description": "Client side JavaScript tests runner",
 	"keywords": [
 		"javascript",
@@ -25,7 +25,7 @@
 		"dist"
 	],
 	"type": "module",
-	"browser": "../dist/just-test.min.js",
+	"browser": "../dist/just-test.js",
 	"author": {
 		"name": "Guller Yuri",
 		"email": "gullerya@gmail.com"
@@ -45,7 +45,8 @@
 		"data-tier": "^2.9.0",
 		"data-tier-list": "^0.5.0",
 		"rich-component": "^1.4.0",
-		"playwright": "^1.1.1"
+		"playwright": "^1.1.1",
+		"chai": "^4.2.0"
 	},
 	"devDependencies": {
 		"eslint": "^7.2.0",
@@ -54,7 +55,6 @@
 		"eslint-plugin-promise": "^4.2.1",
 		"eslint-plugin-import": "^2.21.2",
 		"eslint-plugin-node": "^11.1.0",
-		"chai": "^4.2.0",
 		"fs-extra": "^9.0.1"
 	}
 }
