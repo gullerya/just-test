@@ -3,29 +3,28 @@
 		"type": "chromium"
 	},
 	"server": {
-		"local": true,
+		"dev": false,
 		"port": 3000,
-		"resourcesFolder": "./",
-		"remoteUrl": null
+		"include": [
+			"./"
+		],
+		"exclude": []
 	},
 	"tests": {
 		"url": null,
-		"ttl": 23000,
+		"ttl": 30000,
 		"maxFail": 0,
 		"maxSkip": 0,
-		"format": "xUnit",
-		"reportFilename": "test-results.xml"
+		"reportFormat": "xUnit",
+		"reportPath": "./reports/test-results.xml"
 	},
 	"coverage": {
 		"skip": false,
-		"format": "lcov",
-		"reportFilename": "coverage.lcov",
 		"include": null,
 		"exclude": [
 			".+\\.min\\.js$"
-		]
-	},
-	"reports": {
-		"folder": "./just-test-reports"
+		],
+		"reportFormat": "lcov",
+		"reportPath": "./reports/coverage.lcov"
 	}
 }
