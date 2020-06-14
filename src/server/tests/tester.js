@@ -1,6 +1,6 @@
 import fsExtra from 'fs-extra';
 import { performance } from 'perf_hooks';
-import Logger from '../logger/logger.js';
+import Logger from '../logging/logger.js';
 
 export default {
 	report

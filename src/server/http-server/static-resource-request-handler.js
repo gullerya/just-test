@@ -1,11 +1,16 @@
 import fs from 'fs';
 import { URL } from 'url';
 import path from 'path';
-import Logger from '../logger/logger.js';
-import RequestHandlerBase from './request-handler-base.js';
+import glob from 'glob';
+import minimatch from 'minimatch';
+import Logger from '../logging/logger.js';
+import { RequestHandlerBase } from './request-handler-base.js';
 
 const
 	logger = new Logger('JustTest [static resources handler]'),
+	BASSE_URL_KEY = Symbol('base.url.key'),
+	CONFIG_KEY = Symbol('config.key'),
+	FILE_RESOURCES_KEY = Symbol('file.resources.key'),
 	extMap = {
 		'.html': 'text/html',
 		'.js': 'text/javascript',
@@ -13,15 +18,29 @@ const
 		'.json': 'application/json'
 	};
 
-class StaticResourceRequestHandler extends RequestHandlerBase {
-	constructor(resourcesBase, urlBase) {
+export class StaticResourceRequestHandler extends RequestHandlerBase {
+	constructor(config, urlBase) {
 		super();
-		this.resourcesBase = resourcesBase;
-		this.urlBase = urlBase;
-		logger.info(`\tstatic resources will be served from ${resourcesBase}`);
+		this[BASSE_URL_KEY] = urlBase;
+		this[CONFIG_KEY] = config;
+
+		//	resolve resources list
+		const fileResources = [];
+		config.includes.forEach(inc => {
+			//	do the glob magic
+		});
+		config.excludes.forEach(exc => {
+			fileResources.forEach((r, i, a) => {
+				//	do the minimatch magic
+			});
+		});
+
+		this[FILE_RESOURCES_KEY] = fileResources;
+
+		logger.info(`static resource request handler initialized, registered ${fileResources.length} file resource/s`);
 	}
 
-	handle(req, res) {
+	async handle(req, res) {
 		const
 			asUrl = new URL(req.url, this.urlBase),
 			filePath = '.' + asUrl.pathname,
@@ -42,10 +61,6 @@ class StaticResourceRequestHandler extends RequestHandlerBase {
 			}
 		});
 
-		req.handled = true;
+		return true;
 	};
-}
-
-export {
-	StaticResourceRequestHandler
 }

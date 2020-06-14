@@ -1,6 +1,8 @@
 {
-	"browser": {
-		"type": "chromium"
+	"client": {
+		"browsers": [
+			"chromium"
+		]
 	},
 	"server": {
 		"dev": false,
@@ -11,18 +13,21 @@
 		"exclude": []
 	},
 	"tests": {
-		"url": null,
 		"ttl": 30000,
 		"maxFail": 0,
 		"maxSkip": 0,
+		"include": [],
+		"exclude": [],
 		"reportFormat": "xUnit",
 		"reportPath": "./reports/test-results.xml"
 	},
 	"coverage": {
 		"skip": false,
-		"include": null,
+		"include": [
+			"*"
+		],
 		"exclude": [
-			".+\\.min\\.js$"
+			"*.min.js"
 		],
 		"reportFormat": "lcov",
 		"reportPath": "./reports/coverage.lcov"

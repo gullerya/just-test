@@ -1,13 +1,11 @@
 import path from 'path';
-import Logger from './logger/logger.js';
-import { configuration, getBrowserRunner } from './configuration/configurer.js';
-import * as localServer from './local-server/local-server.js';
-import tester from './tests/tester.js';
-import { Coverager } from './coverage/coverager.js';
+import { resolveGivenConfig, getBrowserRunner } from './configurer.js';
+import Logger from './server/logging/logger.js';
+import * as HttpServer from './server/http-server/http-server.js';
+import Tester from './server/tests/tester.js';
+import { Coverager } from './server/coverage/coverager.js';
 
-const
-	logger = new Logger('JustTest [main]'),
-	conf = configuration;
+const logger = new Logger('JustTest [main]');
 
 let browser,
 	result;
@@ -16,9 +14,13 @@ let browser,
 (async () => {
 	logger.info('starting JustTest');
 
+	const providedConviguration = resolveGivenConfig(process.argv.slice(2));
+	const httpServer = new HttpServer(providedConviguration);
+	const tester = new Tester(providedConviguration);
+
 	const
 		autServerUrl = conf.server.local
-			? localServer.start(conf.server.port, path.resolve(process.cwd(), conf.server.resourcesFolder))
+			? httpServer.start(conf.server.port, path.resolve(process.cwd(), conf.server.resourcesFolder))
 			: conf.server.remoteUrl,
 		testsUrl = autServerUrl + conf.tests.url;
 
@@ -87,9 +89,9 @@ async function finalizeRun() {
 		logger.info('closing browser...');
 		await browser.close();
 	}
-	if (conf.server.local) {
+	if (conf.server && conf.server.local) {
 		logger.info('stopping local server');
-		localServer.stop();
+		httpServer.stop();
 	}
 	logger.info('done');
 }
