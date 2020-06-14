@@ -1,5 +1,6 @@
 import http from 'http';
 import Logger from '../logging/logger.js';
+import buildConfig from './http-service-config.js';
 import { StaticResourceRequestHandler } from './static-resource-request-handler.js';
 
 const
@@ -10,7 +11,7 @@ const
 	STATUS_KEY = Symbol('status.key');
 let server;
 
-export class HttpServer {
+export class HttpService {
 	constructor(config) {
 		if (!config) {
 			throw new Error(`invalid config '${config}'`);
@@ -19,6 +20,10 @@ export class HttpServer {
 		//	validations and resolutions
 		this[CONFIG_KEY] = config;
 		this[STATUS_KEY] = STATUS_STOPPED;
+	}
+
+	get effectiveConfig() {
+		return this[CONFIG_KEY];
 	}
 
 	start() {
@@ -57,5 +62,9 @@ export class HttpServer {
 				logger.info('local server stopped');
 			});
 		}
+	}
+
+	isRunning() {
+		return this[STATUS_KEY] === STATUS_RUNNING;
 	}
 }

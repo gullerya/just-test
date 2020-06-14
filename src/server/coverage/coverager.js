@@ -16,23 +16,27 @@ const
 	IS_RUNNING_KEY = Symbol('coverage.tracking.running'),
 	REPORTS_KEY = Symbol('coverage.reports');
 
-export class Coverager {
-	constructor(nativePage, configuration) {
-		if (!nativePage) {
-			throw new Error(`native page argument required, received '${nativePage}'`);
-		}
-
+export class CoverageService {
+	constructor(configuration) {
 		this[CONFIG_KEY] = buildConfig(configuration);
-		this[NATIVE_PAGE_KEY] = nativePage;
-		this[IS_SUPPORTED_KEY] = Boolean(nativePage.coverage);
-		this[IS_RUNNING_KEY] = false;
+	}
+
+	get effectiveConfig() {
+		return this[CONFIG_KEY];
 	}
 
 	isCoverageSupported() {
 		return this[IS_SUPPORTED_KEY];
 	}
 
-	async start() {
+	async start(nativePage) {
+		if (!nativePage) {
+			throw new Error(`native page argument required, received '${nativePage}'`);
+		}
+		this[NATIVE_PAGE_KEY] = nativePage;
+		this[IS_RUNNING_KEY] = false;
+		this[IS_SUPPORTED_KEY] = Boolean(nativePage.coverage);
+
 		if (this.isCoverageSupported()) {
 			await this[NATIVE_PAGE_KEY].coverage.startJSCoverage();
 			this[IS_RUNNING_KEY] = true;

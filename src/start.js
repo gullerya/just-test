@@ -1,13 +1,15 @@
+import os from 'os';
 import path from 'path';
 import { resolveGivenConfig, getBrowserRunner } from './configurer.js';
 import Logger from './server/logging/logger.js';
-import * as HttpServer from './server/http-server/http-server.js';
-import Tester from './server/tests/tester.js';
-import { Coverager } from './server/coverage/coverager.js';
+import { HttpService } from './server/http/http-service.js';
+import { TestService } from './server/tests/tester.js';
+import { CoverageService } from './server/coverage/coverager.js';
 
 const logger = new Logger('JustTest [main]');
 
-let browser,
+let httpServer,
+	browser,
 	result;
 
 //	main flow runs here, IIFE used allow async/await
@@ -15,8 +17,20 @@ let browser,
 	logger.info('starting JustTest');
 
 	const providedConviguration = resolveGivenConfig(process.argv.slice(2));
-	const httpServer = new HttpServer(providedConviguration);
+
+	logger.info('configuring services');
+	httpServer = new HttpServer(providedConviguration);
 	const tester = new Tester(providedConviguration);
+	const coverager = new Coverager(providedConviguration);
+
+	logger.info('... effective configuration to be used is as following');
+	logger.info(util.inspect({
+		client: {},
+		server: httpServer.effectiveConfig,
+		tests: tester.effectiveConfig,
+		coverage: coverager.effectiveConfig
+	}, false, null, true));
+	logger.info();
 
 	const
 		autServerUrl = conf.server.local
@@ -73,25 +87,29 @@ let browser,
 		logger.info();
 		logger.info('tests execution finished normally');
 		logger.info('tests status - ' + result.statusText);
-		await finalizeRun();
-		process.exit(result.statusPass ? 0 : 1);
+		await cleanup();
+		const exitStatus = result.statusPass ? 0 : 1;
+		logger.info(`done, exit status ${exitStatus}${os.EOL}`);
+		logger.info();
+		process.exit(exitStatus);
 	})
 	.catch(async error => {
 		logger.info();
 		logger.error('tests execution finished erroneously', error);
-		await finalizeRun();
+		await cleanup();
+		logger.info(`done, exit status 1${os.EOL}`);
 		process.exit(1);
 	});
 
-async function finalizeRun() {
-	logger.info();
+async function cleanup() {
+	logger.info('cleaning things...');
 	if (browser) {
 		logger.info('closing browser...');
 		await browser.close();
 	}
-	if (conf.server && conf.server.local) {
+	if (httpServer && httpServer.isRunning()) {
 		logger.info('stopping local server');
 		httpServer.stop();
 	}
-	logger.info('done');
+	logger.info('... clean');
 }

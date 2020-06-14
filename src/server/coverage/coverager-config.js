@@ -17,7 +17,7 @@ const
 export default input => {
 	const result = mergeConfig(defaultConfig, input);
 	validate(result);
-	return result;
+	return Object.freeze(result);
 };
 
 function validate(config) {

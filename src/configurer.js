@@ -38,8 +38,6 @@ function resolveGivenConfig(clargs) {
 	logger.info('execution directory "' + process.cwd() + '"');
 	logger.info('execution arguments collected as following');
 	logger.info(util.inspect(args, false, null, true));
-	logger.info();
-	logger.info('building effective configuration...');
 
 	//	read configuration
 	let rawConfiguration;
@@ -51,36 +49,25 @@ function resolveGivenConfig(clargs) {
 	}
 
 	//	parse configuration and merge with defaults
-	let configuration;
-	try {
-		configuration = JSON.parse(rawConfiguration);
-		Object.keys(args).forEach(aKey => {
-			if (aKey.indexOf('-') !== 0) {
-				const ckPath = aKey.split('.');
-				let target = configuration;
-				for (let i = 0, l = ckPath.length - 1; i < l; i++) {
-					const nextPNode = ckPath[i];
-					if (target[nextPNode] && typeof target[nextPNode] === 'object') {
-						target = target[nextPNode];
-					} else if (target[nextPNode] === undefined || target[nextPNode] === null) {
-						target = target[nextPNode] = {};
-					} else {
-						throw new Error(`command line config property '${aKey}' conflicts with file config property '${nextPNode}' which value is '${target[nextPNode]}'`);
-					}
+	const configuration = JSON.parse(rawConfiguration);
+	Object.keys(args).forEach(aKey => {
+		if (aKey.indexOf('-') !== 0) {
+			const ckPath = aKey.split('.');
+			let target = configuration;
+			for (let i = 0, l = ckPath.length - 1; i < l; i++) {
+				const nextPNode = ckPath[i];
+				if (target[nextPNode] && typeof target[nextPNode] === 'object') {
+					target = target[nextPNode];
+				} else if (target[nextPNode] === undefined || target[nextPNode] === null) {
+					target = target[nextPNode] = {};
+				} else {
+					throw new Error(`command line config property '${aKey}' conflicts with file config property '${nextPNode}' which value is '${target[nextPNode]}'`);
 				}
-				//	TODO: add support for a complex values, as of now threated as strings only
-				target[ckPath[ckPath.length - 1]] = args[aKey];
 			}
-		});
-	} catch (e) {
-		logger.error('failed to PARSE configuration', e);
-		process.exit(1);
-	}
-
-	//	print out effective configuration
-	logger.info('... effective configuration to be used is as following');
-	logger.info(util.inspect(effectiveConf, false, null, true));
-	logger.info();
+			//	TODO: add support for a complex values, as of now threated as strings only
+			target[ckPath[ckPath.length - 1]] = args[aKey];
+		}
+	});
 }
 
 function mergeConfig(a, b) {
