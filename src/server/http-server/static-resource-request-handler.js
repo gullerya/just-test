@@ -27,11 +27,13 @@ export class StaticResourceRequestHandler extends RequestHandlerBase {
 		//	resolve resources list
 		const fileResources = [];
 		config.includes.forEach(inc => {
-			//	do the glob magic
+			fileResources.push(...glob.sync(inc));
 		});
 		config.excludes.forEach(exc => {
 			fileResources.forEach((r, i, a) => {
-				//	do the minimatch magic
+				if (minimatch(r, exc)) {
+					a.splice(i, 1);
+				}
 			});
 		});
 

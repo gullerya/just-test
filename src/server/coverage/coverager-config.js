@@ -11,7 +11,7 @@ const
 			'*.min.js'
 		],
 		reportPath: './reports/coverage.lcov',
-		reportFormat: 'lcov',
+		reportFormat: 'lcov'
 	});
 
 export default input => {

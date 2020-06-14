@@ -34,11 +34,15 @@ export class HttpServer {
 		const urlBase = 'http://localhost:' + port;
 		logger.info(`\tbase URL is ${urlBase}`);
 
-		const staticResourceRequestHander = new StaticResourceRequestHandler(this[CONFIG_KEY], urlBase);
+		const handlers = [];
+		handlers.push(new StaticResourceRequestHandler(this[CONFIG_KEY], urlBase));
 		//	TODO: add extensibility point of custom request handlers
-		const mainRequestDispatcher = getMainRequestDispatcher([
-			staticResourceRequestHander
-		]);
+		const mainRequestDispatcher = function mainRequestHandler(req, res) {
+			handlers.some(async handler => {
+				return await handler.handle(req, res);
+			});
+		};
+		logger.info(`\tregistered ${handlers.length} request handler/s`);
 		server = http.createServer(mainRequestDispatcher).listen(port);
 
 		this[STATUS_KEY] = STATUS_RUNNING;
@@ -49,18 +53,9 @@ export class HttpServer {
 	stop() {
 		if (this[STATUS_KEY] === STATUS_RUNNING) {
 			server.close(() => {
-				this[STATUS_KEY] === STATUS_STOPPED;
+				this[STATUS_KEY] = STATUS_STOPPED;
 				logger.info('local server stopped');
 			});
 		}
-	}
-
-	getMainRequestDispatcher(handlers) {
-		logger.info(`\tregistered ${handlers.length} request handler/s`);
-		return function mainRequestHandler(req, res) {
-			handlers.some(handler => {
-				return await handler.handle(req, res);
-			});
-		};
 	}
 }
