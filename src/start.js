@@ -1,7 +1,7 @@
 import path from 'path';
 import { resolveGivenConfig, getBrowserRunner } from './configurer.js';
 import Logger from './server/logging/logger.js';
-import * as HttpServer from './server/http-server/http-server.js';
+import { HttpService } from './server/http-service/http-service.js';
 import Tester from './server/tests/tester.js';
 import { Coverager } from './server/coverage/coverager.js';
 

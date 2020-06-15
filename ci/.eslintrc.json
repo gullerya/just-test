@@ -19,6 +19,7 @@
 				"setWithoutGet": false
 			}
 		],
+		"no-prototype-builtins": "off",
 		"no-tabs": 0,
 		"semi": "off",
 		"space-before-function-paren": "off",

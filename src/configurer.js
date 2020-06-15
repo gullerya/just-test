@@ -1,19 +1,18 @@
 import fs from 'fs';
-import path from 'path';
+// import path from 'path';
 import util from 'util';
-import fsExtra from 'fs-extra';
-import playwright from 'playwright';
+// import fsExtra from 'fs-extra';
+// import playwright from 'playwright';
 import Logger from './server/logging/logger.js';
 
-const
-	logger = new Logger('JustTest [configurer]'),
-	browserTypes = Object.freeze({ chromium: 'chromium', firefox: 'firefox', webkit: 'webkit' }),
-	testResultsFormats = Object.freeze(['xUnit']);
+const logger = new Logger('JustTest [configurer]');
+// browserTypes = Object.freeze({ chromium: 'chromium', firefox: 'firefox', webkit: 'webkit' }),
+// testResultsFormats = Object.freeze(['xUnit']);
 
 export {
 	resolveGivenConfig,
-	mergeConfig,
-	getBrowserRunner
+	mergeConfig
+	// getBrowserRunner
 };
 
 function resolveGivenConfig(clargs) {
@@ -78,9 +77,9 @@ function resolveGivenConfig(clargs) {
 	}
 
 	//	print out effective configuration
-	logger.info('... effective configuration to be used is as following');
-	logger.info(util.inspect(effectiveConf, false, null, true));
-	logger.info();
+	// logger.info('... effective configuration to be used is as following');
+	// logger.info(util.inspect(effectiveConf, false, null, true));
+	// logger.info();
 }
 
 function mergeConfig(a, b) {
@@ -97,7 +96,7 @@ function mergeConfig(a, b) {
 		Object.keys(a).forEach(k => {
 			if (b.hasOwnProperty(k)) {					//	each existing property of 'b' to be taken
 				if (typeof a[k] === 'object') {
-					result[k] = merge(a[k], b[k]);		//	objects are recursively merged
+					result[k] = mergeConfig(a[k], b[k]);		//	objects are recursively merged
 				} else {
 					result[k] = b[k];					//	plain data just copied
 				}
@@ -109,56 +108,56 @@ function mergeConfig(a, b) {
 	return result;
 };
 
-function validateBrowserConf(bc) {
-	if (!bc) {
-		throw new Error('"browser" configuration part is missing');
-	}
+// function validateBrowserConf(bc) {
+// 	if (!bc) {
+// 		throw new Error('"browser" configuration part is missing');
+// 	}
 
-	if (!bc.type) {
-		throw new Error('"browser" configuration is missing "type" part');
-	}
-	if (!Object.keys(browserTypes).includes(bc.type)) {
-		throw new Error(`"type" of "browser" is not a one of the supported ones(${Object.keys(browserTypes).join(', ')})`);
-	}
-}
+// 	if (!bc.type) {
+// 		throw new Error('"browser" configuration is missing "type" part');
+// 	}
+// 	if (!Object.keys(browserTypes).includes(bc.type)) {
+// 		throw new Error(`"type" of "browser" is not a one of the supported ones(${Object.keys(browserTypes).join(', ')})`);
+// 	}
+// }
 
-function validateTestsConf(tc) {
-	if (!tc) {
-		throw new Error('"tests" configuration part is missing');
-	}
-	if (!tc.url) {
-		throw new Error('"tests" configuration is missing "url" part');
-	}
-	if (typeof tc.maxFail !== 'number') {
-		throw new Error('"maxFail" configuration of "tests" is not a number');
-	}
-	if (typeof tc.maxSkip !== 'number') {
-		throw new Error('"maxSkip" configuration of "tests" is not a number');
-	}
-	if (!testResultsFormats.includes(tc.format)) {
-		throw new Error('invalid "format" configuration of "tests": ' + tc.format + '; supported formats are: ' + testResultsFormats);
-	}
-	if (!tc.reportFilename) {
-		throw new Error('"tests" configuration is missing "reportFilename" part');
-	}
-}
+// function validateTestsConf(tc) {
+// 	if (!tc) {
+// 		throw new Error('"tests" configuration part is missing');
+// 	}
+// 	if (!tc.url) {
+// 		throw new Error('"tests" configuration is missing "url" part');
+// 	}
+// 	if (typeof tc.maxFail !== 'number') {
+// 		throw new Error('"maxFail" configuration of "tests" is not a number');
+// 	}
+// 	if (typeof tc.maxSkip !== 'number') {
+// 		throw new Error('"maxSkip" configuration of "tests" is not a number');
+// 	}
+// 	if (!testResultsFormats.includes(tc.format)) {
+// 		throw new Error('invalid "format" configuration of "tests": ' + tc.format + '; supported formats are: ' + testResultsFormats);
+// 	}
+// 	if (!tc.reportFilename) {
+// 		throw new Error('"tests" configuration is missing "reportFilename" part');
+// 	}
+// }
 
-function validateReportsFolder(rc) {
-	if (!rc) {
-		throw new Error('"reports" configuration part is missing');
-	}
-	if (!rc.folder) {
-		throw new Error('"reports" configuration is missing "folder" part');
-	}
-	const reportsFolderPath = path.resolve(process.cwd(), rc.folder);
-	fsExtra.emptyDirSync(reportsFolderPath);
-	logger.info('reports folder resolve to and initialized in "' + reportsFolderPath + '"');
-}
+// function validateReportsFolder(rc) {
+// 	if (!rc) {
+// 		throw new Error('"reports" configuration part is missing');
+// 	}
+// 	if (!rc.folder) {
+// 		throw new Error('"reports" configuration is missing "folder" part');
+// 	}
+// 	const reportsFolderPath = path.resolve(process.cwd(), rc.folder);
+// 	fsExtra.emptyDirSync(reportsFolderPath);
+// 	logger.info('reports folder resolve to and initialized in "' + reportsFolderPath + '"');
+// }
 
-async function getBrowserRunner() {
-	const browserRunner = playwright[effectiveConf.browser.type];
-	if (!browserRunner) {
-		throw new Error(`failed to resolve browser runner '${effectiveConf.browser.type}'`);
-	}
-	return browserRunner;
-}
+// async function getBrowserRunner() {
+// 	const browserRunner = playwright[effectiveConf.browser.type];
+// 	if (!browserRunner) {
+// 		throw new Error(`failed to resolve browser runner '${effectiveConf.browser.type}'`);
+// 	}
+// 	return browserRunner;
+// }
