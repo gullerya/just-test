@@ -2,8 +2,7 @@ import fsExtra from 'fs-extra';
 import { performance } from 'perf_hooks';
 import Logger from '../logging/logger.js';
 
-export default {
-	report
+export default class TestService {
 }
 
 const logger = new Logger('JustTest [tester]');

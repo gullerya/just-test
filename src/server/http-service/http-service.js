@@ -1,12 +1,7 @@
 import http from 'http';
 import Logger from '../logging/logger.js';
-<<<<<<< HEAD:src/server/http/http-service.js
-import buildConfig from './http-service-config.js';
-import { StaticResourceRequestHandler } from './static-resource-request-handler.js';
-=======
 import ConfBuider from './http-service-config.js';
 // import { StaticResourceRequestHandler } from './static-resource-request-handler.js';
->>>>>>> 70da43c62779857c05de5e13671b82d356ea1745:src/server/http-service/http-service.js
 
 const
 	logger = new Logger('JustTest [local server]'),
@@ -17,7 +12,7 @@ const
 	BASE_URL_KEY = Symbol('base.url.key');
 let server;
 
-export class HttpService {
+export default class HttpService {
 	constructor(config) {
 		const effectiveConf = ConfBuider.build(config);
 		effectiveConf.handlers.push('./static-resource-request-handler.js');
@@ -27,15 +22,7 @@ export class HttpService {
 		this[BASE_URL_KEY] = `http://localhost:${effectiveConf.port}`;
 	}
 
-<<<<<<< HEAD:src/server/http/http-service.js
-	get effectiveConfig() {
-		return this[CONFIG_KEY];
-	}
-
-	start() {
-=======
 	async start() {
->>>>>>> 70da43c62779857c05de5e13671b82d356ea1745:src/server/http-service/http-service.js
 		if (this[STATUS_KEY] === STATUS_RUNNING) {
 			logger.error('http server already running');
 			return null;
@@ -44,13 +31,12 @@ export class HttpService {
 		const port = this[CONFIG_KEY].port;
 		logger.info(`starting local server on port ${port}...`);
 
-
 		//	init handlers
 		const handlers = [];
 		this[CONFIG_KEY].handlers.forEach(async h => {
 			try {
-				const handlerCTor = await import(h).default;
-				handlers.push(new handlerCTor(this[CONFIG_KEY]));
+				const HandlerConstructor = await import(h).default;
+				handlers.push(new HandlerConstructor(this[CONFIG_KEY]));
 			} catch (e) {
 				logger.error(`failed to initialize custom http handler from '${h}', ${e}`);
 			}
@@ -69,7 +55,6 @@ export class HttpService {
 
 		this[STATUS_KEY] = STATUS_RUNNING;
 		logger.info(`... local server started on port ${port}`);
-		return urlBase;
 	}
 
 	stop() {
@@ -81,7 +66,15 @@ export class HttpService {
 		}
 	}
 
-	isRunning() {
+	get effectiveConf() {
+		return this[CONFIG_KEY];
+	}
+
+	get baseUrl() {
+		return this[BASE_URL_KEY];
+	}
+
+	get running() {
 		return this[STATUS_KEY] === STATUS_RUNNING;
 	}
 }

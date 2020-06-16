@@ -2,21 +2,21 @@ import { URL } from 'url';
 import fsExtra from 'fs-extra';
 import Logger from '../logging/logger.js';
 
-import buildConfig from './coverager-config.js';
+import buildConfig from './coverage-service-config.js';
 import RangeCov from './range-cov.js';
 import LineCov from './line-cov.js';
 import FileCov from './file-cov.js';
 import coverageToLcov from './coverage-to-lcov.js';
 
-const logger = new Logger('JustTest [coverager]');
 const
+	logger = new Logger('JustTest [coverage service]'),
 	CONFIG_KEY = Symbol('config.key'),
 	NATIVE_PAGE_KEY = Symbol('native.page'),
 	IS_SUPPORTED_KEY = Symbol('native.coverage.supported'),
 	IS_RUNNING_KEY = Symbol('coverage.tracking.running'),
 	REPORTS_KEY = Symbol('coverage.reports');
 
-export class CoverageService {
+export default class CoverageService {
 	constructor(configuration) {
 		this[CONFIG_KEY] = buildConfig(configuration);
 	}

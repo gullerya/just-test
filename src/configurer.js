@@ -63,11 +63,8 @@ function resolveGivenConfig(clargs) {
 					throw new Error(`command line config property '${aKey}' conflicts with file config property '${nextPNode}' which value is '${target[nextPNode]}'`);
 				}
 			}
-		});
-	} catch (e) {
-		logger.error('failed to PARSE configuration', e);
-		process.exit(1);
-	}
+		}
+	});
 
 	//	print out effective configuration
 	// logger.info('... effective configuration to be used is as following');

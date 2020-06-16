@@ -1,10 +1,11 @@
 import os from 'os';
 import path from 'path';
+import util from 'util';
 import { resolveGivenConfig, getBrowserRunner } from './configurer.js';
 import Logger from './server/logging/logger.js';
-import { HttpService } from './server/http-service/http-service.js';
-import Tester from './server/tests/tester.js';
-import { Coverager } from './server/coverage/coverager.js';
+import HttpService from './server/http-service/http-service.js';
+import TestService from './server/tests/tester.js';
+import CoverageService from './server/coverage/coverager.js';
 
 const logger = new Logger('JustTest [main]');
 
@@ -32,11 +33,11 @@ let httpServer,
 	}, false, null, true));
 	logger.info();
 
-	const
-		autServerUrl = conf.server.local
-			? httpServer.start(conf.server.port, path.resolve(process.cwd(), conf.server.resourcesFolder))
-			: conf.server.remoteUrl,
-		testsUrl = autServerUrl + conf.tests.url;
+	// const
+	// 	autServerUrl = conf.server.local
+	// 		? httpServer.start(conf.server.port, path.resolve(process.cwd(), conf.server.resourcesFolder))
+	// 		: conf.server.remoteUrl,
+	// 	testsUrl = autServerUrl + conf.tests.url;
 
 	//	browser
 	logger.info();
@@ -56,14 +57,14 @@ let httpServer,
 	})
 
 	//	coverage
-	let coverager;
-	logger.info();
-	if (!conf.coverage.skip) {
-		coverager = new Coverager(page);
-		if (coverager.isCoverageSupported()) {
-			await coverager.start();
-		}
-	}
+	// let coverager;
+	// logger.info();
+	// if (!conf.coverage.skip) {
+	// 	coverager = new Coverager(page);
+	// 	if (coverager.isCoverageSupported()) {
+	// 		await coverager.start();
+	// 	}
+	// }
 
 	//	navigate to tests - this is where the tests are starting to run
 	logger.info();

@@ -7,10 +7,10 @@ const
 		include: [
 			'./'
 		],
-		exclude: [],
+		exclude: []
 	});
 
-export default ConfBuilder = Object.freeze({
+export default Object.freeze({
 	build: build
 });
 
