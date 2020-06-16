@@ -19,9 +19,9 @@ let httpServer,
 	const providedConviguration = resolveGivenConfig(process.argv.slice(2));
 
 	logger.info('configuring services');
-	httpServer = new HttpServer(providedConviguration);
-	const tester = new Tester(providedConviguration);
-	const coverager = new Coverager(providedConviguration);
+	httpServer = new HttpService(providedConviguration);
+	const tester = new TestService(providedConviguration);
+	const coverager = new CoverageService(providedConviguration);
 
 	logger.info('... effective configuration to be used is as following');
 	logger.info(util.inspect({
