@@ -2,9 +2,9 @@ import os from 'os';
 import path from 'path';
 import { resolveGivenConfig, getBrowserRunner } from './configurer.js';
 import Logger from './server/logging/logger.js';
-import { HttpService } from './server/http/http-service.js';
-import { TestService } from './server/tests/tester.js';
-import { CoverageService } from './server/coverage/coverager.js';
+import { HttpService } from './server/http-service/http-service.js';
+import Tester from './server/tests/tester.js';
+import { Coverager } from './server/coverage/coverager.js';
 
 const logger = new Logger('JustTest [main]');
 

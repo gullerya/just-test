@@ -1,7 +1,12 @@
 import http from 'http';
 import Logger from '../logging/logger.js';
+<<<<<<< HEAD:src/server/http/http-service.js
+import buildConfig from './http-service-config.js';
+import { StaticResourceRequestHandler } from './static-resource-request-handler.js';
+=======
 import ConfBuider from './http-service-config.js';
 // import { StaticResourceRequestHandler } from './static-resource-request-handler.js';
+>>>>>>> 70da43c62779857c05de5e13671b82d356ea1745:src/server/http-service/http-service.js
 
 const
 	logger = new Logger('JustTest [local server]'),
@@ -22,7 +27,15 @@ export class HttpService {
 		this[BASE_URL_KEY] = `http://localhost:${effectiveConf.port}`;
 	}
 
+<<<<<<< HEAD:src/server/http/http-service.js
+	get effectiveConfig() {
+		return this[CONFIG_KEY];
+	}
+
+	start() {
+=======
 	async start() {
+>>>>>>> 70da43c62779857c05de5e13671b82d356ea1745:src/server/http-service/http-service.js
 		if (this[STATUS_KEY] === STATUS_RUNNING) {
 			logger.error('http server already running');
 			return null;
