@@ -1,13 +1,17 @@
+import os from 'os';
 import path from 'path';
+import util from 'util';
 import { resolveGivenConfig, getBrowserRunner } from './configurer.js';
 import Logger from './server/logging/logger.js';
-import { HttpService } from './server/http-service/http-service.js';
-import Tester from './server/tests/tester.js';
-import { Coverager } from './server/coverage/coverager.js';
+import TestService from './server/testing/tests-service.js';
+import HttpService from './server/serving/http-service.js';
+import BrowsingService from './server/browsing/browser-service.js';
+import CoverageService from './server/coverage/coverage-service.js';
 
 const logger = new Logger('JustTest [main]');
 
-let browser,
+let httpService,
+	browser,
 	result;
 
 //	main flow runs here, IIFE used allow async/await
@@ -15,10 +19,20 @@ let browser,
 	logger.info('starting JustTest');
 
 	const providedConviguration = resolveGivenConfig(process.argv.slice(2));
-	const httpService = new HttpService(providedConviguration);
-	const tester = new Tester(providedConviguration);
 
-	await httpService.start();
+	logger.info('configuring services');
+	httpService = new HttpService(providedConviguration);
+	const testService = new TestService(providedConviguration);
+	const coverageService = new CoverageService(providedConviguration);
+
+	logger.info('... effective configuration to be used is as following');
+	logger.info(util.inspect({
+		client: {},
+		server: httpService.effectiveConfig,
+		tests: testService.effectiveConfig,
+		coverage: coverageService.effectiveConfig
+	}, false, null, true));
+	logger.info();
 
 	// const
 	// 	autServerUrl = conf.server.local
@@ -44,14 +58,14 @@ let browser,
 	})
 
 	//	coverage
-	let coverager;
-	logger.info();
-	if (!conf.coverage.skip) {
-		coverager = new Coverager(page);
-		if (coverager.isCoverageSupported()) {
-			await coverager.start();
-		}
-	}
+	// let coverager;
+	// logger.info();
+	// if (!conf.coverage.skip) {
+	// 	coverager = new Coverager(page);
+	// 	if (coverager.isCoverageSupported()) {
+	// 		await coverager.start();
+	// 	}
+	// }
 
 	//	navigate to tests - this is where the tests are starting to run
 	logger.info();
@@ -63,37 +77,41 @@ let browser,
 	logger.info('... tests (AUT) page opened');
 
 	//	process test results, create report
-	result = await tester.report(page, conf.tests, path.resolve(conf.reports.folder, conf.tests.reportFilename));
+	result = await testService.report(page, conf.tests, path.resolve(conf.reports.folder, conf.tests.reportFilename));
 
 	//	process coverage, create report
-	if (coverager && coverager.isCoverageSupported()) {
-		await coverager.stop();
-		await coverager.report(conf.coverage, path.resolve(conf.reports.folder, conf.coverage.reportFilename));
+	if (coverageService && coverageService.isCoverageSupported()) {
+		await coverageService.stop();
+		await coverageService.report(conf.coverage, path.resolve(conf.reports.folder, conf.coverage.reportFilename));
 	}
 })()
 	.then(async () => {
 		logger.info();
 		logger.info('tests execution finished normally');
 		logger.info('tests status - ' + result.statusText);
-		await finalizeRun();
-		process.exit(result.statusPass ? 0 : 1);
+		await cleanup();
+		const exitStatus = result.statusPass ? 0 : 1;
+		logger.info(`done, exit status ${exitStatus}${os.EOL}`);
+		logger.info();
+		process.exit(exitStatus);
 	})
 	.catch(async error => {
 		logger.info();
 		logger.error('tests execution finished erroneously', error);
-		await finalizeRun();
+		await cleanup();
+		logger.info(`done, exit status 1${os.EOL}`);
 		process.exit(1);
 	});
 
-async function finalizeRun() {
-	logger.info();
+async function cleanup() {
+	logger.info('cleaning things...');
 	if (browser) {
 		logger.info('closing browser...');
 		await browser.close();
 	}
-	if (conf.server && conf.server.local) {
+	if (httpService && httpService.isRunning()) {
 		logger.info('stopping local server');
 		httpService.stop();
 	}
-	logger.info('done');
+	logger.info('... clean');
 }

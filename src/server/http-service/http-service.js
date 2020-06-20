@@ -12,7 +12,7 @@ const
 	BASE_URL_KEY = Symbol('base.url.key');
 let server;
 
-export class HttpService {
+export default class HttpService {
 	constructor(config) {
 		const effectiveConf = ConfBuider.build(config);
 		effectiveConf.handlers.push('./static-resource-request-handler.js');
@@ -31,12 +31,12 @@ export class HttpService {
 		const port = this[CONFIG_KEY].port;
 		logger.info(`starting local server on port ${port}...`);
 
-		//	init handlers - intentionally lazy one
+		//	init handlers
 		const handlers = [];
 		this[CONFIG_KEY].handlers.forEach(async h => {
 			try {
-				const HandlerCTor = await import(h).default;
-				handlers.push(new HandlerCTor(this[CONFIG_KEY]));
+				const HandlerConstructor = await import(h).default;
+				handlers.push(new HandlerConstructor(this[CONFIG_KEY]));
 			} catch (e) {
 				logger.error(`failed to initialize custom http handler from '${h}', ${e}`);
 			}
@@ -64,5 +64,17 @@ export class HttpService {
 				logger.info('local server stopped');
 			});
 		}
+	}
+
+	get effectiveConf() {
+		return this[CONFIG_KEY];
+	}
+
+	get baseUrl() {
+		return this[BASE_URL_KEY];
+	}
+
+	get running() {
+		return this[STATUS_KEY] === STATUS_RUNNING;
 	}
 }
