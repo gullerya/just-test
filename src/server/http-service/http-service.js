@@ -31,13 +31,12 @@ export class HttpService {
 		const port = this[CONFIG_KEY].port;
 		logger.info(`starting local server on port ${port}...`);
 
-
-		//	init handlers
+		//	init handlers - intentionally lazy one
 		const handlers = [];
 		this[CONFIG_KEY].handlers.forEach(async h => {
 			try {
-				const handlerCTor = await import(h).default;
-				handlers.push(new handlerCTor(this[CONFIG_KEY]));
+				const HandlerCTor = await import(h).default;
+				handlers.push(new HandlerCTor(this[CONFIG_KEY]));
 			} catch (e) {
 				logger.error(`failed to initialize custom http handler from '${h}', ${e}`);
 			}
@@ -56,7 +55,6 @@ export class HttpService {
 
 		this[STATUS_KEY] = STATUS_RUNNING;
 		logger.info(`... local server started on port ${port}`);
-		return urlBase;
 	}
 
 	stop() {

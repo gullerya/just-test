@@ -15,14 +15,16 @@ let browser,
 	logger.info('starting JustTest');
 
 	const providedConviguration = resolveGivenConfig(process.argv.slice(2));
-	const httpServer = new HttpServer(providedConviguration);
+	const httpService = new HttpService(providedConviguration);
 	const tester = new Tester(providedConviguration);
 
-	const
-		autServerUrl = conf.server.local
-			? httpServer.start(conf.server.port, path.resolve(process.cwd(), conf.server.resourcesFolder))
-			: conf.server.remoteUrl,
-		testsUrl = autServerUrl + conf.tests.url;
+	await httpService.start();
+
+	// const
+	// 	autServerUrl = conf.server.local
+	// 		? httpServer.start(conf.server.port, path.resolve(process.cwd(), conf.server.resourcesFolder))
+	// 		: conf.server.remoteUrl,
+	// 	testsUrl = autServerUrl + conf.tests.url;
 
 	//	browser
 	logger.info();
@@ -91,7 +93,7 @@ async function finalizeRun() {
 	}
 	if (conf.server && conf.server.local) {
 		logger.info('stopping local server');
-		httpServer.stop();
+		httpService.stop();
 	}
 	logger.info('done');
 }
