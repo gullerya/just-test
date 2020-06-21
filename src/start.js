@@ -4,7 +4,7 @@ import util from 'util';
 import { resolveGivenConfig } from './configurer.js';
 import Logger from './server/logging/logger.js';
 import TestService from './server/testing/tests-service.js';
-import HttpService from './server/serving/http-service.js';
+import HttpService from './server/http/http-service.js';
 import BrowsingService from './server/browsing/browser-service.js';
 import CoverageService from './server/coverage/coverage-service.js';
 
@@ -21,9 +21,9 @@ let httpService,
 	const providedConviguration = resolveGivenConfig(process.argv.slice(2));
 
 	logger.info('configuring services');
-	httpService = new HttpService(providedConviguration);
-	const testService = new TestService(providedConviguration);
-	const coverageService = new CoverageService(providedConviguration);
+	httpService = new HttpService(providedConviguration.server);
+	const testService = new TestService(providedConviguration.tests);
+	const coverageService = new CoverageService(providedConviguration.coverage);
 
 	logger.info('... effective configuration to be used is as following');
 	logger.info(util.inspect({

@@ -75,16 +75,19 @@ function resolveGivenConfig(clargs) {
 }
 
 function mergeConfig(a, b) {
-	if (typeof a !== 'object' || typeof b !== 'object') {
+	if (typeof a !== 'object' || (typeof b !== 'object' && b !== undefined)) {
 		throw new Error('merged graphs MUST be an objects');
 	}
 
 	let result;
-	if (b === null) {
+	if (b === undefined) {
+		return a;										//	undefined means preserve a
+	} else if (b === null) {
 		result = null;									//	null returned AS IS
 	} else if (Array.isArray(a)) {
 		result = b;										//	arrays are taken AS IS
 	} else {
+		result = {};
 		Object.keys(a).forEach(k => {
 			if (b.hasOwnProperty(k)) {					//	each existing property of 'b' to be taken
 				if (typeof a[k] === 'object') {
@@ -93,7 +96,7 @@ function mergeConfig(a, b) {
 					result[k] = b[k];					//	plain data just copied
 				}
 			} else {
-				result = a[k];							//	when 'b' doesn't has property - keep the default of 'a'
+				result[k] = a[k];							//	when 'b' doesn't has property - keep the 'a'
 			}
 		});
 	}
