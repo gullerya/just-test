@@ -70,6 +70,8 @@ function resolveGivenConfig(clargs) {
 	// logger.info('... effective configuration to be used is as following');
 	// logger.info(util.inspect(effectiveConf, false, null, true));
 	// logger.info();
+
+	return configuration;
 }
 
 function mergeConfig(a, b) {

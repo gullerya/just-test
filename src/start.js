@@ -1,7 +1,7 @@
 import os from 'os';
 import path from 'path';
 import util from 'util';
-import { resolveGivenConfig, getBrowserRunner } from './configurer.js';
+import { resolveGivenConfig } from './configurer.js';
 import Logger from './server/logging/logger.js';
 import TestService from './server/testing/tests-service.js';
 import HttpService from './server/serving/http-service.js';

@@ -10,16 +10,12 @@ const
 		exclude: []
 	});
 
-export default Object.freeze({
-	build: build
-});
-
-function build(providedConfig) {
-	if (!providedConfig || typeof providedConfig !== 'object') {
+export default input => {
+	if (!input || typeof input !== 'object') {
 		throw new Error('provided config MUST be a non-null object');
 	}
 
-	const result = mergeConfig(defaultConfig, providedConfig);
+	const result = mergeConfig(defaultConfig, input);
 	validate(result);
 	return result;
 };
