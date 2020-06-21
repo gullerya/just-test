@@ -9,7 +9,7 @@
 	},
 	"coverage": {
 		"include": [
-			"^\/dist\/.+"
+			"./bin"
 		]
 	},
 	"reports": {

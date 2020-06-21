@@ -1,6 +1,6 @@
 import http from 'http';
 import Logger from '../logging/logger.js';
-import ConfBuider from './http-service-config.js';
+import buildConfig from './http-service-config.js';
 // import { StaticResourceRequestHandler } from './static-resource-request-handler.js';
 
 const
@@ -14,7 +14,7 @@ let server;
 
 export default class HttpService {
 	constructor(config) {
-		const effectiveConf = ConfBuider.build(config);
+		const effectiveConf = buildConfig(config);
 		effectiveConf.handlers.push('./static-resource-request-handler.js');
 
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
