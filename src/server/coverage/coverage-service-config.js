@@ -31,19 +31,19 @@ function validate(config) {
 			throw new Error(`coverage report path MUST be a non-empty string; got ${report.path}`);
 		}
 		if (!coverageFormats.includes(report.format)) {
-			throw new Error(`coverage report formal MUST be a one of ${coverageFormats}; got ${report.format}`);
+			throw new Error(`coverage report format MUST be a one of ${coverageFormats}; got ${report.format}`);
 		}
 	});
 
 	//	validate include/exclude
 	if (config.include) {
 		if (!Array.isArray(config.include) || !config.include.length) {
-			throw new Error('"include" part of "coverage" configuration, if provided, MUST be a non-empty array');
+			throw new Error('"include" part of "coverage" configuration MUST be a non-empty array');
 		}
 	}
 	if (config.exclude) {
 		if (!Array.isArray(config.exclude) || !config.exclude.length) {
-			throw new Error('"exclude" part of "coverage" configuration, if provided, MUST be a non-empty array');
+			throw new Error('"exclude" part of "coverage" configuration MUST be a non-empty array');
 		}
 	}
 }

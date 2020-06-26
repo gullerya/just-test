@@ -1,17 +1,16 @@
 import { mergeConfig } from '../../configurer.js';
 
 const
-	coverageFormats = ['lcov'],
+	testReportFormats = 'xUnit',
 	defaultConfig = Object.freeze({
-		skip: false,
-		include: [
-			'*'
-		],
-		exclude: [
-			'*.min.js'
-		],
-		reportPath: './reports/coverage.lcov',
-		reportFormat: 'lcov'
+		ttl: 30000,
+		maxFail: 0,
+		maxSkip: 0,
+		include: [],
+		exclude: [],
+		reports: [
+			{ path: './reports/test-results.xml', format: 'xUnit' }
+		]
 	});
 
 export default input => {
@@ -21,20 +20,24 @@ export default input => {
 };
 
 function validate(config) {
-	if (!coverageFormats.includes(config.format)) {
-		throw new Error(`coverage report format invalid; got '${config.reportFormat}', supported ${coverageFormats}`);
+	//	validate reports
+	if (!Array.isArray(config.reports) || config.reports.some(r => !r || typeof r !== 'object')) {
+		throw new Error(`test reports MUST be an array of non-null objects; got ${config.reports}`);
 	}
-	if (!config.reportPath) {
-		throw new Error(`coverage report path invalid: '${config.reportPath}'`);
-	}
-	if (config.include) {
-		if (!Array.isArray(config.include) || !config.include.length) {
-			throw new Error('"include" part of "coverage" configuration, if provided, MUST be a non-empty array');
+	config.reports.forEach(report => {
+		if (!report.path || typeof report.path !== 'string') {
+			throw new Error(`tests report path MUST be a non-empty string; got ${report.path}`);
 		}
-	}
-	if (config.exclude) {
-		if (!Array.isArray(config.exclude) || !config.exclude.length) {
-			throw new Error('"exclude" part of "coverage" configuration, if provided, MUST be a non-empty array');
+		if (!testReportFormats.includes(report.format)) {
+			throw new Error(`tests report format MUST be a one of ${coverageFormats}; got ${report.format}`);
 		}
+	});
+
+	//	validate include/exclude
+	if (!Array.isArray(config.include)) {
+		throw new Error('"include" part of "tests" configuration MUST be a non-null array');
+	}
+	if (!Array.isArray(config.exclude)) {
+		throw new Error('"exclude" part of "tests" configuration MUST be a non-null array');
 	}
 }

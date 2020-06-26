@@ -66,7 +66,7 @@ export default class HttpService {
 		}
 	}
 
-	get effectiveConf() {
+	get effectiveConfig() {
 		return this[CONFIG_KEY];
 	}
 

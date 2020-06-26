@@ -1,11 +1,24 @@
 import fsExtra from 'fs-extra';
 import { performance } from 'perf_hooks';
 import Logger from '../logging/logger.js';
+import buildConfig from './tests-service-config.js';
+
+const
+	logger = new Logger('JustTest [tester]'),
+	CONFIG_KEY = Symbol('config.key');
 
 export default class TestService {
+	constructor(config) {
+		const effectiveConf = buildConfig(config);
+
+		this[CONFIG_KEY] = Object.freeze(effectiveConf);
+	}
+
+	get effectiveConfig() {
+		return this[CONFIG_KEY];
+	}
 }
 
-const logger = new Logger('JustTest [tester]');
 
 async function report(page, conf, reportPath) {
 	//	wait for tests to finish
