@@ -1,38 +1,34 @@
 import os from 'os';
 import path from 'path';
 import util from 'util';
-import { resolveGivenConfig } from './configurer.js';
-import Logger from './server/logging/logger.js';
-import TestService from './server/testing/tests-service.js';
-import HttpService from './server/http/http-service.js';
-import BrowsingService from './server/browsing/browser-service.js';
-import CoverageService from './server/coverage/coverage-service.js';
+import Logger from './logger/logger.js';
+import serverService from './server/server-service.js';
+import clientService from './client/client-service.js';
+import testService from './tester/tests-service.js';
+import coverageService from './coverage/coverage-service.js';
 
 const logger = new Logger('JustTest [main]');
 
-let httpService,
-	browser,
+let browser,
 	result;
 
-//	main flow runs here, IIFE used allow async/await
+//	main flow runs here, IIFE used to allow async/await
 (async () => {
 	logger.info('starting JustTest');
-
-	const providedConviguration = resolveGivenConfig(process.argv.slice(2));
-
-	logger.info('configuring services');
-	httpService = new HttpService(providedConviguration.server);
-	const testService = new TestService(providedConviguration.tests);
-	const coverageService = new CoverageService(providedConviguration.coverage);
-
-	logger.info('... effective configuration to be used is as following');
+	logger.info('effective configuration:');
 	logger.info(util.inspect({
-		client: {},
-		server: httpService.effectiveConfig,
+		server: serverService.effectiveConfig,
+		client: clientService.effectiveConfig,
 		tests: testService.effectiveConfig,
 		coverage: coverageService.effectiveConfig
 	}, false, null, true));
 	logger.info();
+
+	//	TODO pseudo
+	//	check if there are tests collected (and probably print stats out)
+	//	if there are tests - start the local server
+	//	if non-dev - start browsers (i'll skip this part untill fully manual mode is working)
+	//	if dev - do nothing - user will open a browser and will start hacking with the code/tests
 
 	// const
 	// 	autServerUrl = conf.server.local
@@ -109,9 +105,9 @@ async function cleanup() {
 		logger.info('closing browser...');
 		await browser.close();
 	}
-	if (httpService && httpService.isRunning()) {
+	if (serverService && serverService.isRunning()) {
 		logger.info('stopping local server');
-		httpService.stop();
+		serverService.stop();
 	}
 	logger.info('... clean');
 }

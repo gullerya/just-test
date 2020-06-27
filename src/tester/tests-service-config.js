@@ -1,4 +1,4 @@
-import { mergeConfig } from '../../configurer.js';
+import configurer from '../configurer.js';
 
 const
 	testReportFormats = 'xUnit',
@@ -13,8 +13,8 @@ const
 		]
 	});
 
-export default input => {
-	const result = mergeConfig(defaultConfig, input);
+export default () => {
+	const result = configurer.mergeConfig(defaultConfig, configurer.givenConfig.tests);
 	validate(result);
 	return Object.freeze(result);
 };
@@ -29,7 +29,7 @@ function validate(config) {
 			throw new Error(`tests report path MUST be a non-empty string; got ${report.path}`);
 		}
 		if (!testReportFormats.includes(report.format)) {
-			throw new Error(`tests report format MUST be a one of ${coverageFormats}; got ${report.format}`);
+			throw new Error(`tests report format MUST be a one of ${testReportFormats}; got ${report.format}`);
 		}
 	});
 

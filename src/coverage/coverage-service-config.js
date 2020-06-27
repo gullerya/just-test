@@ -1,4 +1,4 @@
-import { mergeConfig } from '../../configurer.js';
+import configurer from '../configurer.js';
 
 const
 	coverageFormats = ['lcov'],
@@ -15,8 +15,8 @@ const
 		]
 	});
 
-export default input => {
-	const result = mergeConfig(defaultConfig, input);
+export default () => {
+	const result = configurer.mergeConfig(defaultConfig, configurer.givenConfig.coverage);
 	validate(result);
 	return Object.freeze(result);
 };

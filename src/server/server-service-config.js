@@ -1,4 +1,4 @@
-import { mergeConfig } from '../../configurer.js';
+import configurer from '../configurer.js';
 
 const
 	defaultConfig = Object.freeze({
@@ -10,8 +10,8 @@ const
 		exclude: []
 	});
 
-export default input => {
-	const result = mergeConfig(defaultConfig, input);
+export default () => {
+	const result = configurer.mergeConfig(defaultConfig, configurer.givenConfig.server);
 	validate(result);
 	return result;
 };

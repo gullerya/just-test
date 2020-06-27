@@ -1,6 +1,6 @@
 import { URL } from 'url';
 import fsExtra from 'fs-extra';
-import Logger from '../logging/logger.js';
+import Logger from '../logger/logger.js';
 
 import buildConfig from './coverage-service-config.js';
 import RangeCov from './range-cov.js';
@@ -16,9 +16,9 @@ const
 	IS_RUNNING_KEY = Symbol('coverage.tracking.running'),
 	REPORTS_KEY = Symbol('coverage.reports');
 
-export default class CoverageService {
-	constructor(configuration) {
-		this[CONFIG_KEY] = buildConfig(configuration);
+class CoverageService {
+	constructor() {
+		this[CONFIG_KEY] = buildConfig();
 	}
 
 	get effectiveConfig() {
@@ -192,3 +192,5 @@ export default class CoverageService {
 		}
 	}
 }
+
+export default new CoverageService();

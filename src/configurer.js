@@ -1,22 +1,18 @@
 import fs from 'fs';
-// import path from 'path';
 import util from 'util';
-// import fsExtra from 'fs-extra';
-// import playwright from 'playwright';
-import Logger from './server/logging/logger.js';
+import Logger from './logger/logger.js';
 
 const logger = new Logger('JustTest [configurer]');
-// browserTypes = Object.freeze({ chromium: 'chromium', firefox: 'firefox', webkit: 'webkit' }),
-// testResultsFormats = Object.freeze(['xUnit']);
 
-export {
-	resolveGivenConfig,
-	mergeConfig
-	// getBrowserRunner
-};
+export default Object.freeze({
+	givenConfig: resolveGivenConfig(),
+	mergeConfig: mergeConfig
+});
 
-function resolveGivenConfig(clargs) {
-	const args = {};
+function resolveGivenConfig() {
+	const
+		clargs = process.argv.slice(2),
+		args = {};
 
 	//	collect arguments
 	clargs.forEach(arg => {
@@ -33,7 +29,7 @@ function resolveGivenConfig(clargs) {
 		process.exit(1);
 	}
 
-	logger.info('initializing configuration');
+	logger.info('initializing given configuration...');
 	logger.info('execution directory "' + process.cwd() + '"');
 	logger.info('execution arguments collected as following');
 	logger.info(util.inspect(args, false, null, true));
@@ -71,7 +67,8 @@ function resolveGivenConfig(clargs) {
 	// logger.info(util.inspect(effectiveConf, false, null, true));
 	// logger.info();
 
-	return configuration;
+	logger.info('given configuration collected');
+	return Object.freeze(configuration);
 }
 
 function mergeConfig(a, b) {
