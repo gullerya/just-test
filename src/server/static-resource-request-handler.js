@@ -2,13 +2,12 @@ import fs from 'fs';
 import { URL } from 'url';
 import path from 'path';
 import glob from 'glob';
-import minimatch from 'minimatch';
-import Logger from '../logging/logger.js';
+import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 
 const
 	logger = new Logger('JustTest [static resources handler]'),
-	BASSE_URL_KEY = Symbol('base.url.key'),
+	BASE_URL_KEY = Symbol('base.url.key'),
 	CONFIG_KEY = Symbol('config.key'),
 	FILE_RESOURCES_KEY = Symbol('file.resources.key'),
 	extMap = {
@@ -18,23 +17,19 @@ const
 		'.json': 'application/json'
 	};
 
-export class StaticResourceRequestHandler extends RequestHandlerBase {
-	constructor(config, urlBase) {
+export default class StaticResourceRequestHandler extends RequestHandlerBase {
+	constructor(config, baseUrl) {
 		super();
-		this[BASSE_URL_KEY] = urlBase;
+		this[BASE_URL_KEY] = baseUrl;
 		this[CONFIG_KEY] = config;
 
 		//	resolve resources list
 		const fileResources = [];
-		config.includes.forEach(inc => {
-			fileResources.push(...glob.sync(inc));
-		});
-		config.excludes.forEach(exc => {
-			fileResources.forEach((r, i, a) => {
-				if (minimatch(r, exc)) {
-					a.splice(i, 1);
-				}
-			});
+		config.include.forEach(inc => {
+			fileResources.push(...glob.sync(inc, {
+				nodir: true,
+				ignore: config.exclude
+			}));
 		});
 
 		this[FILE_RESOURCES_KEY] = fileResources;
@@ -44,12 +39,12 @@ export class StaticResourceRequestHandler extends RequestHandlerBase {
 
 	async handle(req, res) {
 		const
-			asUrl = new URL(req.url, this.urlBase),
-			filePath = '.' + asUrl.pathname,
+			asUrl = new URL(req.url, this[BASE_URL_KEY]),
+			filePath = '.' + (asUrl.pathname === '/' ? '/main.html' : asUrl.pathname),
 			extension = path.extname(filePath),
 			contentType = extMap[extension] ?? 'text/plain';
 
-		fs.readFile(path.resolve(this.resourcesBase, filePath), (error, content) => {
+		fs.readFile(path.resolve('./src/client/assets', filePath), (error, content) => {
 			if (!error) {
 				res.writeHead(200, { 'Content-Type': contentType }).end(content);
 			} else {

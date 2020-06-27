@@ -32,15 +32,20 @@ class ServerService {
 		logger.info(`starting local server on port ${port}...`);
 
 		//	init handlers
-		const handlers = [];
-		this[CONFIG_KEY].handlers.forEach(async h => {
-			try {
-				const HandlerConstructor = await import(h).default;
-				handlers.push(new HandlerConstructor(this[CONFIG_KEY]));
-			} catch (e) {
-				logger.error(`failed to initialize custom http handler from '${h}', ${e}`);
-			}
+		const
+			handlerPromises = [],
+			handlers = [];
+		this[CONFIG_KEY].handlers.forEach(h => {
+			handlerPromises.push(new Promise(resolve => {
+				import(h).then(hp => {
+					const HandlerConstructor = hp.default;
+					handlers.push(new HandlerConstructor(this[CONFIG_KEY], this[BASE_URL_KEY]));
+				}).catch(e => {
+					logger.error(`failed to initialize custom http handler from '${h}': ${e}`);
+				}).finally(resolve);
+			}));
 		});
+		await Promise.all(handlerPromises);
 
 		//	init dispatcher
 		const mainRequestDispatcher = function mainRequestHandler(req, res) {

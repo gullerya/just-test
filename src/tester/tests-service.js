@@ -1,36 +1,52 @@
-import fsExtra from 'fs-extra';
+import util from 'util';
 import { performance } from 'perf_hooks';
+import fsExtra from 'fs-extra';
 import glob from 'glob';
 import Logger from '../logger/logger.js';
 import buildConfig from './tests-service-config.js';
 
 const
 	logger = new Logger('JustTest [tester]'),
-	CONFIG_KEY = Symbol('config.key'),
-	TEST_RESOURCES_KEY = Symbol('test.resources.key');
+	CONFIG_KEY = Symbol('config.key');
 
 class TestService {
 	constructor() {
 		const effectiveConf = buildConfig();
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
-		this[TEST_RESOURCES_KEY] = this.collectTestresources(effectiveConf);
 	}
 
 	get effectiveConfig() {
 		return this[CONFIG_KEY];
 	}
 
-	get testResources() {
-		return this[TEST_RESOURCES_KEY];
-	}
-
-	collectTestresources(config) {
-		const result = [];
-		const options = {
-			nodir: true,
-			ignore: config.exclude
-		}
-		config.include.forEach(i => result.push.apply(result, glob.sync(i, options)));
+	async collectTestResources() {
+		logger.info('collecting test resources...');
+		const
+			started = performance.now(),
+			options = {
+				nodir: true,
+				ignore: this.effectiveConfig.exclude
+			},
+			promises = [];
+		this.effectiveConfig.include.forEach(i => {
+			promises.push(new Promise(resolve => {
+				glob(i, options, (err, matches) => {
+					if (err) {
+						logger.error(`error while collecting test resources ${err}`);
+						resolve([]);
+					} else {
+						resolve(matches);
+					}
+				})
+			}));
+		});
+		const result = (await Promise.all(promises)).reduce((a, c) => {
+			a.push(...c);
+			return a;
+		}, []);
+		logger.info(`... test resources collected in ${Math.floor(performance.now() - started)}ms`);
+		logger.info('collected test resources:');
+		logger.info(util.inspect(result, false, null, true));
 		return result;
 	}
 
