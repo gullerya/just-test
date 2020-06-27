@@ -5,7 +5,13 @@
 	"tests": {
 		"url": "/tests/test.html",
 		"maxFail": 3,
-		"maxSkip": 1
+		"maxSkip": 1,
+		"include": [
+			"tests/**"
+		],
+		"exclude": [
+			"tests/tests-config.json"
+		]
 	},
 	"coverage": {
 		"include": [

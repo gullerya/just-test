@@ -1,5 +1,6 @@
 import fsExtra from 'fs-extra';
 import { performance } from 'perf_hooks';
+import glob from 'glob';
 import Logger from '../logger/logger.js';
 import buildConfig from './tests-service-config.js';
 
@@ -11,10 +12,18 @@ class TestService {
 	constructor() {
 		const effectiveConf = buildConfig();
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
+		const testResources = this.collectTestresources(effectiveConf);
+		console.log(testResources);
 	}
 
 	get effectiveConfig() {
 		return this[CONFIG_KEY];
+	}
+
+	collectTestresources(config) {
+		const result = [];
+		config.include.forEach(i => result.push.apply(result, glob.sync(i, { nodir: true, ignore: config.exclude })));
+		return result;
 	}
 
 	async report(page, conf, reportPath) {
