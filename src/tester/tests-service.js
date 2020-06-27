@@ -6,23 +6,31 @@ import buildConfig from './tests-service-config.js';
 
 const
 	logger = new Logger('JustTest [tester]'),
-	CONFIG_KEY = Symbol('config.key');
+	CONFIG_KEY = Symbol('config.key'),
+	TEST_RESOURCES_KEY = Symbol('test.resources.key');
 
 class TestService {
 	constructor() {
 		const effectiveConf = buildConfig();
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
-		const testResources = this.collectTestresources(effectiveConf);
-		console.log(testResources);
+		this[TEST_RESOURCES_KEY] = this.collectTestresources(effectiveConf);
 	}
 
 	get effectiveConfig() {
 		return this[CONFIG_KEY];
 	}
 
+	get testResources() {
+		return this[TEST_RESOURCES_KEY];
+	}
+
 	collectTestresources(config) {
 		const result = [];
-		config.include.forEach(i => result.push.apply(result, glob.sync(i, { nodir: true, ignore: config.exclude })));
+		const options = {
+			nodir: true,
+			ignore: config.exclude
+		}
+		config.include.forEach(i => result.push.apply(result, glob.sync(i, options)));
 		return result;
 	}
 

@@ -24,6 +24,9 @@ let browser,
 	}, false, null, true));
 	logger.info();
 
+	logger.info('collected test resources:');
+	logger.info(util.inspect(testService.testResources, false, null, true));
+
 	//	TODO pseudo
 	//	check if there are tests collected (and probably print stats out)
 	//	if there are tests - start the local server
