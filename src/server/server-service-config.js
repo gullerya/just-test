@@ -4,9 +4,7 @@ const
 	defaultConfig = Object.freeze({
 		port: 3000,
 		handlers: [],
-		include: [
-			'./'
-		],
+		include: [],
 		exclude: []
 	});
 

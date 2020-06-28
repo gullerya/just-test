@@ -25,8 +25,8 @@ export default class StaticResourceRequestHandler extends RequestHandlerBase {
 
 		//	resolve resources list
 		const fileResources = [];
-		config.include.forEach(inc => {
-			fileResources.push(...glob.sync(inc, {
+		config.include.forEach(i => {
+			fileResources.push(...glob.sync(i, {
 				nodir: true,
 				ignore: config.exclude
 			}));
@@ -44,7 +44,7 @@ export default class StaticResourceRequestHandler extends RequestHandlerBase {
 			extension = path.extname(filePath),
 			contentType = extMap[extension] ?? 'text/plain';
 
-		fs.readFile(path.resolve('./src/client/assets', filePath), (error, content) => {
+		fs.readFile(path.resolve('bin/client/ui', filePath), (error, content) => {
 			if (!error) {
 				res.writeHead(200, { 'Content-Type': contentType }).end(content);
 			} else {

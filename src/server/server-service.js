@@ -15,6 +15,7 @@ class ServerService {
 	constructor() {
 		const effectiveConf = buildConfig();
 		effectiveConf.handlers.push('./static-resource-request-handler.js');
+		effectiveConf.include.unshift('./bin/client/ui');
 
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
 		this[STATUS_KEY] = STATUS_STOPPED;
