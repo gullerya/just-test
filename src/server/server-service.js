@@ -6,6 +6,7 @@ const
 	logger = new Logger('JustTest [local server]'),
 	STATUS_STOPPED = 0,
 	STATUS_RUNNING = 1,
+	HANDLERS_READY_KEY = Symbol('ready.key'),
 	CONFIG_KEY = Symbol('config.key'),
 	STATUS_KEY = Symbol('status.key'),
 	SERVER_KEY = Symbol('server.key'),
@@ -21,18 +22,11 @@ class ServerService {
 		this[STATUS_KEY] = STATUS_STOPPED;
 		this[SERVER_KEY] = null;
 		this[BASE_URL_KEY] = `http://localhost:${effectiveConf.port}`;
+
+		this[HANDLERS_READY_KEY] = this.initHandlers();
 	}
 
-	async start() {
-		if (this[STATUS_KEY] === STATUS_RUNNING) {
-			logger.error('http server already running');
-			return null;
-		}
-
-		const port = this[CONFIG_KEY].port;
-		logger.info(`starting local server on port ${port}...`);
-
-		//	init handlers
+	async initHandlers() {
 		const
 			handlerPromises = [],
 			handlers = [];
@@ -47,6 +41,19 @@ class ServerService {
 			}));
 		});
 		await Promise.all(handlerPromises);
+		return handlers;
+	}
+
+	async start() {
+		if (this[STATUS_KEY] === STATUS_RUNNING) {
+			logger.error('http server already running');
+			return null;
+		}
+
+		const handlers = await this[HANDLERS_READY_KEY];
+
+		const port = this[CONFIG_KEY].port;
+		logger.info(`starting local server on port ${port}...`);
 
 		//	init dispatcher
 		const mainRequestDispatcher = function mainRequestHandler(req, res) {
