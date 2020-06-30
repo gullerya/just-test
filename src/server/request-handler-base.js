@@ -1,12 +1,12 @@
 export class RequestHandlerBase {
 	constructor() {
-		const basePath = this.basePath;
-		if (!basePath || typeof basePath !== 'string' || !basePath.length || !basePath.startsWith('/') || basePath.endsWith('/')) {
-			throw new Error(`extending handler MUST provide basePath as a non-null and non-empty starting starting with '/' and NOT ending with '/'`);
+		const bup = this.baseUrlPath;
+		if (!bup || typeof bup !== 'string' || !bup.length || !bup.startsWith('/') || bup.endsWith('/')) {
+			throw new Error('extending handler MUST provide baseUrlPath as a non-null and non-empty string starting starting with "/" and NOT ending with "/"');
 		}
 	}
 
-	get basePath() {
+	get baseUrlPath() {
 		return null;
 	}
 

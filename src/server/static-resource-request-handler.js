@@ -28,6 +28,7 @@ export default class StaticResourceRequestHandler extends RequestHandlerBase {
 		config.include.forEach(i => {
 			fileResources.push(...glob.sync(i, {
 				nodir: true,
+				nosort: true,
 				ignore: config.exclude
 			}));
 		});
@@ -35,6 +36,10 @@ export default class StaticResourceRequestHandler extends RequestHandlerBase {
 		this[FILE_RESOURCES_KEY] = fileResources;
 
 		logger.info(`static resource request handler initialized, registered ${fileResources.length} file resource/s`);
+	}
+
+	get baseUrlPath() {
+		return '/';
 	}
 
 	async handle(req, res) {

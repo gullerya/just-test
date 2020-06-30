@@ -25,6 +25,7 @@ class TestService {
 			started = performance.now(),
 			options = {
 				nodir: true,
+				nosort: true,
 				ignore: this.effectiveConfig.exclude
 			},
 			promises = [];

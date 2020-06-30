@@ -1,4 +1,5 @@
 import http from 'http';
+import { performance } from 'perf_hooks';
 import Logger from '../logger/logger.js';
 import buildConfig from './server-service-config.js';
 
@@ -16,7 +17,7 @@ class ServerService {
 	constructor() {
 		const effectiveConf = buildConfig();
 		effectiveConf.handlers.push('./static-resource-request-handler.js');
-		effectiveConf.include.unshift('./bin/client/ui');
+		effectiveConf.include.unshift('./bin/client/ui/**');
 
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
 		this[STATUS_KEY] = STATUS_STOPPED;
@@ -28,19 +29,30 @@ class ServerService {
 
 	async initHandlers() {
 		const
+			started = performance.now(),
 			handlerPromises = [],
+			handlerBaseUrlPaths = [],
 			handlers = [];
 		this[CONFIG_KEY].handlers.forEach(h => {
-			handlerPromises.push(new Promise(resolve => {
+			handlerPromises.push(new Promise((resolve, reject) => {
 				import(h).then(hp => {
 					const HandlerConstructor = hp.default;
-					handlers.push(new HandlerConstructor(this[CONFIG_KEY], this[BASE_URL_KEY]));
+					const handler = new HandlerConstructor(this[CONFIG_KEY], this[BASE_URL_KEY]);
+					if (handlerBaseUrlPaths.some(bup => bup.indexOf(handler.baseUrlPath) === 0 || handler.baseUrlPath.indexOf(bup) === 0)) {
+						throw new Error(`'baseUrlPath' of handlers MUST be exclusive, violators: ${bup} and ${handler.baseUrlPath}`);
+					} else {
+						handlerBaseUrlPaths.push(handler.baseUrlPath);
+						handlers.push(handler);
+					}
+					resolve(handler);
 				}).catch(e => {
-					logger.error(`failed to initialize custom http handler from '${h}': ${e}`);
-				}).finally(resolve);
+					logger.error(`failed to initialize server handler '${h}': ${e}`);
+					reject(e);
+				});
 			}));
 		});
-		await Promise.all(handlerPromises);
+		const hr = await Promise.all(handlerPromises);
+		logger.info(`... ${handlers.length} handler/s initialized in ${Math.floor(performance.now() - started)}ms`);
 		return handlers;
 	}
 
