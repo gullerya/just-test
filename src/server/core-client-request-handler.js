@@ -17,7 +17,7 @@ const
 		'.json': 'application/json'
 	};
 
-export default class StaticResourceRequestHandler extends RequestHandlerBase {
+export default class CoreClientRequestHandler extends RequestHandlerBase {
 	constructor(config, baseUrl) {
 		super();
 		this[BASE_URL_KEY] = baseUrl;
@@ -35,7 +35,7 @@ export default class StaticResourceRequestHandler extends RequestHandlerBase {
 
 		this[FILE_RESOURCES_KEY] = fileResources;
 
-		logger.info(`static resource request handler initialized, registered ${fileResources.length} file resource/s`);
+		logger.info(`static resource request handler initialized; baseUrlPath: '${this.baseUrlPath}', total resources: ${fileResources.length}`);
 	}
 
 	get baseUrlPath() {

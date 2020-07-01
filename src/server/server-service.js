@@ -16,7 +16,7 @@ const
 class ServerService {
 	constructor() {
 		const effectiveConf = buildConfig();
-		effectiveConf.handlers.push('./static-resource-request-handler.js');
+		effectiveConf.handlers.push('./core-client-request-handler.js');
 		effectiveConf.include.unshift('./bin/client/ui/**');
 
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
@@ -31,19 +31,17 @@ class ServerService {
 		const
 			started = performance.now(),
 			handlerPromises = [],
-			handlerBaseUrlPaths = [],
-			handlers = [];
-		this[CONFIG_KEY].handlers.forEach(h => {
+			handlerBaseUrlPaths = [];
+		this[CONFIG_KEY].handlers.forEach(async h => {
 			handlerPromises.push(new Promise((resolve, reject) => {
 				import(h).then(hp => {
 					const HandlerConstructor = hp.default;
 					const handler = new HandlerConstructor(this[CONFIG_KEY], this[BASE_URL_KEY]);
+					//	TODO: make special handling of the root path ('/') in the validation below
 					if (handlerBaseUrlPaths.some(bup => bup.indexOf(handler.baseUrlPath) === 0 || handler.baseUrlPath.indexOf(bup) === 0)) {
 						throw new Error(`'baseUrlPath' of handlers MUST be exclusive, violators: ${bup} and ${handler.baseUrlPath}`);
-					} else {
-						handlerBaseUrlPaths.push(handler.baseUrlPath);
-						handlers.push(handler);
 					}
+					handlerBaseUrlPaths.push(handler.baseUrlPath);
 					resolve(handler);
 				}).catch(e => {
 					logger.error(`failed to initialize server handler '${h}': ${e}`);
@@ -51,7 +49,7 @@ class ServerService {
 				});
 			}));
 		});
-		const hr = await Promise.all(handlerPromises);
+		const handlers = await Promise.all(handlerPromises);
 		logger.info(`... ${handlers.length} handler/s initialized in ${Math.floor(performance.now() - started)}ms`);
 		return handlers;
 	}
@@ -70,7 +68,7 @@ class ServerService {
 		//	init dispatcher
 		const mainRequestDispatcher = function mainRequestHandler(req, res) {
 			handlers.some(async handler => {
-				return await handler.handle(req, res);
+				return req.url.startsWith(handler.baseUrlPath) && await handler.handle(req, res);
 			});
 		};
 
