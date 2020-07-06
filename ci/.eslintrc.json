@@ -6,6 +6,14 @@
 		"es2020": true
 	},
 	"rules": {
+		"accessor-pairs": [
+			"error",
+			{
+				"setWithoutGet": false
+			}
+		],
+		"eol-last": "off",
+		"import/no-absolute-path": "off",
 		"indent": [
 			2,
 			"tab",
@@ -13,18 +21,11 @@
 				"SwitchCase": 1
 			}
 		],
-		"accessor-pairs": [
-			"error",
-			{
-				"setWithoutGet": false
-			}
-		],
 		"no-prototype-builtins": "off",
 		"no-tabs": 0,
-		"semi": "off",
-		"space-before-function-paren": "off",
 		"object-curly-spacing": "off",
-		"eol-last": "off",
-		"one-var": "off"
+		"one-var": "off",
+		"semi": "off",
+		"space-before-function-paren": "off"
 	}
 }

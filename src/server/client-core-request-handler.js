@@ -6,7 +6,7 @@ import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 
 const
-	logger = new Logger('JustTest [static resources handler]'),
+	logger = new Logger('JustTest [client core handler]'),
 	BASE_URL_KEY = Symbol('base.url.key'),
 	CONFIG_KEY = Symbol('config.key'),
 	FILE_RESOURCES_KEY = Symbol('file.resources.key'),
@@ -35,34 +35,39 @@ export default class CoreClientRequestHandler extends RequestHandlerBase {
 
 		this[FILE_RESOURCES_KEY] = fileResources;
 
-		logger.info(`static resource request handler initialized; baseUrlPath: '${this.baseUrlPath}', total resources: ${fileResources.length}`);
+		logger.info(`client core resource request handler initialized; basePath: '${this.basePath}', total resources: ${fileResources.length}`);
 	}
 
-	get baseUrlPath() {
-		return '/';
+	get basePath() {
+		return '/core';
 	}
 
-	async handle(req, res) {
-		const
-			asUrl = new URL(req.url, this[BASE_URL_KEY]),
-			filePath = '.' + (asUrl.pathname === '/' ? '/main.html' : asUrl.pathname),
-			extension = path.extname(filePath),
-			contentType = extMap[extension] ?? 'text/plain';
+	async handle(handlerRelativePath, req, res) {
+		const path = handlerRelativePath === '/' ? '/main.html' : handlerRelativePath;
+		const extension = this.#extractExtension(path);
+		const contentType = extMap[extension] ?? 'text/plain';
 
-		fs.readFile(path.resolve('bin/client/ui', filePath), (error, content) => {
+		fs.readFile(path.resolve('bin/client/ui', path), (error, content) => {
 			if (!error) {
 				res.writeHead(200, { 'Content-Type': contentType }).end(content);
 			} else {
 				if (error.code === 'ENOENT') {
-					logger.warn(`sending 404 for '${filePath}'`);
+					logger.warn(`sending 404 for '${path}'`);
 					res.writeHead(404).end();
 				} else {
-					logger.warn(`sending 500 for '${filePath}'`);
+					logger.warn(`sending 500 for '${path}'`);
 					res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify(error));
 				}
 			}
 		});
-
-		return true;
 	};
+
+	#extractExtension(path) {
+		const i = path.lastIndexOf('.');
+		if (i) {
+			return path.substring(i + 1);
+		} else {
+			return '';
+		}
+	}
 }

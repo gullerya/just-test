@@ -100,7 +100,7 @@ let browser,
 	})
 	.catch(async error => {
 		logger.info();
-		logger.error('tests execution finished erroneously', error);
+		logger.error('tests execution finished erroneously;', error);
 		await cleanup();
 		logger.info(`done, exit status 1${os.EOL}`);
 		process.exit(1);

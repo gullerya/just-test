@@ -16,7 +16,8 @@ const
 class ServerService {
 	constructor() {
 		const effectiveConf = buildConfig();
-		effectiveConf.handlers.push('./core-client-request-handler.js');
+		effectiveConf.handlers.push('./client-core-request-handler.js');
+		effectiveConf.handlers.push('./client-libs-request-handler.js');
 		effectiveConf.include.unshift('./bin/client/ui/**');
 
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
@@ -31,22 +32,26 @@ class ServerService {
 		const
 			started = performance.now(),
 			handlerPromises = [],
-			handlerBaseUrlPaths = [];
+			handlerBasePaths = [];
 		this[CONFIG_KEY].handlers.forEach(async h => {
 			handlerPromises.push(new Promise((resolve, reject) => {
 				import(h).then(hp => {
 					const HandlerConstructor = hp.default;
 					const handler = new HandlerConstructor(this[CONFIG_KEY], this[BASE_URL_KEY]);
-					//	TODO: make special handling of the root path ('/') in the validation below
-					if (handlerBaseUrlPaths.some(bup => bup.indexOf(handler.baseUrlPath) === 0 || handler.baseUrlPath.indexOf(bup) === 0)) {
-						throw new Error(`'baseUrlPath' of handlers MUST be exclusive, violators: ${bup} and ${handler.baseUrlPath}`);
-					}
-					handlerBaseUrlPaths.push(handler.baseUrlPath);
+
+					handlerBasePaths.forEach(bup => {
+						if (handler.basePath === '/' || bup === '/') {
+							if (handler.basePath === bup) {
+								throw new Error(`'basePath' of handlers MUST be exclusive, violators: '${bup}' and '${handler.basePath}'`);
+							}
+						} else if (bup.indexOf(handler.basePath) === 0 || handler.basePath.indexOf(bup) === 0) {
+							throw new Error(`'basePath' of handlers MUST be exclusive, violators: '${bup}' and '${handler.basePath}'`);
+						}
+					});
+
+					handlerBasePaths.push(handler.basePath);
 					resolve(handler);
-				}).catch(e => {
-					logger.error(`failed to initialize server handler '${h}': ${e}`);
-					reject(e);
-				});
+				}).catch(reject);
 			}));
 		});
 		const handlers = await Promise.all(handlerPromises);
@@ -67,9 +72,18 @@ class ServerService {
 
 		//	init dispatcher
 		const mainRequestDispatcher = function mainRequestHandler(req, res) {
-			handlers.some(async handler => {
-				return req.url.startsWith(handler.baseUrlPath) && await handler.handle(req, res);
+			const path = req.url === '/' ? '/core' : req.url;
+			const handled = handlers.some(async handler => {
+				if (path.startsWith(handler.basePath)) {
+					handler.handle(path.replace(handler.basePath, ''), req, res);
+					return true;
+				} else {
+					return false;
+				}
 			});
+			if (!handled) {
+				res.writeHead(404, `no handler matched '${req.url}'`);
+			}
 		};
 
 		//	init server
