@@ -62,10 +62,10 @@ export default class CoreClientRequestHandler extends RequestHandlerBase {
 		});
 	};
 
-	extractExtension(path) {
-		const i = path.lastIndexOf('.');
+	extractExtension(filePath) {
+		const i = filePath.lastIndexOf('.');
 		if (i) {
-			return path.substring(i + 1);
+			return filePath.substring(i + 1);
 		} else {
 			return '';
 		}
