@@ -71,18 +71,20 @@ class ServerService {
 		logger.info(`starting local server on port ${port}...`);
 
 		//	init dispatcher
-		const mainRequestDispatcher = function mainRequestHandler(req, res) {
-			const path = req.url === '/' ? '/core' : req.url;
-			const handled = handlers.some(async handler => {
-				if (path.startsWith(handler.basePath)) {
-					handler.handle(path.replace(handler.basePath, ''), req, res);
-					return true;
-				} else {
-					return false;
+		const mainRequestDispatcher = async function mainRequestHandler(req, res) {
+			const path = req.url === '/' || req.url === '' ? '/core' : req.url;
+			const handler = handlers.find(h => path.startsWith(h.basePath));
+			if (handler) {
+				try {
+					let relPath = path.replace(handler.basePath, '');
+					relPath = relPath.startsWith('/') ? relPath.substring(1) : relPath;
+					await handler.handle(relPath, req, res);
+				} catch (e) {
+					logger.error(e);
+					res.writeHead(503, `${e}`).end();
 				}
-			});
-			if (!handled) {
-				res.writeHead(404, `no handler matched '${req.url}'`);
+			} else {
+				res.writeHead(404, `no handler matched '${req.url}'`).end();
 			}
 		};
 

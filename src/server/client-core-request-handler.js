@@ -1,5 +1,4 @@
 import fs from 'fs';
-import { URL } from 'url';
 import path from 'path';
 import glob from 'glob';
 import Logger from '../logger/logger.js';
@@ -11,10 +10,11 @@ const
 	CONFIG_KEY = Symbol('config.key'),
 	FILE_RESOURCES_KEY = Symbol('file.resources.key'),
 	extMap = {
-		'.html': 'text/html',
-		'.js': 'text/javascript',
-		'.css': 'text/css',
-		'.json': 'application/json'
+		html: 'text/html',
+		js: 'text/javascript',
+		css: 'text/css',
+		json: 'application/json',
+		xml: 'application/xml'
 	};
 
 export default class CoreClientRequestHandler extends RequestHandlerBase {
@@ -43,8 +43,8 @@ export default class CoreClientRequestHandler extends RequestHandlerBase {
 	}
 
 	async handle(handlerRelativePath, req, res) {
-		const filePath = handlerRelativePath === '/' ? '/main.html' : handlerRelativePath;
-		const extension = this.extractExtension(path);
+		const filePath = handlerRelativePath === '' ? 'main.html' : handlerRelativePath;
+		const extension = this.extractExtension(filePath);
 		const contentType = extMap[extension] ?? 'text/plain';
 
 		fs.readFile(path.resolve('bin/client/ui', filePath), (error, content) => {
@@ -64,7 +64,7 @@ export default class CoreClientRequestHandler extends RequestHandlerBase {
 
 	extractExtension(filePath) {
 		const i = filePath.lastIndexOf('.');
-		if (i) {
+		if (i > 0) {
 			return filePath.substring(i + 1);
 		} else {
 			return '';
