@@ -43,26 +43,26 @@ export default class CoreClientRequestHandler extends RequestHandlerBase {
 	}
 
 	async handle(handlerRelativePath, req, res) {
-		const path = handlerRelativePath === '/' ? '/main.html' : handlerRelativePath;
-		const extension = this.#extractExtension(path);
+		const filePath = handlerRelativePath === '/' ? '/main.html' : handlerRelativePath;
+		const extension = this.extractExtension(path);
 		const contentType = extMap[extension] ?? 'text/plain';
 
-		fs.readFile(path.resolve('bin/client/ui', path), (error, content) => {
+		fs.readFile(path.resolve('bin/client/ui', filePath), (error, content) => {
 			if (!error) {
 				res.writeHead(200, { 'Content-Type': contentType }).end(content);
 			} else {
 				if (error.code === 'ENOENT') {
-					logger.warn(`sending 404 for '${path}'`);
+					logger.warn(`sending 404 for '${filePath}'`);
 					res.writeHead(404).end();
 				} else {
-					logger.warn(`sending 500 for '${path}'`);
+					logger.warn(`sending 500 for '${filePath}'`);
 					res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify(error));
 				}
 			}
 		});
 	};
 
-	#extractExtension(path) {
+	extractExtension(path) {
 		const i = path.lastIndexOf('.');
 		if (i) {
 			return path.substring(i + 1);
