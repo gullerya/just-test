@@ -1,3 +1,3 @@
-import * as DataTier from '/libs/data-tier';
+import * as DataTier from '/libs/chai';
 
 console.log(DataTier);

@@ -37,7 +37,7 @@ class ServerService {
 			handlerPromises.push(new Promise((resolve, reject) => {
 				import(h).then(hp => {
 					const HandlerConstructor = hp.default;
-					const handler = new HandlerConstructor(this[CONFIG_KEY], this[BASE_URL_KEY]);
+					const handler = new HandlerConstructor(this[CONFIG_KEY]);
 
 					handlerBasePaths.forEach(bup => {
 						if (handler.basePath === '/' || bup === '/') {
@@ -79,9 +79,9 @@ class ServerService {
 					let relPath = path.replace(handler.basePath, '');
 					relPath = relPath.startsWith('/') ? relPath.substring(1) : relPath;
 					await handler.handle(relPath, req, res);
-				} catch (e) {
-					logger.error(e);
-					res.writeHead(503, `${e}`).end();
+				} catch (error) {
+					logger.error(`sending 500 for '${req.url}'; ${error}`);
+					res.writeHead(500).end(`${error}`);
 				}
 			} else {
 				res.writeHead(404, `no handler matched '${req.url}'`).end();
