@@ -6,7 +6,6 @@ import { RequestHandlerBase } from './request-handler-base.js';
 
 const
 	logger = new Logger('JustTest [client core handler]'),
-	BASE_URL_KEY = Symbol('base.url.key'),
 	CONFIG_KEY = Symbol('config.key'),
 	FILE_RESOURCES_KEY = Symbol('file.resources.key'),
 	extMap = {
@@ -17,10 +16,9 @@ const
 		xml: 'application/xml'
 	};
 
-export default class CoreClientRequestHandler extends RequestHandlerBase {
-	constructor(config, baseUrl) {
+export default class ClientCoreRequestHandler extends RequestHandlerBase {
+	constructor(config) {
 		super();
-		this[BASE_URL_KEY] = baseUrl;
 		this[CONFIG_KEY] = config;
 
 		//	resolve resources list
@@ -56,7 +54,7 @@ export default class CoreClientRequestHandler extends RequestHandlerBase {
 					res.writeHead(404).end();
 				} else {
 					logger.warn(`sending 500 for '${filePath}'`);
-					res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify(error));
+					res.writeHead(500).end(error.toString());
 				}
 			}
 		});
