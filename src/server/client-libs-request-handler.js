@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 import { createRequire } from 'module';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
