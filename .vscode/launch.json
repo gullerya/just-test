@@ -4,17 +4,6 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Debug 'run-tests' via NPM",
-			"runtimeExecutable": "npm",
-			"runtimeArgs": [
-				"run-script",
-				"test-debug"
-			],
-			"port": 9229
-		},
-		{
-			"type": "node",
-			"request": "launch",
 			"name": "Debug tests",
 			"program": "${workspaceFolder}/src/start.js",
 			"args": [

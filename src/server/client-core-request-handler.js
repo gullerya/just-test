@@ -3,18 +3,12 @@ import path from 'path';
 import glob from 'glob';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
+import { findMimeType, extensionsMap } from './server-utils.js';
 
 const
 	logger = new Logger('JustTest [client core handler]'),
 	CONFIG_KEY = Symbol('config.key'),
-	FILE_RESOURCES_KEY = Symbol('file.resources.key'),
-	extMap = {
-		html: 'text/html',
-		js: 'text/javascript',
-		css: 'text/css',
-		json: 'application/json',
-		xml: 'application/xml'
-	};
+	FILE_RESOURCES_KEY = Symbol('file.resources.key');
 
 export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	constructor(config) {
@@ -42,8 +36,7 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 
 	async handle(handlerRelativePath, req, res) {
 		const filePath = handlerRelativePath === '' ? 'main.html' : handlerRelativePath;
-		const extension = this.extractExtension(filePath);
-		const contentType = extMap[extension] ?? 'text/plain';
+		const contentType = findMimeType(filePath, extensionsMap.txt);
 
 		fs.readFile(path.resolve('bin/client/ui', filePath), (error, content) => {
 			if (!error) {
@@ -59,13 +52,4 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 			}
 		});
 	};
-
-	extractExtension(filePath) {
-		const i = filePath.lastIndexOf('.');
-		if (i > 0) {
-			return filePath.substring(i + 1);
-		} else {
-			return '';
-		}
-	}
 }

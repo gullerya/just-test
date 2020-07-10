@@ -1,7 +1,9 @@
 import fs from 'fs';
+import path from 'path';
 import { createRequire } from 'module';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
+import { findMimeType, extensionsMap } from './server-utils.js';
 
 const
 	logger = new Logger('JustTest [client libs handler]'),
@@ -22,16 +24,14 @@ export default class ClientLibsRequestHandler extends RequestHandlerBase {
 
 	async handle(handlerRelativePath, req, res) {
 		const libName = this.extractLibName(handlerRelativePath);
-		const libPath = handlerRelativePath.replace(libName, '');
 		const libMain = require.resolve(libName);
-		let filePath = libMain;
-		if (libPath) {
-			//	TODO: extract base folder and concat with libPath
-		}
+		const libPath = libMain.substring(0, libMain.indexOf(libName));
+		const filePath = path.join(libPath, handlerRelativePath);
+		const contentType = findMimeType(filePath, extensionsMap.js);
 
 		fs.readFile(filePath, (error, content) => {
 			if (!error) {
-				res.writeHead(200, { 'Content-Type': 'text/javascript' }).end(content);
+				res.writeHead(200, { 'Content-Type': contentType }).end(content);
 			} else {
 				if (error.code === 'ENOENT') {
 					logger.warn(`sending 404 for '${filePath}'`);
