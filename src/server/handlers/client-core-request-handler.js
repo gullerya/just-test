@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import glob from 'glob';
-import Logger from '../logger/logger.js';
+import Logger from '../../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
-import { findMimeType, extensionsMap } from './server-utils.js';
+import { findMimeType, extensionsMap } from '../server-utils.js';
 
 const
 	logger = new Logger('JustTest [client core handler]'),

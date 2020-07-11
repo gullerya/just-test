@@ -1,7 +1,12 @@
 <style>
 	:host {
-		color: #ccc;
-		background-color: #000;
+		--foreground: rgba(224, 224, 224, 1);
+		--background: rgba(16, 16, 32, 1);
+	}
+
+	:host {
+		color: var(--foreground);
+		background-color: var(--background);
 		font-size: 20px;
 		font-family: Tahoma;
 		overflow: hidden;
@@ -82,7 +87,7 @@
 		flex: 1;
 		overflow-x: hidden;
 		overflow-y: scroll;
-		border-inline-end: 1px solid #000;
+		border-inline-end: 1px solid transparent;
 	}
 
 	.content.hidden {

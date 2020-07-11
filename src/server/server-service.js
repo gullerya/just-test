@@ -16,8 +16,9 @@ const
 class ServerService {
 	constructor() {
 		const effectiveConf = buildConfig();
-		effectiveConf.handlers.push('./client-core-request-handler.js');
-		effectiveConf.handlers.push('./client-libs-request-handler.js');
+		effectiveConf.handlers.push('./handlers/api-request-handler.js');
+		effectiveConf.handlers.push('./handlers/client-libs-request-handler.js');
+		effectiveConf.handlers.push('./handlers/client-core-request-handler.js');
 		effectiveConf.include.unshift('./bin/client/ui/**');
 
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
