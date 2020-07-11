@@ -1,57 +1,13 @@
-import { initComponent, ComponentBase } from '../libs/rich-component/rich-component.min.js';
-import '../libs/data-tier-list/data-tier-list.min.js';
-import './test-view.js';
-import { STATUSES } from '../test.js';
+import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
+import '../jt-suite/jt-suite.js';
+import { STATUSES } from '../../test.js';
 
 const RESULTS_KEY = Symbol('results.key');
-let DND_DATA = null,
-	DND_PREVENT_CLICK = false;
 
-initComponent('just-test-view', class extends ComponentBase {
+initComponent('jt-control', class extends ComponentBase {
 	connectedCallback() {
-		this.shadowRoot.querySelector('.header').addEventListener('click', () => {
-			if (!DND_PREVENT_CLICK) {
-				this.classList.toggle('minimized');
-				DND_PREVENT_CLICK = false;
-			}
-		});
-		this.shadowRoot.querySelector('.content').addEventListener('click', e => {
-			if (e.target.matches('.suite-view .header .name')) {
-				e.target.parentElement.parentElement.classList.toggle('expanded');
-			}
-		});
-		this.shadowRoot.querySelector('.header').onmousedown = e => {
-			DND_DATA = {
-				self: this,
-				startX: e.screenX,
-				startY: e.screenY,
-				baseX: this.offsetLeft,
-				baseY: this.offsetTop
-			};
-			DND_PREVENT_CLICK = false;
-			document.addEventListener('mousemove', this.dragAction);
-			document.addEventListener('mouseup', this.dragFinish);
-		};
+		//	TODO: add minimization toggling
 	};
-
-	dragAction(e) {
-		if (DND_DATA) {
-			DND_PREVENT_CLICK = true;
-			DND_DATA.self.shadowRoot.querySelector('.content').classList.add('hidden');
-			DND_DATA.self.style.left = DND_DATA.baseX + e.screenX - DND_DATA.startX + 'px';
-			DND_DATA.self.style.top = DND_DATA.baseY + e.screenY - DND_DATA.startY + 'px';
-		} else {
-			document.removeEventListener('mousemove', this.dragAction);
-		}
-	}
-
-	dragFinish(e) {
-		if (DND_DATA) {
-			document.removeEventListener('mousemove', this.dragFinish);
-			DND_DATA.self.shadowRoot.querySelector('.content').classList.remove('hidden');
-			DND_DATA = null;
-		}
-	}
 
 	set results(results) {
 		this[RESULTS_KEY] = results;

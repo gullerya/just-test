@@ -1,28 +1,14 @@
 <style>
 	:host {
-		position: fixed;
-		direction: ltr;
-		top: 30px;
-		left: 30px;
-		width: 800px;
-		height: 800px;
-		background-color: #000;
 		color: #ccc;
-		opacity: .7;
+		background-color: #000;
 		font-size: 20px;
 		font-family: Tahoma;
 		overflow: hidden;
 		user-select: none;
 		cursor: default;
-		transition: width .2s, height .2s;
-		z-index: 99999;
 		display: flex;
 		flex-direction: column;
-	}
-
-	:host(.minimized) {
-		width: 420px;
-		height: 48px;
 	}
 
 	.header {
@@ -32,24 +18,8 @@
 		align-items: center;
 	}
 
-	:host>.header {
-		cursor: move;
-	}
-
 	.header .name {
 		margin: 0 12px;
-	}
-
-	:host>.header .name::before {
-		margin-right: 8px;
-		content: "\25bc";
-		font-size: 0.8em;
-		cursor: pointer;
-		color: #fff;
-	}
-
-	:host(.minimized)>.header .name::before {
-		content: "\25ba";
 	}
 
 	.header .runtime {
@@ -112,6 +82,7 @@
 		flex: 1;
 		overflow-x: hidden;
 		overflow-y: scroll;
+		border-inline-end: 1px solid #000;
 	}
 
 	.content.hidden {
@@ -148,23 +119,23 @@
 	<span class="counter skip" data-tie="justTestModel:skipped"></span>
 	<span class="scroll-spacer"></span>
 </div>
-<div class="content">
-	<template is="data-tier-item-template" data-tie="justTestModel:suites">
-		<div class="suite-view expanded">
-			<div class="header">
-				<span class="name" data-tie="item:name"></span>
-				<span class="duration" data-tie="item:duration"></span>
-				<span class="counter pass" data-tie="item:passed"></span>
-				<span class="counter fail" data-tie="item:failed"></span>
-				<span class="counter skip" data-tie="item:skipped"></span>
-			</div>
-			<div class="suite-tests">
-				<template is="data-tier-item-template" data-tie="item:tests">
-					<test-view
-						data-tie="item => test, item:status => status, item:duration => duration, item:error => error">
-					</test-view>
-				</template>
-			</div>
+<div class="content"></div>
+
+<template is="data-tier-item-template" data-tie="justTestModel:suites">
+	<div class="suite-view expanded">
+		<div class="header">
+			<span class="name" data-tie="item:name"></span>
+			<span class="duration" data-tie="item:duration"></span>
+			<span class="counter pass" data-tie="item:passed"></span>
+			<span class="counter fail" data-tie="item:failed"></span>
+			<span class="counter skip" data-tie="item:skipped"></span>
 		</div>
-	</template>
-</div>
+		<div class="suite-tests">
+			<template is="data-tier-item-template" data-tie="item:tests">
+				<test-view
+					data-tie="item => test, item:status => status, item:duration => duration, item:error => error">
+				</test-view>
+			</template>
+		</div>
+	</div>
+</template>
