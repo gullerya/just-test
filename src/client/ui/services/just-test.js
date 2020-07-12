@@ -1,7 +1,7 @@
 import * as DataTier from './libs/data-tier/data-tier.min.js';
-import { STATUSES, RANDOM_CHARSETS } from './test.js';
+import { STATUSES, RANDOM_CHARSETS } from '../test.js';
 import { Suite } from './suite.js';
-import './views/just-test-view.js';
+import '../views/just-test-view.js';
 
 export {
 	getSuite,
