@@ -19,6 +19,8 @@ class ServerService {
 		effectiveConf.handlers.push('./handlers/api-request-handler.js');
 		effectiveConf.handlers.push('./handlers/client-libs-request-handler.js');
 		effectiveConf.handlers.push('./handlers/client-core-request-handler.js');
+		effectiveConf.handlers.push('./handlers/test-resources-request-handler.js');
+
 		effectiveConf.include.unshift('./bin/client/ui/**');
 
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
