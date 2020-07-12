@@ -18,5 +18,11 @@ async function start() {
 	if (data[1].ok) {
 		const testsResources = await data[1].json();
 		console.log(testsResources);
+		testsResources.forEach(tr => {
+			const s = document.createElement('script');
+			s.type = 'module';
+			s.src = '/tests/resources/' + tr;
+			document.body.appendChild(s);
+		});
 	}
 }

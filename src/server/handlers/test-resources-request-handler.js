@@ -14,12 +14,16 @@ export default class TestResourcesRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;
-		this[TEST_RESOURCES_KEY] = testsService.collectTestResources();
+		this.postInit();
+	}
+
+	async postInit() {
+		this[TEST_RESOURCES_KEY] = await testsService.collectTestResources();
 		logger.info(`test resource request handler initialized; basePath: '${this.basePath}', total resources: ${this[TEST_RESOURCES_KEY].length}`);
 	}
 
 	get basePath() {
-		return '/test';
+		return '/tests/resources';
 	}
 
 	async handle(handlerRelativePath, req, res) {
