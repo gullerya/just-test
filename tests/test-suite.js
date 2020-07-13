@@ -1,5 +1,5 @@
-﻿import { getSuite } from '../dist/just-test.js';
-import { Suite } from '../dist/suite.js';
+﻿import { getSuite } from '/core/just-test.js';
+import { Suite } from '/core/suite.js';
 
 const
 	suite = getSuite({ name: 'Suite object APIs' });

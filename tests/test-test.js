@@ -1,5 +1,5 @@
-﻿import { getSuite } from '../dist/just-test.js';
-import { STATUSES, runTest } from '../dist/test.js';
+﻿import { getSuite } from '/core/just-test.js';
+import { STATUSES, runTest } from '/core/test.js';
 
 const suite = getSuite({ name: 'Single test tests' });
 
