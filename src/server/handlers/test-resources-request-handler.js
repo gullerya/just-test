@@ -18,7 +18,7 @@ export default class TestResourcesRequestHandler extends RequestHandlerBase {
 	}
 
 	async postInit() {
-		this[TEST_RESOURCES_KEY] = await testsService.collectTestResources();
+		this[TEST_RESOURCES_KEY] = await testsService.testResourcesPromise;
 		logger.info(`test resource request handler initialized; basePath: '${this.basePath}', total resources: ${this[TEST_RESOURCES_KEY].length}`);
 	}
 

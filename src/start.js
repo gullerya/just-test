@@ -22,7 +22,7 @@ let browser,
 		coverage: coverageService.effectiveConfig
 	}, false, null, true));
 
-	const testResources = await testService.collectTestResources();
+	const testResources = await testService.testResourcesPromise;
 	if (!testResources.length) {
 		logger.info('no tests to run');
 		return;

@@ -7,16 +7,22 @@ import buildConfig from './tests-service-config.js';
 
 const
 	logger = new Logger('JustTest [tester]'),
-	CONFIG_KEY = Symbol('config.key');
+	CONFIG_KEY = Symbol('config.key'),
+	TEST_RESOURCES_PROMISE_KEY = Symbol('test.resources.promise.key');
 
 class TestService {
 	constructor() {
 		const effectiveConf = buildConfig();
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
+		this[TEST_RESOURCES_PROMISE_KEY] = this.collectTestResources();
 	}
 
 	get effectiveConfig() {
 		return this[CONFIG_KEY];
+	}
+
+	get testResourcesPromise() {
+		return this[TEST_RESOURCES_PROMISE_KEY];
 	}
 
 	async collectTestResources() {

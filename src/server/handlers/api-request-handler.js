@@ -37,6 +37,6 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	async handleTestsResources(res) {
 		res
 			.writeHead(200, { 'Content-Type': extensionsMap.json })
-			.end(JSON.stringify(await testService.collectTestResources()));
+			.end(JSON.stringify(await testService.testResourcesPromise));
 	}
 }
