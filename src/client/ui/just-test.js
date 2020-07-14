@@ -2,6 +2,32 @@ import * as DataTier from '/libs/data-tier/dist/data-tier.min.js';
 import { STATUSES, RANDOM_CHARSETS } from './test.js';
 import { Suite } from './suite.js';
 
+import './components/jt-control/jt-control.js';
+import './components/jt-details/jt-details.js';
+
+start();
+
+async function start() {
+	const data = await Promise.all([
+		fetch('/api/tests/metadata'),
+		fetch('/api/tests/resources')
+	])
+
+	if (data[0].ok) {
+		const testsMetadata = await data[0].json();
+	}
+
+	if (data[1].ok) {
+		const testsResources = await data[1].json();
+		testsResources.forEach(tr => {
+			const s = document.createElement('script');
+			s.type = 'module';
+			s.src = '/tests/resources/' + tr;
+			document.body.appendChild(s);
+		});
+	}
+}
+
 export {
 	getSuite,
 	RANDOM_CHARSETS
@@ -17,12 +43,6 @@ const
 		done: 0,
 		suites: []
 	});
-
-//	only if not explicitly required headless and not already created
-if (!document.querySelectorAll('just-test-view').length) {
-	const justTestView = document.createElement('just-test-view');
-	document.body.appendChild(justTestView);
-}
 
 function getSuite(options) {
 	let s;
