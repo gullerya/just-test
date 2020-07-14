@@ -11,12 +11,10 @@ async function start() {
 
 	if (data[0].ok) {
 		const testsMetadata = await data[0].json();
-		console.log(testsMetadata);
 	}
 
 	if (data[1].ok) {
 		const testsResources = await data[1].json();
-		console.log(testsResources);
 		testsResources.forEach(tr => {
 			const s = document.createElement('script');
 			s.type = 'module';

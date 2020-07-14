@@ -29,9 +29,9 @@ function resolveGivenConfig() {
 		process.exit(1);
 	}
 
-	logger.info('initializing given configuration...');
-	logger.info('execution directory "' + process.cwd() + '"');
-	logger.info('execution arguments collected as following');
+	logger.info('assembling given configuration...');
+	logger.info(`execution directory '${process.cwd()}'`);
+	logger.info('execution arguments collected as following:');
 	logger.info(util.inspect(args, false, null, true));
 
 	//	read configuration
@@ -62,12 +62,7 @@ function resolveGivenConfig() {
 		}
 	});
 
-	//	print out effective configuration
-	// logger.info('... effective configuration to be used is as following');
-	// logger.info(util.inspect(effectiveConf, false, null, true));
-	// logger.info();
-
-	logger.info('given configuration collected');
+	logger.info('given configuration asssembled');
 	return Object.freeze(configuration);
 }
 
@@ -114,57 +109,3 @@ function mergeConfig(a, b) {
 		return result;
 	}
 };
-
-// function validateBrowserConf(bc) {
-// 	if (!bc) {
-// 		throw new Error('"browser" configuration part is missing');
-// 	}
-
-// 	if (!bc.type) {
-// 		throw new Error('"browser" configuration is missing "type" part');
-// 	}
-// 	if (!Object.keys(browserTypes).includes(bc.type)) {
-// 		throw new Error(`"type" of "browser" is not a one of the supported ones(${Object.keys(browserTypes).join(', ')})`);
-// 	}
-// }
-
-// function validateTestsConf(tc) {
-// 	if (!tc) {
-// 		throw new Error('"tests" configuration part is missing');
-// 	}
-// 	if (!tc.url) {
-// 		throw new Error('"tests" configuration is missing "url" part');
-// 	}
-// 	if (typeof tc.maxFail !== 'number') {
-// 		throw new Error('"maxFail" configuration of "tests" is not a number');
-// 	}
-// 	if (typeof tc.maxSkip !== 'number') {
-// 		throw new Error('"maxSkip" configuration of "tests" is not a number');
-// 	}
-// 	if (!testResultsFormats.includes(tc.format)) {
-// 		throw new Error('invalid "format" configuration of "tests": ' + tc.format + '; supported formats are: ' + testResultsFormats);
-// 	}
-// 	if (!tc.reportFilename) {
-// 		throw new Error('"tests" configuration is missing "reportFilename" part');
-// 	}
-// }
-
-// function validateReportsFolder(rc) {
-// 	if (!rc) {
-// 		throw new Error('"reports" configuration part is missing');
-// 	}
-// 	if (!rc.folder) {
-// 		throw new Error('"reports" configuration is missing "folder" part');
-// 	}
-// 	const reportsFolderPath = path.resolve(process.cwd(), rc.folder);
-// 	fsExtra.emptyDirSync(reportsFolderPath);
-// 	logger.info('reports folder resolve to and initialized in "' + reportsFolderPath + '"');
-// }
-
-// async function getBrowserRunner() {
-// 	const browserRunner = playwright[effectiveConf.browser.type];
-// 	if (!browserRunner) {
-// 		throw new Error(`failed to resolve browser runner '${effectiveConf.browser.type}'`);
-// 	}
-// 	return browserRunner;
-// }

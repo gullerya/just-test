@@ -39,7 +39,7 @@ class TestService {
 			promises.push(new Promise(resolve => {
 				glob(i, options, (err, matches) => {
 					if (err) {
-						logger.error(`error while collecting test resources ${err}`);
+						logger.error(`failed to collect test resources: ${err}`);
 						resolve([]);
 					} else {
 						resolve(matches);
@@ -52,7 +52,7 @@ class TestService {
 			return a;
 		}, []);
 		logger.info(`... test resources collected in ${Math.floor(performance.now() - started)}ms`);
-		logger.info(`collected test ${result.length} resources`);
+		logger.info(`collected ${result.length} test resources`);
 		logger.debug(util.inspect(result, false, null, true));
 		return result;
 	}
