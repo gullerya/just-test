@@ -72,19 +72,34 @@ function resolveGivenConfig() {
 }
 
 function mergeConfig(a, b) {
-	if (typeof a !== 'object' || (typeof b !== 'object' && b !== undefined)) {
-		throw new Error('merged graphs MUST be an objects');
+	if (!a || typeof a !== 'object') {
+		throw new Error('target to merge MUST be an object');
+	}
+	if (typeof b !== 'object' && b !== undefined) {
+		throw new Error('source for merge MUST be an objects');
+	}
+	if (Array.isArray(a) && b && !Array.isArray(b)) {
+		throw new Error(`merged graph expected to be an Array since the target ${a} is an Array`);
 	}
 
-	let result;
 	if (b === undefined) {
-		return a;										//	undefined means preserve a
+		return a;										//	undefined 'b' means preserve 'a'
 	} else if (b === null) {
-		result = null;									//	null returned AS IS
+		return null;									//	null 'b' override 'a'
 	} else if (Array.isArray(a)) {
-		result = b;										//	arrays are taken AS IS
+		const result = a.slice(0);
+		b.forEach(se => {
+			if (typeof se === 'object') {				//	objects push after cloned
+				result.push(mergeConfig({}, se));
+			} else {									//	primitives pushed if not included
+				if (result.indexOf(se) < 0) {
+					result.push(se);
+				}
+			}
+		});
+		return result;
 	} else {
-		result = {};
+		const result = {};
 		Object.keys(a).forEach(k => {
 			if (b.hasOwnProperty(k)) {					//	each existing property of 'b' to be taken
 				if (typeof a[k] === 'object') {
@@ -96,8 +111,8 @@ function mergeConfig(a, b) {
 				result[k] = a[k];							//	when 'b' doesn't has property - keep the 'a'
 			}
 		});
+		return result;
 	}
-	return result;
 };
 
 // function validateBrowserConf(bc) {

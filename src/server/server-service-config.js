@@ -3,8 +3,15 @@ import configurer from '../configurer.js';
 const
 	defaultConfig = Object.freeze({
 		port: 3000,
-		handlers: [],
-		include: [],
+		handlers: [
+			'./handlers/api-request-handler.js',
+			'./handlers/client-libs-request-handler.js',
+			'./handlers/client-core-request-handler.js',
+			'./handlers/test-resources-request-handler.js'
+		],
+		include: [
+			'./bin/client/ui/**'
+		],
 		exclude: []
 	});
 

@@ -7,28 +7,20 @@ const
 	logger = new Logger('JustTest [local server]'),
 	STATUS_STOPPED = 0,
 	STATUS_RUNNING = 1,
-	HANDLERS_READY_KEY = Symbol('ready.key'),
 	CONFIG_KEY = Symbol('config.key'),
 	STATUS_KEY = Symbol('status.key'),
 	SERVER_KEY = Symbol('server.key'),
-	BASE_URL_KEY = Symbol('base.url.key');
+	BASE_URL_KEY = Symbol('base.url.key'),
+	HANDLERS_READY_PROMISE_KEY = Symbol('handlers.ready.promise.key');
 
 class ServerService {
 	constructor() {
 		const effectiveConf = buildConfig();
-		effectiveConf.handlers.push('./handlers/api-request-handler.js');
-		effectiveConf.handlers.push('./handlers/client-libs-request-handler.js');
-		effectiveConf.handlers.push('./handlers/client-core-request-handler.js');
-		effectiveConf.handlers.push('./handlers/test-resources-request-handler.js');
-
-		effectiveConf.include.unshift('./bin/client/ui/**');
-
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
 		this[STATUS_KEY] = STATUS_STOPPED;
 		this[SERVER_KEY] = null;
 		this[BASE_URL_KEY] = `http://localhost:${effectiveConf.port}`;
-
-		this[HANDLERS_READY_KEY] = this.initHandlers();
+		this[HANDLERS_READY_PROMISE_KEY] = this.initHandlers();
 	}
 
 	async initHandlers() {
@@ -68,7 +60,7 @@ class ServerService {
 			return null;
 		}
 
-		const handlers = await this[HANDLERS_READY_KEY];
+		const handlers = await this[HANDLERS_READY_PROMISE_KEY];
 
 		const port = this[CONFIG_KEY].port;
 		logger.info(`starting local server on port ${port}...`);
