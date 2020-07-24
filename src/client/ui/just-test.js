@@ -20,10 +20,17 @@ async function start() {
 	if (data[1].ok) {
 		const testsResources = await data[1].json();
 		testsResources.forEach(tr => {
-			const s = document.createElement('script');
-			s.type = 'module';
-			s.src = '/tests/resources/' + tr;
-			document.body.appendChild(s);
+			//	create iframe
+			const dc = document.createElement('iframe');
+			dc.src = './test-frame.html';
+			document.body.appendChild(dc);
+
+			dc.addEventListener('load', () => {
+				const s = dc.contentDocument.createElement('script');
+				s.type = 'module';
+				s.src = '/tests/resources/' + tr;
+				dc.contentDocument.body.appendChild(s);
+			});
 		});
 	}
 }
