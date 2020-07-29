@@ -1,0 +1,27 @@
+:root {
+	--jt-brand-color: #aaf;
+	--jt-masthead-height: 64px;
+	--jt-masthead-border: 2px solid var(--jt-brand-color);
+}
+
+html,
+body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+body {
+	display: flex;
+	flex-direction: row;
+}
+
+.just-test-control {
+	flex: 0 0 600px;
+}
+
+.just-test-details {
+	flex: 1;
+}

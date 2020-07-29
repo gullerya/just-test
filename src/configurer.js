@@ -23,9 +23,9 @@ function resolveGivenConfig() {
 	});
 
 	//	valid required
-	const configLocation = args['-c'];
+	const configLocation = args.config;
 	if (!configLocation) {
-		logger.error('missing or invalid argument "-c" (example: -c=/path/to/config.json)');
+		logger.error('missing or invalid argument "config" (example: c=/path/to/config.json)');
 		process.exit(1);
 	}
 
@@ -62,7 +62,7 @@ function resolveGivenConfig() {
 		}
 	});
 
-	logger.info('given configuration asssembled');
+	logger.info('given configuration assembled');
 	return Object.freeze(configuration);
 }
 

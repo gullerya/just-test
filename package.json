@@ -39,7 +39,7 @@
 	"scripts": {
 		"build": "node ./ci/tools/build.mjs",
 		"lint": "node ./node_modules/eslint/bin/eslint -c ./ci/.eslintrc.json --ignore-path ./ci/.eslintignore ./src",
-		"test": "node ./bin/start.js -c=./tests/tests-config.json"
+		"test": "node ./bin/start.js config=./tests/tests-config.json"
 	},
 	"dependencies": {
 		"data-tier": "^2.9.3",

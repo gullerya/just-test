@@ -13,7 +13,6 @@ let browser,
 
 //	main flow runs here, IIFE used to allow async/await
 (async () => {
-	logger.info('JustTest starting');
 	logger.info('effective configuration:');
 	logger.info(util.inspect({
 		server: serverService.effectiveConfig,

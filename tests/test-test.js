@@ -25,6 +25,8 @@ suite.runTest({ name: 'test - normal flow all properties' }, async test => {
 	test.assertEqual(m.error, null);
 	test.assertNotEqual(m.duration, null);
 	test.assertNotEqual(m.duration, 0);
+
+	document.body.appendChild(document.createTextNode("test-test test A"));
 });
 
 suite.runTest({ name: 'test - fail by false' }, async test => {
