@@ -1,6 +1,6 @@
+import { constants } from './utils.js';
 import './components/jt-control/jt-control.js';
 import './components/jt-details/jt-details.js';
-import './just-test.js';
 
 start();
 
@@ -54,6 +54,18 @@ function initTestListener() {
 			throw new Error(`expected message for '${document.location.origin}', received one for '${event.origin}'`);
 		}
 
-		console.dir(event.data);
+		if (event.data.type === constants.TEST_ADDED_EVENT) {
+
+		} else if (event.data.type === constants.TEST_ENDED_EVENT) {
+
+		} else {
+			console.error(`unexpected message of type '${event.data.type}'`);
+		}
+
+
+
+		event.source.postMessage({
+			type: constants.TEST_RUN_ACTION, suiteName: event.data.suiteName, testName: event.data.testOptions.name
+		}, document.location.origin);
 	});
 }

@@ -15,8 +15,6 @@ suite.runTest({ name: 'suite - basic full flow' }, async test => {
 	test.assertEqual(2, s.model.tests.length);
 	test.assertNotEqual(null, s.model.duration);
 	test.assertTrue(s.model.duration > 0);
-
-	document.body.appendChild(document.createTextNode("test-suite test A"));
 });
 
 suite.runTest({ name: 'suite - skipping this one (UI/manual test)', skip: true }, () => {

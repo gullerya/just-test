@@ -14,8 +14,6 @@ suite.runTest({ name: 'random all' }, test => {
 
 	test.assertEqual(it, Object.keys(sm).length);
 	Object.keys(sm).forEach(k => test.assertEqual(rl, k.length));
-
-	document.body.appendChild(document.createTextNode("test-test-assets-random test A"));
 });
 
 suite.runTest({ name: 'random numeric' }, test => {
