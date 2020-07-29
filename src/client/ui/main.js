@@ -1,6 +1,18 @@
+import * as DataTier from '/libs/data-tier/dist/data-tier.min.js';
 import { constants } from './utils.js';
 import './components/jt-control/jt-control.js';
 import './components/jt-details/jt-details.js';
+
+const
+	suites = {},
+	model = DataTier.ties.create('justTestModel', {
+		passed: 0,
+		failed: 0,
+		skipped: 0,
+		total: 0,
+		done: 0,
+		suites: []
+	});
 
 start();
 
@@ -14,7 +26,6 @@ async function start() {
 		throw new Error(`failed to load tests data; metadata: ${data[0].status}, resources: ${data[1].status}`);
 	}
 
-	//	init test listener
 	initTestListener();
 
 	//	init test frames
@@ -55,17 +66,19 @@ function initTestListener() {
 		}
 
 		if (event.data.type === constants.TEST_ADDED_EVENT) {
-
+			model.total++;
 		} else if (event.data.type === constants.TEST_ENDED_EVENT) {
-
+			model.done++;
 		} else {
 			console.error(`unexpected message of type '${event.data.type}'`);
 		}
 
-
-
-		event.source.postMessage({
-			type: constants.TEST_RUN_ACTION, suiteName: event.data.suiteName, testName: event.data.testOptions.name
-		}, document.location.origin);
+		postRunTest(event.data.suiteName, event.data.testOptions.name, event.source);
 	});
+}
+
+function postRunTest(suite, test, testFrame) {
+	testFrame.postMessage({
+		type: constants.TEST_RUN_ACTION, suiteName: suite, testName: test
+	}, document.location.origin);
 }
