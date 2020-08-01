@@ -66,6 +66,9 @@
 
 	.name {
 		flex: 1;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
 	}
 
 	:host>.header {
@@ -125,23 +128,23 @@
 	<span class="counter skip" data-tie="justTestModel:skipped"></span>
 	<span class="scroll-spacer"></span>
 </div>
-<div class="content"></div>
-
-<template is="data-tier-item-template" data-tie="justTestModel:suites">
-	<div class="suite-view expanded">
-		<div class="header">
-			<span class="name" data-tie="item:name"></span>
-			<span class="duration" data-tie="item:duration"></span>
-			<span class="counter pass" data-tie="item:passed"></span>
-			<span class="counter fail" data-tie="item:failed"></span>
-			<span class="counter skip" data-tie="item:skipped"></span>
+<div class="content">
+	<data-tier-list data-tie="justTestModel:suites">
+		<div class="suite-view expanded">
+			<div class="header">
+				<span class="name" data-tie="scope:name"></span>
+				<span class="duration" data-tie="item:duration"></span>
+				<span class="counter pass" data-tie="scope:passed"></span>
+				<span class="counter fail" data-tie="scope:failed"></span>
+				<span class="counter skip" data-tie="scope:skipped"></span>
+			</div>
+			<div class="suite-tests">
+				<template is="data-tier-item-template" data-tie="item:tests">
+					<test-view
+						data-tie="item => test, item:status => status, item:duration => duration, item:error => error">
+					</test-view>
+				</template>
+			</div>
 		</div>
-		<div class="suite-tests">
-			<template is="data-tier-item-template" data-tie="item:tests">
-				<test-view
-					data-tie="item => test, item:status => status, item:duration => duration, item:error => error">
-				</test-view>
-			</template>
-		</div>
-	</div>
-</template>
+	</data-tier-list>
+</div>

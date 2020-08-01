@@ -44,7 +44,7 @@
 	"dependencies": {
 		"data-tier": "^2.9.3",
 		"rich-component": "^1.6.0",
-		"data-tier-list": "^0.8.0",
+		"data-tier-list": "^1.0.0",
 		"glob": "^7.1.6",
 		"playwright": "^1.2.1",
 		"chai": "^4.2.0"
