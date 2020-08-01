@@ -1,9 +1,9 @@
 ﻿import { getSuite } from '/core/just-test.js';
-import { RANDOM_CHARSETS } from '/core/test.js';
+import { RANDOM_CHARSETS } from '/core/test-executor.js';
 
-const suite = getSuite({ name: 'Test assets - random' });
+const suite = getSuite('Test assets - random');
 
-suite.runTest({ name: 'random all' }, test => {
+suite.test({ name: 'random all' }, test => {
 	const it = 100;
 	const rl = 8;
 	const sm = {};
@@ -16,7 +16,7 @@ suite.runTest({ name: 'random all' }, test => {
 	Object.keys(sm).forEach(k => test.assertEqual(rl, k.length));
 });
 
-suite.runTest({ name: 'random numeric' }, test => {
+suite.test({ name: 'random numeric' }, test => {
 	const it = 100;
 	const rl = 8;
 	const sm = {};
@@ -30,7 +30,7 @@ suite.runTest({ name: 'random numeric' }, test => {
 	Object.keys(sm).forEach(k => test.assertTrue(/[0-9]+/.test(k)));
 });
 
-suite.runTest({ name: 'random alpha lower' }, test => {
+suite.test({ name: 'random alpha lower' }, test => {
 	const it = 100;
 	const rl = 8;
 	const sm = {};
@@ -44,7 +44,7 @@ suite.runTest({ name: 'random alpha lower' }, test => {
 	Object.keys(sm).forEach(k => test.assertTrue(/[a-z]+/.test(k)));
 });
 
-suite.runTest({ name: 'random alpha upper' }, test => {
+suite.test({ name: 'random alpha upper' }, test => {
 	const it = 100;
 	const rl = 8;
 	const sm = {};
@@ -58,7 +58,7 @@ suite.runTest({ name: 'random alpha upper' }, test => {
 	Object.keys(sm).forEach(k => test.assertTrue(/[A-Z]+/.test(k)));
 });
 
-suite.runTest({ name: 'random alpha all' }, test => {
+suite.test({ name: 'random alpha all' }, test => {
 	const it = 100;
 	const rl = 8;
 	const sm = {};

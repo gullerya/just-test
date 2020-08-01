@@ -1,13 +1,10 @@
-const
-	TEST_PARAMS = ['id', 'name', 'timeout', 'sync', 'skip', 'expectError', 'code', 'status'],
-	STATUSES = Object.freeze({ QUEUED: 0, SKIPPED: 1, RUNNING: 2, PASSED: 3, FAILED: 4, ERRORED: 5 }),
-	DEFAULT_TIMEOUT_MILLIS = 10000;
+import { runResults } from './utils.js';
 
 const
 	RANDOM_CHARSETS = Object.freeze({ numeric: '0123456789', alphaLower: 'abcdefghijklmnopqrstuvwxyz', alphaUpper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' }),
 	DEFAULT_CHARSET = RANDOM_CHARSETS.alphaLower + RANDOM_CHARSETS.alphaUpper + RANDOM_CHARSETS.numeric;
 
-export { STATUSES, RANDOM_CHARSETS, runTest }
+export { RANDOM_CHARSETS, executeTest }
 
 class TestAssets {
 	constructor() {
@@ -19,88 +16,62 @@ class AssertError extends Error { }
 
 class TimeoutError extends AssertError { }
 
-let testIdSequence = 0;
-
-async function runTest(test) {
-	validateModel(test);
-
-	if (!test.id) {
-		test.id = testIdSequence++;
-	}
-	if (!test.timeout) {
-		test.timeout = DEFAULT_TIMEOUT_MILLIS;
-	}
-
-	test.error = null;
-	test.start = null;
-	test.duration = null;
-
-	if (test.skip) {
-		test.status = STATUSES.SKIPPED;
-	} else {
-		test.skip = false;
-		test.status = STATUSES.RUNNING;
-		test.start = performance.now();
-
-		await new Promise((resolve, reject) => {
-			const timeoutWatcher = setTimeout(() => reject(new TimeoutError('test timed out')), test.timeout);
-			const ta = new TestAssets();
-			Promise.resolve(test.code(ta))
-				.then(resolve)
-				.catch(reject)
-				.finally(() => clearInterval(timeoutWatcher));
-		})
-			.then(r => finalizeTest(test, r))
-			.catch(e => finalizeTest(test, e));
-	}
-
-	return test.status;
-}
-
-function validateModel(test) {
-	if (!test || typeof test !== 'object') {
-		throw new Error('test model MUST be a non-null object');
-	}
-	if (!test.name || typeof test.name !== 'string') {
-		throw new Error('name MUST be a non empty string within the options');
-	}
-	if (typeof test.code !== 'function') {
-		throw new Error('test code MUST be a function');
-	}
-	Object.keys(test).forEach(key => {
-		if (!TEST_PARAMS.includes(key)) {
-			console.error(`unexpected parameter '${key}' passed to run test`);
-		}
+async function executeTest({ meta, code }) {
+	const run = Object.seal({
+		asserts: null,
+		duration: null,
+		error: null,
+		result: null
 	});
+
+	if (meta.skip) {
+		run.result = runResults.SKIPPED;
+	} else {
+		const testAssets = new TestAssets();
+		const start = performance.now();
+		await Promise
+			.race([
+				new Promise(resolve => setTimeout(resolve, meta.ttl, new TimeoutError('timeout'))),
+				new Promise(resolve => Promise.resolve(code(testAssets)).then(resolve).catch(resolve))
+			])
+			.then(runResult => {
+				run.duration = performance.now() - start;
+				finalizeRun(meta, run, runResult, testAssets);
+			})
+			.catch(runError => {
+				run.duration = performance.now() - start;
+				finalizeRun(meta, run, runError, testAssets);
+			});
+	}
+
+	return run;
 }
 
-function finalizeTest(test, error) {
-	if (test.status !== STATUSES.RUNNING) {
-		return;
-	}
-
-	test.duration = performance.now() - test.start;
-	if (error === false) {
-		test.status = STATUSES.FAILED;
-	} else if (error instanceof Error) {
-		const pe = processError(error);
-		if (test.expectError && (pe.type === test.expectError || pe.message.indexOf(test.expectError) >= 0)) {
-			test.status = STATUSES.PASSED;
+function finalizeRun(meta, run, result, testAssets) {
+	if (result instanceof Error) {
+		const pe = processError(result);
+		if (meta.expectError && (pe.type === meta.expectError || pe.message.includes(meta.expectError))) {
+			run.result = runResults.PASSED;
 		} else {
-			test.status = error instanceof AssertError ? STATUSES.FAILED : STATUSES.ERRORED;
-			test.error = pe;
+			run.result = result instanceof AssertError ? runResults.FAILED : runResults.ERROR;
+			run.error = pe;
 		}
 	} else {
-		if (test.expectError) {
-			test.status = STATUSES.FAILED;
-			test.error = processError(new AssertError(`expected an error "${test.expectError}" but not seen`));
+		if (meta.expectError) {
+			run.result = runResults.FAILED;
+			run.error = processError(new AssertError(`expected an error with '${meta.expectError}' but not seen`));
 		} else {
-			test.status = STATUSES.PASSED;
+			run.result = runResults.PASSED;
 		}
 	}
+	run.asserts = testAssets.asserts;
 }
 
 function processError(error) {
+	if (!(error instanceof Error)) {
+		throw new Error(`error expected; found '${error}'`);
+	}
+
 	const replacable = window.location.origin;
 	error.type = error.constructor.name;
 	error.stackLines = error.stack.split(/\r\n|\r|\n/)
@@ -111,7 +82,7 @@ function processError(error) {
 	return error;
 }
 
-TestAssets.prototype.waitNextMicrotask = async () => {
+TestAssets.prototype.waitNextTask = async () => {
 	return new Promise(resolve => setTimeout(resolve, 0));
 }
 

@@ -38,7 +38,7 @@ The main point is to provide a shortest path for a developer to execute newly wr
 * start from writing a first lines of your next component or framework
 * create a test file, `test.js` for example
 * import into it the [`just-test` APIs](docs/api.md) and get the suite object by the __`getSuite`__ API
-* import the stuff your are working on and write some testing code using suite's __`runTest`__ API
+* import the stuff your are working on and write some testing code using suite's __`test`__ API
 * create an empty `html` file, `test.html` for example
 * import `test.js` into it and open it in browser
 

@@ -1,6 +1,6 @@
 import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
 import '../jt-suite/jt-suite.js';
-import { STATUSES } from '../../test.js';
+import { runResults } from '../../utils.js';
 
 const RESULTS_KEY = Symbol('results.key');
 
@@ -29,14 +29,14 @@ initComponent('just-test-control', class extends ComponentBase {
 			sEl.setAttribute('name', suite.name);
 			sEl.setAttribute('time', Math.round(parseFloat(suite.duration)) / 1000);
 			sEl.setAttribute('tests', suite.tests.length);
-			sEl.setAttribute('errors', suite.tests.filter(t => t.status === STATUSES.ERRORED).length);
-			sEl.setAttribute('failures', suite.tests.filter(t => t.status === STATUSES.FAILED).length);
-			sEl.setAttribute('skip', suite.tests.filter(t => t.status === STATUSES.SKIPPED).length);
+			sEl.setAttribute('errors', suite.tests.filter(t => t.status === runResults.ERRORED).length);
+			sEl.setAttribute('failures', suite.tests.filter(t => t.status === runResults.FAILED).length);
+			sEl.setAttribute('skip', suite.tests.filter(t => t.status === runResults.SKIPPED).length);
 			suite.tests.forEach(test => {
 				const tEl = rDoc.createElement('testcase');
 				tEl.setAttribute('name', test.name);
 				tEl.setAttribute('time', Math.round(test.duration) / 1000);
-				if (test.status === STATUSES.ERRORED) {
+				if (test.status === runResults.ERROR) {
 					const eEl = rDoc.createElement('error');
 					if (test.error) {
 						eEl.setAttribute('type', test.error.type);
@@ -44,7 +44,7 @@ initComponent('just-test-control', class extends ComponentBase {
 						eEl.textContent = test.error.stack;
 					}
 					tEl.appendChild(eEl);
-				} else if (test.status === STATUSES.FAILED) {
+				} else if (test.status === runResults.FAILED) {
 					const eEl = rDoc.createElement('failure');
 					if (test.error) {
 						eEl.setAttribute('type', test.error.type);
@@ -52,7 +52,7 @@ initComponent('just-test-control', class extends ComponentBase {
 						eEl.textContent = test.error.stack;
 					}
 					tEl.appendChild(eEl);
-				} else if (test.status === STATUSES.SKIPPED) {
+				} else if (test.status === runResults.SKIPPED) {
 					const eEl = rDoc.createElement('skipped');
 					tEl.appendChild(eEl);
 				}
