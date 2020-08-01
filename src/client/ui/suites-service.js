@@ -1,4 +1,6 @@
-import { constants } from './utils.js';
+import * as DataTier from '/libs/data-tier/dist/data-tier.min.js';
+import { Test, Run } from './model.js';
+import { constants, runResults } from './utils.js';
 
 export function obtainSuite(suiteName) {
 	let result = suites[suiteName];
@@ -10,6 +12,16 @@ export function obtainSuite(suiteName) {
 }
 
 const suites = {};
+const model = DataTier.ties.create('justTestModel', {
+	total: 0,
+	done: 0,
+	duration: null,
+	skipped: 0,
+	passed: 0,
+	failed: 0,
+	error: 0,
+	suites: []
+});
 
 class Suite {
 	constructor(suiteName) {
@@ -20,85 +32,62 @@ class Suite {
 		this.name = suiteName;
 		this.tests = {};
 		this.syncTail = Promise.resolve();
+
+		model.suites.push({
+			name: suiteName,
+			total: 0,
+			done: 0,
+			duration: null,
+			skipped: 0,
+			passed: 0,
+			failed: 0,
+			error: 0,
+			tests: []
+		});
 	}
 
 	addTest(meta, frame) {
 		if (this.tests[meta.name]) {
 			throw new Error(`test '${meta.name}' already found in suite '${this.name}'`);
 		}
-		this.tests[meta.name] = Object.assign({}, meta, {
-			frame: frame
-		});
+		const test = new Test(meta.name, frame);
+		this.tests[meta.name] = test;
+
+		model.total++;
 	}
 
-	test(testName) {
+	runTest(testName) {
 		const test = this.tests[testName];
 
 		if (!test) {
 			throw new Error(`test '${testName}' not found in suite '${this.name}'`);
 		}
 
+		const run = new Run();
+		test.runs.push(run);
 		if (test.skip) {
-			//	update model
-			return;
-		}
-
-		if (test.sync) {
-			const oldSyncTail = this.syncTail;
-			this.syncTail = new Promise(resolve => {
-				test.resolveEnd = resolve;
-			});
-			oldSyncTail.finally(() => {
+			run.result = runResults.SKIPPED;
+		} else {
+			if (test.sync) {
+				const oldSyncTail = this.syncTail;
+				this.syncTail = new Promise(resolve => {
+					test.resolveEnd = resolve;
+				});
+				oldSyncTail.finally(() => {
+					test.frame.postMessage({
+						type: constants.RUN_TEST_ACTION, suiteName: this.name, testName: testName
+					}, document.location.origin);
+				});
+			} else {
 				test.frame.postMessage({
 					type: constants.RUN_TEST_ACTION, suiteName: this.name, testName: testName
 				}, document.location.origin);
-			});
-		} else {
-			test.frame.postMessage({
-				type: constants.RUN_TEST_ACTION, suiteName: this.name, testName: testName
-			}, document.location.origin);
+			}
 		}
-
-		// try {
-		// 	this.model.tests.push(testParams);
-		// 	const testModel = this.model.tests[this.model.tests.length - 1];
-		// 	testModel.code = testCode;
-		// 	testModel.status = STATUSES.QUEUED;
-		// 	this.dispatchEvent(new Event('testAdded'));
-		// 	if (testModel.sync) {
-		// 		this.syncTail = this.syncTail.finally(async () => {
-		// 			const tr = await test(testModel);
-		// 			this[ON_TEST_FINISHED_KEY](tr);
-		// 		});
-		// 	} else {
-		// 		const tr = await test(testModel)
-		// 		this[ON_TEST_FINISHED_KEY](tr);
-		// 	}
-		// } catch (e) {
-		// 	this[ON_TEST_FINISHED_KEY](e);
-		// }
 	}
 
-	// [ON_TEST_FINISHED_KEY](result) {
-	// 	this.model.done++
-	// 	if (result === STATUSES.PASSED) {
-	// 		this.model.passed++;
-	// 	} else if (result instanceof Error || result === STATUSES.FAILED || result === STATUSES.ERRORED) {
-	// 		this.model.failed++;
-	// 	} else if (result === STATUSES.SKIPPED) {
-	// 		this.model.skipped++;
-	// 	}
-
-	// 	this.dispatchEvent(new CustomEvent('testFinished', { detail: { result: result } }));
-
-	// 	if (this.model.done === this.model.tests.length) {
-	// 		setTimeout(() => {
-	// 			if (this.model.done === this.model.tests.length) {
-	// 				this.model.duration = performance.now() - this.start - SUITE_DONE_PROBING_DELAY;
-	// 				this[DONE_RESOLVER_KEY]();
-	// 				this.dispatchEvent(new CustomEvent('finished', { detail: { suiteModel: this.model } }));
-	// 			}
-	// 		}, SUITE_DONE_PROBING_DELAY);
-	// 	}
-	// }
+	endTest(testName, run) {
+		console.log(`test ${testName} supplied with a new run ${run}`);
+		model.done++;
+	}
 }

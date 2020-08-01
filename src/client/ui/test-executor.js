@@ -1,3 +1,4 @@
+import { Run } from './model.js';
 import { runResults } from './utils.js';
 
 const
@@ -17,16 +18,12 @@ class AssertError extends Error { }
 class TimeoutError extends AssertError { }
 
 async function executeTest({ meta, code }) {
-	const run = Object.seal({
-		asserts: null,
-		duration: null,
-		error: null,
-		result: null
-	});
+	const run = new Run();
 
 	if (meta.skip) {
 		run.result = runResults.SKIPPED;
 	} else {
+		let runResult;
 		const testAssets = new TestAssets();
 		const start = performance.now();
 		await Promise
@@ -34,13 +31,11 @@ async function executeTest({ meta, code }) {
 				new Promise(resolve => setTimeout(resolve, meta.ttl, new TimeoutError('timeout'))),
 				new Promise(resolve => Promise.resolve(code(testAssets)).then(resolve).catch(resolve))
 			])
-			.then(runResult => {
+			.then(r => { runResult = r; })
+			.catch(e => { runResult = e; })
+			.finally(() => {
 				run.duration = performance.now() - start;
 				finalizeRun(meta, run, runResult, testAssets);
-			})
-			.catch(runError => {
-				run.duration = performance.now() - start;
-				finalizeRun(meta, run, runError, testAssets);
 			});
 	}
 
@@ -67,6 +62,7 @@ function finalizeRun(meta, run, result, testAssets) {
 	run.asserts = testAssets.asserts;
 }
 
+//	TODO: return custom object instead of extended native Error
 function processError(error) {
 	if (!(error instanceof Error)) {
 		throw new Error(`error expected; found '${error}'`);

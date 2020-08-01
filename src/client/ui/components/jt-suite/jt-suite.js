@@ -13,7 +13,7 @@ initComponent('test-view', class extends ComponentBase {
 				delete this[TEST_KEY].error;
 				delete this[TEST_KEY].start;
 				delete this[TEST_KEY].duration;
-				//executeTest(this[TEST_KEY]);
+				//	executeTest(this[TEST_KEY]);
 			}
 		});
 	}

@@ -1,18 +1,7 @@
-import * as DataTier from '/libs/data-tier/dist/data-tier.min.js';
 import { constants } from './utils.js';
 import { obtainSuite } from './suites-service.js';
 import './components/jt-control/jt-control.js';
 import './components/jt-details/jt-details.js';
-
-const
-	model = DataTier.ties.create('justTestModel', {
-		suites: [],
-		total: 0,
-		running: 0,
-		passed: 0,
-		failed: 0,
-		skipped: 0
-	});
 
 start();
 
@@ -66,7 +55,7 @@ function initTestListener() {
 		}
 
 		if (event.data.type === constants.TEST_ADDED_EVENT) {
-			addTest(event.data.suiteName, event.data.meta, event.source);
+			addTest(event.data, event.source);
 		} else if (event.data.type === constants.TEST_ENDED_EVENT) {
 			endTest(event.data);
 		} else {
@@ -75,33 +64,13 @@ function initTestListener() {
 	});
 }
 
-function addTest(suiteName, meta, frame) {
-	const suite = obtainSuite(suiteName);
-	suite.addTest(meta, frame);
-	test(suiteName, meta.name);
-}
-
-function test(suiteName, testName) {
-	const suite = obtainSuite(suiteName);
-	suite.test(testName);
-	// frame.postMessage({
-	// 	type: constants.RUN_TEST_ACTION, suiteName: suiteName, testName: testName
-	// }, document.location.origin);
-	// model.running++;
+function addTest(details, frame) {
+	const suite = obtainSuite(details.suiteName);
+	suite.addTest(details.meta, frame);
+	suite.runTest(details.meta.name);
 }
 
 function endTest(details) {
-	model.running--;
-	console.log(details.run);
-	//	should update the metadata of the suite and the whole
+	const suite = obtainSuite(details.suiteName);
+	suite.endTest(details.testName, details.run);
 }
-
-// function test(suiteName, testMeta, testFrame) {
-// 	const suite = obtainSuite(suiteName);
-// 	result = {
-// 		name: testMeta.name,
-// 		frame: testFrame
-// 	};
-// 	suite.tests.push(result);
-// 	return result;
-// }
