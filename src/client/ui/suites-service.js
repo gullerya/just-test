@@ -87,7 +87,9 @@ class Suite {
 	}
 
 	endTest(testName, run) {
-		console.log(`test ${testName} supplied with a new run ${run}`);
+		//	TODO: resolve pending promise
 		model.done++;
+		const sModel = model.suites.find(s => s.name === this.name);
+		sModel.passed++;
 	}
 }

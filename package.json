@@ -42,9 +42,9 @@
 		"test": "node ./bin/start.js config=./tests/tests-config.json"
 	},
 	"dependencies": {
-		"data-tier": "^2.9.3",
+		"data-tier": "^2.9.4",
 		"rich-component": "^1.6.0",
-		"data-tier-list": "^1.0.1",
+		"data-tier-list": "^1.0.2",
 		"glob": "^7.1.6",
 		"playwright": "^1.2.1",
 		"chai": "^4.2.0"

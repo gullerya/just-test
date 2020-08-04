@@ -1,7 +1,7 @@
-import { constants } from './utils.js';
-import { obtainSuite } from './suites-service.js';
 import './components/jt-control/jt-control.js';
 import './components/jt-details/jt-details.js';
+import { obtainSuite } from './suites-service.js';
+import { constants } from './utils.js';
 
 start();
 

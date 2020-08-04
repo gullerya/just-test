@@ -2,9 +2,7 @@
 	:host {
 		--foreground: rgba(224, 224, 224, 1);
 		--background: rgba(16, 32, 64, 1);
-	}
 
-	:host {
 		color: var(--foreground);
 		background-color: var(--background);
 		font-size: 20px;
@@ -86,18 +84,18 @@
 		visibility: hidden;
 	}
 
-	.content {
+	.suites {
 		flex: 1;
 		overflow-x: hidden;
 		overflow-y: scroll;
 		border-inline-end: 1px solid transparent;
 	}
 
-	.content.hidden {
+	.suites.hidden {
 		display: none;
 	}
 
-	.content>.suite-view {
+	.suites>.suite-view {
 		margin-top: 20px;
 		max-height: 36px;
 		overflow: hidden;
@@ -105,11 +103,11 @@
 		transition: max-height 480ms linear;
 	}
 
-	.content>.suite-view.expanded {
+	.suites>.suite-view.expanded {
 		max-height: 8000px;
 	}
 
-	.content>.suite-view>.header {
+	.suites>.suite-view>.header {
 		height: 36px;
 		box-sizing: border-box;
 		border-bottom: 1px solid #555;
@@ -128,23 +126,9 @@
 	<span class="counter skip" data-tie="justTestModel:skipped"></span>
 	<span class="scroll-spacer"></span>
 </div>
-<div class="content">
+
+<div class="suites">
 	<data-tier-list data-tie="justTestModel:suites">
-		<div class="suite-view expanded">
-			<div class="header">
-				<span class="name" data-tie="scope:name"></span>
-				<span class="duration" data-tie="item:duration"></span>
-				<span class="counter pass" data-tie="scope:passed"></span>
-				<span class="counter fail" data-tie="scope:failed"></span>
-				<span class="counter skip" data-tie="scope:skipped"></span>
-			</div>
-			<div class="suite-tests">
-				<template is="data-tier-item-template" data-tie="item:tests">
-					<test-view
-						data-tie="item => test, item:status => status, item:duration => duration, item:error => error">
-					</test-view>
-				</template>
-			</div>
-		</div>
+		<just-test-suite data-tie="scope => suiteData"></just-test-suite>
 	</data-tier-list>
 </div>

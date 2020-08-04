@@ -1,6 +1,6 @@
 import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
 
-initComponent('just-test-details', class extends ComponentBase {
+initComponent('jt-details', class extends ComponentBase {
 	connectedCallback() {
 	}
 

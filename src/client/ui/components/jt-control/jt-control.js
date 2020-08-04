@@ -5,7 +5,7 @@ import { runResults } from '../../utils.js';
 
 const RESULTS_KEY = Symbol('results.key');
 
-initComponent('just-test-control', class extends ComponentBase {
+initComponent('jt-control', class extends ComponentBase {
 	connectedCallback() {
 		//	TODO: add minimization toggling
 	};

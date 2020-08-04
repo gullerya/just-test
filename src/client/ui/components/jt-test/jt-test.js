@@ -1,9 +1,9 @@
-import { initComponent, ComponentBase } from '../libs/rich-component/rich-component.min.js';
-import { runResults } from '../utils.js';
+import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
+import { runResults } from '../../utils.js';
 
 const TEST_KEY = Symbol('test.key');
 
-initComponent('test-view', class extends ComponentBase {
+initComponent('jt-test', class extends ComponentBase {
 	connectedCallback() {
 		this.shadowRoot.querySelector('.header > .error-type').addEventListener('click', () => {
 			this.classList.toggle('errorOpen');
