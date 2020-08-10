@@ -44,6 +44,7 @@ class Suite {
 			error: 0,
 			tests: []
 		});
+		this.model = model.suites[model.suites.length - 1];
 	}
 
 	addTest(meta, frame) {
@@ -54,6 +55,10 @@ class Suite {
 		this.tests[meta.name] = test;
 
 		model.total++;
+		this.model.tests.push({
+			name: test.name,
+			lastRun: null
+		});
 	}
 
 	runTest(testName) {

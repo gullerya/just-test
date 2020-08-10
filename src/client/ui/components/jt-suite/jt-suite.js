@@ -6,10 +6,6 @@ initComponent('just-test-suite', class extends ComponentBase {
 	connectedCallback() {
 	}
 
-	set suiteData(suiteData) {
-		console.log(suiteData);
-	}
-
 	static get htmlUrl() {
 		return import.meta.url.replace(/js$/, 'htm');
 	}

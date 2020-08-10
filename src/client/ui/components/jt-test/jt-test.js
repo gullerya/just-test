@@ -3,7 +3,7 @@ import { runResults } from '../../utils.js';
 
 const TEST_KEY = Symbol('test.key');
 
-initComponent('jt-test', class extends ComponentBase {
+initComponent('just-test-test', class extends ComponentBase {
 	connectedCallback() {
 		this.shadowRoot.querySelector('.header > .error-type').addEventListener('click', () => {
 			this.classList.toggle('errorOpen');
