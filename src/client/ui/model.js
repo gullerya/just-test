@@ -1,6 +1,6 @@
 export class Test {
-	constructor(meta, frame) {
-		Object.assign(this, meta);
+	constructor(name, frame) {
+		this.name = name;
 		this.frame = frame;
 		this.runs = [];
 		Object.seal(this);
