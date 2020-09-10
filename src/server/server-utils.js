@@ -24,4 +24,4 @@ function extractExtension(filePath) {
 	} else {
 		return '';
 	}
-};
+}

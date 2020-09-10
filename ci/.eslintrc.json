@@ -1,31 +1,11 @@
 {
-	"extends": "standard",
+	"extends": "eslint:recommended",
 	"env": {
 		"browser": true,
-		"node": true,
-		"es2020": true
+		"es2017": true
 	},
-	"rules": {
-		"accessor-pairs": [
-			"error",
-			{
-				"setWithoutGet": false
-			}
-		],
-		"eol-last": "off",
-		"import/no-absolute-path": "off",
-		"indent": [
-			2,
-			"tab",
-			{
-				"SwitchCase": 1
-			}
-		],
-		"no-prototype-builtins": "off",
-		"no-tabs": 0,
-		"object-curly-spacing": "off",
-		"one-var": "off",
-		"semi": "off",
-		"space-before-function-paren": "off"
+	"parserOptions": {
+		"ecmaVersion": 11,
+		"sourceType": "module"
 	}
 }

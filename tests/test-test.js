@@ -225,18 +225,30 @@ suite.test({ name: 'few async tests - normal flow' }, async test => {
 	test.assertTrue(duration >= 1300 && duration <= 1550);
 });
 
-suite.test({ name: 'test - API negative A', expectError: 'test meta MUST be a non-null object' }, async () => {
-	const t = await executeTest('some string');
+suite.test({
+	name: 'test - API negative A',
+	expectError: 'test meta MUST be a non-null object'
+}, async () => {
+	await executeTest('some string');
 });
 
-suite.test({ name: 'test - API negative B', expectError: 'name MUST be a non empty string within the option' }, async () => {
-	const t = await executeTest({});
+suite.test({
+	name: 'test - API negative B',
+	expectError: 'name MUST be a non empty string within the option'
+}, async () => {
+	await executeTest({});
 });
 
-suite.test({ name: 'test - API negative C', expectError: 'test code MUST be a function' }, async () => {
-	const t = await executeTest({ name: 'some name' });
+suite.test({
+	name: 'test - API negative C',
+	expectError: 'test code MUST be a function'
+}, async () => {
+	await executeTest({ name: 'some name' });
 });
 
-suite.test({ name: 'test - API negative D', expectError: 'test code MUST be a function' }, async () => {
-	const t = await executeTest({ name: 'some name', code: {} });
+suite.test({
+	name: 'test - API negative D',
+	expectError: 'test code MUST be a function'
+}, async () => {
+	await executeTest({ name: 'some name', code: {} });
 });

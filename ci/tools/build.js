@@ -1,4 +1,5 @@
 ﻿import os from 'os';
+import process from 'process';
 import fsExtra from 'fs-extra';
 
 process.stdout.write('cleaning "bin"...');
