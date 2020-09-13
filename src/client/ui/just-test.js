@@ -34,13 +34,13 @@ function getSuite(name) {
 	}
 }
 
-function registerTest(meta, code) {
-	const normalizedMeta = validateNormalizeParams(meta, code);
+function registerTest(name, code, options) {
+	const normalizedMeta = validateNormalizeParams(name, code, options);
 
 	console.debug(normalizedMeta);
 
-	const testId = getId(this.suiteName, meta.name);
-	testsMap[testId] = { meta: normalizedMeta, code: code };
+	const testId = getId(this.suiteName, normalizedMeta.name);
+	testsMap[testId] = { meta: normalizedMeta, code: normalizedMeta.code };
 
 	window.parent.postMessage({
 		type: constants.TEST_ADDED_EVENT,
@@ -57,19 +57,23 @@ const TEST_META_DEFAULT = Object.freeze({
 	expectError: ''
 });
 
-function validateNormalizeParams(meta, code) {
-	if (!meta || typeof meta !== 'object') {
-		throw new Error(`test meta MUST be a non-null object; found '${meta}'`);
+function validateNormalizeParams(name, code, options) {
+	const tmp = {};
+
+	if (!name || typeof name !== 'string') {
+		throw new Error(`test name MUST be a non-empty string got '${name}'`);
 	}
+	tmp.name = new String(name);
+
 	if (typeof code !== 'function') {
 		throw new Error(`test code MUST be a function; found '${code}'`);
 	}
+	tmp.code = code;
 
-	if (!meta.name) {
-		throw new Error('test name MUST be a non empty string within the options');
+	if (!meta || typeof meta !== 'object') {
+		throw new Error(`test meta MUST be a non-null object; found '${meta}'`);
 	}
 
-	const tmp = {};
 	Object.keys(meta).forEach(key => {
 		if (key in TEST_META_DEFAULT) {
 			if (typeof meta[key] !== typeof TEST_META_DEFAULT[key]) {

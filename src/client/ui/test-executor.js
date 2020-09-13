@@ -3,7 +3,8 @@ import { runResults } from './utils.js';
 
 const
 	RANDOM_CHARSETS = Object.freeze({ numeric: '0123456789', alphaLower: 'abcdefghijklmnopqrstuvwxyz', alphaUpper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' }),
-	DEFAULT_CHARSET = RANDOM_CHARSETS.alphaLower + RANDOM_CHARSETS.alphaUpper + RANDOM_CHARSETS.numeric;
+	DEFAULT_CHARSET = RANDOM_CHARSETS.alphaLower + RANDOM_CHARSETS.alphaUpper + RANDOM_CHARSETS.numeric,
+	DEFAULT_RANDOM_LENGTH = 8;
 
 export { RANDOM_CHARSETS, executeTest }
 
@@ -86,7 +87,7 @@ TestAssets.prototype.waitMillis = async millis => {
 	return new Promise(resolve => setTimeout(resolve, millis));
 }
 
-TestAssets.prototype.getRandom = (length, randomCharsets) => {
+TestAssets.prototype.getRandom = (length = DEFAULT_RANDOM_LENGTH, randomCharsets) => {
 	if (!length || typeof length !== 'number' || isNaN(length) || length > 128) {
 		throw new Error(`invalid length ${length}`);
 	}
