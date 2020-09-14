@@ -24,6 +24,9 @@
 	"files": [
 		"bin"
 	],
+	"bin": {
+		"just-test": "bin/start.js"
+	},
 	"type": "module",
 	"main": "dist/just-test.js",
 	"browser": "dist/just-test.js",
@@ -38,7 +41,7 @@
 	},
 	"scripts": {
 		"build": "node ./ci/tools/build.js",
-		"lint": "node ./node_modules/eslint/bin/eslint -c ./ci/.eslintrc.json ./src/**/*.js ./ci/**/*.js ./tests/**/*.js",
+		"lint": "eslint -c ./ci/.eslintrc.json \"./src/**/*.js\" \"./ci/**/*.js\" \"./tests/**/*.js\"",
 		"test": "node ./bin/start.js config=./tests/tests-config.json"
 	},
 	"dependencies": {

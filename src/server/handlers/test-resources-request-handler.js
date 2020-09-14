@@ -41,5 +41,5 @@ export default class TestResourcesRequestHandler extends RequestHandlerBase {
 				}
 			}
 		});
-	};
+	}
 }

@@ -44,7 +44,7 @@ export default class ClientLibsRequestHandler extends RequestHandlerBase {
 		});
 
 		return true;
-	};
+	}
 
 	extractLibName(libPath) {
 		let result = libPath;

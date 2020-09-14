@@ -8,7 +8,7 @@ const RESULTS_KEY = Symbol('results.key');
 initComponent('jt-control', class extends ComponentBase {
 	connectedCallback() {
 		//	TODO: add minimization toggling
-	};
+	}
 
 	set results(results) {
 		this[RESULTS_KEY] = results;

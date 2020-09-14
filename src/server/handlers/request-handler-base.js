@@ -12,7 +12,7 @@ export class RequestHandlerBase {
 		return null;
 	}
 
-	async handle(handlerRelativePath, req, res) {
+	async handle() {
 		throw new Error('implementation missing');
 	}
 }

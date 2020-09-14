@@ -26,7 +26,7 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 		} else {
 			res.writeHead(404).end();
 		}
-	};
+	}
 
 	handleTestsMetadata(res) {
 		res

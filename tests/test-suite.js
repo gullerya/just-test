@@ -17,18 +17,18 @@ const
 // 	test.assertTrue(s.model.duration > 0);
 // });
 
-suite.test({ name: 'suite - skipping this one (UI/manual test)', skip: true }, () => {
-});
+suite.test('suite - skipping this one (UI/manual test)', () => {
+}, { skip: true });
 
-suite.test({ name: 'suite - erroring this one (UI/manual test)' }, () => {
+suite.test('suite - erroring this one (UI/manual test)', () => {
 	throw new Error('intentional');
 });
 
-suite.test({ name: 'suite - timing out this one (UI/manual test)', ttl: 500 }, async t => {
+suite.test('suite - timing out this one (UI/manual test)', async t => {
 	await t.waitMillis(1000);
-});
+}, { ttl: 500 });
 
-suite.test({ name: 'suite - failing this one (UI/manual test)' }, t => {
+suite.test('suite - failing this one (UI/manual test)', t => {
 	t.assertNotEqual(1, 1);
 });
 
@@ -61,9 +61,9 @@ suite.test({ name: 'suite - failing this one (UI/manual test)' }, t => {
 // });
 
 //	this is the test to play with uncaughtrejection, just remove the return keyword from below
-suite.test({ name: 'suite - uncaught error from wrong asyns test', expectError: 'wrongly done async test' }, test => {
+suite.test('suite - uncaught error from wrong asyns test', test => {
 	return test.waitNextTask()
 		.then(() => {
 			throw new Error('wrongly done async test');
 		});
-});
+}, { expectError: 'wrongly done async test' });

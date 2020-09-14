@@ -6,7 +6,17 @@ import { constants } from './utils.js';
 start();
 
 async function start() {
-	//	load tests data
+	const { metadata, resources } = await loadDefs();
+
+	console.log('TO BE REMOVED');
+	console.dir(metadata);
+
+	initTestListener();
+
+	await initTests(metadata, resources);
+}
+
+async function loadDefs() {
 	const data = await Promise.all([
 		fetch('/api/tests/metadata'),
 		fetch('/api/tests/resources')
@@ -14,38 +24,25 @@ async function start() {
 	if (!data[0].ok || !data[1].ok) {
 		throw new Error(`failed to load tests data; metadata: ${data[0].status}, resources: ${data[1].status}`);
 	}
-
-	initTestListener();
-
-	//	init test frames
-	const testsMetadata = await data[0].json();
-	const testsResources = await data[1].json();
-	await initTestFrames(testsMetadata, testsResources);
-
-	//	TODO: to be removed
-	console.dir(testsMetadata);
+	return {
+		metadata: await data[0].json(),
+		resources: await data[1].json()
+	};
 }
 
-async function initTestFrames(testsMetadata, testsResources) {
+async function initTests(testsMetadata, testsResources) {
+	console.log(`importing ${testsResources.length} test resources...`);
+	const importPromises = [];
 	testsResources.forEach(tr => {
-		const testFrame = document.createElement('iframe');
-
-		if (tr.endsWith('.js')) {
-			testFrame.addEventListener('load', () => {
-				const s = testFrame.contentDocument.createElement('script');
-				s.type = 'module';
-				s.src = '/tests/resources/' + tr;
-				testFrame.contentDocument.body.appendChild(s);
-			});
-			testFrame.src = './test-frame.html';
-		} else if (tr.endsWith('.htm') || tr.endsWith('.html')) {
-			testFrame.src = tr;
-		} else {
-			console.error(`unsupported test resource type '${tr}', only '.js', '.htm/.html' are supported`);
-		}
-
-		document.querySelector('.just-test-details').appendChild(testFrame);
+		importPromises.push(
+			import(`/tests/resources/${tr}`)
+				.catch(e => {
+					console.error(`failed to import '${tr}': ${e}`);
+				})
+		);
 	});
+	await Promise.all(importPromises);
+	console.log('... done');
 }
 
 function initTestListener() {

@@ -27,7 +27,7 @@ window.addEventListener('message', async event => {
 	}
 });
 
-function getSuite(name) {
+function getSuite(name, options) {
 	return {
 		suiteName: name,
 		test: registerTest

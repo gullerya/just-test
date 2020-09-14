@@ -1,5 +1,6 @@
 import fs from 'fs';
 import util from 'util';
+import process from 'process';
 import Logger from './logger/logger.js';
 
 const logger = new Logger('JustTest [configurer]');
@@ -96,16 +97,16 @@ function mergeConfig(a, b) {
 	} else {
 		const result = {};
 		Object.keys(a).forEach(k => {
-			if (b.hasOwnProperty(k)) {					//	each existing property of 'b' to be taken
+			if (Object.prototype.hasOwnProperty.call(b, k)) {	//	each existing property of 'b' to be taken
 				if (typeof a[k] === 'object') {
 					result[k] = mergeConfig(a[k], b[k]);		//	objects are recursively merged
 				} else {
-					result[k] = b[k];					//	plain data just copied
+					result[k] = b[k];							//	plain data just copied
 				}
 			} else {
-				result[k] = a[k];							//	when 'b' doesn't has property - keep the 'a'
+				result[k] = a[k];								//	when 'b' doesn't has property - keep the 'a'
 			}
 		});
 		return result;
 	}
-};
+}

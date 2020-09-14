@@ -1,5 +1,6 @@
 import os from 'os';
 import util from 'util';
+import process from 'process';
 import Logger from './logger/logger.js';
 import serverService from './server/server-service.js';
 import clientService from './client/client-service.js';
