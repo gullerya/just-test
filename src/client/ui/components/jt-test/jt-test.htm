@@ -14,13 +14,18 @@
 
 	.header {
 		flex-basis: 24px;
+		overflow: hidden;
 		padding: 6px;
 		display: flex;
+		flex-direction: row;
 		align-items: center;
 	}
 
-	.header>.name {
+	.name {
 		flex: 1;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
 		color: #999;
 		transition: color 120ms
 	}
@@ -149,7 +154,7 @@
 </style>
 
 <div class="header">
-	<span class="name" data-tie="scope:name"></span>
+	<span class="name" data-tie="scope:name, scope:name => title"></span>
 	<span class="error-type" data-tie="scope:lastRun.error.type"></span>
 	<span class="re-run"></span>
 	<span class="duration" data-tie="scope:lastRun.duration"></span>

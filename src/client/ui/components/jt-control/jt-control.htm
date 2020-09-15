@@ -96,20 +96,6 @@
 	}
 
 	.suites>.suite-view {
-		margin-top: 20px;
-		max-height: 36px;
-		overflow: hidden;
-		border-bottom: 1px solid #555;
-		transition: max-height 480ms linear;
-	}
-
-	.suites>.suite-view.expanded {
-		max-height: 8000px;
-	}
-
-	.suites>.suite-view>.header {
-		height: 36px;
-		box-sizing: border-box;
 		border-bottom: 1px solid #555;
 	}
 </style>
@@ -129,6 +115,6 @@
 
 <div class="suites">
 	<data-tier-list data-tie="justTestModel:suites">
-		<just-test-suite></just-test-suite>
+		<just-test-suite class="suite-view"></just-test-suite>
 	</data-tier-list>
 </div>

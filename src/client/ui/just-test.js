@@ -27,7 +27,7 @@ window.addEventListener('message', async event => {
 	}
 });
 
-function getSuite(name, options) {
+function getSuite(name) {
 	return {
 		suiteName: name,
 		test: registerTest
@@ -35,22 +35,25 @@ function getSuite(name, options) {
 }
 
 function registerTest(name, code, options) {
-	const normalizedMeta = validateNormalizeParams(name, code, options);
+	try {
+		const normalizedMeta = validateNormalizeParams(name, code, options);
 
-	console.debug(normalizedMeta);
+		console.debug(normalizedMeta);
 
-	const testId = getId(this.suiteName, normalizedMeta.name);
-	testsMap[testId] = { meta: normalizedMeta, code: normalizedMeta.code };
+		const testId = getId(this.suiteName, normalizedMeta.name);
+		testsMap[testId] = { meta: normalizedMeta, code: code };
 
-	window.parent.postMessage({
-		type: constants.TEST_ADDED_EVENT,
-		suiteName: this.suiteName,
-		meta: normalizedMeta
-	});
-};
+		window.parent.postMessage({
+			type: constants.TEST_ADDED_EVENT,
+			suiteName: this.suiteName,
+			meta: normalizedMeta
+		});
+	} catch (e) {
+		console.error(`failed to process test '${name} : ${JSON.stringify(options)}':`, e);
+	}
+}
 
-const TEST_META_DEFAULT = Object.freeze({
-	name: '',
+const TEST_OPTIONS_DEFAULT = Object.freeze({
 	ttl: 3000,
 	skip: false,
 	sync: false,
@@ -60,29 +63,33 @@ const TEST_META_DEFAULT = Object.freeze({
 function validateNormalizeParams(name, code, options) {
 	const tmp = {};
 
+	//	name
 	if (!name || typeof name !== 'string') {
-		throw new Error(`test name MUST be a non-empty string got '${name}'`);
+		throw new Error(`test name MUST be a non-empty string, got '${name}'`);
 	}
-	tmp.name = new String(name);
+	tmp.name = name;
 
+	//	code
 	if (typeof code !== 'function') {
-		throw new Error(`test code MUST be a function; found '${code}'`);
-	}
-	tmp.code = code;
-
-	if (!meta || typeof meta !== 'object') {
-		throw new Error(`test meta MUST be a non-null object; found '${meta}'`);
+		throw new Error(`test code MUST be a function, got '${code}'`);
 	}
 
-	Object.keys(meta).forEach(key => {
-		if (key in TEST_META_DEFAULT) {
-			if (typeof meta[key] !== typeof TEST_META_DEFAULT[key]) {
-				throw new Error(`unexpected type of '${key}'; expected '${typeof TEST_META_DEFAULT[key]}', found '${typeof meta[key]}'`)
-			}
-			tmp[key] = meta[key];
-		} else {
-			console.warn(`unexpected parameter '${key}' passed to test`);
+	//	options
+	if (options !== undefined) {
+		if (!options || typeof options !== 'object') {
+			throw new Error(`test options, if/when provided, MUST be a non-null object, got '${options}'`);
 		}
-	});
-	return Object.assign({}, TEST_META_DEFAULT, tmp);
+		Object.keys(options).forEach(key => {
+			if (key in TEST_OPTIONS_DEFAULT) {
+				if (typeof options[key] !== typeof TEST_OPTIONS_DEFAULT[key]) {
+					throw new Error(`unexpected type of '${key}'; expected '${typeof TEST_OPTIONS_DEFAULT[key]}', found '${typeof options[key]}'`);
+				}
+				tmp[key] = options[key];
+			} else {
+				console.warn(`unexpected option '${key}' passed to test`);
+			}
+		});
+	}
+
+	return Object.assign({}, TEST_OPTIONS_DEFAULT, tmp);
 }

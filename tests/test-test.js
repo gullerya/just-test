@@ -4,7 +4,7 @@ import { executeTest } from '/core/test-executor.js';
 
 const suite = getSuite('Single test tests');
 
-suite.test({ name: 'test - normal flow all properties' }, async test => {
+suite.test('test - normal flow all properties', async test => {
 	let r = false;
 
 	const
@@ -30,7 +30,7 @@ suite.test({ name: 'test - normal flow all properties' }, async test => {
 	test.assertNotEqual(m.duration, 0);
 });
 
-suite.test({ name: 'test - fail by false' }, async test => {
+suite.test('test - fail by false', async test => {
 	let r = false;
 
 	const
@@ -47,7 +47,7 @@ suite.test({ name: 'test - fail by false' }, async test => {
 	test.assertEqual(m.error, null);
 });
 
-suite.test({ name: 'test - fail by Error' }, async test => {
+suite.test('test - fail by Error', async test => {
 	let r = false,
 		e;
 
@@ -72,7 +72,7 @@ suite.test({ name: 'test - fail by Error' }, async test => {
 	test.assertTrue(m.error.stackLines.length > 2);
 });
 
-suite.test({ name: 'test - fail by AssertError' }, async test => {
+suite.test('test - fail by AssertError', async test => {
 	let r = false;
 
 	const
@@ -94,7 +94,7 @@ suite.test({ name: 'test - fail by AssertError' }, async test => {
 	test.assertTrue(m.error.stackLines.length > 2);
 });
 
-suite.test({ name: 'test - fail by fail' }, async test => {
+suite.test('test - fail by fail', async test => {
 	let r = false;
 
 	const
@@ -116,7 +116,7 @@ suite.test({ name: 'test - fail by fail' }, async test => {
 	test.assertTrue(m.error.stackLines.length > 2);
 });
 
-suite.test({ name: 'test - fail by expect error and none' }, async test => {
+suite.test('test - fail by expect error and none', async test => {
 	let r = false;
 
 	const
@@ -136,7 +136,7 @@ suite.test({ name: 'test - fail by expect error and none' }, async test => {
 	test.assertTrue(m.error.stackLines.length > 1);
 });
 
-suite.test({ name: 'test - skip' }, async test => {
+suite.test('test - skip', async test => {
 	let r = false;
 
 	const
@@ -154,7 +154,7 @@ suite.test({ name: 'test - skip' }, async test => {
 	test.assertEqual(m.duration, null);
 });
 
-suite.test({ name: 'test - ttl' }, async test => {
+suite.test('test - ttl', async test => {
 	let r = false;
 
 	const
@@ -181,7 +181,7 @@ suite.test({ name: 'test - ttl' }, async test => {
 	test.assertTrue(m.duration > 1000 && m.duration < 1050);
 });
 
-suite.test({ name: 'few async tests - normal flow' }, async test => {
+suite.test('few async tests - normal flow', async test => {
 	let r1 = false,
 		r2 = false;
 
@@ -225,30 +225,26 @@ suite.test({ name: 'few async tests - normal flow' }, async test => {
 	test.assertTrue(duration >= 1300 && duration <= 1550);
 });
 
-suite.test({
-	name: 'test - API negative A',
-	expectError: 'test meta MUST be a non-null object'
-}, async () => {
+suite.test('test - API negative A', async () => {
 	await executeTest('some string');
+}, {
+	expectError: 'test meta MUST be a non-null object'
 });
 
-suite.test({
-	name: 'test - API negative B',
-	expectError: 'name MUST be a non empty string within the option'
-}, async () => {
+suite.test('test - API negative B', async () => {
 	await executeTest({});
+}, {
+	expectError: 'name MUST be a non empty string within the option'
 });
 
-suite.test({
-	name: 'test - API negative C',
-	expectError: 'test code MUST be a function'
-}, async () => {
+suite.test('test - API negative C', async () => {
 	await executeTest({ name: 'some name' });
+}, {
+	expectError: 'test code MUST be a function'
 });
 
-suite.test({
-	name: 'test - API negative D',
-	expectError: 'test code MUST be a function'
-}, async () => {
+suite.test('test - API negative D', async () => {
 	await executeTest({ name: 'some name', code: {} });
+}, {
+	expectError: 'test code MUST be a function'
 });

@@ -3,7 +3,7 @@ import { RANDOM_CHARSETS } from '/core/test-executor.js';
 
 const suite = getSuite('Test assets - random');
 
-suite.test({ name: 'random all' }, test => {
+suite.test('random all', test => {
 	const it = 100;
 	const rl = 8;
 	const sm = {};
@@ -16,7 +16,7 @@ suite.test({ name: 'random all' }, test => {
 	Object.keys(sm).forEach(k => test.assertEqual(rl, k.length));
 });
 
-suite.test({ name: 'random numeric' }, test => {
+suite.test('random numeric', test => {
 	const it = 100;
 	const rl = 8;
 	const sm = {};
@@ -30,7 +30,7 @@ suite.test({ name: 'random numeric' }, test => {
 	Object.keys(sm).forEach(k => test.assertTrue(/[0-9]+/.test(k)));
 });
 
-suite.test({ name: 'random alpha lower' }, test => {
+suite.test('random alpha lower', test => {
 	const it = 100;
 	const rl = 8;
 	const sm = {};
@@ -44,7 +44,7 @@ suite.test({ name: 'random alpha lower' }, test => {
 	Object.keys(sm).forEach(k => test.assertTrue(/[a-z]+/.test(k)));
 });
 
-suite.test({ name: 'random alpha upper' }, test => {
+suite.test('random alpha upper', test => {
 	const it = 100;
 	const rl = 8;
 	const sm = {};
@@ -58,7 +58,7 @@ suite.test({ name: 'random alpha upper' }, test => {
 	Object.keys(sm).forEach(k => test.assertTrue(/[A-Z]+/.test(k)));
 });
 
-suite.test({ name: 'random alpha all' }, test => {
+suite.test('random alpha all', test => {
 	const it = 100;
 	const rl = 8;
 	const sm = {};

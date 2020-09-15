@@ -37,7 +37,7 @@ async function initTests(testsMetadata, testsResources) {
 		importPromises.push(
 			import(`/tests/resources/${tr}`)
 				.catch(e => {
-					console.error(`failed to import '${tr}': ${e}`);
+					console.error(`failed to import '${tr}':`, e);
 				})
 		);
 	});

@@ -93,6 +93,7 @@ class Suite {
 
 	endTest(testName, run) {
 		//	TODO: resolve pending promise
+		console.debug(testName, run);
 		model.done++;
 		const sModel = model.suites.find(s => s.name === this.name);
 		sModel.passed++;
