@@ -24,6 +24,9 @@ async function executeTest({ meta, code }) {
 	if (meta.skip) {
 		run.result = runResults.SKIPPED;
 	} else {
+		//	check if a single document required/provided
+		//	if not - create document and inject the full script of the test with only running this single test
+
 		let runResult;
 		const testAssets = new TestAssets();
 		const start = performance.now();

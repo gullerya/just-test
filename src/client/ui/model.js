@@ -3,7 +3,6 @@ export class Test {
 		this.name = name;
 		this.frame = frame;
 		this.runs = [];
-		Object.seal(this);
 	}
 }
 
@@ -13,6 +12,5 @@ export class Run {
 		this.duration = null;
 		this.error = null;
 		this.result = null;
-		Object.seal(this);
 	}
 }

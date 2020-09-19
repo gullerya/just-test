@@ -1,15 +1,11 @@
 <style>
 	:host {
 		padding-left: 20px;
-		font-size: 90%;
+		font-size: 0.8em;
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 		line-height: 1.2em;
-	}
-
-	:host(:hover) {
-		background-color: #111;
 	}
 
 	.header {
@@ -21,6 +17,10 @@
 		align-items: center;
 	}
 
+	.header:hover {
+		background-color: rgba(32, 64, 128, 1);
+	}
+
 	.name {
 		flex: 1;
 		overflow: hidden;
@@ -28,10 +28,6 @@
 		text-overflow: ellipsis;
 		color: #999;
 		transition: color 120ms
-	}
-
-	.header:hover>.name {
-		color: #ccc;
 	}
 
 	.header>.error-type {

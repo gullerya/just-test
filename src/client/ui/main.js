@@ -55,8 +55,6 @@ function initTestListener() {
 			addTest(event.data, event.source);
 		} else if (event.data.type === constants.TEST_ENDED_EVENT) {
 			endTest(event.data);
-		} else {
-			console.error(`unexpected message of type '${event.data.type}'`);
 		}
 	});
 }
