@@ -91,13 +91,21 @@ class ServerService {
 		logger.info(`... local server started on port ${port}`);
 	}
 
-	stop() {
+	async stop() {
+		let resPromise;
+		logger.info('stopping local server...');
 		if (this[SERVER_KEY] && this[STATUS_KEY] === STATUS_RUNNING) {
-			this[SERVER_KEY].close(() => {
-				this[STATUS_KEY] = STATUS_STOPPED;
-				logger.info('local server stopped');
+			resPromise = new Promise(resolve => {
+				this[SERVER_KEY].close(closeError => {
+					this[STATUS_KEY] = STATUS_STOPPED;
+					logger.info(`... local server stopped${closeError ? ` ${closeError}` : ``}`);
+					resolve();
+				});
 			});
+		} else {
+			resPromise = Promise.resolve();
 		}
+		return resPromise;
 	}
 
 	get effectiveConfig() {
@@ -108,7 +116,7 @@ class ServerService {
 		return this[BASE_URL_KEY];
 	}
 
-	get running() {
+	get isRunning() {
 		return this[STATUS_KEY] === STATUS_RUNNING;
 	}
 }

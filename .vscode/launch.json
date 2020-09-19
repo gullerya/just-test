@@ -5,9 +5,9 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Debug tests",
-			"program": "${workspaceFolder}/src/start.js",
+			"program": "${workspaceFolder}/bin/start.js",
 			"args": [
-				"-c=./tests/tests-config.json"
+				"config=./tests/tests-config.json"
 			],
 			"runtimeArgs": [
 				"--harmony",

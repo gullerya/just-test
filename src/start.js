@@ -1,4 +1,3 @@
-import os from 'os';
 import util from 'util';
 import process from 'process';
 import Logger from './logger/logger.js';
@@ -9,11 +8,15 @@ import coverageService from './coverage/coverage-service.js';
 
 const logger = new Logger('JustTest [main]');
 
-let browser,
-	result;
+let browser;
 
-//	main flow runs here, IIFE used to allow async/await
-(async () => {
+//	this is the whole flow in top level steps
+main()
+	.then(onMainComplete)
+	.catch(onMainFailure)
+	.finally(cleanup);
+
+async function main() {
 	logger.info('effective configuration:');
 	logger.info(util.inspect({
 		server: serverService.effectiveConfig,
@@ -22,6 +25,7 @@ let browser,
 		coverage: coverageService.effectiveConfig
 	}, false, null, true));
 
+	const executionResult = {};
 	const testResources = await testService.testResourcesPromise;
 	if (!testResources.length) {
 		logger.info('no tests to run');
@@ -30,7 +34,35 @@ let browser,
 
 	await serverService.start();
 
-	await new Promise(() => { });
+	return executionResult;
+}
+
+async function onMainComplete(result) {
+	logger.info();
+	logger.info('tests execution finished normally');
+	logger.info('tests status - ' + result.statusText);
+	process.exitCode = result.statusPass ? 0 : 1;
+}
+
+async function onMainFailure(failure) {
+	logger.info();
+	logger.error('tests execution finished erroneously;', failure);
+	process.exitCode = 1;
+}
+
+async function cleanup() {
+	logger.info('cleaning things...');
+	if (browser) {
+		logger.info('closing browser...');
+		await browser.close();
+	}
+	if (serverService.isRunning) {
+		await serverService.stop();
+	}
+	logger.info('... all clean');
+}
+
+	// await new Promise(() => { });
 
 	//	TODO pseudo
 	//	if there are tests - start the local server
@@ -87,34 +119,3 @@ let browser,
 	// 	await coverageService.stop();
 	// 	await coverageService.report(conf.coverage, path.resolve(conf.reports.folder, conf.coverage.reportFilename));
 	// }
-})()
-	.then(async () => {
-		logger.info();
-		logger.info('tests execution finished normally');
-		logger.info('tests status - ' + result.statusText);
-		await cleanup();
-		const exitStatus = result.statusPass ? 0 : 1;
-		logger.info(`done, exit status ${exitStatus}${os.EOL}`);
-		logger.info();
-		process.exit(exitStatus);
-	})
-	.catch(async error => {
-		logger.info();
-		logger.error('tests execution finished erroneously;', error);
-		await cleanup();
-		logger.info(`done, exit status 1${os.EOL}`);
-		process.exit(1);
-	});
-
-async function cleanup() {
-	logger.info('cleaning things...');
-	if (browser) {
-		logger.info('closing browser...');
-		await browser.close();
-	}
-	if (serverService && serverService.isRunning) {
-		logger.info('stopping local server');
-		serverService.stop();
-	}
-	logger.info('... clean');
-}
