@@ -4,9 +4,7 @@ const
 	coverageFormats = ['lcov'],
 	defaultConfig = Object.freeze({
 		skip: false,
-		include: [
-			'*'
-		],
+		include: [],
 		exclude: [
 			'*.min.js'
 		],

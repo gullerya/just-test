@@ -1,6 +1,6 @@
+import fs from 'fs';
 import util from 'util';
 import { performance } from 'perf_hooks';
-import fsExtra from 'fs-extra';
 import glob from 'glob';
 import Logger from '../logger/logger.js';
 import buildConfig from './tests-service-config.js';
@@ -68,7 +68,7 @@ class TestService {
 			return document.querySelector('just-test-view').generateXUnitReport();
 		});
 		if (fullReport) {
-			fsExtra.outputFileSync(reportPath, fullReport);
+			fs.writeFileSync(reportPath, fullReport);
 		}
 		logger.info('... full report written ("' + conf.format + '" format)');
 

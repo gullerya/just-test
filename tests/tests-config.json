@@ -1,24 +1,17 @@
 {
-	"browser": {
-		"type": "chromium"
-	},
 	"tests": {
-		"url": "/tests/test.html",
 		"maxFail": 3,
 		"maxSkip": 1,
 		"include": [
-			"tests/**"
+			"./tests/**"
 		],
 		"exclude": [
-			"tests/tests-config.json"
+			"./tests/tests-config.json"
 		]
 	},
 	"coverage": {
 		"include": [
 			"./bin"
 		]
-	},
-	"reports": {
-		"folder": "./reports"
 	}
 }
