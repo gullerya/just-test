@@ -1,10 +1,8 @@
-import util from 'util';
 import process from 'process';
 import Logger from './logger/logger.js';
+import configurer from './configurer.js';
 import serverService from './server/server-service.js';
-import clientService from './client/client-service.js';
 import testService from './tester/tests-service.js';
-import coverageService from './coverage/coverage-service.js';
 
 const logger = new Logger('JustTest [main]');
 
@@ -17,22 +15,18 @@ main()
 	.finally(cleanup);
 
 async function main() {
-	logger.info('effective configuration:');
-	logger.info(util.inspect({
-		server: serverService.effectiveConfig,
-		client: clientService.effectiveConfig,
-		tests: testService.effectiveConfig,
-		coverage: coverageService.effectiveConfig
-	}, false, null, true));
-
 	const executionResult = {};
 	const testResources = await testService.testResourcesPromise;
 	if (!testResources.length) {
 		logger.info('no tests to run');
-		return;
+		return executionResult;
 	}
 
 	await serverService.start();
+
+	if (configurer.givenConfig.interactive) {
+		await new Promise(() => { });
+	}
 
 	return executionResult;
 }
@@ -40,6 +34,7 @@ async function main() {
 async function onMainComplete(result) {
 	logger.info();
 	logger.info('tests execution finished normally');
+	//	TODO: pring summary here
 	logger.info('tests status - ' + result.statusText);
 	process.exitCode = result.statusPass ? 0 : 1;
 }

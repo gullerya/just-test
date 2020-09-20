@@ -15,66 +15,55 @@ export default Object.freeze({
 	mergeConfig: mergeConfig
 });
 
+/**
+ * one time running function to resolve 'givenConfig'
+ */
 function resolveGivenConfig() {
 	const
-		clargs = process.argv.slice(2),
-		args = { config: null };
+		clargs = process.argv.slice(2);
 
-	collectArgsFromCLArgs(args, clargs);
+	//	collect initial from CL args
+	const configuration = argsFromCLArgs(clargs);
+	logger.info('command line arguments:');
+	logger.info(util.inspect(configuration, false, null, true));
 
-	//	valid required
-	const configLocation = args.config;
-	if (!configLocation) {
+	//	enrich from configuration file
+	const configFile = configuration.config;
+	if (!configFile) {
 		logger.error('missing or invalid argument "config" (example: config=/path/to/config.json)');
 		process.exit(1);
 	}
-
-	logger.info('assembling given configuration...');
-	logger.info(`execution directory '${process.cwd()}'`);
-	logger.info('command line arguments:');
-	logger.info(util.inspect(args, false, null, true));
-
-	//	read configuration
-	let rawConfiguration;
+	delete configuration.config;
 	try {
-		rawConfiguration = fs.readFileSync(configLocation, { encoding: 'utf8' });
+		const rawConfiguration = fs.readFileSync(configFile, { encoding: 'utf8' });
+		Object.assign(configuration, JSON.parse(rawConfiguration));
 	} catch (e) {
 		logger.error('failed to READ configuration', e);
 		process.exit(1);
 	}
 
-	//	parse configuration and merge with defaults
-	const configuration = JSON.parse(rawConfiguration);
-	Object.keys(args).forEach(aKey => {
-		const ckPath = aKey.split('.');
-		let target = configuration;
-		for (let i = 0, l = ckPath.length - 1; i < l; i++) {
-			const nextPNode = ckPath[i];
-			if (target[nextPNode] && typeof target[nextPNode] === 'object') {
-				target = target[nextPNode];
-			} else if (target[nextPNode] === undefined || target[nextPNode] === null) {
-				target = target[nextPNode] = {};
-			} else {
-				throw new Error(`command line config property '${aKey}' conflicts with file config property '${nextPNode}' which value is '${target[nextPNode]}'`);
-			}
-		}
-	});
-
-	logger.info('given configuration assembled');
+	logger.info('given configuration resolved:');
+	logger.info(util.inspect(configuration, false, null, true));
 	return Object.freeze(configuration);
 }
 
-function collectArgsFromCLArgs(argsCollector, clArgs) {
-	clArgs.forEach(arg => {
-		const parts = arg.split('=');
-		if (parts.length === 2) {
-			if (parts[0] in argsCollector) {
-				argsCollector[parts[0]] = parts[1];
-			} else {
-				logger.warn(`unexpected command line argument '${parts[0]}'`);
+function argsFromCLArgs(clArgs) {
+	const result = {
+		interactive: true
+	};
+	clArgs
+		.map(arg => arg.split('='))
+		.filter(pair => pair.length === 2)
+		.forEach(([k, v]) => {
+			switch (k) {
+				case 'interactive':
+					result[k] === v === 'true';
+					break;
+				default:
+					result[k] = v;
 			}
-		}
-	});
+		});
+	return result;
 }
 
 function mergeConfig(a, b) {

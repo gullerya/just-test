@@ -15,7 +15,6 @@ export default () => {
 };
 
 function validate(config) {
-	//	validate browsers
 	if (!Array.isArray(config.browsers)) {
 		throw new Error(`'browsers' expected to be an array; got ${config.browsers}`);
 	}

@@ -1,6 +1,7 @@
 import Logger from '../../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { extensionsMap } from '../server-utils.js';
+import configurer from '../../configurer.js';
 import testService from '../../tester/tests-service.js'
 
 const
@@ -31,7 +32,10 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	handleTestsMetadata(res) {
 		res
 			.writeHead(200, { 'Content-Type': extensionsMap.json })
-			.end(JSON.stringify(testService.effectiveConfig));
+			.end(JSON.stringify({
+				givenConfig: configurer.givenConfig,
+				testsConfig: testService.effectiveConfig
+			}));
 	}
 
 	async handleTestsResources(res) {

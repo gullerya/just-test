@@ -1,3 +1,4 @@
+import util from 'util';
 import http from 'http';
 import { performance } from 'perf_hooks';
 import Logger from '../logger/logger.js';
@@ -13,10 +14,16 @@ const
 	BASE_URL_KEY = Symbol('base.url.key'),
 	HANDLERS_READY_PROMISE_KEY = Symbol('handlers.ready.promise.key');
 
+/**
+ * service class - will be instantiated only once in a singleton fashion
+ */
 class ServerService {
 	constructor() {
 		const effectiveConf = buildConfig();
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
+		logger.info('server service effective config:');
+		logger.info(util.inspect(effectiveConf, false, null, true));
+
 		this[STATUS_KEY] = STATUS_STOPPED;
 		this[SERVER_KEY] = null;
 		this[BASE_URL_KEY] = `http://localhost:${effectiveConf.port}`;

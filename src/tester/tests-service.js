@@ -10,9 +10,15 @@ const
 	CONFIG_KEY = Symbol('config.key'),
 	TEST_RESOURCES_PROMISE_KEY = Symbol('test.resources.promise.key');
 
+/**
+ * one time instantiated singleton service
+ */
 class TestService {
 	constructor() {
 		const effectiveConf = buildConfig();
+		logger.info('tests service effective config:');
+		logger.info(util.inspect(effectiveConf, false, null, true));
+
 		this[CONFIG_KEY] = Object.freeze(effectiveConf);
 		this[TEST_RESOURCES_PROMISE_KEY] = this.collectTestResources();
 	}
