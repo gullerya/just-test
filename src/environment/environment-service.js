@@ -11,27 +11,29 @@ const
 	});
 
 export default class EnvironmentService {
-	constructor(configuration) {
-		if (!configuration || typeof configuration !== 'object') {
-			throw new Error(`configuration MUST be a non-null object, got '${configuration}'`);
-		}
-
+	/**
+	 * Environment Service initializer
+	 * 
+	 * @param {Array} [environments] - an array of environment configurations
+	 * @param {Object} [clArguments] - command line arguments
+	 */
+	constructor(environments, clArguments) {
 		const envs = [];
 
-		if (configuration.cliArguments && configuration.cliArguments.envs) {
-			const envArgs = configuration.cliArguments.envs.split(/,|;/);
+		if (clArguments && clArguments.envs) {
+			const envArgs = clArguments.envs.split(/,|;/);
 			for (const envArg of envArgs) {
 				logger.debug(`parsing '${envArg}'...`);
 				//	TODO
 			}
-		} else if (configuration.environments && configuration.environments.length) {
-			for (const env of configuration.environments) {
+		} else if (environments && environments.length) {
+			for (const env of environments) {
 				envs.push(Object.assign(
 					{},
 					ENVIRONMENT_BLUEPRINT,
 					Object.entries(env)
 						.filter(([key]) => key in ENVIRONMENT_BLUEPRINT)
-						.reduce((pv, [key, value]) => pv[key] = value, {})
+						.reduce((pv, [key, value]) => { pv[key] = value; return pv; }, {})
 				));
 			}
 		} else {
@@ -68,7 +70,7 @@ export default class EnvironmentService {
 		const toBeRemoved = envs.filter(e => {
 			const hash = JSON.stringify(e);
 			if (hash in map) {
-				logger.info(`removing identical environment from the list (${hash})`);
+				logger.info(`removing duplicate environment (${hash})`);
 				return true;
 			} else {
 				map[hash] = true;

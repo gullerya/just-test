@@ -15,7 +15,7 @@ const
 		exclude: []
 	});
 
-export default () => {
+export default (serverConfig) => {
 	const result = configurer.mergeConfig(defaultConfig, configurer.givenConfig.server);
 	validate(result);
 	return result;

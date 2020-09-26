@@ -2,7 +2,6 @@ import Logger from '../../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { extensionsMap } from '../server-utils.js';
 import configurer from '../../configurer.js';
-import testService from '../../tester/tests-service.js'
 
 const
 	logger = new Logger({ context: 'handler API' }),
@@ -41,6 +40,6 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	async handleTestsResources(res) {
 		res
 			.writeHead(200, { 'Content-Type': extensionsMap.json })
-			.end(JSON.stringify(await testService.testResourcesPromise));
+			.end(JSON.stringify(await testService.readyPromise));
 	}
 }

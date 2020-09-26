@@ -7,19 +7,18 @@ import buildConfig from './tests-service-config.js';
 
 const
 	logger = new Logger({ context: 'tester' }),
-	CONFIG_KEY = Symbol('config.key'),
-	TEST_RESOURCES_PROMISE_KEY = Symbol('test.resources.promise.key');
+	CONFIG_KEY = Symbol('config'),
+	TEST_RESOURCES_PROMISE_KEY = Symbol('tester.ready');
 
-/**
- * one time instantiated singleton service
- */
-class TestService {
-	constructor() {
-		const effectiveConf = buildConfig();
+export default class TestsService {
+	constructor(testsConfig, clArguments) {
+		//	build configuration
+		const effectiveConf = buildConfig(testsConfig, clArguments);
+		this[CONFIG_KEY] = Object.freeze(effectiveConf);
 		logger.info('tests service effective config:');
 		logger.info(util.inspect(effectiveConf, false, null, true));
 
-		this[CONFIG_KEY] = Object.freeze(effectiveConf);
+		//	collect all test resources
 		this[TEST_RESOURCES_PROMISE_KEY] = this.collectTestResources();
 	}
 
@@ -144,5 +143,3 @@ class TestService {
 		} while (!testsDone);
 	}
 }
-
-export default new TestService();
