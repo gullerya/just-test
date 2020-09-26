@@ -1,7 +1,7 @@
 import Logger from '../logger/logger.js';
 
 const
-	logger = new Logger({ context: 'environment' }),
+	logger = new Logger({ context: 'environments' }),
 	ENVIRONMENTS_KEY = Symbol('environments.key'),
 	ENVIRONMENT_BLUEPRINT = Object.freeze({
 		interactive: true,
@@ -10,7 +10,7 @@ const
 		scheme: null
 	});
 
-export default class EnvironmentService {
+export default class EnvironmentSService {
 	/**
 	 * Environment Service initializer
 	 * 
@@ -37,15 +37,15 @@ export default class EnvironmentService {
 				));
 			}
 		} else {
-			logger.info('no environment configuration specified, defaulting to interactive');
+			logger.info('no environment configurations specified, defaulting to interactive');
 			envs.push(Object.assign(
 				{},
 				ENVIRONMENT_BLUEPRINT,
 				{ interactive: true }
 			));
 		}
-		EnvironmentService.validateEnvironments(envs);
-		EnvironmentService.reduceIdenticalEnvironments(envs);
+		validateEnvironments(envs);
+		reduceIdenticalEnvironments(envs);
 
 		this[ENVIRONMENTS_KEY] = Object.freeze(envs);
 	}
@@ -53,32 +53,32 @@ export default class EnvironmentService {
 	get environments() {
 		return this[ENVIRONMENTS_KEY];
 	}
+}
 
-	static validateEnvironments(envs) {
-		for (const env of envs) {
-			if (env.interactive && env.browser) {
-				throw new Error(`environment can NOT be interactive and define browser; violator: ${JSON.stringify(env)}`);
-			}
-			if (env.interactive && (env.device || env.scheme)) {
-				throw new Error(`interactive environment can NOT specify device or scheme; violator: ${JSON.stringify(env)}`);
-			}
+function validateEnvironments(envs) {
+	for (const env of envs) {
+		if (env.interactive && env.browser) {
+			throw new Error(`environment can NOT be interactive and define browser; violator: ${JSON.stringify(env)}`);
+		}
+		if (env.interactive && (env.device || env.scheme)) {
+			throw new Error(`interactive environment can NOT specify device or scheme; violator: ${JSON.stringify(env)}`);
 		}
 	}
+}
 
-	static reduceIdenticalEnvironments(envs) {
-		const map = {};
-		const toBeRemoved = envs.filter(e => {
-			const hash = JSON.stringify(e);
-			if (hash in map) {
-				logger.info(`removing duplicate environment (${hash})`);
-				return true;
-			} else {
-				map[hash] = true;
-				return false;
-			}
-		});
-		for (const tbr of toBeRemoved) {
-			envs.splice(envs.indexOf(tbr), 1);
+function reduceIdenticalEnvironments(envs) {
+	const map = {};
+	const toBeRemoved = envs.filter(e => {
+		const hash = JSON.stringify(e);
+		if (hash in map) {
+			logger.info(`removing duplicate environment (${hash})`);
+			return true;
+		} else {
+			map[hash] = true;
+			return false;
 		}
+	});
+	for (const tbr of toBeRemoved) {
+		envs.splice(envs.indexOf(tbr), 1);
 	}
 }

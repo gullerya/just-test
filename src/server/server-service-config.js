@@ -1,53 +1,36 @@
-import configurer from '../configurer.js';
-
 const
-	defaultConfig = Object.freeze({
+	DEFAULT_CONFIG = Object.freeze({
 		port: 3000,
 		handlers: [
 			'./handlers/api-request-handler.js',
-			'./handlers/client-libs-request-handler.js',
+			'./handlers/aut-request-handler.js',
 			'./handlers/client-core-request-handler.js',
-			'./handlers/test-resources-request-handler.js'
+			'./handlers/client-libs-request-handler.js',
+			'./handlers/tests-request-handler.js'
 		],
 		include: [
 			'./bin/client/ui/**'
-		],
-		exclude: []
+		]
 	});
 
-export default (serverConfig) => {
-	const result = configurer.mergeConfig(defaultConfig, configurer.givenConfig.server);
+export default (serverConfig, clArguments) => {
+	const result = Object.assign({}, DEFAULT_CONFIG);
+
+	//	port
+	if (clArguments.port) {
+		result.port = parseInt(clArguments.port);
+	} else if (serverConfig.port) {
+		result.port = parseInt(serverConfig.port);
+	}
+	//	TODO: future place for extensibility
+
 	validate(result);
-	return result;
+	return Object.freeze(result);
 };
 
 function validate(config) {
 	//	port
-	if (isNaN(parseInt(config.port))) {
+	if (!config.port || isNaN(config.port)) {
 		throw new Error(`invalid http server port ${config.port}`);
-	}
-
-	//	handlers
-	if (!config.handlers || !Array.isArray(config.handlers)) {
-		throw new Error(`'handlers' is expected to be an array of paths, got '${config.handlers}'`);
-	}
-	if (config.handlers.some(h => !h || typeof h !== 'string')) {
-		throw new Error('\'handlers\' should contain a non-empty strings only');
-	}
-
-	//	include
-	if (!config.include || !Array.isArray(config.include)) {
-		throw new Error(`'include' is expected to be an array of paths, got '${config.include}'`);
-	}
-	if (config.include.some(i => !i || typeof i !== 'string')) {
-		throw new Error('\'include\' should contain a non-empty strings only');
-	}
-
-	//	exclude
-	if (!config.exclude || !Array.isArray(config.exclude)) {
-		throw new Error(`'exclude' is expected to be an array of paths, got '${config.exclude}'`);
-	}
-	if (config.exclude.some(e => !e || typeof e !== 'string')) {
-		throw new Error('\'exclude\' should contain a non-empty strings only');
 	}
 }

@@ -18,14 +18,14 @@ export default class ServerService {
 	constructor(serverConfig, clArguments) {
 		//	build configuration
 		const effectiveConf = buildConfig(serverConfig, clArguments);
-		this[CONFIG_KEY] = Object.freeze(effectiveConf);
+		this[CONFIG_KEY] = effectiveConf;
 		logger.info('server service effective config:');
 		logger.info(util.inspect(effectiveConf, false, null, true));
 
 		//	init service
 		this[STATUS_KEY] = STATUS_STOPPED;
 		this[SERVER_KEY] = null;
-		this[BASE_URL_KEY] = `http://localhost:${effectiveConf.port}`;
+		this[BASE_URL_KEY] = `http://localhost:${this.effectiveConfig.port}`;
 		this[HANDLERS_READY_PROMISE_KEY] = this.initHandlers();
 	}
 
@@ -126,5 +126,3 @@ export default class ServerService {
 		return this[STATUS_KEY] === STATUS_RUNNING;
 	}
 }
-
-export default new ServerService();

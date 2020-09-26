@@ -1,7 +1,6 @@
 import Logger from '../../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { extensionsMap } from '../server-utils.js';
-import configurer from '../../configurer.js';
 
 const
 	logger = new Logger({ context: 'handler API' }),

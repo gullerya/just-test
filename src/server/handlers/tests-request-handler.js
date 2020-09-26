@@ -5,7 +5,7 @@ import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';
 
 const
-	logger = new Logger({ context: 'handler test resources' }),
+	logger = new Logger({ context: 'handler tests' }),
 	CONFIG_KEY = Symbol('config.key'),
 	TEST_RESOURCES_KEY = Symbol('test.resources.key');
 
@@ -18,11 +18,11 @@ export default class TestResourcesRequestHandler extends RequestHandlerBase {
 
 	async postInit() {
 		this[TEST_RESOURCES_KEY] = await testsService.readyPromise;
-		logger.info(`test resource request handler initialized; basePath: '${this.basePath}', total resources: ${this[TEST_RESOURCES_KEY].length}`);
+		logger.info(`tests request handler initialized; basePath: '${this.basePath}'`);
 	}
 
 	get basePath() {
-		return '/tests/resources';
+		return '/tests';
 	}
 
 	async handle(handlerRelativePath, req, res) {

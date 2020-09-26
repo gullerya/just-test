@@ -14,7 +14,7 @@ export default class TestsService {
 	constructor(testsConfig, clArguments) {
 		//	build configuration
 		const effectiveConf = buildConfig(testsConfig, clArguments);
-		this[CONFIG_KEY] = Object.freeze(effectiveConf);
+		this[CONFIG_KEY] = effectiveConf;
 		logger.info('tests service effective config:');
 		logger.info(util.inspect(effectiveConf, false, null, true));
 

@@ -1,33 +1,18 @@
 import fs from 'fs';
 import path from 'path';
-import glob from 'glob';
 import Logger from '../../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';
 
 const
 	logger = new Logger({ context: 'handler client core' }),
-	CONFIG_KEY = Symbol('config.key'),
-	FILE_RESOURCES_KEY = Symbol('file.resources.key');
+	CONFIG_KEY = Symbol('config.key');
 
 export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;
-
-		//	resolve resources list
-		const fileResources = [];
-		config.include.forEach(i => {
-			fileResources.push(...glob.sync(i, {
-				nodir: true,
-				nosort: true,
-				ignore: config.exclude
-			}));
-		});
-
-		this[FILE_RESOURCES_KEY] = fileResources;
-
-		logger.info(`client core resource request handler initialized; basePath: '${this.basePath}', total resources: ${fileResources.length}`);
+		logger.info(`client core resource request handler initialized; basePath: '${this.basePath}'`);
 	}
 
 	get basePath() {
