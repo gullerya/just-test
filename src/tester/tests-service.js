@@ -6,7 +6,7 @@ import Logger from '../logger/logger.js';
 import buildConfig from './tests-service-config.js';
 
 const
-	logger = new Logger('JustTest [tester]'),
+	logger = new Logger({ context: 'JustTest [tester]' }),
 	CONFIG_KEY = Symbol('config.key'),
 	TEST_RESOURCES_PROMISE_KEY = Symbol('test.resources.promise.key');
 

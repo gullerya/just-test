@@ -10,7 +10,7 @@ import FileCov from './file-cov.js';
 import coverageToLcov from './coverage-to-lcov.js';
 
 const
-	logger = new Logger('JustTest [coverage service]'),
+	logger = new Logger({ context: 'JustTest [coverage service]' }),
 	CONFIG_KEY = Symbol('config.key'),
 	NATIVE_PAGE_KEY = Symbol('native.page'),
 	IS_SUPPORTED_KEY = Symbol('native.coverage.supported'),

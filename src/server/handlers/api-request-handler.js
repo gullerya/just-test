@@ -5,7 +5,7 @@ import configurer from '../../configurer.js';
 import testService from '../../tester/tests-service.js'
 
 const
-	logger = new Logger('JustTest [api handler]'),
+	logger = new Logger({ context: 'JustTest [api handler]' }),
 	CONFIG_KEY = Symbol('config.key');
 
 export default class ClientCoreRequestHandler extends RequestHandlerBase {

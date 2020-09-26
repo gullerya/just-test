@@ -25,7 +25,7 @@
 		"bin"
 	],
 	"bin": {
-		"just-test": "bin/start.js"
+		"just-test": "bin/main.js"
 	},
 	"type": "module",
 	"main": "dist/just-test.js",
@@ -42,7 +42,7 @@
 	"scripts": {
 		"build": "node ./ci/tools/build.js",
 		"lint": "eslint -c ./ci/.eslintrc.json \"./src/**/*.js\" \"./ci/**/*.js\" \"./tests/**/*.js\"",
-		"test": "node ./bin/start.js config=./tests/tests-config.json"
+		"test": "node ./bin/main.js config=./tests/tests-config.json"
 	},
 	"dependencies": {
 		"data-tier": "^2.10.0",

@@ -1,65 +1,107 @@
-const
-	CONTEXT_KEY = Symbol('context.key'),
-	PROCCESS_ARGUMENTS_KEY = Symbol('process.arguments.key'),
-	OUTPUT_KEY = Symbol('output.key');
+import process from 'process';
 
-class LoggingContext {
-	constructor(context) {
-		if (!context) {
-			throw new Error(`context argument required; received '${context}'`);
+export const LOG_LEVELS = Object.freeze({
+	ERROR: 40,
+	WARN: 50,
+	INFO: 60,
+	DEBUG: 70
+});
+
+const
+	CONFIGURATION_KEY = Symbol('configuration.key'),
+	PROCCESS_ARGUMENTS_KEY = Symbol('process.arguments.key'),
+	OUTPUT_KEY = Symbol('output.key'),
+	DEFAULT_CONFIG = Object.freeze({
+		context: 'Default',
+		outputs: [console],
+		level: LOG_LEVELS.INFO
+	}),
+	CONTEXTS_REGISTRAR = {};
+
+class LoggingConfiguration {
+	constructor(configuration) {
+		if (!configuration || typeof configuration !== 'object') {
+			throw new Error(`configuration object required; received '${configuration}'`);
 		}
-		this.outputs = [];
-		this.prefix = context;
-		this.outputs.push(console);
+		Object.assign(this, DEFAULT_CONFIG, configuration);
+		if (this.context in CONTEXTS_REGISTRAR) {
+			throw new Error(`logging context '${this.context}' already registered`);
+		} else {
+			CONTEXTS_REGISTRAR[this.context] = true;
+		}
 	}
 }
 
 export default class Logger {
-	constructor(context) {
-		this[CONTEXT_KEY] = new LoggingContext(context);
+	constructor(configuration) {
+		this[CONFIGURATION_KEY] = new LoggingConfiguration(configuration);
 	}
 
+	set level(level) {
+		if (!level || typeof level !== 'number' || !Object.values(LOG_LEVELS).some(v => v === level)) {
+			throw new Error(`level argument MUST be one of '${Object.values(LOG_LEVELS)}', got '${level}'`);
+		}
+		this[CONFIGURATION_KEY].level = level;
+	}
+
+	get level() {
+		return this[CONFIGURATION_KEY].level;
+	}
+
+	//	effective for verbosity = debug, info, warn, error
 	debug() {
-		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'DEBUG');
+		if (this.level < LOG_LEVELS.DEBUG) return;
+
+		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'DBG');
 		this[OUTPUT_KEY]('debug', args);
 	}
 
+	//	effective for verbosity = error
 	error() {
-		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'ERROR');
+		if (this.level < LOG_LEVELS.ERROR) return;
+
+		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'ERR');
 		this[OUTPUT_KEY]('error', args);
 	}
 
+	//	effective for verbosity = info, warn, error
 	info() {
-		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'INFO');
+		if (this.level < LOG_LEVELS.INFO) return;
+
+		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'INF');
 		this[OUTPUT_KEY]('info', args);
 	}
 
+	//	generic, always printed
 	log() {
 		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'LOG');
 		this[OUTPUT_KEY]('log', args);
 	}
 
+	//	effective for verbosity = warn, error
 	warn() {
-		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'WARN');
+		if (this.level < LOG_LEVELS.WARN) return;
+
+		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'WRN');
 		this[OUTPUT_KEY]('warn', args);
 	}
 
-	[PROCCESS_ARGUMENTS_KEY](args, method) {
+	[PROCCESS_ARGUMENTS_KEY](args, level) {
 		let result = [];
 		if (args.length) {
 			result = Array.from(args).slice();
-			result[0] = `${this[CONTEXT_KEY].prefix} - ${method} - ${result[0]}`;
+			result[0] = `${level} ${this[CONFIGURATION_KEY].context} - ${result[0]}`;
 		}
 		return result;
 	}
 
 	[OUTPUT_KEY](method, args) {
 		if (method && args && args.length) {
-			this[CONTEXT_KEY].outputs.forEach(output => {
+			this[CONFIGURATION_KEY].outputs.forEach(output => {
 				try {
 					output[method].apply(output, args);
 				} catch (e) {
-					console.error(`failed to output to ${output}`, e);
+					process.emitWarning(`failed to output to ${output}: ${e}`);
 				}
 			});
 		}

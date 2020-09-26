@@ -8,7 +8,7 @@ import util from 'util';
 import process from 'process';
 import Logger from './logger/logger.js';
 
-const logger = new Logger('JustTest [configurer]');
+const logger = new Logger({ context: 'JustTest [configurer]' });
 
 export default Object.freeze({
 	givenConfig: resolveGivenConfig(),
@@ -19,32 +19,33 @@ export default Object.freeze({
  * one time running function to resolve 'givenConfig'
  */
 function resolveGivenConfig() {
-	const
-		clargs = process.argv.slice(2);
+	const result = {};
 
-	//	collect initial from CL args
-	const configuration = argsFromCLArgs(clargs);
+	//	get command line arguments
+	const clConfig = argsFromCLArgs(process.argv.slice(2));
 	logger.info('command line arguments:');
-	logger.info(util.inspect(configuration, false, null, true));
+	logger.info(util.inspect(clConfig, false, null, true));
 
-	//	enrich from configuration file
-	const configFile = configuration.config;
+	//	get configuration file
+	const configFile = clConfig.config;
 	if (!configFile) {
 		logger.error('missing or invalid argument "config" (example: config=/path/to/config.json)');
 		process.exit(1);
 	}
-	delete configuration.config;
 	try {
 		const rawConfiguration = fs.readFileSync(configFile, { encoding: 'utf8' });
-		Object.assign(configuration, JSON.parse(rawConfiguration));
+		Object.assign(result, JSON.parse(rawConfiguration));
 	} catch (e) {
 		logger.error('failed to READ configuration', e);
 		process.exit(1);
 	}
 
+	//	merge command line arguments
+	mergeCLConfig(clConfig, result);
+
 	logger.info('given configuration resolved:');
-	logger.info(util.inspect(configuration, false, null, true));
-	return Object.freeze(configuration);
+	logger.info(util.inspect(result, false, null, true));
+	return Object.freeze(result);
 }
 
 function argsFromCLArgs(clArgs) {
@@ -64,6 +65,27 @@ function argsFromCLArgs(clArgs) {
 			}
 		});
 	return result;
+}
+
+function mergeCLConfig(clConfig, target) {
+	for (let key of clConfig) {
+		const path = key.split('.');
+		const last = path.pop();
+		let next = target;
+		for (let node of path) {
+			if (!next[node]) {
+				next[node] = {};
+			} else if (typeof next[node] !== 'object') {
+				logger.error(`command line path (${key}) misconfigured`);
+				next = null;
+				break;
+			}
+			next = next[node];
+		}
+		if (next) {
+			next[last] = clConfig[key];
+		}
+	}
 }
 
 function mergeConfig(a, b) {

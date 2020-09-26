@@ -6,7 +6,7 @@ import { findMimeType, extensionsMap } from '../server-utils.js';
 import testsService from '../../tester/tests-service.js';
 
 const
-	logger = new Logger('JustTest [test resources handler]'),
+	logger = new Logger({ context: 'JustTest [test resources handler]' }),
 	CONFIG_KEY = Symbol('config.key'),
 	TEST_RESOURCES_KEY = Symbol('test.resources.key');
 

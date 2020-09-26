@@ -3,7 +3,7 @@ import Logger from '../logger/logger.js';
 import buildConfig from './client-service-config.js';
 
 const
-	logger = new Logger('JustTest [local server]'),
+	logger = new Logger({ context: 'JustTest [local server]' }),
 	CONFIG_KEY = Symbol('config.key');
 
 /**
