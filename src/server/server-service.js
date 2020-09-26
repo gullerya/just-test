@@ -5,7 +5,7 @@ import Logger from '../logger/logger.js';
 import buildConfig from './server-service-config.js';
 
 const
-	logger = new Logger({ context: 'JustTest [local server]' }),
+	logger = new Logger({ context: 'server' }),
 	STATUS_STOPPED = 0,
 	STATUS_RUNNING = 1,
 	CONFIG_KEY = Symbol('config.key'),

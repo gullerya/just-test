@@ -5,13 +5,9 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Debug tests",
-			"program": "${workspaceFolder}/bin/start.js",
+			"program": "${workspaceFolder}/src/main.js",
 			"args": [
 				"config=./tests/tests-config.json"
-			],
-			"runtimeArgs": [
-				"--harmony",
-				"--no-deprecation"
 			],
 			"smartStep": true
 		}

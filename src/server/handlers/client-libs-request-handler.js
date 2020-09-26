@@ -6,7 +6,7 @@ import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';
 
 const
-	logger = new Logger({ context: 'JustTest [client libs handler]' }),
+	logger = new Logger({ context: 'handler client libs' }),
 	require = createRequire(import.meta.url),
 	CONFIG_KEY = Symbol('config.key');
 

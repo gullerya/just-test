@@ -8,7 +8,7 @@ import util from 'util';
 import process from 'process';
 import Logger from './logger/logger.js';
 
-const logger = new Logger({ context: 'JustTest [configurer]' });
+const logger = new Logger({ context: 'configurer' });
 
 export default Object.freeze({
 	givenConfig: resolveGivenConfig(),
@@ -23,8 +23,6 @@ function resolveGivenConfig() {
 
 	//	get command line arguments
 	const clConfig = argsFromCLArgs(process.argv.slice(2));
-	logger.info('command line arguments:');
-	logger.info(util.inspect(clConfig, false, null, true));
 
 	//	get configuration file
 	const configFile = clConfig.config;
@@ -33,6 +31,7 @@ function resolveGivenConfig() {
 		process.exit(1);
 	}
 	try {
+		logger.info(`reading configuration from '${configFile}'...`);
 		const rawConfiguration = fs.readFileSync(configFile, { encoding: 'utf8' });
 		Object.assign(result, JSON.parse(rawConfiguration));
 	} catch (e) {
@@ -41,7 +40,7 @@ function resolveGivenConfig() {
 	}
 
 	//	merge command line arguments
-	mergeCLConfig(clConfig, result);
+	result.cliArguments = clConfig;
 
 	logger.info('given configuration resolved:');
 	logger.info(util.inspect(result, false, null, true));
@@ -49,43 +48,17 @@ function resolveGivenConfig() {
 }
 
 function argsFromCLArgs(clArgs) {
-	const result = {
-		interactive: true
-	};
+	const result = {};
 	clArgs
 		.map(arg => arg.split('='))
 		.filter(pair => pair.length === 2)
 		.forEach(([k, v]) => {
 			switch (k) {
-				case 'interactive':
-					result[k] === v === 'true';
-					break;
 				default:
 					result[k] = v;
 			}
 		});
 	return result;
-}
-
-function mergeCLConfig(clConfig, target) {
-	for (let key of clConfig) {
-		const path = key.split('.');
-		const last = path.pop();
-		let next = target;
-		for (let node of path) {
-			if (!next[node]) {
-				next[node] = {};
-			} else if (typeof next[node] !== 'object') {
-				logger.error(`command line path (${key}) misconfigured`);
-				next = null;
-				break;
-			}
-			next = next[node];
-		}
-		if (next) {
-			next[last] = clConfig[key];
-		}
-	}
 }
 
 function mergeConfig(a, b) {

@@ -6,7 +6,7 @@ import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';
 
 const
-	logger = new Logger({ context: 'JustTest [client core handler]' }),
+	logger = new Logger({ context: 'handler client core' }),
 	CONFIG_KEY = Symbol('config.key'),
 	FILE_RESOURCES_KEY = Symbol('file.resources.key');
 

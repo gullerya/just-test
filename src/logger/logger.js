@@ -90,7 +90,7 @@ export default class Logger {
 		let result = [];
 		if (args.length) {
 			result = Array.from(args).slice();
-			result[0] = `${level} ${this[CONFIGURATION_KEY].context} - ${result[0]}`;
+			result[0] = `${level} [${this[CONFIGURATION_KEY].context}] - ${result[0]}`;
 		}
 		return result;
 	}
