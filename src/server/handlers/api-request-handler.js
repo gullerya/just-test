@@ -10,7 +10,7 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;
-		logger.info(`api resource request handler initialized; basePath: '${this.basePath}'`);
+		logger.info(`API resource request handler initialized; basePath: '${this.basePath}'`);
 	}
 
 	get basePath() {
@@ -18,9 +18,9 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	}
 
 	async handle(handlerRelativePath, req, res) {
-		if (handlerRelativePath.startsWith('tests/metadata')) {
+		if (handlerRelativePath.startsWith('metadata')) {
 			this.handleTestsMetadata(res);
-		} else if (handlerRelativePath.startsWith('tests/resources')) {
+		} else if (handlerRelativePath.startsWith('resources')) {
 			await this.handleTestsResources(res);
 		} else {
 			res.writeHead(404).end();

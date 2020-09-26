@@ -57,8 +57,8 @@ export default class TestsService {
 			return a;
 		}, []);
 		logger.info(`... test resources collected in ${Math.floor(performance.now() - started)}ms`);
-		logger.info(`collected ${result.length} test resources`);
-		logger.debug(util.inspect(result, false, null, true));
+		logger.info(`collected ${result.length} test resources:`);
+		logger.info(util.inspect(result, false, null, true));
 		return result;
 	}
 

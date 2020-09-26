@@ -17,7 +17,7 @@ const
 export default class ServerService {
 	constructor(serverConfig, clArguments) {
 		//	build configuration
-		const effectiveConf = buildConfig(serverConfig, clArguments);
+		const effectiveConf = buildConfig(serverConfig ?? {}, clArguments);
 		this[CONFIG_KEY] = effectiveConf;
 		logger.info('server service effective config:');
 		logger.info(util.inspect(effectiveConf, false, null, true));
