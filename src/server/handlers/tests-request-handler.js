@@ -3,6 +3,7 @@ import path from 'path';
 import Logger from '../../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';
+import { obtainEffectiveConfig } from '../../configurer.js';
 
 const
 	logger = new Logger({ context: 'handler tests' }),
@@ -17,7 +18,7 @@ export default class TestResourcesRequestHandler extends RequestHandlerBase {
 	}
 
 	async postInit() {
-		this[TEST_RESOURCES_KEY] = await testsService.readyPromise;
+		this[TEST_RESOURCES_KEY] = await obtainEffectiveConfig('testsResourcesPromise');
 		logger.info(`tests request handler initialized; basePath: '${this.basePath}'`);
 	}
 

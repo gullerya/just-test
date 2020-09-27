@@ -1,6 +1,6 @@
 import process from 'process';
 import Logger from './logger/logger.js';
-import { givenConfig } from './configurer.js';
+import { givenConfig, reportEffectiveConfig } from './configurer.js';
 import EnvironmentsService from './environments/environments-service.js';
 import TestsService from './tests/tests-service.js';
 import ServerService from './server/server-service.js';
@@ -20,9 +20,12 @@ async function go() {
 
 		//	init tester - one for all
 		testsService = new TestsService(givenConfig.tests, givenConfig.clArguments);
+		reportEffectiveConfig('testsMetadata', testsService.effectiveConfig);
+		reportEffectiveConfig('testsResourcesPromise', testsService.testResourcesPromise);
 
 		//	init server - one for all
 		serverService = new ServerService(givenConfig.server, givenConfig.clArguments);
+		reportEffectiveConfig('serverConfig', serverService.effectiveConfig);
 
 		environments.forEach(env => {
 			if (env.interactive) {

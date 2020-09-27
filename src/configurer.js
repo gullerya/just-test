@@ -2,6 +2,9 @@
  * Synchronously collects and builds an initial configuration, from:
  * - CL arguments
  * - configuraton file (found by CL argument 'config')
+ * 
+ * Collects and holds the effective configuration built by each service:
+ * - responsibility of services to report effective configuration
  */
 import fs from 'fs';
 import util from 'util';
@@ -9,8 +12,32 @@ import process from 'process';
 import Logger from './logger/logger.js';
 
 const logger = new Logger({ context: 'configurer' });
+const effectiveConfig = {};
 
 export const givenConfig = resolveGivenConfig();
+
+export function reportEffectiveConfig(key, config) {
+	if (!key || typeof key !== 'string') {
+		throw new Error(`key MUST be a non-null string; got '${key}'`);
+	}
+	if (!config) {
+		throw new Error(`effective config MUST be a defined meaningful; got '${config}'`);
+	}
+	if (key in effectiveConfig) {
+		throw new Error(`effective config under key '${key}' already reported`);
+	}
+	effectiveConfig[key] = config;
+}
+
+export function obtainEffectiveConfig(key) {
+	if (!key || typeof key !== 'string') {
+		throw new Error(`key MUST be a non-null string; got '${key}'`);
+	}
+	if (!(key in effectiveConfig)) {
+		throw new Error(`no effective config under key '${key}' found`);
+	}
+	return effectiveConfig[key];
+}
 
 /**
  * one time running function to resolve 'givenConfig'

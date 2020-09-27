@@ -4,8 +4,8 @@ const
 		handlers: [
 			'./handlers/api-request-handler.js',
 			'./handlers/aut-request-handler.js',
-			'./handlers/client-core-request-handler.js',
-			'./handlers/client-libs-request-handler.js',
+			'./handlers/core-request-handler.js',
+			'./handlers/libs-request-handler.js',
 			'./handlers/tests-request-handler.js'
 		],
 		include: [
