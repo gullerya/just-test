@@ -18,8 +18,8 @@ async function start() {
 
 async function loadDefs() {
 	const data = await Promise.all([
-		fetch('/api/tests/metadata'),
-		fetch('/api/tests/resources')
+		fetch('/api/metadata'),
+		fetch('/api/resources')
 	]);
 	if (!data[0].ok || !data[1].ok) {
 		throw new Error(`failed to load tests data; metadata: ${data[0].status}, resources: ${data[1].status}`);
@@ -35,7 +35,7 @@ async function initTests(testsMetadata, testsResources) {
 	const importPromises = [];
 	testsResources.forEach(tr => {
 		importPromises.push(
-			import(`/tests/resources/${tr}`)
+			import(`/tests/${tr}`)
 				.catch(e => {
 					console.error(`failed to import '${tr}':`, e);
 				})

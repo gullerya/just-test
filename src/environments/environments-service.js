@@ -1,4 +1,6 @@
 import Logger from '../logger/logger.js';
+import launchInteractive from './launchers/interactive-env-launcher.js';
+import launchBrowser from './launchers/browser-env-launcher.js';
 
 const
 	logger = new Logger({ context: 'environments' }),
@@ -10,7 +12,7 @@ const
 		scheme: null
 	});
 
-export default class EnvironmentSService {
+export default class EnvironmentsService {
 	/**
 	 * Environment Service initializer
 	 * 
@@ -52,6 +54,20 @@ export default class EnvironmentSService {
 
 	get environments() {
 		return this[ENVIRONMENTS_KEY];
+	}
+
+	launch(environments) {
+		const result = [];
+		for (const env of environments) {
+			if (env.interactive) {
+				result.push(launchInteractive(env));
+			} else if (env.browser) {
+				result.push(launchBrowser(env));
+			} else {
+				throw new Error(`unsuppoted environment configuration ${JSON.stringify(env)}`);
+			}
+		}
+		return result;
 	}
 }
 
