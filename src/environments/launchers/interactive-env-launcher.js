@@ -1,6 +1,11 @@
 /**
+ * This will launch interactive environment, that is:
+ * - not opening browsers
+ * - not being shut down automatically (may be reconsidered in the future)
+ * - thus ever pending
  * 
  * @param {Object} envConfig environment configuration
+ * @param {boolean} envConfig.interactive in this context expected always to equal true
  */
 import Logger from '../../logger/logger.js';
 import { obtainEffectiveConfig } from '../../configurer.js';
