@@ -13,6 +13,10 @@ const
 	BASE_URL_KEY = Symbol('base.url.key'),
 	HANDLERS_READY_PROMISE_KEY = Symbol('handlers.ready.promise.key');
 
+export const CONSTANTS = Object.freeze({
+	SERVER_CONFIG: 'serverConfig'
+});
+
 export default class ServerService {
 	constructor(serverConfig, clArguments) {
 		//	build configuration

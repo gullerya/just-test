@@ -2,6 +2,7 @@ import Logger from '../../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { extensionsMap } from '../server-utils.js';
 import { obtainEffectiveConfig } from '../../configurer.js';
+import { CONSTANTS } from '../../tests/tests-service.js';
 
 const
 	logger = new Logger({ context: 'handler API' }),
@@ -31,12 +32,12 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	handleTestsMetadata(res) {
 		res
 			.writeHead(200, { 'Content-Type': extensionsMap.json })
-			.end(JSON.stringify(obtainEffectiveConfig('testsMetadata')));
+			.end(JSON.stringify(obtainEffectiveConfig(CONSTANTS.TESTS_METADATA)));
 	}
 
 	async handleTestsResources(res) {
 		res
 			.writeHead(200, { 'Content-Type': extensionsMap.json })
-			.end(JSON.stringify(await obtainEffectiveConfig('testsResourcesPromise')));
+			.end(JSON.stringify(await obtainEffectiveConfig(CONSTANTS.TEST_RESOURCES_PROMISE)));
 	}
 }

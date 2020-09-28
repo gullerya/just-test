@@ -9,6 +9,7 @@
  */
 import Logger from '../../logger/logger.js';
 import { obtainEffectiveConfig } from '../../configurer.js';
+import { CONSTANTS } from '../../server/server-service.js';
 
 const logger = new Logger({ context: 'interactive env launcher' });
 
@@ -18,7 +19,7 @@ export default function launch(envConfig) {
 	}
 
 	logger.info(`interactive enviroment is ready`);
-	logger.info(`to run tests open a browser and navigate <host>:${obtainEffectiveConfig('serverConfig').port}`);
+	logger.info(`to run tests open a browser and navigate <host>:${obtainEffectiveConfig(CONSTANTS.SERVER_CONFIG).port}`);
 
 	return new Promise(() => { });
 }

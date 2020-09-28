@@ -9,6 +9,11 @@ const
 	CONFIG_KEY = Symbol('config'),
 	TEST_RESOURCES_PROMISE_KEY = Symbol('tester.ready');
 
+export const CONSTANTS = Object.freeze({
+	TESTS_METADATA: 'testsMetadata',
+	TEST_RESOURCES_PROMISE: 'testsResourcesPromise'
+});
+
 export default class TestsService {
 	constructor(testsConfig, clArguments) {
 		//	build configuration

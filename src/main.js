@@ -2,8 +2,8 @@ import process from 'process';
 import Logger from './logger/logger.js';
 import { givenConfig, reportEffectiveConfig } from './configurer.js';
 import EnvironmentsService from './environments/environments-service.js';
-import TestsService from './tests/tests-service.js';
-import ServerService from './server/server-service.js';
+import TestsService, { CONSTANTS as T_CONSTANTS } from './tests/tests-service.js';
+import ServerService, { CONSTANTS as S_CONSTANTS } from './server/server-service.js';
 
 const logger = new Logger({ context: 'main' });
 
@@ -19,12 +19,12 @@ async function go() {
 
 		//	init tester - one for all
 		testsService = new TestsService(givenConfig.tests, givenConfig.clArguments);
-		reportEffectiveConfig('testsMetadata', testsService.effectiveConfig);
-		reportEffectiveConfig('testsResourcesPromise', testsService.testResourcesPromise);
+		reportEffectiveConfig(T_CONSTANTS.TESTS_METADATA, testsService.effectiveConfig);
+		reportEffectiveConfig(T_CONSTANTS.TEST_RESOURCES_PROMISE, testsService.testResourcesPromise);
 
 		//	init server - one for all
 		serverService = new ServerService(givenConfig.server, givenConfig.clArguments);
-		reportEffectiveConfig('serverConfig', serverService.effectiveConfig);
+		reportEffectiveConfig(S_CONSTANTS.SERVER_CONFIG, serverService.effectiveConfig);
 		await serverService.start();
 
 		const envReadyPromises = environmentsService.launch(environments);
