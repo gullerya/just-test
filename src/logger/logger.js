@@ -93,7 +93,7 @@ export default class Logger {
 			if (typeof arg === 'object') {
 				result.push(
 					`${new Date().toISOString()} ${level} [${this[CONFIGURATION_KEY].context}] -`,
-					util.inspect(arg, true, null, true)
+					util.inspect(arg, false, null, true)
 				);
 			} else {
 				result.push(
