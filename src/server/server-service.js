@@ -1,4 +1,3 @@
-import util from 'util';
 import http from 'http';
 import { performance } from 'perf_hooks';
 import Logger from '../logger/logger.js';
@@ -20,7 +19,7 @@ export default class ServerService {
 		const effectiveConf = buildConfig(serverConfig ?? {}, clArguments);
 		this[CONFIG_KEY] = effectiveConf;
 		logger.info('server service effective config:');
-		logger.info(util.inspect(effectiveConf, false, null, true));
+		logger.info(effectiveConf);
 
 		//	init service
 		this[STATUS_KEY] = STATUS_STOPPED;

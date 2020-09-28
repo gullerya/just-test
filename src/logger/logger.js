@@ -1,3 +1,4 @@
+import util from 'util';
 import process from 'process';
 
 export const LOG_LEVELS = Object.freeze({
@@ -88,22 +89,32 @@ export default class Logger {
 
 	[PROCCESS_ARGUMENTS_KEY](args, level) {
 		let result = [];
-		if (args.length) {
-			result = Array.from(args).slice();
-			result[0] = `${new Date().toISOString()} ${level} [${this[CONFIGURATION_KEY].context}] - ${result[0]}`;
+		for (const arg of args) {
+			if (typeof arg === 'object') {
+				result.push(
+					`${new Date().toISOString()} ${level} [${this[CONFIGURATION_KEY].context}] -`,
+					util.inspect(arg, true, null, true)
+				);
+			} else {
+				result.push(
+					`${new Date().toISOString()} ${level} [${this[CONFIGURATION_KEY].context}] - ${arg}`
+				);
+			}
 		}
 		return result;
 	}
 
 	[OUTPUT_KEY](method, args) {
 		if (method && args && args.length) {
-			this[CONFIGURATION_KEY].outputs.forEach(output => {
+			for (const output of this[CONFIGURATION_KEY].outputs) {
 				try {
-					output[method].apply(output, args);
+					for (const arg of args) {
+						output[method](arg);
+					}
 				} catch (e) {
 					process.emitWarning(`failed to output to ${output}: ${e}`);
 				}
-			});
+			}
 		}
 	}
 }

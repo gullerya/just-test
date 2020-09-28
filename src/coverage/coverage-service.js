@@ -1,4 +1,3 @@
-import util from 'util';
 import { URL } from 'url';
 import fsExtra from 'fs-extra';
 import Logger from '../logger/logger.js';
@@ -21,7 +20,7 @@ class CoverageService {
 	constructor() {
 		const effectiveConf = buildConfig();
 		logger.info('converage service effective config:');
-		logger.info(util.inspect(effectiveConf, false, null, true));
+		logger.info(effectiveConf);
 
 		this[CONFIG_KEY] = effectiveConf;
 	}

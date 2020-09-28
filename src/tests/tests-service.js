@@ -1,5 +1,4 @@
 import fs from 'fs';
-import util from 'util';
 import { performance } from 'perf_hooks';
 import glob from 'glob';
 import Logger from '../logger/logger.js';
@@ -16,7 +15,7 @@ export default class TestsService {
 		const effectiveConf = buildConfig(testsConfig, clArguments);
 		this[CONFIG_KEY] = effectiveConf;
 		logger.info('tests service effective config:');
-		logger.info(util.inspect(effectiveConf, false, null, true));
+		logger.info(effectiveConf);
 
 		//	collect all test resources
 		this[TEST_RESOURCES_PROMISE_KEY] = this.collectTestResources();
@@ -58,7 +57,7 @@ export default class TestsService {
 		}, []);
 		logger.info(`... test resources collected in ${Math.floor(performance.now() - started)}ms`);
 		logger.info(`collected ${result.length} test resources:`);
-		logger.info(util.inspect(result, false, null, true));
+		logger.info(result);
 		return result;
 	}
 

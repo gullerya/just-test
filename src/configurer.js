@@ -7,7 +7,6 @@
  * - responsibility of services to report effective configuration
  */
 import fs from 'fs';
-import util from 'util';
 import process from 'process';
 import Logger from './logger/logger.js';
 
@@ -67,7 +66,7 @@ function resolveGivenConfig() {
 	result.clArguments = clConfig;
 
 	logger.info('given configuration resolved:');
-	logger.info(util.inspect(result, false, null, true));
+	logger.info(result);
 	return Object.freeze(result);
 }
 
