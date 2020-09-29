@@ -1,12 +1,14 @@
 {
+	"environments": [
+		{
+			"browser": "chromium"
+		}
+	],
 	"tests": {
 		"maxFail": 3,
 		"maxSkip": 1,
 		"include": [
-			"./tests/**"
-		],
-		"exclude": [
-			"./tests/tests-config.json"
+			"./tests/**/*.js"
 		]
 	},
 	"coverage": {

@@ -34,14 +34,12 @@ async function go() {
 
 		const executionResult = {};
 
-		logger.info();
 		logger.info('tests execution finished normally');
 		//	TODO: print summary here
 		logger.info('tests status - ' + executionResult.statusText);
 		process.exitCode = executionResult.statusPass ? 0 : 1;
 	} catch (error) {
-		logger.info();
-		logger.error('tests execution finished erroneously;', error);
+		logger.error('tests execution finished erroneously', error);
 		process.exitCode = 1;
 	} finally {
 		logger.info('cleaning things...');
@@ -51,36 +49,6 @@ async function go() {
 		logger.info('... all clean');
 	}
 }
-
-	// await new Promise(() => { });
-
-	//	TODO pseudo
-	//	if there are tests - start the local server
-	//	if non-dev - start browsers (i'll skip this part untill fully manual mode is working)
-	//	if dev - do nothing - user will open a browser and will start hacking with the code/tests
-
-	// const
-	// 	autServerUrl = conf.server.local
-	// 		? httpServer.start(conf.server.port, path.resolve(process.cwd(), conf.server.resourcesFolder))
-	// 		: conf.server.remoteUrl,
-	// 	testsUrl = autServerUrl + conf.tests.url;
-
-	//	browser
-	// logger.info();
-	// logger.info(`tests (AUT) URL resolved to "${testsUrl}", launching browsing env...`);
-	// const browserRunner = await getBrowserRunner();
-	// browser = await browserRunner.launch();
-	// logger.info(`... browser env '${browserRunner.name()}' launched`);
-
-	//	general page handling
-	// const context = await browser.newContext();
-	// const page = await context.newPage();
-	// page.on('error', e => {
-	// 	logger.error('"error" event fired on page', e);
-	// });
-	// page.on('pageerror', e => {
-	// 	logger.error('"pageerror" event fired on page ', e);
-	// })
 
 	//	coverage
 	// let coverager;

@@ -13,7 +13,7 @@ import { CONSTANTS } from '../../server/server-service.js';
 
 const logger = new Logger({ context: 'interactive env launcher' });
 
-export default function launch(envConfig) {
+export default async function launch(envConfig) {
 	if (!envConfig || !envConfig.interactive) {
 		throw new Error(`env configuration expected to have interactive set to true; got ${JSON.stringify(envConfig)}`);
 	}

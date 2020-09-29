@@ -7,9 +7,6 @@ const
 			'./handlers/core-request-handler.js',
 			'./handlers/libs-request-handler.js',
 			'./handlers/tests-request-handler.js'
-		],
-		include: [
-			'./bin/client/ui/**'
 		]
 	});
 
