@@ -21,8 +21,7 @@ window.addEventListener('message', async event => {
 		window.parent.postMessage({
 			type: constants.TEST_ENDED_EVENT,
 			suiteName: event.data.suiteName,
-			testName: event.data.testName,
-			run: run
+			testName: event.data.testName
 		});
 	}
 });

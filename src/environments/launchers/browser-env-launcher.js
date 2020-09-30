@@ -30,6 +30,7 @@ export default async function launch(envConfig) {
 				log: (name, severity, message, args) => console.log(`${name} ${severity} ${message} ${args}`)
 			}
 		});
+		const browserLogger = new Logger({ context: `${envConfig.browser} ${browser.version()}` });
 		const context = await browser.newContext({
 			logger: {
 				isEnabled: () => true,
@@ -42,17 +43,28 @@ export default async function launch(envConfig) {
 				log: (name, severity, message, args) => console.log(`${name} ${severity} ${message} ${args}`)
 			}
 		});
-		page.on('console', msg => {
-			for (let i = 0; i < msg.args().length; ++i)
-				console.log(`${i}: ${msg.args()[i]}`);
+		page.on('console', async msgs => {
+			for (const msg of msgs.args()) {
+				const em = await msg.evaluate(o => o);
+				browserLogger.info(em);
+			}
 		});
 		page.on('error', e => {
-			logger.error('"error" event fired on page', e);
+			browserLogger.error('"error" event fired on page', e);
 		});
 		page.on('pageerror', e => {
-			logger.error('"pageerror" event fired on page ', e);
-		})
-		page.goto(`http://localhost:${serverConfig.port}`);
+			browserLogger.error('"pageerror" event fired on page ', e);
+		});
+
+		page.exposeBinding('forwardMessage', (context, event) => {
+			logger.info(event);
+		});
+		await page.goto(`http://localhost:${serverConfig.port}`);
+		await page.evaluate(() => {
+			window.addEventListener('message', event => {
+				window.forwardMessage(event.data);
+			});
+		});
 
 		return new Promise((resolve, reject) => {
 			logger.info(`setting timeout for the whole tests execution to ${testsConfig.ttl} as per configuration`);
