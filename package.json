@@ -42,7 +42,7 @@
 	"scripts": {
 		"build": "node ./ci/tools/build.js",
 		"lint": "eslint -c ./ci/.eslintrc.json \"./src/**/*.js\" \"./ci/**/*.js\" \"./tests/**/*.js\"",
-		"test": "node ./bin/main.js config=./tests/tests-config.json"
+		"test": "npm run build && node ./bin/main.js config=./tests/tests-config.json"
 	},
 	"dependencies": {
 		"data-tier": "^2.10.0",

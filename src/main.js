@@ -1,7 +1,7 @@
 import process from 'process';
 import Logger from './logger/logger.js';
 import { givenConfig, reportEffectiveConfig } from './configurer.js';
-import EnvironmentsService from './environments/environments-service.js';
+import EnvironmentsService, { CONSTANTS as E_CONSTANTS } from './environments/environments-service.js';
 import TestsService, { CONSTANTS as T_CONSTANTS } from './tests/tests-service.js';
 import ServerService, { CONSTANTS as S_CONSTANTS } from './server/server-service.js';
 
@@ -16,6 +16,7 @@ async function go() {
 	try {
 		const environmentsService = new EnvironmentsService(givenConfig.environments, givenConfig.clArguments);
 		const environments = environmentsService.environments;
+		reportEffectiveConfig(E_CONSTANTS.ENVS, environments);
 
 		//	init tester - one for all
 		testsService = new TestsService(givenConfig.tests, givenConfig.clArguments);

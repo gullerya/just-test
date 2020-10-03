@@ -13,6 +13,7 @@ const
 		device: null,
 		scheme: null
 	}),
+	INTERACTIVE = 'interactive',
 	BROWSERS = Object.freeze({
 		chromium: true,
 		firefox: true,
@@ -22,6 +23,10 @@ const
 		light: true,
 		dark: true
 	});
+
+export const CONSTANTS = Object.freeze({
+	ENVS: 'envs'
+});
 
 export default class EnvironmentsService {
 	/**
@@ -81,7 +86,9 @@ function parseCLArgAsEnv(clArg) {
 	const tokens = clArg.split(CL_ENV_TOKENS_SPLITTER);
 	const tmp = {};
 	for (const token of tokens) {
-		if (token in BROWSERS) {
+		if (token === INTERACTIVE) {
+			//	DO NOTHING
+		} else if (token in BROWSERS) {
 			tmp.browser = token;
 			tmp.interactive = false;
 		} else if (token in SCHEMES) {

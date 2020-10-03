@@ -1,5 +1,5 @@
 import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
-import { runResults } from '../../utils.js';
+import { STATUS, RESULT } from '../../utils.js';
 
 const TEST_KEY = Symbol('test.key');
 
@@ -9,7 +9,8 @@ initComponent('just-test-test', class extends ComponentBase {
 			this.classList.toggle('errorOpen');
 		});
 		this.shadowRoot.querySelector('.re-run').addEventListener('click', () => {
-			if (this[TEST_KEY].status !== runResults.RUNNING) {
+			if (this[TEST_KEY].status !== STATUS.RUNNING) {
+				delete this[TEST_KEY].result;
 				delete this[TEST_KEY].error;
 				delete this[TEST_KEY].start;
 				delete this[TEST_KEY].duration;
@@ -37,15 +38,15 @@ initComponent('just-test-test', class extends ComponentBase {
 	set status(status) {
 		let newState;
 		this.classList.remove('wait', 'runs', 'pass', 'fail', 'skip');
-		if (status === runResults.QUEUED) {
+		if (status === STATUS.PENDING) {
 			newState = 'wait';
-		} else if (status === runResults.RUNNING) {
+		} else if (status === STATUS.RUNNING) {
 			newState = 'runs';
-		} else if (status === runResults.PASSED) {
+		} else if (status === RESULT.PASS) {
 			newState = 'pass';
-		} else if (status === runResults.FAILED || status === runResults.ERROR) {
+		} else if (status === RESULT.FAIL || status === RESULT.ERROR) {
 			newState = 'fail';
-		} else if (status === runResults.SKIPPED) {
+		} else if (status === RESULT.SKIP) {
 			newState = 'skip';
 		}
 		setTimeout(() => {

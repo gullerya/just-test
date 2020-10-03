@@ -1,21 +1,32 @@
 import './components/jt-control/jt-control.js';
 import './components/jt-details/jt-details.js';
 import { obtainSuite } from './suites-service.js';
-import { constants } from './utils.js';
+import { EVENTS } from './utils.js';
 
-start();
+//	main flow
+//
+loadDefs()
+	.then(defs => {
+		console.dir(defs.metadata);
+		console.dir(defs.resources);
 
-async function start() {
-	const { metadata, resources } = await loadDefs();
+		initTestListener();
 
-	console.log('TO BE REMOVED');
-	console.dir(metadata);
+		return executeTests(defs.metadata, defs.resources);
+	})
+	.then(r => {
+		//	report results here
+		console.dir(r);
+	})
+	.catch(e => {
+		console.error(e);
+	})
+	.finally(() => {
+		console.info('all done');
+	});
 
-	initTestListener();
-
-	await initTests(metadata, resources);
-}
-
+//	functions defs
+//
 async function loadDefs() {
 	const data = await Promise.all([
 		fetch('/api/metadata'),
@@ -30,7 +41,7 @@ async function loadDefs() {
 	};
 }
 
-async function initTests(testsMetadata, testsResources) {
+async function executeTests(testsMetadata, testsResources) {
 	console.log(`importing ${testsResources.length} test resources...`);
 	const importPromises = [];
 	testsResources.forEach(tr => {
@@ -51,9 +62,9 @@ function initTestListener() {
 			throw new Error(`expected message for '${document.location.origin}', received one for '${event.origin}'`);
 		}
 
-		if (event.data.type === constants.TEST_ADDED_EVENT) {
+		if (event.data.type === EVENTS.TEST_ADDED) {
 			addTest(event.data, event.source);
-		} else if (event.data.type === constants.TEST_ENDED_EVENT) {
+		} else if (event.data.type === EVENTS.RUN_ENDED) {
 			endTest(event.data);
 		}
 	});

@@ -17,7 +17,7 @@ window.addEventListener('message', async event => {
 	if (event.data.type === constants.RUN_TEST_ACTION) {
 		const testId = getId(event.data.suiteName, event.data.testName);
 		const test = testsMap[testId];
-		const run = await executeTest(test);
+		await executeTest(test);
 		window.parent.postMessage({
 			type: constants.TEST_ENDED_EVENT,
 			suiteName: event.data.suiteName,

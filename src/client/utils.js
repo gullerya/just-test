@@ -1,9 +1,21 @@
-export const constants = Object.freeze({
-	TEST_ADDED_EVENT: 'testAdded', TEST_ENDED_EVENT: 'testEnded', RUN_TEST_ACTION: 'test'
+export const EVENTS = Object.freeze({
+	TEST_ADDED: 'testAdded',
+	RUN_STARTED: 'testStarted',
+	RUN_ENDED: 'testEnded',
+	RUN_TEST_ACTION: 'test'
 });
 
-export const runResults = Object.freeze({
-	SKIPPED: 'skipped', PASSED: 'passed', FAILED: 'failed', ERROR: 'error'
+export const STATUS = Object.freeze({
+	PENDING: 'pending',
+	RUNNING: 'running',
+	FINISHED: 'finished'
+});
+
+export const RESULT = Object.freeze({
+	ERROR: 'error',
+	FAIL: 'fail',
+	PASS: 'pass',
+	SKIP: 'skip'
 });
 
 export function getId(suiteName, testName) {

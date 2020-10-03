@@ -1,6 +1,6 @@
 import * as DataTier from '/libs/data-tier/dist/data-tier.min.js';
 import { Test, Run } from './model.js';
-import { constants, runResults } from './utils.js';
+import { EVENTS, RESULT } from './utils.js';
 
 export function obtainSuite(suiteName) {
 	let result = suites[suiteName];
@@ -71,7 +71,7 @@ class Suite {
 		const run = new Run();
 		test.runs.push(run);
 		if (test.skip) {
-			run.result = runResults.SKIPPED;
+			run.result = RESULT.SKIP;
 		} else {
 			if (test.sync) {
 				const oldSyncTail = this.syncTail;
@@ -80,12 +80,12 @@ class Suite {
 				});
 				oldSyncTail.finally(() => {
 					test.frame.postMessage({
-						type: constants.RUN_TEST_ACTION, suiteName: this.name, testName: testName
+						type: EVENTS.RUN_TEST_ACTION, suiteName: this.name, testName: testName
 					}, document.location.origin);
 				});
 			} else {
 				test.frame.postMessage({
-					type: constants.RUN_TEST_ACTION, suiteName: this.name, testName: testName
+					type: EVENTS.RUN_TEST_ACTION, suiteName: this.name, testName: testName
 				}, document.location.origin);
 			}
 		}

@@ -37,6 +37,27 @@ export default async function launch(envConfig) {
 				log: (name, severity, message, args) => console.log(`${name} ${severity} ${message} ${args}`)
 			}
 		});
+		context.on('page', async pe => {
+			if (pe.coverage) {
+				await pe.coverage.startJSCoverage({ reportAnonymousScripts: true });
+				pe.on('console', async msgs => {
+					for (const msg of msgs.args()) {
+						const em = await msg.evaluate(o => o);
+						logger.info(em);
+					}
+				});
+				const url = await pe.url();
+				logger.info(url);
+				//await pe.goto(url);
+				await new Promise(r => setTimeout(r, 1200));
+				const coverage = await pe.coverage.stopJSCoverage();
+				console.log(coverage.length);
+				for (const entry of coverage) {
+					console.log(entry);
+				}
+			}
+		});
+
 		const page = await context.newPage({
 			logger: {
 				isEnabled: () => true,
