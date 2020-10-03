@@ -1,5 +1,5 @@
-﻿import { getSuite } from '/core/just-test.js';
-import { RANDOM_CHARSETS } from '/core/test-executor.js';
+﻿import { getSuite } from '/aut/bin/client/just-test.js';
+import { RANDOM_CHARSETS } from '/aut/bin/client/test-executor.js';
 
 const suite = getSuite('Test assets - random');
 

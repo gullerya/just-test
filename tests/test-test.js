@@ -1,6 +1,6 @@
-﻿import { getSuite } from '/core/just-test.js';
-import { runResults } from '/core/utils.js';
-import { executeTest } from '/core/test-executor.js';
+﻿import { getSuite } from '/aut/bin/client/just-test.js';
+import { runResults } from '/aut/bin/client/utils.js';
+import { executeTest } from '/aut/bin/client/test-executor.js';
 
 const suite = getSuite('Single test tests');
 

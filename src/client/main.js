@@ -9,7 +9,9 @@ loadDefs()
 	.then(defs => {
 		console.dir(defs.metadata);
 		console.dir(defs.resources);
+		const interactive = defs.metadata.environments.some(e => e.interactive);
 
+		console.log(interactive);
 		initTestListener();
 
 		return executeTests(defs.metadata, defs.resources);

@@ -1,4 +1,4 @@
-﻿import { getSuite } from '/core/just-test.js';
+﻿import { getSuite } from '/aut/bin/client/just-test.js';
 // import { obtainSuite } from '/core/suites-service.js';
 
 const
