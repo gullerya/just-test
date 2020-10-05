@@ -1,6 +1,6 @@
 import './components/jt-control/jt-control.js';
 import './components/jt-details/jt-details.js';
-import { obtainSuite } from './suites-service.js';
+import { obtainSuite } from './services/state-service.js';
 import { EVENTS } from './utils.js';
 
 //	main flow
@@ -30,21 +30,16 @@ loadDefs()
 //	functions defs
 //
 async function loadDefs() {
-	const data = await Promise.all([
-		fetch('/api/metadata'),
-		fetch('/api/resources')
-	]);
+	const data = await Promise.all([fetch('/api/metadata'), fetch('/api/resources')]);
 	if (!data[0].ok || !data[1].ok) {
 		throw new Error(`failed to load tests data; metadata: ${data[0].status}, resources: ${data[1].status}`);
 	}
-	return {
-		metadata: await data[0].json(),
-		resources: await data[1].json()
-	};
+	const parsed = await Promise.all([data[0].json(), data[1].json()]);
+	return { metadata: parsed[0], resources: parsed[1] };
 }
 
 async function executeTests(testsMetadata, testsResources) {
-	console.log(`importing ${testsResources.length} test resources...`);
+	console.log(`importing ${testsResources.length} test resource/s...`);
 	const importPromises = [];
 	testsResources.forEach(tr => {
 		importPromises.push(
@@ -55,7 +50,7 @@ async function executeTests(testsMetadata, testsResources) {
 		);
 	});
 	await Promise.all(importPromises);
-	console.log('... done');
+	console.log('... import done');
 }
 
 function initTestListener() {

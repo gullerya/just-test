@@ -1,5 +1,4 @@
 import * as DataTier from '/libs/data-tier/dist/data-tier.min.js';
-import { Test, Run } from './model.js';
 import { EVENTS, RESULT } from './utils.js';
 
 export function obtainSuite(suiteName) {
@@ -51,8 +50,11 @@ class Suite {
 		if (this.tests[meta.name]) {
 			throw new Error(`test '${meta.name}' already found in suite '${this.name}'`);
 		}
-		const test = new Test(meta.name, frame);
-		this.tests[meta.name] = test;
+		const test = {
+			name: meta.name,
+			frame: frame
+		};
+		this.tests[test.name] = test;
 
 		model.total++;
 		this.model.tests.push({
@@ -68,7 +70,7 @@ class Suite {
 			throw new Error(`test '${testName}' not found in suite '${this.name}'`);
 		}
 
-		const run = new Run();
+		const run = {};
 		test.runs.push(run);
 		if (test.skip) {
 			run.result = RESULT.SKIP;
