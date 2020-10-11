@@ -6,14 +6,14 @@ import { EVENTS } from './utils.js';
 //	main flow
 //
 loadDefs()
+	.then(async defs => {
+		console.dir(defs.metadata);			//	TODO: remove
+		console.dir(defs.resources);		//	TODO: remove
+
+		await collectTests(defs.resources);
+		return defs;
+	})
 	.then(defs => {
-		console.dir(defs.metadata);
-		console.dir(defs.resources);
-		const interactive = defs.metadata.environments.some(e => e.interactive);
-
-		console.log(interactive);
-		initTestListener();
-
 		return executeTests(defs.metadata, defs.resources);
 	})
 	.then(r => {
@@ -38,7 +38,7 @@ async function loadDefs() {
 	return { metadata: parsed[0], resources: parsed[1] };
 }
 
-async function executeTests(testsMetadata, testsResources) {
+async function collectTests(testsResources) {
 	console.log(`importing ${testsResources.length} test resource/s...`);
 	const importPromises = [];
 	testsResources.forEach(tr => {
@@ -51,6 +51,15 @@ async function executeTests(testsMetadata, testsResources) {
 	});
 	await Promise.all(importPromises);
 	console.log('... import done');
+}
+
+async function executeTests(testsMetadata) {
+	const interactive = testsMetadata.environments.some(e => e.interactive);
+	if (interactive) {
+		//	TODO: execute in frames
+	} else {
+		//	TODO: execure in pages
+	}
 }
 
 function initTestListener() {

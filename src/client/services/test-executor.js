@@ -1,4 +1,4 @@
-import { RESULTS } from '../utils.js';
+import { RESULT } from '../utils.js';
 
 const
 	RANDOM_CHARSETS = Object.freeze({ numeric: '0123456789', alphaLower: 'abcdefghijklmnopqrstuvwxyz', alphaUpper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' }),
@@ -21,7 +21,7 @@ async function executeTest({ meta, code }) {
 	const run = {};
 
 	if (meta.skip) {
-		run.result = RESULTS.SKIP;
+		run.result = RESULT.SKIP;
 	} else {
 		//	check if a single document required/provided
 		//	if not - create document and inject the full script of the test with only running this single test
@@ -49,17 +49,17 @@ function finalizeRun(meta, run, result, testAssets) {
 	if (result instanceof Error) {
 		const pe = processError(result);
 		if (meta.expectError && (pe.type === meta.expectError || pe.message.includes(meta.expectError))) {
-			run.result = RESULTS.PASS;
+			run.result = RESULT.PASS;
 		} else {
-			run.result = result instanceof AssertError ? RESULTS.FAIL : RESULTS.ERROR;
+			run.result = result instanceof AssertError ? RESULT.FAIL : RESULT.ERROR;
 			run.error = pe;
 		}
 	} else {
 		if (meta.expectError) {
-			run.result = RESULTS.FAIL;
+			run.result = RESULT.FAIL;
 			run.error = processError(new AssertError(`expected an error with '${meta.expectError}' but not seen`));
 		} else {
-			run.result = RESULTS.PASS;
+			run.result = RESULT.PASS;
 		}
 	}
 	run.asserts = testAssets.asserts;
