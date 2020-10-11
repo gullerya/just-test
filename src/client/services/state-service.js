@@ -8,7 +8,8 @@ export {
 }
 
 const
-	model = ties.create('justTestModel', {
+	MODEL_KEY = 'justTestModel',
+	model = ties.get(MODEL_KEY) ? ties.get(MODEL_KEY) : ties.create(MODEL_KEY, {
 		total: 0,
 		done: 0,
 		duration: null,

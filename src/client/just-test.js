@@ -52,10 +52,7 @@ const TEST_OPTIONS_DEFAULT = Object.freeze({
 });
 
 function validateNormalizeParams(name, code, options) {
-	const
-		result = {
-			options: TEST_OPTIONS_DEFAULT
-		};
+	const result = {};
 
 	//	name
 	if (!name || typeof name !== 'string') {
@@ -74,16 +71,7 @@ function validateNormalizeParams(name, code, options) {
 		if (!options || typeof options !== 'object') {
 			throw new Error(`test options, if/when provided, MUST be a non-null object, got '${options}'`);
 		}
-		Object.keys(options).forEach(key => {
-			if (key in TEST_OPTIONS_DEFAULT) {
-				if (typeof options[key] !== typeof TEST_OPTIONS_DEFAULT[key]) {
-					throw new Error(`unexpected type of '${key}'; expected '${typeof TEST_OPTIONS_DEFAULT[key]}', found '${typeof options[key]}'`);
-				}
-				result.options[key] = options[key];
-			} else {
-				console.warn(`unexpected option '${key}' passed to test`);
-			}
-		});
+		result.code.options = Object.assign({}, TEST_OPTIONS_DEFAULT, options);
 	}
 
 	return result;
