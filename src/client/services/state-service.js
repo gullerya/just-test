@@ -4,7 +4,8 @@ import { EVENTS, RESULT } from '../utils.js';
 export {
 	obtainSuite,
 	addTest,
-	getTest
+	getTest,
+	getUnSourced
 }
 
 const
@@ -35,6 +36,7 @@ const
 		name: 'Unspecified',
 		code: null,
 		options: {},
+		source: null,
 		runs: [],
 		lastRun: null
 	}),
@@ -75,6 +77,14 @@ function getTest(suiteName, testName) {
 
 function getTestInternal(suite, testName) {
 	return suite.tests.find(t => t.name === testName);
+}
+
+function getUnSourced() {
+	return model.suites.flatMap(s =>
+		s.tests.filter(t =>
+			t.source === null
+		)
+	);
 }
 
 function runTest(testName) {

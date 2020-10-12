@@ -1,6 +1,6 @@
 import './components/jt-control/jt-control.js';
 import './components/jt-details/jt-details.js';
-import { obtainSuite } from './services/state-service.js';
+import { getUnSourced } from './services/state-service.js';
 import { EVENTS } from './utils.js';
 
 //	main flow
@@ -40,16 +40,14 @@ async function loadDefs() {
 
 async function collectTests(testsResources) {
 	console.log(`importing ${testsResources.length} test resource/s...`);
-	const importPromises = [];
-	testsResources.forEach(tr => {
-		importPromises.push(
-			import(`/tests/${tr}`)
-				.catch(e => {
-					console.error(`failed to import '${tr}':`, e);
-				})
-		);
+	testsResources.forEach(async tr => {
+		try {
+			await import(`/tests/${tr}`);
+			getUnSourced().forEach(t => t.source = tr);
+		} catch (e) {
+			console.error(`failed to import '${tr}':`, e);
+		}
 	});
-	await Promise.all(importPromises);
 	console.log('... import done');
 }
 
@@ -74,15 +72,4 @@ function initTestListener() {
 			endTest(event.data);
 		}
 	});
-}
-
-function addTest(details, frame) {
-	const suite = obtainSuite(details.suiteName);
-	suite.addTest(details.meta, frame);
-	suite.runTest(details.meta.name);
-}
-
-function endTest(details) {
-	const suite = obtainSuite(details.suiteName);
-	suite.endTest(details.testName, details.run);
 }
