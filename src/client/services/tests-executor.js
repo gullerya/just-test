@@ -1,3 +1,7 @@
+/**
+ * This service executes tests
+ */
+import { getExecutionData } from './state-service.js';
 import { RESULT } from '../utils.js';
 
 const
@@ -5,7 +9,10 @@ const
 	DEFAULT_CHARSET = RANDOM_CHARSETS.alphaLower + RANDOM_CHARSETS.alphaUpper + RANDOM_CHARSETS.numeric,
 	DEFAULT_RANDOM_LENGTH = 8;
 
-export { RANDOM_CHARSETS, executeTest }
+export {
+	execute,
+	RANDOM_CHARSETS
+}
 
 class TestAssets {
 	constructor() {
@@ -16,6 +23,22 @@ class TestAssets {
 class AssertError extends Error { }
 
 class TimeoutError extends AssertError { }
+
+/**
+ * executes all relevant tests, according the the sync/async options
+ * 
+ * @param {object} metadata - session execution metadata
+ * @returns Promise resolved with test results when all tests done
+ */
+async function execute(metadata) {
+	const executionData = getExecutionData();
+	//	analyse, build execution plan per suite and dispatch
+	if (metadata.currentEnvironment.interactive) {
+		//	TODO: do the frames
+	} else {
+		//	TODO: do the pages
+	}
+}
 
 async function executeTest({ meta, code }) {
 	const run = {};

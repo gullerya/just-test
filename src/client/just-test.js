@@ -1,5 +1,5 @@
 import { obtainSuite, addTest } from './services/state-service.js';
-import { RANDOM_CHARSETS } from './services/test-executor.js';
+import { RANDOM_CHARSETS } from './services/tests-executor.js';
 
 export {
 	getSuite,
@@ -48,6 +48,7 @@ const TEST_OPTIONS_DEFAULT = Object.freeze({
 	ttl: 3000,
 	skip: false,
 	sync: false,
+	manual: false,
 	expectError: ''
 });
 
@@ -60,18 +61,17 @@ function validateNormalizeParams(name, code, options) {
 	}
 	result.name = name;
 
-	//	code
+	//	code (validation only)
 	if (!code || typeof code !== 'function') {
 		throw new Error(`test code MUST be a function, got '${code}'`);
 	}
-	result.code = code;
 
 	//	options
 	if (options !== undefined) {
 		if (!options || typeof options !== 'object') {
 			throw new Error(`test options, if/when provided, MUST be a non-null object, got '${options}'`);
 		}
-		result.code.options = Object.assign({}, TEST_OPTIONS_DEFAULT, options);
+		result.options = Object.assign({}, TEST_OPTIONS_DEFAULT, options);
 	}
 
 	return result;

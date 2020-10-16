@@ -1,20 +1,17 @@
 import './components/jt-control/jt-control.js';
 import './components/jt-details/jt-details.js';
 import { getUnSourced } from './services/state-service.js';
-import { EVENTS } from './utils.js';
+import { execute } from './services/tests-executor.js';
 
 //	main flow
 //
-loadDefs()
-	.then(async defs => {
-		console.dir(defs.metadata);			//	TODO: remove
-		console.dir(defs.resources);		//	TODO: remove
-
-		await collectTests(defs.resources);
-		return defs;
+loadMetadata()
+	.then(async metadata => {
+		await collectTests(metadata.testPaths);
+		return metadata;
 	})
-	.then(defs => {
-		return executeTests(defs.metadata, defs.resources);
+	.then(metadata => {
+		return executeTests(metadata.settings);
 	})
 	.then(r => {
 		//	report results here
@@ -27,19 +24,36 @@ loadDefs()
 		console.info('all done');
 	});
 
-//	functions defs
-//
-async function loadDefs() {
-	const data = await Promise.all([fetch('/api/metadata'), fetch('/api/resources')]);
-	if (!data[0].ok || !data[1].ok) {
-		throw new Error(`failed to load tests data; metadata: ${data[0].status}, resources: ${data[1].status}`);
+/**
+ * Fetches test session definitions
+ * TODO: switch to a single API and do it as a session API (even include some session ID already)
+ * 
+ * @returns {Object} definitions fetched
+ */
+async function loadMetadata() {
+	const started = performance.now();
+	console.info(`fetching test session metadata...`);
+
+	const mdResponse = await fetch('/api/v1/sessions/x/metadata');
+	if (!mdResponse.ok) {
+		throw new Error(`failed to load metadata; status: ${mdResponse.status}`);
 	}
-	const parsed = await Promise.all([data[0].json(), data[1].json()]);
-	return { metadata: parsed[0], resources: parsed[1] };
+	const metadata = await mdResponse.json();
+
+	console.info(`... metadata fetched (${(performance.now() - started).toFixed(1)}ms)`);
+	return metadata;
 }
 
+/**
+ * Imports suites/tests metadata
+ * - has a side effect of collecting suites/tests metadata in the state service
+ * 
+ * @param {string[]} testsResources - array of paths
+ */
 async function collectTests(testsResources) {
-	console.log(`importing ${testsResources.length} test resource/s...`);
+	const started = performance.now();
+	console.info(`fetching ${testsResources.length} test resource/s...`);
+
 	testsResources.forEach(async tr => {
 		try {
 			await import(`/tests/${tr}`);
@@ -48,28 +62,30 @@ async function collectTests(testsResources) {
 			console.error(`failed to import '${tr}':`, e);
 		}
 	});
-	console.log('... import done');
+
+	console.info(`... test resources fetched (${(performance.now() - started).toFixed(1)}ms)`);
 }
 
-async function executeTests(testsMetadata) {
-	const interactive = testsMetadata.environments.some(e => e.interactive);
-	if (interactive) {
-		//	TODO: execute in frames
-	} else {
-		//	TODO: execure in pages
-	}
+/**
+ * Executes all suites/tests of the current session
+ * 
+ * @param {object} metadata - session metadata
+ */
+async function executeTests(metadata) {
+	console.log(metadata);
+	return await execute(metadata);
 }
 
-function initTestListener() {
-	window.addEventListener('message', event => {
-		if (event.origin !== document.location.origin) {
-			throw new Error(`expected message for '${document.location.origin}', received one for '${event.origin}'`);
-		}
+// function initTestListener() {
+// 	window.addEventListener('message', event => {
+// 		if (event.origin !== document.location.origin) {
+// 			throw new Error(`expected message for '${document.location.origin}', received one for '${event.origin}'`);
+// 		}
 
-		if (event.data.type === EVENTS.TEST_ADDED) {
-			addTest(event.data, event.source);
-		} else if (event.data.type === EVENTS.RUN_ENDED) {
-			endTest(event.data);
-		}
-	});
-}
+// 		if (event.data.type === EVENTS.TEST_ADDED) {
+// 			addTest(event.data, event.source);
+// 		} else if (event.data.type === EVENTS.RUN_ENDED) {
+// 			endTest(event.data);
+// 		}
+// 	});
+// }

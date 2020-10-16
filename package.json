@@ -49,7 +49,7 @@
 		"rich-component": "^1.6.0",
 		"data-tier-list": "^1.1.0",
 		"glob": "^7.1.6",
-		"playwright": "^1.4.2",
+		"playwright": "^1.5.1",
 		"chai": "^4.2.0"
 	},
 	"devDependencies": {

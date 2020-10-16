@@ -2,7 +2,6 @@ import Logger from '../../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { extensionsMap } from '../server-utils.js';
 import { obtainEffectiveConfig } from '../../configurer.js';
-import { CONSTANTS as E_CONSTANTS } from '../../environments/environments-service.js';
 import { CONSTANTS as T_CONSTANTS } from '../../tests/tests-service.js';
 
 const
@@ -21,27 +20,35 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	}
 
 	async handle(handlerRelativePath, req, res) {
-		if (handlerRelativePath.startsWith('metadata')) {
-			this.handleTestsMetadata(res);
-		} else if (handlerRelativePath.startsWith('resources')) {
-			await this.handleTestsResources(res);
+		if (handlerRelativePath.startsWith('v1/sessions/')) {
+			this.handleSessionsRequest(req, res);
 		} else {
 			res.writeHead(404).end();
 		}
 	}
 
-	handleTestsMetadata(res) {
+	async handleSessionsRequest(req, res) {
+		const { groups: { version, sessionId } } = 'v1/sessions/x/metadata'
+			.match(/^(?<version>.+)\/sessions\/(?<sessionId>.+)\/metadata$/);
+
+		//	TODO: remove the below but should use those to resolve the correct metadata
+		logger.info(version);
+		logger.info(sessionId);
+
 		res
 			.writeHead(200, { 'Content-Type': extensionsMap.json })
 			.end(JSON.stringify({
-				environments: obtainEffectiveConfig(E_CONSTANTS.ENVS),
-				testsMetadata: obtainEffectiveConfig(T_CONSTANTS.TESTS_METADATA)
+				currentEnvironment: this.resolveExecutionEnvironment(req),
+				settings: obtainEffectiveConfig(T_CONSTANTS.TESTS_METADATA),
+				testPaths: await obtainEffectiveConfig(T_CONSTANTS.TEST_RESOURCES_PROMISE)
 			}));
 	}
 
-	async handleTestsResources(res) {
-		res
-			.writeHead(200, { 'Content-Type': extensionsMap.json })
-			.end(JSON.stringify(await obtainEffectiveConfig(T_CONSTANTS.TEST_RESOURCES_PROMISE)));
+	resolveExecutionEnvironment() {
+		return {
+			browser: null,
+			version: null,
+			interactive: true
+		};
 	}
 }

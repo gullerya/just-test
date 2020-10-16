@@ -1,11 +1,11 @@
 import { ties } from '/libs/data-tier/dist/data-tier.min.js';
-import { EVENTS, RESULT } from '../utils.js';
 
 export {
 	obtainSuite,
 	addTest,
 	getTest,
-	getUnSourced
+	getUnSourced,
+	getExecutionData
 }
 
 const
@@ -34,17 +34,16 @@ const
 	}),
 	TEST_PROTO = Object.freeze({
 		name: 'Unspecified',
-		code: null,
-		options: {},
 		source: null,
-		runs: [],
-		lastRun: null
+		options: {},
+		lastRun: null,
+		runs: []
 	}),
 	RUN_PROTO = Object.freeze({
 		start: null,
-		duration: null,
 		status: null,
-		result: null
+		result: null,
+		duration: null
 	});
 
 function obtainSuite(suiteName, options) {
@@ -87,32 +86,54 @@ function getUnSourced() {
 	);
 }
 
-function runTest(testName) {
-	const test = this.tests[testName];
-
-	if (!test) {
-		throw new Error(`test '${testName}' not found in suite '${this.name}'`);
-	}
-
-	const run = {};
-	test.runs.push(run);
-	if (test.skip) {
-		run.result = RESULT.SKIP;
-	} else {
-		if (test.sync) {
-			const oldSyncTail = this.syncTail;
-			this.syncTail = new Promise(resolve => {
-				test.resolveEnd = resolve;
-			});
-			oldSyncTail.finally(() => {
-				test.frame.postMessage({
-					type: EVENTS.RUN_TEST_ACTION, suiteName: this.name, testName: testName
-				}, document.location.origin);
-			});
-		} else {
-			test.frame.postMessage({
-				type: EVENTS.RUN_TEST_ACTION, suiteName: this.name, testName: testName
-			}, document.location.origin);
-		}
-	}
+/**
+ * extract a relevant metadata to create a full execution set
+ * 
+ * TODO: probably later on this can accept some options to create partial set
+ * @returns Array - suites/tests definitions
+ */
+function getExecutionData() {
+	return model.suites.map(suite => {
+		return {
+			name: suite.name,
+			options: Object.assign({}, suite.options),
+			tests: suite.tests.map(test => {
+				return {
+					name: test.name,
+					source: test.source,
+					options: Object.assign({}, test.options)
+				};
+			})
+		};
+	});
 }
+
+// function runTest(testName) {
+// 	const test = this.tests[testName];
+
+// 	if (!test) {
+// 		throw new Error(`test '${testName}' not found in suite '${this.name}'`);
+// 	}
+
+// 	const run = {};
+// 	test.runs.push(run);
+// 	if (test.skip) {
+// 		run.result = RESULT.SKIP;
+// 	} else {
+// 		if (test.sync) {
+// 			const oldSyncTail = this.syncTail;
+// 			this.syncTail = new Promise(resolve => {
+// 				test.resolveEnd = resolve;
+// 			});
+// 			oldSyncTail.finally(() => {
+// 				test.frame.postMessage({
+// 					type: EVENTS.RUN_TEST_ACTION, suiteName: this.name, testName: testName
+// 				}, document.location.origin);
+// 			});
+// 		} else {
+// 			test.frame.postMessage({
+// 				type: EVENTS.RUN_TEST_ACTION, suiteName: this.name, testName: testName
+// 			}, document.location.origin);
+// 		}
+// 	}
+// }
