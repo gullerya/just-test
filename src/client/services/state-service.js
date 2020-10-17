@@ -1,5 +1,5 @@
 /**
- * Manages observable executions state (browser environment only)
+ * Manages observable session state (browser environment only)
  */
 import { ties } from '/libs/data-tier/dist/data-tier.min.js';
 
@@ -113,33 +113,3 @@ function getExecutionData() {
 		suites: suitesData
 	});
 }
-
-// function runTest(testName) {
-// 	const test = this.tests[testName];
-
-// 	if (!test) {
-// 		throw new Error(`test '${testName}' not found in suite '${this.name}'`);
-// 	}
-
-// 	const run = {};
-// 	test.runs.push(run);
-// 	if (test.skip) {
-// 		run.result = RESULT.SKIP;
-// 	} else {
-// 		if (test.sync) {
-// 			const oldSyncTail = this.syncTail;
-// 			this.syncTail = new Promise(resolve => {
-// 				test.resolveEnd = resolve;
-// 			});
-// 			oldSyncTail.finally(() => {
-// 				test.frame.postMessage({
-// 					type: EVENTS.RUN_TEST_ACTION, suiteName: this.name, testName: testName
-// 				}, document.location.origin);
-// 			});
-// 		} else {
-// 			test.frame.postMessage({
-// 				type: EVENTS.RUN_TEST_ACTION, suiteName: this.name, testName: testName
-// 			}, document.location.origin);
-// 		}
-// 	}
-// }

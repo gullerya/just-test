@@ -16,10 +16,6 @@ export const RESULT = Object.freeze({
 	SKIP: 'skip'
 });
 
-export function getId(suiteName, testName) {
-	return `${suiteName}|${testName}`;
-}
-
 export function stringifyDuration(duration) {
 	let result = '';
 	if (duration > 99) result = (duration / 1000).toFixed(1) + ' s' + String.fromCharCode(160);

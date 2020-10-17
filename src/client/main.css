@@ -26,3 +26,7 @@ body {
 .just-test-details {
 	flex: 1;
 }
+
+.just-test-execution-frame {
+	visibility: hidden;
+}

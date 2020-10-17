@@ -130,7 +130,6 @@ const TEST_OPTIONS_DEFAULT = Object.freeze({
 	ttl: 3000,
 	skip: false,
 	sync: false,
-	manual: false,
 	expectError: ''
 });
 
