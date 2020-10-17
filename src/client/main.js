@@ -1,17 +1,18 @@
 import './components/jt-control/jt-control.js';
 import './components/jt-details/jt-details.js';
-import { getUnSourced } from './services/state-service.js';
-import { execute } from './services/tests-executor.js';
+import { obtainSuite, addTest, getUnSourced } from './services/state-service.js';
+import { runSession } from './services/session-executor.js';
 
 //	main flow
 //
 loadMetadata()
 	.then(async metadata => {
+		installTestRegistrationAPIs(metadata.currentEnvironment);
 		await collectTests(metadata.testPaths);
 		return metadata;
 	})
 	.then(metadata => {
-		return executeTests(metadata.settings);
+		return runSession(metadata);
 	})
 	.then(r => {
 		//	report results here
@@ -45,6 +46,19 @@ async function loadMetadata() {
 }
 
 /**
+ * Installs top level APIs on the top scope object for the registration pass
+ * - getSuite: returns a suite-bound registration APIs
+ * 
+ * @param {object} currentEnvironment - current environment for environment specific logic
+ */
+function installTestRegistrationAPIs(currentEnvironment) {
+	console.info(`installing registration APIs for ${JSON.stringify(currentEnvironment)}`);
+	Object.defineProperties(globalThis, {
+		getSuite: { value: getSuite }
+	});
+}
+
+/**
  * Imports suites/tests metadata
  * - has a side effect of collecting suites/tests metadata in the state service
  * 
@@ -54,38 +68,93 @@ async function collectTests(testsResources) {
 	const started = performance.now();
 	console.info(`fetching ${testsResources.length} test resource/s...`);
 
-	testsResources.forEach(async tr => {
+	for await (const tr of testsResources) {
 		try {
 			await import(`/tests/${tr}`);
 			getUnSourced().forEach(t => t.source = tr);
 		} catch (e) {
 			console.error(`failed to import '${tr}':`, e);
 		}
-	});
+	}
 
 	console.info(`... test resources fetched (${(performance.now() - started).toFixed(1)}ms)`);
 }
 
-/**
- * Executes all suites/tests of the current session
- * 
- * @param {object} metadata - session metadata
- */
-async function executeTests(metadata) {
-	console.log(metadata);
-	return await execute(metadata);
+function getSuite(name, options) {
+	if (!name || typeof name !== 'string') {
+		throw new Error(`suite name MUST be a non-empty string; got '${name}'`);
+	}
+
+	const normalizedMeta = validateNormalizeSuiteParams(name, options);
+	const suite = obtainSuite(normalizedMeta.name, normalizedMeta.options);
+	return {
+		test: registerTest.bind(suite)
+	}
 }
 
-// function initTestListener() {
-// 	window.addEventListener('message', event => {
-// 		if (event.origin !== document.location.origin) {
-// 			throw new Error(`expected message for '${document.location.origin}', received one for '${event.origin}'`);
-// 		}
+function registerTest(name, code, options) {
+	try {
+		const normalizedMeta = validateNormalizeTestParams(name, code, options);
+		addTest(this.name, normalizedMeta.name, normalizedMeta.code, normalizedMeta.options);
+	} catch (e) {
+		console.error(`failed to process test '${name} : ${JSON.stringify(options)}':`, e);
+	}
+}
 
-// 		if (event.data.type === EVENTS.TEST_ADDED) {
-// 			addTest(event.data, event.source);
-// 		} else if (event.data.type === EVENTS.RUN_ENDED) {
-// 			endTest(event.data);
-// 		}
-// 	});
-// }
+const SUITE_OPTIONS_DEFAULT = Object.freeze({
+	skip: false,
+	sync: false
+});
+
+function validateNormalizeSuiteParams(name, options) {
+	const result = {};
+
+	//	name
+	if (!name || typeof name !== 'string') {
+		throw new Error(`suite name MUST be a non-empty string, got '${name}'`);
+	}
+	result.name = name.trim();
+
+	//	options
+	if (options !== undefined) {
+		if (!options || typeof options !== 'object') {
+			throw new Error(`suite options, if/when provided, MUST be a non-null object, got '${options}'`);
+		}
+		result.options = Object.assign({}, SUITE_OPTIONS_DEFAULT, options);
+	}
+
+	return result;
+}
+
+const TEST_OPTIONS_DEFAULT = Object.freeze({
+	ttl: 3000,
+	skip: false,
+	sync: false,
+	manual: false,
+	expectError: ''
+});
+
+function validateNormalizeTestParams(name, code, options) {
+	const result = {};
+
+	//	name
+	if (!name || typeof name !== 'string') {
+		throw new Error(`test name MUST be a non-empty string, got '${name}'`);
+	}
+	result.name = name.trim();
+
+	//	code (validation only)
+	if (!code || typeof code !== 'function') {
+		throw new Error(`test code MUST be a function, got '${code}'`);
+	}
+
+	//	options
+	if (options !== undefined) {
+		if (!options || typeof options !== 'object') {
+			throw new Error(`test options, if/when provided, MUST be a non-null object, got '${options}'`);
+		}
+		result.options = Object.assign({}, TEST_OPTIONS_DEFAULT, options);
+	}
+
+	return result;
+}

@@ -1,7 +1,6 @@
-﻿import { getSuite } from '/aut/bin/client/just-test.js';
-import { RANDOM_CHARSETS } from '/aut/bin/client/services/tests-executor.js';
+﻿import { RANDOM_CHARSETS } from '/aut/bin/client/services/test-executor.js';
 
-const suite = getSuite('Test assets - random');
+const suite = globalThis.getSuite('Test assets - random');
 
 suite.test('random all', test => {
 	const it = 100;

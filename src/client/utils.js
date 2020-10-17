@@ -1,8 +1,6 @@
 export const EVENTS = Object.freeze({
-	TEST_ADDED: 'testAdded',
-	RUN_STARTED: 'testStarted',
-	RUN_ENDED: 'testEnded',
-	RUN_TEST_ACTION: 'test'
+	RUN_STARTED: 'runStarted',
+	RUN_ENDED: 'runEnded'
 });
 
 export const STATUS = Object.freeze({

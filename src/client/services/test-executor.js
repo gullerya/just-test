@@ -1,16 +1,17 @@
 /**
- * This service executes tests
+ * Single test execution logic and related services
  */
-import { getExecutionData } from './state-service.js';
-import { RESULT } from '../utils.js';
+import { EVENTS, RESULT } from '../utils.js';
 
 const
+	testEventsBus = getTestEventsBus(),
 	RANDOM_CHARSETS = Object.freeze({ numeric: '0123456789', alphaLower: 'abcdefghijklmnopqrstuvwxyz', alphaUpper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' }),
 	DEFAULT_CHARSET = RANDOM_CHARSETS.alphaLower + RANDOM_CHARSETS.alphaUpper + RANDOM_CHARSETS.numeric,
 	DEFAULT_RANDOM_LENGTH = 8;
 
+let testListenerInstalled = false;
+
 export {
-	execute,
 	RANDOM_CHARSETS
 }
 
@@ -25,20 +26,24 @@ class AssertError extends Error { }
 class TimeoutError extends AssertError { }
 
 /**
- * executes all relevant tests, according the the sync/async options
+ * Ensures environment aware test listener is set
  * 
- * @param {object} metadata - session execution metadata
- * @returns Promise resolved with test results when all tests done
+ * @param {object} metadata - metadata for environment awareness
  */
-async function execute(metadata) {
-	const executionData = getExecutionData();
-	//	analyse, build execution plan per suite and dispatch
-	if (metadata.currentEnvironment.interactive) {
-		//	TODO: do the frames
+export async function ensureTestListener(metadata) {
+	if (testListenerInstalled) {
+		return;
 	} else {
-		//	TODO: do the pages
+		testListenerInstalled = true;
 	}
+	testEventsBus.addEventListener(EVENTS.RUN_STARTED, () => {
+		console.log('test started, continue from here...');
+	});
+	testEventsBus.addEventListener(EVENTS.RUN_ENDED, () => {
+		console.log('test ended, continue from here...');
+	});
 }
+
 
 async function executeTest({ meta, code }) {
 	const run = {};
@@ -102,6 +107,16 @@ function processError(error) {
 	error.stackLines.shift();
 	//	TODO: probably extract file location from each line...
 	return error;
+}
+
+function getTestEventsBus() {
+	if (globalThis.window) {
+		let tmp = globalThis.window;
+		while (tmp.parent && tmp.parent !== tmp) tmp = tmp.parent;
+		return tmp;
+	} else {
+		throw new Error('NodeJS is not yet supported');
+	}
 }
 
 TestAssets.prototype.waitNextTask = async () => {

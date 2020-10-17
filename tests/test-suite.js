@@ -1,8 +1,7 @@
-﻿import { getSuite } from '/aut/bin/client/just-test.js';
-// import { obtainSuite } from '/core/suites-service.js';
+﻿// import { obtainSuite } from '/core/suites-service.js';
 
 const
-	suite = getSuite('Suite object APIs');
+	suite = globalThis.getSuite('Suite object APIs');
 
 // suite.test({ name: 'suite - basic full flow' }, async test => {
 // 	const s = new Suite('suite-under-test');

@@ -44,11 +44,21 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 			}));
 	}
 
-	resolveExecutionEnvironment() {
-		return {
-			browser: null,
-			version: null,
-			interactive: true
-		};
+	resolveExecutionEnvironment(req) {
+		let result = {};
+
+		const envType = req.headers['just-test-env-type'];
+		if (envType) {
+			if (envType === 'browser') {
+				result.browser = {
+					name: req.headers['just-test-browser-name'],
+					version: req.headers['just-test-browser-ver']
+				};
+			}
+		} else {
+			result.interactive = true;
+		}
+
+		return result;
 	}
 }

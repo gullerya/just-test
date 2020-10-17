@@ -1,8 +1,7 @@
-﻿import { getSuite } from '/aut/bin/client/just-test.js';
-import { RESULT } from '/aut/bin/client/utils.js';
-import { executeTest } from '/aut/bin/client/services/tests-executor.js';
+﻿import { RESULT } from '/aut/bin/client/utils.js';
+import { executeTest } from '/aut/bin/client/services/test-executor.js';
 
-const suite = getSuite('Single test tests');
+const suite = globalThis.getSuite('Single test tests');
 
 suite.test('test - normal flow all properties', async test => {
 	let r = false;

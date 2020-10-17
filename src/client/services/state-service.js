@@ -1,3 +1,6 @@
+/**
+ * Manages observable executions state (browser environment only)
+ */
 import { ties } from '/libs/data-tier/dist/data-tier.min.js';
 
 export {
@@ -93,7 +96,7 @@ function getUnSourced() {
  * @returns Array - suites/tests definitions
  */
 function getExecutionData() {
-	return model.suites.map(suite => {
+	const suitesData = model.suites.map(suite => {
 		return {
 			name: suite.name,
 			options: Object.assign({}, suite.options),
@@ -105,6 +108,9 @@ function getExecutionData() {
 				};
 			})
 		};
+	});
+	return Object.freeze({
+		suites: suitesData
 	});
 }
 
