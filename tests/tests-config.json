@@ -1,5 +1,12 @@
 {
-	"environments": [],
+	"environments": [
+		{
+			"browser": "webkit"
+		},
+		{
+			"browser": "chromium"
+		}
+	],
 	"tests": {
 		"ttl": 98098098,
 		"maxFail": 3,
