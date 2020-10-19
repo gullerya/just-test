@@ -1,10 +1,14 @@
-import { EVENTS, RESULT } from './utils.js';
+import { EVENTS, RESULT } from '../../../utils.js';
 
 const
 	testEventsBus = getTestEventsBus(),
 	RANDOM_CHARSETS = Object.freeze({ numeric: '0123456789', alphaLower: 'abcdefghijklmnopqrstuvwxyz', alphaUpper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' }),
 	DEFAULT_CHARSET = RANDOM_CHARSETS.alphaLower + RANDOM_CHARSETS.alphaUpper + RANDOM_CHARSETS.numeric,
 	DEFAULT_RANDOM_LENGTH = 8;
+
+export {
+	RANDOM_CHARSETS
+}
 
 class TestAssets {
 	constructor() {
@@ -16,21 +20,19 @@ class AssertError extends Error { }
 
 class TimeoutError extends AssertError { }
 
-window.getSuite = suiteName => {
+globalThis.getSuite = suiteName => {
 	return {
 		test: (testName, testCode, options) => {
 			const currentTestId = `${suiteName}|${testName}`;
-			if (window.testIdToRun !== currentTestId) {
-				return;
+			if (currentTestId in globalThis.interop.tests) {
+				const normalizedOptions = Object.assign({}, {
+					ttl: 3000,
+					skip: false,
+					sync: false,
+					expectError: ''
+				}, options);
+				executeTest(suiteName, testName, testCode, normalizedOptions);
 			}
-
-			const normalizedOptions = Object.assign({}, {
-				ttl: 3000,
-				skip: false,
-				sync: false,
-				expectError: ''
-			}, options);
-			executeTest(suiteName, testName, testCode, normalizedOptions);
 		}
 	}
 };
@@ -83,7 +85,7 @@ function processError(error) {
 		throw new Error(`error expected; found '${error}'`);
 	}
 
-	const replacable = window.location.origin;
+	const replacable = globalThis.location.origin;
 	const stackLines = error.stack.split(/\r\n|\r|\n/)
 		.map(l => l.trim())
 		.map(l => l.replace(replacable, ''));
@@ -102,7 +104,7 @@ function getTestEventsBus() {
 	if (globalThis.window) {
 		let tmp = globalThis.window;
 		while (tmp.parent && tmp.parent !== tmp) tmp = tmp.parent;
-		return tmp;
+		return tmp.opener ? tmp.opener : tmp;
 	} else {
 		throw new Error('NodeJS is not yet supported');
 	}

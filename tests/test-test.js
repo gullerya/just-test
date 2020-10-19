@@ -1,5 +1,5 @@
-﻿import { RESULT } from '/aut/bin/client/utils.js';
-import { executeTest } from '/aut/bin/client/services/test-executor.js';
+﻿import { RESULT } from '/aut/bin/client/utils.jsss';
+// import { executeTest } from '/aut/bin/client/services/deploy/browser/browser-test-runner.js';
 
 const suite = globalThis.getSuite('Single test tests');
 

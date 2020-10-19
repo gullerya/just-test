@@ -49,6 +49,7 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 
 		const envType = req.headers['just-test-env-type'];
 		if (envType) {
+			result.interactive = false;
 			if (envType === 'browser') {
 				result.browser = {
 					name: req.headers['just-test-browser-name'],
@@ -57,6 +58,10 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 			}
 		} else {
 			result.interactive = true;
+			result.browser = {
+				name: 'custom',
+				version: null
+			}
 		}
 
 		return result;

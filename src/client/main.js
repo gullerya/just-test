@@ -1,13 +1,16 @@
 import './components/jt-control/jt-control.js';
 import './components/jt-details/jt-details.js';
-import { obtainSuite, addTest, getUnSourced } from './services/state-service.js';
-import { runSession } from './services/session-executor.js';
+import { getStateService } from './services/state/state-service-factory.js';
+import { runSession } from './services/session-service.js';
+
+let stateService;
 
 //	main flow
 //
 loadMetadata()
 	.then(async metadata => {
-		installTestRegistrationAPIs(metadata.currentEnvironment);
+		stateService = await getStateService(metadata.currentEnvironment);
+		installTestRegistrationAPIs();
 		await collectTests(metadata.testPaths);
 		return metadata;
 	})
@@ -48,11 +51,9 @@ async function loadMetadata() {
 /**
  * Installs top level APIs on the top scope object for the registration pass
  * - getSuite: returns a suite-bound registration APIs
- * 
- * @param {object} currentEnvironment - current environment for environment specific logic
  */
-function installTestRegistrationAPIs(currentEnvironment) {
-	console.info(`installing registration APIs for ${JSON.stringify(currentEnvironment)}`);
+function installTestRegistrationAPIs() {
+	console.info('installing registration APIs');
 	Object.defineProperties(globalThis, {
 		getSuite: { value: getSuite }
 	});
@@ -71,7 +72,7 @@ async function collectTests(testsResources) {
 	for await (const tr of testsResources) {
 		try {
 			await import(`/tests/${tr}`);
-			getUnSourced().forEach(t => t.source = tr);
+			stateService.getUnSourced().forEach(t => t.source = tr);
 		} catch (e) {
 			console.error(`failed to import '${tr}':`, e);
 		}
@@ -86,7 +87,7 @@ function getSuite(name, options) {
 	}
 
 	const normalizedMeta = validateNormalizeSuiteParams(name, options);
-	const suite = obtainSuite(normalizedMeta.name, normalizedMeta.options);
+	const suite = stateService.obtainSuite(normalizedMeta.name, normalizedMeta.options);
 	return {
 		test: registerTest.bind(suite)
 	}
@@ -95,7 +96,7 @@ function getSuite(name, options) {
 function registerTest(name, code, options) {
 	try {
 		const normalizedMeta = validateNormalizeTestParams(name, code, options);
-		addTest(this.name, normalizedMeta.name, normalizedMeta.code, normalizedMeta.options);
+		stateService.addTest(this.name, normalizedMeta.name, normalizedMeta.code, normalizedMeta.options);
 	} catch (e) {
 		console.error(`failed to process test '${name} : ${JSON.stringify(options)}':`, e);
 	}

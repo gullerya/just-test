@@ -2,8 +2,9 @@
  * Runs a session of all suites/tests
  * - performs with the current environment (browser / node instance)
  */
-import { getExecutionData } from './state-service.js';
-import { ensureTestListener } from './test-executor.js';
+import { getStateService } from './state/state-service-factory.js';
+import { deployTest } from './deploy/deploy-service.js';
+import { EVENTS } from '../utils.js'
 
 export {
 	runSession
@@ -18,7 +19,9 @@ export {
  */
 async function runSession(metadata) {
 	ensureTestListener(metadata);
-	const executionData = getExecutionData();
+
+	const stateService = await getStateService();
+	const executionData = stateService.getExecutionData();
 
 	if (metadata.currentEnvironment.interactive) {
 		await Promise.all(executionData.suites.map(suite => executeSuite(suite, metadata)));
@@ -38,37 +41,42 @@ async function executeSuite(suite, metadata) {
 	const testPromises = [];
 	let syncChain = Promise.resolve();
 	suite.tests.forEach(test => {
+		const testId = `${suite.name}|${test.name}`;
 		if (test.options.skip) {
 			testPromises.push(Promise.resolve());
 		} else if (!test.options.sync) {
-			testPromises.push(eTest(suite, test, metadata));
+			testPromises.push(deployTest(testId, test.source, metadata.currentEnvironment));
 		} else {
-			syncChain = syncChain.finally(() => eTest(suite, test, metadata));
+			syncChain = syncChain.finally(() => deployTest(testId, test.source, metadata.currentEnvironment));
 		}
 	});
 	testPromises.push(syncChain);
 	await Promise.all(testPromises);
 }
 
-async function eTest(suite, test, metadata) {
-	if (metadata.currentEnvironment.interactive) {
-		const i = document.createElement('iframe');
-		i.classList.add('just-test-execution-frame');
-		i.src = 'test-executor-shell.html';
-		i.onload = event => {
-			const cw = event.target.contentWindow;
-			cw.testIdToRun = `${suite.name}|${test.name}`;
+const testEventsBus = getTestEventsBus();
+let testListenerInstalled = false;
 
-			const cd = event.target.contentDocument;
-			const s = cd.createElement('script');
-			s.type = 'module';
-			s.src = `/tests/${test.source}`;
-			cd.head.appendChild(s);
-		};
-		document.body.appendChild(i);
-		//	inject the test script and the top level APIs
-		//	inject the env so that only the relevant test is running and also pushing back the result
+export async function ensureTestListener() {
+	if (testListenerInstalled) {
+		return;
 	} else {
-		throw new Error('unsupported environment');
+		testListenerInstalled = true;
+	}
+	testEventsBus.addEventListener(EVENTS.RUN_STARTED, e => {
+		console.log(`started ${JSON.stringify(e.detail)}`);
+	});
+	testEventsBus.addEventListener(EVENTS.RUN_ENDED, e => {
+		console.log(`ended ${JSON.stringify(e.detail)}`);
+	});
+}
+
+function getTestEventsBus() {
+	if (globalThis.window) {
+		let tmp = globalThis.window;
+		while (tmp.parent && tmp.parent !== tmp) tmp = tmp.parent;
+		return tmp.opener ? tmp.opener : tmp;
+	} else {
+		throw new Error('NodeJS is not yet supported');
 	}
 }
