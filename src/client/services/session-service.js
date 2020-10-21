@@ -2,7 +2,7 @@
  * Runs a session of all suites/tests
  * - performs with the current environment (browser / node instance)
  */
-import { deployTest } from './deploy/deploy-service.js';
+import { deployTest } from './deploy-service.js';
 
 export {
 	runSession
@@ -46,8 +46,6 @@ async function executeSuite(suite, metadata) {
 			} else {
 				testPromises.push(runResultPromise);
 			}
-
-			runResultPromise.then(r => console.log(r));
 		}
 	});
 	testPromises.push(syncChain);

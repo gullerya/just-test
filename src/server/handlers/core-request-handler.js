@@ -20,7 +20,7 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	}
 
 	async handle(handlerRelativePath, req, res) {
-		const filePath = handlerRelativePath === '' ? 'main.html' : handlerRelativePath;
+		const filePath = handlerRelativePath === '' ? 'env-browser/app.html' : handlerRelativePath;
 		const contentType = findMimeType(filePath, extensionsMap.txt);
 
 		fs.readFile(path.resolve('bin/client', filePath), (error, content) => {

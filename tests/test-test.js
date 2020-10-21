@@ -1,5 +1,5 @@
-﻿import { RESULT } from '/aut/bin/client/commons/interop-utils.js';
-import { runTestCode } from '/aut/bin/client/services/deploy/browser/browser-test-runner.js';
+﻿import { RESULT } from '/aut/bin/client/utils/interop-utils.js';
+import { runTestCode } from '/aut/bin/client/env-browser/browser-test-runner.js';
 
 const suite = globalThis.getSuite('Single test tests');
 

@@ -1,15 +1,15 @@
-/**
- * This service executes tests as running in NodeJS environment
- */
-
-import { RESULT } from '../../../commons/interop-utils.js';
+import { EVENTS, RESULT, getTestId, getValidName } from '../utils/interop-utils.js';
 
 const
 	RANDOM_CHARSETS = Object.freeze({ numeric: '0123456789', alphaLower: 'abcdefghijklmnopqrstuvwxyz', alphaUpper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' }),
 	DEFAULT_CHARSET = RANDOM_CHARSETS.alphaLower + RANDOM_CHARSETS.alphaUpper + RANDOM_CHARSETS.numeric,
 	DEFAULT_RANDOM_LENGTH = 8;
 
-export { RANDOM_CHARSETS, executeTest }
+export {
+	RANDOM_CHARSETS,
+	getSuite,
+	runTestCode
+}
 
 class TestAssets {
 	constructor() {
@@ -21,47 +21,62 @@ class AssertError extends Error { }
 
 class TimeoutError extends AssertError { }
 
-async function executeTest({ meta, code }) {
+function getSuite(suiteName) {
+	const sName = getValidName(suiteName);
+
+	return {
+		test: async (testName, testCode) => {
+			const tName = getValidName(testName);
+
+			if (!testCode || typeof testCode !== 'function') {
+				throw new Error(`test code MUST be a function, got '${testCode}'`);
+			}
+
+			const currentTestId = getTestId(sName, tName);
+			const test = globalThis.interop.tests[currentTestId];
+			if (test) {
+				dispatchRunStartEvent(sName, tName);
+				const run = await runTestCode(testCode, test.options);
+				dispatchRunEndEvent(currentTestId, sName, tName, run);
+			}
+		}
+	}
+}
+
+async function runTestCode(testCode, options) {
 	const run = {};
 
-	if (meta.skip) {
-		run.result = RESULT.SKIP;
-	} else {
-		//	check if a single document required/provided
-		//	if not - create document and inject the full script of the test with only running this single test
-
-		let runResult;
-		const testAssets = new TestAssets();
-		const start = performance.now();
-		await Promise
-			.race([
-				new Promise(resolve => setTimeout(resolve, meta.ttl, new TimeoutError('timeout'))),
-				new Promise(resolve => Promise.resolve(code(testAssets)).then(resolve).catch(resolve))
-			])
-			.then(r => { runResult = r; })
-			.catch(e => { runResult = e; })
-			.finally(() => {
-				run.duration = performance.now() - start;
-				finalizeRun(meta, run, runResult, testAssets);
-			});
-	}
+	let runResult;
+	const testAssets = new TestAssets();
+	const start = performance.now();
+	await Promise
+		.race([
+			new Promise(resolve => setTimeout(resolve, options.ttl, new TimeoutError('timeout'))),
+			new Promise(resolve => Promise.resolve(testCode(testAssets)).then(resolve).catch(resolve))
+		])
+		.then(r => { runResult = r; })
+		.catch(e => { runResult = e; })
+		.finally(() => {
+			run.duration = performance.now() - start;
+			finalizeRun(options, run, runResult, testAssets);
+		});
 
 	return run;
 }
 
-function finalizeRun(meta, run, result, testAssets) {
+function finalizeRun(options, run, result, testAssets) {
 	if (result instanceof Error) {
 		const pe = processError(result);
-		if (meta.expectError && (pe.type === meta.expectError || pe.message.includes(meta.expectError))) {
+		if (options.expectError && (pe.type === options.expectError || pe.message.includes(options.expectError))) {
 			run.result = RESULT.PASS;
 		} else {
 			run.result = result instanceof AssertError ? RESULT.FAIL : RESULT.ERROR;
 			run.error = pe;
 		}
 	} else {
-		if (meta.expectError) {
+		if (options.expectError) {
 			run.result = RESULT.FAIL;
-			run.error = processError(new AssertError(`expected an error with '${meta.expectError}' but not seen`));
+			run.error = processError(new AssertError(`expected an error with '${options.expectError}' but not seen`));
 		} else {
 			run.result = RESULT.PASS;
 		}
@@ -69,20 +84,46 @@ function finalizeRun(meta, run, result, testAssets) {
 	run.asserts = testAssets.asserts;
 }
 
-//	TODO: return custom object instead of extended native Error
 function processError(error) {
 	if (!(error instanceof Error)) {
 		throw new Error(`error expected; found '${error}'`);
 	}
 
-	const replacable = window.location.origin;
-	error.type = error.constructor.name;
-	error.stackLines = error.stack.split(/\r\n|\r|\n/)
+	const replacable = globalThis.location.origin;
+	const stackLines = error.stack.split(/\r\n|\r|\n/)
 		.map(l => l.trim())
 		.map(l => l.replace(replacable, ''));
-	error.stackLines.shift();
+	stackLines.shift();
+
 	//	TODO: probably extract file location from each line...
-	return error;
+	return {
+		name: error.name,
+		type: error.constructor.name,
+		message: error.message,
+		stackLines: stackLines
+	};
+}
+
+function dispatchRunStartEvent(suiteName, testName) {
+	const e = new CustomEvent(EVENTS.RUN_STARTED, {
+		detail: {
+			suite: suiteName,
+			test: testName
+		}
+	});
+	globalThis.dispatchEvent(e);
+}
+
+function dispatchRunEndEvent(testId, suiteName, testName, run) {
+	const e = new CustomEvent(EVENTS.RUN_ENDED, {
+		detail: {
+			testId: testId,
+			suite: suiteName,
+			test: testName,
+			run: run
+		}
+	});
+	globalThis.dispatchEvent(e);
 }
 
 TestAssets.prototype.waitNextTask = async () => {

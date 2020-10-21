@@ -1,39 +1,35 @@
-import './components/jt-control/jt-control.js';
-import './components/jt-details/jt-details.js';
-import { getStateService } from './services/state/state-service-factory.js';
-import { runSession } from './services/session-service.js';
-import { getTestId, getValidName } from './commons/interop-utils.js';
+import { getStateService } from '../services/state/state-service-factory.js';
+import { runSession } from '../services/session-service.js';
+import { getTestId, getValidName } from '../utils/interop-utils.js';
 
 let stateService;
 
-//	main flow
-//	- sets up environment
-//	- auto runs one session
-//
-loadMetadata()
-	.then(async metadata => {
-		console.info('seting environment up...');
-		stateService = await getStateService(metadata.currentEnvironment);
-		installTestRegistrationAPIs();
-		await collectTests(metadata.testPaths);
-		console.info('... all set');
-		return metadata;
-	})
-	.then(metadata => {
-		//	TODO: we may decide to NOT auto run session here
-		const executionData = stateService.getExecutionData();
-		return runSession(executionData, metadata);
-	})
-	.then(r => {
-		//	report results here
-		console.dir(r);
-	})
-	.catch(e => {
-		console.error(e);
-	});
+runMainFlow();
 
 /**
- * Fetches test session definitions
+ * runs main flow
+ * - sets up environment (TODO: do the env setup environment based)
+ * - auto executes test session
+ * - signals server upon finalization if non-interactive
+ */
+async function runMainFlow() {
+	const metadata = await loadMetadata();
+
+	//	environment setup
+	console.info('seting environment up...');
+	stateService = await getStateService(metadata.currentEnvironment);
+	installTestRegistrationAPIs();
+	await collectTests(metadata.testPaths);
+	console.info('... all set');
+
+	//	auto session execution
+	//	TODO: we may decide to NOT auto run session here
+	const executionData = stateService.getExecutionData();
+	const sessionResult = runSession(executionData, metadata);
+}
+
+/**
+ * fetches test session definitions
  * TODO: switch to a single API and do it as a session API (even include some session ID already)
  * 
  * @returns {Object} definitions fetched
@@ -53,7 +49,7 @@ async function loadMetadata() {
 }
 
 /**
- * Installs top level APIs on the top scope object for the registration pass
+ * installs top level APIs on the top scope object for the registration pass
  * - getSuite: returns a suite-bound registration APIs
  */
 function installTestRegistrationAPIs() {
@@ -64,7 +60,7 @@ function installTestRegistrationAPIs() {
 }
 
 /**
- * Imports suites/tests metadata
+ * imports suites/tests metadata
  * - has a side effect of collecting suites/tests metadata in the state service
  * 
  * @param {string[]} testsResources - array of paths

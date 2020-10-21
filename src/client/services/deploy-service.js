@@ -1,4 +1,4 @@
-import { EVENTS } from '../../commons/interop-utils.js';
+import { EVENTS } from '../utils/interop-utils.js';
 
 /**
  * deploys a single test within a given environment
@@ -6,6 +6,7 @@ import { EVENTS } from '../../commons/interop-utils.js';
  * - in the browder interactive context injects the test into the newly created frame
  * - in NodeJS context injects the test into a NodeJS fork
  * 
+ * @param {object} test - test (metadata) to execute
  * @param {object} currentEnvironment - current envoronment
  * @returns {object: Promise} - promise to be resolved upon test run finalization
  */
@@ -28,7 +29,7 @@ function executeInFrame(test) {
 	const d = globalThis.document;
 	const i = d.createElement('iframe');
 	i.classList.add('just-test-execution-frame');
-	i.src = 'services/deploy/browser/browser-test-runner.html';
+	i.src = 'env-browser/browser-test-runner.html';
 	i.onload = event => {
 		injectInteropsBrowser(event.target.contentWindow, test, rp);
 		injectTestBrowser(event.target.contentDocument, test.source);
@@ -39,7 +40,7 @@ function executeInFrame(test) {
 
 function executeInPage(test) {
 	const rp = getResolvablePromise();
-	const w = globalThis.open('services/deploy/browser/browser-test-runner.html');
+	const w = globalThis.open('env-browser/browser-test-runner.html');
 	w.onload = event => {
 		injectInteropsBrowser(w, test, rp);
 		injectTestBrowser(event.target, test.source);

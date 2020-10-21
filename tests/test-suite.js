@@ -1,4 +1,4 @@
-﻿import { getSuite } from '/aut/bin/client/services/deploy/browser/browser-test-runner.js';
+﻿import { getSuite } from '/aut/bin/client/env-browser/browser-test-runner.js';
 
 const
 	suite = globalThis.getSuite('Suite object APIs');

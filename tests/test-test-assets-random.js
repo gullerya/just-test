@@ -1,4 +1,4 @@
-﻿import { RANDOM_CHARSETS } from '/aut/bin/client/services/deploy/browser/browser-test-runner.js';
+﻿import { RANDOM_CHARSETS } from '/aut/bin/client/env-browser/browser-test-runner.js';
 
 const suite = globalThis.getSuite('Test assets - random');
 

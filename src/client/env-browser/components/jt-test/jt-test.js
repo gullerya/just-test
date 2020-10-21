@@ -1,5 +1,5 @@
 import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
-import { RESULT } from '../../commons/interop-utils.js';
+import { RESULT } from '/core/utils/interop-utils.js';
 
 const TEST_KEY = Symbol('test.key');
 const STATUS = Object.freeze({
