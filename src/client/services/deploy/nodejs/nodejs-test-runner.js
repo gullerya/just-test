@@ -2,7 +2,7 @@
  * This service executes tests as running in NodeJS environment
  */
 
-import { RESULT } from '../utils.js';
+import { RESULT } from '../../../commons/interop-utils.js';
 
 const
 	RANDOM_CHARSETS = Object.freeze({ numeric: '0123456789', alphaLower: 'abcdefghijklmnopqrstuvwxyz', alphaUpper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' }),

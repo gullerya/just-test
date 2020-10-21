@@ -31,7 +31,10 @@ export default class TestResourcesRequestHandler extends RequestHandlerBase {
 		const contentType = findMimeType(handlerRelativePath, extensionsMap.json);
 		fs.readFile(path.resolve(handlerRelativePath), (error, content) => {
 			if (!error) {
-				res.writeHead(200, { 'Content-Type': contentType }).end(content);
+				res.writeHead(200, {
+					'Content-Type': contentType,
+					'Cache-Control': 'private, max-age=32'
+				}).end(content);
 			} else {
 				if (error.code === 'ENOENT') {
 					logger.warn(`sending 404 for '${handlerRelativePath}'`);

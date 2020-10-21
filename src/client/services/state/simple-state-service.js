@@ -17,6 +17,7 @@ const
 		tests: []
 	}),
 	TEST_PROTO = Object.freeze({
+		id: null,
 		name: 'Unspecified',
 		source: null,
 		options: {},
@@ -74,13 +75,14 @@ export default class SimpleStateService {
 		);
 	}
 
-	addTest(suiteName, testName, testCode, testOptions) {
+	addTest(suiteName, testName, testId, testCode, testOptions) {
 		const suite = this.obtainSuite(suiteName);
 		if (SimpleStateService.getTestInternal(suite, testName)) {
 			throw new Error(`test '${testName}' already found in suite '${suiteName}'`);
 		}
 
 		suite.tests.push(Object.assign({}, TEST_PROTO, {
+			id: testId,
 			name: testName,
 			code: testCode,
 			options: testOptions
@@ -128,6 +130,7 @@ export default class SimpleStateService {
 				options: Object.assign({}, suite.options),
 				tests: suite.tests.map(test => {
 					return {
+						id: test.id,
 						name: test.name,
 						source: test.source,
 						options: Object.assign({}, test.options)

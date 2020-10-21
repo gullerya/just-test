@@ -1,13 +1,14 @@
-import { EVENTS, RESULT } from '../../../utils.js';
+import { EVENTS, RESULT, getTestId, getValidName } from '../../../commons/interop-utils.js';
 
 const
-	testEventsBus = getTestEventsBus(),
 	RANDOM_CHARSETS = Object.freeze({ numeric: '0123456789', alphaLower: 'abcdefghijklmnopqrstuvwxyz', alphaUpper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' }),
 	DEFAULT_CHARSET = RANDOM_CHARSETS.alphaLower + RANDOM_CHARSETS.alphaUpper + RANDOM_CHARSETS.numeric,
 	DEFAULT_RANDOM_LENGTH = 8;
 
 export {
-	RANDOM_CHARSETS
+	RANDOM_CHARSETS,
+	getSuite,
+	runTestCode
 }
 
 class TestAssets {
@@ -20,26 +21,29 @@ class AssertError extends Error { }
 
 class TimeoutError extends AssertError { }
 
-globalThis.getSuite = suiteName => {
+function getSuite(suiteName) {
+	const sName = getValidName(suiteName);
+
 	return {
-		test: (testName, testCode, options) => {
-			const currentTestId = `${suiteName}|${testName}`;
-			if (currentTestId in globalThis.interop.tests) {
-				const normalizedOptions = Object.assign({}, {
-					ttl: 3000,
-					skip: false,
-					sync: false,
-					expectError: ''
-				}, options);
-				executeTest(suiteName, testName, testCode, normalizedOptions);
+		test: async (testName, testCode) => {
+			const tName = getValidName(testName);
+
+			if (!testCode || typeof testCode !== 'function') {
+				throw new Error(`test code MUST be a function, got '${testCode}'`);
+			}
+
+			const currentTestId = getTestId(sName, tName);
+			const test = globalThis.interop.tests[currentTestId];
+			if (test) {
+				dispatchRunStartEvent(sName, tName);
+				const run = await runTestCode(testCode, test.options);
+				dispatchRunEndEvent(currentTestId, sName, tName, run);
 			}
 		}
 	}
-};
+}
 
-async function executeTest(suiteName, testName, testCode, options) {
-	dispatchRunStartEvent(suiteName, testName);
-
+async function runTestCode(testCode, options) {
 	const run = {};
 
 	let runResult;
@@ -57,22 +61,22 @@ async function executeTest(suiteName, testName, testCode, options) {
 			finalizeRun(options, run, runResult, testAssets);
 		});
 
-	dispatchRunEndEvent(suiteName, testName, run);
+	return run;
 }
 
-function finalizeRun(meta, run, result, testAssets) {
+function finalizeRun(options, run, result, testAssets) {
 	if (result instanceof Error) {
 		const pe = processError(result);
-		if (meta.expectError && (pe.type === meta.expectError || pe.message.includes(meta.expectError))) {
+		if (options.expectError && (pe.type === options.expectError || pe.message.includes(options.expectError))) {
 			run.result = RESULT.PASS;
 		} else {
 			run.result = result instanceof AssertError ? RESULT.FAIL : RESULT.ERROR;
 			run.error = pe;
 		}
 	} else {
-		if (meta.expectError) {
+		if (options.expectError) {
 			run.result = RESULT.FAIL;
-			run.error = processError(new AssertError(`expected an error with '${meta.expectError}' but not seen`));
+			run.error = processError(new AssertError(`expected an error with '${options.expectError}' but not seen`));
 		} else {
 			run.result = RESULT.PASS;
 		}
@@ -100,16 +104,6 @@ function processError(error) {
 	};
 }
 
-function getTestEventsBus() {
-	if (globalThis.window) {
-		let tmp = globalThis.window;
-		while (tmp.parent && tmp.parent !== tmp) tmp = tmp.parent;
-		return tmp.opener ? tmp.opener : tmp;
-	} else {
-		throw new Error('NodeJS is not yet supported');
-	}
-}
-
 function dispatchRunStartEvent(suiteName, testName) {
 	const e = new CustomEvent(EVENTS.RUN_STARTED, {
 		detail: {
@@ -117,18 +111,19 @@ function dispatchRunStartEvent(suiteName, testName) {
 			test: testName
 		}
 	});
-	testEventsBus.dispatchEvent(e);
+	globalThis.dispatchEvent(e);
 }
 
-function dispatchRunEndEvent(suiteName, testName, run) {
+function dispatchRunEndEvent(testId, suiteName, testName, run) {
 	const e = new CustomEvent(EVENTS.RUN_ENDED, {
 		detail: {
+			testId: testId,
 			suite: suiteName,
 			test: testName,
 			run: run
 		}
 	});
-	testEventsBus.dispatchEvent(e);
+	globalThis.dispatchEvent(e);
 }
 
 TestAssets.prototype.waitNextTask = async () => {

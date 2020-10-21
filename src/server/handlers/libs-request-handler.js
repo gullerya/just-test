@@ -31,7 +31,10 @@ export default class ClientLibsRequestHandler extends RequestHandlerBase {
 
 		fs.readFile(filePath, (error, content) => {
 			if (!error) {
-				res.writeHead(200, { 'Content-Type': contentType }).end(content);
+				res.writeHead(200, {
+					'Content-Type': contentType,
+					'Cache-Control': 'public, max-age=604800'
+				}).end(content);
 			} else {
 				if (error.code === 'ENOENT') {
 					logger.warn(`sending 404 for '${filePath}'`);

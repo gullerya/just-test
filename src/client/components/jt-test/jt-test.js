@@ -1,7 +1,12 @@
 import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
-import { STATUS, RESULT } from '../../utils.js';
+import { RESULT } from '../../commons/interop-utils.js';
 
 const TEST_KEY = Symbol('test.key');
+const STATUS = Object.freeze({
+	PENDING: 'pending',
+	RUNNING: 'running',
+	FINISHED: 'finished'
+});
 
 initComponent('just-test-test', class extends ComponentBase {
 	connectedCallback() {

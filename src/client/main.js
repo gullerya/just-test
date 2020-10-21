@@ -2,20 +2,27 @@ import './components/jt-control/jt-control.js';
 import './components/jt-details/jt-details.js';
 import { getStateService } from './services/state/state-service-factory.js';
 import { runSession } from './services/session-service.js';
+import { getTestId, getValidName } from './commons/interop-utils.js';
 
 let stateService;
 
 //	main flow
+//	- sets up environment
+//	- auto runs one session
 //
 loadMetadata()
 	.then(async metadata => {
+		console.info('seting environment up...');
 		stateService = await getStateService(metadata.currentEnvironment);
 		installTestRegistrationAPIs();
 		await collectTests(metadata.testPaths);
+		console.info('... all set');
 		return metadata;
 	})
 	.then(metadata => {
-		return runSession(metadata);
+		//	TODO: we may decide to NOT auto run session here
+		const executionData = stateService.getExecutionData();
+		return runSession(executionData, metadata);
 	})
 	.then(r => {
 		//	report results here
@@ -23,9 +30,6 @@ loadMetadata()
 	})
 	.catch(e => {
 		console.error(e);
-	})
-	.finally(() => {
-		console.info('all done');
 	});
 
 /**
@@ -81,24 +85,20 @@ async function collectTests(testsResources) {
 	console.info(`... test resources fetched (${(performance.now() - started).toFixed(1)}ms)`);
 }
 
-function getSuite(name, options) {
-	if (!name || typeof name !== 'string') {
-		throw new Error(`suite name MUST be a non-empty string; got '${name}'`);
-	}
+function getSuite(suiteName, suiteOptions) {
+	const suiteMeta = validateNormalizeSuiteParams(suiteName, suiteOptions);
+	stateService.obtainSuite(suiteMeta.name, suiteMeta.options);
 
-	const normalizedMeta = validateNormalizeSuiteParams(name, options);
-	const suite = stateService.obtainSuite(normalizedMeta.name, normalizedMeta.options);
 	return {
-		test: registerTest.bind(suite)
-	}
-}
-
-function registerTest(name, code, options) {
-	try {
-		const normalizedMeta = validateNormalizeTestParams(name, code, options);
-		stateService.addTest(this.name, normalizedMeta.name, normalizedMeta.code, normalizedMeta.options);
-	} catch (e) {
-		console.error(`failed to process test '${name} : ${JSON.stringify(options)}':`, e);
+		test: (testName, testCode, testOptions) => {
+			try {
+				const testMeta = validateNormalizeTestParams(testName, testCode, testOptions);
+				const testId = getTestId(suiteName, testMeta.name);
+				stateService.addTest(suiteName, testMeta.name, testId, testMeta.code, testMeta.options);
+			} catch (e) {
+				console.error(`failed to process test '${testName} : ${JSON.stringify(testOptions)}':`, e);
+			}
+		}
 	}
 }
 
@@ -111,10 +111,7 @@ function validateNormalizeSuiteParams(name, options) {
 	const result = {};
 
 	//	name
-	if (!name || typeof name !== 'string') {
-		throw new Error(`suite name MUST be a non-empty string, got '${name}'`);
-	}
-	result.name = name.trim();
+	result.name = getValidName(name);
 
 	//	options
 	if (options !== undefined) {
@@ -122,6 +119,7 @@ function validateNormalizeSuiteParams(name, options) {
 			throw new Error(`suite options, if/when provided, MUST be a non-null object, got '${options}'`);
 		}
 		result.options = Object.assign({}, SUITE_OPTIONS_DEFAULT, options);
+		Object.freeze(result.options);
 	}
 
 	return result;
@@ -138,10 +136,7 @@ function validateNormalizeTestParams(name, code, options) {
 	const result = {};
 
 	//	name
-	if (!name || typeof name !== 'string') {
-		throw new Error(`test name MUST be a non-empty string, got '${name}'`);
-	}
-	result.name = name.trim();
+	result.name = getValidName(name);
 
 	//	code (validation only)
 	if (!code || typeof code !== 'function') {
@@ -154,6 +149,7 @@ function validateNormalizeTestParams(name, code, options) {
 			throw new Error(`test options, if/when provided, MUST be a non-null object, got '${options}'`);
 		}
 		result.options = Object.assign({}, TEST_OPTIONS_DEFAULT, options);
+		Object.freeze(result.options);
 	}
 
 	return result;

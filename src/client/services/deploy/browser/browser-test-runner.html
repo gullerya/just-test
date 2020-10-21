@@ -4,7 +4,10 @@
 <head>
 	<meta charset="utf-8">
 	<!-- <base href="/core/"> -->
-	<script type="module" src="browser-test-runner.js"></script>
+	<script type="module">
+		import { getSuite } from './browser-test-runner.js';
+		Object.defineProperty(globalThis, 'getSuite', { value: getSuite });
+	</script>
 </head>
 
 <body></body>

@@ -1,5 +1,5 @@
-﻿import { RESULT } from '/aut/bin/client/utils.jsss';
-// import { executeTest } from '/aut/bin/client/services/deploy/browser/browser-test-runner.js';
+﻿import { RESULT } from '/aut/bin/client/commons/interop-utils.js';
+import { runTestCode } from '/aut/bin/client/services/deploy/browser/browser-test-runner.js';
 
 const suite = globalThis.getSuite('Single test tests');
 
@@ -13,7 +13,7 @@ suite.test('test - normal flow all properties', async test => {
 			},
 			code: () => { r = true; }
 		},
-		tp = executeTest(m);
+		tp = runTestCode(m);
 
 	test.assertEqual('test-under-test-a', m.meta.name);
 	test.assertFalse(m.meta.skip);
@@ -40,7 +40,7 @@ suite.test('test - fail by false', async test => {
 			code: () => { r = true; return false; }
 		};
 
-	await executeTest(m);
+	await runTestCode(m);
 	test.assertTrue(r);
 	test.assertEqual(m.status, RESULT.FAIL);
 	test.assertEqual(m.error, null);
@@ -62,7 +62,7 @@ suite.test('test - fail by Error', async test => {
 			}
 		};
 
-	await executeTest(m);
+	await runTestCode(m);
 	test.assertTrue(r);
 	test.assertEqual(m.status, RESULT.ERROR);
 	test.assertEqual(m.error, e);
@@ -85,7 +85,7 @@ suite.test('test - fail by AssertError', async test => {
 			}
 		};
 
-	await executeTest(m);
+	await runTestCode(m);
 	test.assertTrue(r);
 	test.assertEqual(m.status, RESULT.FAIL);
 	test.assertEqual(m.error.type, 'AssertError');
@@ -107,7 +107,7 @@ suite.test('test - fail by fail', async test => {
 			}
 		};
 
-	await executeTest(m);
+	await runTestCode(m);
 	test.assertTrue(r);
 	test.assertEqual(m.status, RESULT.FAIL);
 	test.assertEqual(m.error.type, 'AssertError');
@@ -127,7 +127,7 @@ suite.test('test - fail by expect error and none', async test => {
 			code: () => r = true
 		};
 
-	await executeTest(m);
+	await runTestCode(m);
 	test.assertTrue(r);
 	test.assertEqual(m.status, RESULT.FAIL);
 	test.assertEqual(m.error.type, 'AssertError');
@@ -147,7 +147,7 @@ suite.test('test - skip', async test => {
 			code: () => { r = true; }
 		};
 
-	await executeTest(m);
+	await runTestCode(m);
 	test.assertFalse(r);
 	test.assertEqual(m.status, RESULT.SKIP);
 	test.assertEqual(m.duration, null);
@@ -166,7 +166,7 @@ suite.test('test - ttl', async test => {
 		}
 
 	const started = performance.now();
-	await executeTest(m);
+	await runTestCode(m);
 	const duration = performance.now() - started;
 	test.assertTrue(r);
 	test.assertEqual(m.status, RESULT.FAIL);
@@ -207,8 +207,8 @@ suite.test('few async tests - normal flow', async test => {
 
 	const
 		started = performance.now(),
-		tp1 = executeTest(m1),
-		tp2 = executeTest(m2);
+		tp1 = runTestCode(m1),
+		tp2 = runTestCode(m2);
 
 	await Promise.all([tp1, tp2]);
 
@@ -225,25 +225,25 @@ suite.test('few async tests - normal flow', async test => {
 });
 
 suite.test('test - API negative A', async () => {
-	await executeTest('some string');
+	await runTestCode('some string');
 }, {
 	expectError: 'test meta MUST be a non-null object'
 });
 
 suite.test('test - API negative B', async () => {
-	await executeTest({});
+	await runTestCode({});
 }, {
 	expectError: 'name MUST be a non empty string within the option'
 });
 
 suite.test('test - API negative C', async () => {
-	await executeTest({ name: 'some name' });
+	await runTestCode({ name: 'some name' });
 }, {
 	expectError: 'test code MUST be a function'
 });
 
 suite.test('test - API negative D', async () => {
-	await executeTest({ name: 'some name', code: {} });
+	await runTestCode({ name: 'some name', code: {} });
 }, {
 	expectError: 'test code MUST be a function'
 });
