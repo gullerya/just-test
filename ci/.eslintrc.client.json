@@ -2,13 +2,21 @@
 	"extends": "eslint:recommended",
 	"env": {
 		"browser": true,
-		"es2017": true
+		"es2021": true
 	},
 	"parserOptions": {
-		"ecmaVersion": 11,
 		"sourceType": "module"
 	},
 	"globals": {
 		"globalThis": false
+	},
+	"rules": {
+		"no-shadow": [
+			"error",
+			{
+				"builtinGlobals": true,
+				"hoist": "all"
+			}
+		]
 	}
 }

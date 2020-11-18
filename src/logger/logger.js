@@ -1,5 +1,4 @@
 import util from 'util';
-import process from 'process';
 
 export const LOG_LEVELS = Object.freeze({
 	ERROR: 40,

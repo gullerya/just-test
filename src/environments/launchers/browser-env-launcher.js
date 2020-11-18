@@ -77,7 +77,7 @@ export default async function launch(envConfig) {
 			browserLogger.error('"pageerror" event fired on page ', e);
 		});
 
-		page.exposeBinding('forwardMessage', (context, event) => {
+		page.exposeBinding('forwardMessage', (_context, event) => {
 			logger.info(event);
 		});
 		await page.goto(`http://localhost:${serverConfig.port}`);

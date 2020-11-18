@@ -1,8 +1,6 @@
-import { getStateService } from '../services/state/state-service-factory.js';
+import { initStateService, stateService } from '../services/state/state-service-factory.js';
 import { runSession } from '../services/session-service.js';
 import { getTestId, getValidName } from '../utils/interop-utils.js';
-
-let stateService;
 
 runMainFlow();
 
@@ -17,15 +15,19 @@ async function runMainFlow() {
 
 	//	environment setup
 	console.info('seting environment up...');
-	stateService = await getStateService(metadata.currentEnvironment);
+	await initStateService(metadata.currentEnvironment);
 	installTestRegistrationAPIs();
 	await collectTests(metadata.testPaths);
 	console.info('... all set');
 
 	//	auto session execution
-	//	TODO: we may decide to NOT auto run session here
-	const executionData = stateService.getExecutionData();
-	const sessionResult = runSession(executionData, metadata);
+	await autorunSession(metadata);
+
+	if (!metadata.currentEnvironment.interactive) {
+		console.log('send signal to server to run finalization sequence (reporting, shutdown)');
+	} else {
+		console.log('continue in interactive mode');
+	}
 }
 
 /**
@@ -81,6 +83,10 @@ async function collectTests(testsResources) {
 	console.info(`... test resources fetched (${(performance.now() - started).toFixed(1)}ms)`);
 }
 
+async function autorunSession(metadata) {
+	await runSession(metadata);
+}
+
 function getSuite(suiteName, suiteOptions) {
 	const suiteMeta = validateNormalizeSuiteParams(suiteName, suiteOptions);
 	stateService.obtainSuite(suiteMeta.name, suiteMeta.options);
@@ -103,20 +109,17 @@ const SUITE_OPTIONS_DEFAULT = Object.freeze({
 	sync: false
 });
 
-function validateNormalizeSuiteParams(name, options) {
+function validateNormalizeSuiteParams(sName, options) {
 	const result = {};
 
 	//	name
-	result.name = getValidName(name);
+	result.name = getValidName(sName);
 
 	//	options
-	if (options !== undefined) {
-		if (!options || typeof options !== 'object') {
-			throw new Error(`suite options, if/when provided, MUST be a non-null object, got '${options}'`);
-		}
-		result.options = Object.assign({}, SUITE_OPTIONS_DEFAULT, options);
-		Object.freeze(result.options);
+	if (options !== undefined && typeof options !== 'object') {
+		throw new Error(`suite options, if/when provided, MUST be an object, got '${options}'`);
 	}
+	result.options = Object.freeze(Object.assign({}, SUITE_OPTIONS_DEFAULT, options));
 
 	return result;
 }
@@ -128,11 +131,11 @@ const TEST_OPTIONS_DEFAULT = Object.freeze({
 	expectError: ''
 });
 
-function validateNormalizeTestParams(name, code, options) {
+function validateNormalizeTestParams(tName, code, options) {
 	const result = {};
 
 	//	name
-	result.name = getValidName(name);
+	result.name = getValidName(tName);
 
 	//	code (validation only)
 	if (!code || typeof code !== 'function') {
@@ -140,13 +143,10 @@ function validateNormalizeTestParams(name, code, options) {
 	}
 
 	//	options
-	if (options !== undefined) {
-		if (!options || typeof options !== 'object') {
-			throw new Error(`test options, if/when provided, MUST be a non-null object, got '${options}'`);
-		}
-		result.options = Object.assign({}, TEST_OPTIONS_DEFAULT, options);
-		Object.freeze(result.options);
+	if (options !== undefined && typeof options !== 'object') {
+		throw new Error(`test options, if/when provided, MUST be an object, got '${options}'`);
 	}
+	result.options = Object.freeze(Object.assign({}, TEST_OPTIONS_DEFAULT, options));
 
 	return result;
 }

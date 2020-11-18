@@ -7,7 +7,7 @@ import { findMimeType, extensionsMap } from '../server-utils.js';
 
 const
 	logger = new Logger({ context: 'handler client libs' }),
-	require = createRequire(import.meta.url),
+	requirer = createRequire(import.meta.url),
 	CONFIG_KEY = Symbol('config.key');
 
 export default class ClientLibsRequestHandler extends RequestHandlerBase {
@@ -24,7 +24,7 @@ export default class ClientLibsRequestHandler extends RequestHandlerBase {
 
 	async handle(handlerRelativePath, req, res) {
 		const libName = this.extractLibName(handlerRelativePath);
-		const libMain = require.resolve(libName);
+		const libMain = requirer.resolve(libName);
 		const libPath = libMain.substring(0, libMain.indexOf(libName));
 		const filePath = path.join(libPath, handlerRelativePath);
 		const contentType = findMimeType(filePath, extensionsMap.js);

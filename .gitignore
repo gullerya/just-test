@@ -1,4 +1,6 @@
-/.idea
-**/node_modules
-/reports
-/bin
+.idea
+
+
+bin
+reports
+node_modules

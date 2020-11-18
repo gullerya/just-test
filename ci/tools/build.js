@@ -1,7 +1,6 @@
 ﻿import os from 'os';
 import fs from 'fs';
 import path from 'path';
-import process from 'process';
 
 process.stdout.write('cleaning "bin"...');
 fs.rmdirSync('./bin', { recursive: true });

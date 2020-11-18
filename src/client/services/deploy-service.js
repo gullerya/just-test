@@ -1,5 +1,3 @@
-import { EVENTS } from '../utils/interop-utils.js';
-
 /**
  * deploys a single test within a given environment
  * - in the browser non-interactive context injects the test into the newly created page
@@ -25,63 +23,47 @@ export function deployTest(test, currentEnvironment) {
 }
 
 function executeInFrame(test) {
-	const rp = getResolvablePromise();
 	const d = globalThis.document;
 	const i = d.createElement('iframe');
 	i.classList.add('just-test-execution-frame');
 	i.src = 'env-browser/browser-test-runner.html';
-	i.onload = event => {
-		injectInteropsBrowser(event.target.contentWindow, test, rp);
-		injectTestBrowser(event.target.contentDocument, test.source);
-	};
 	d.body.appendChild(i);
-	return rp;
+	return new Promise((resolve, reject) => {
+		i.onload = () => {
+			setupInteropsBrowser(i.contentWindow, test);
+			injectTestBrowser(i.contentDocument, test.source);
+			resolve(i.contentWindow);
+		};
+		i.onerror = reject;
+	});
 }
 
 function executeInPage(test) {
-	const rp = getResolvablePromise();
 	const w = globalThis.open('env-browser/browser-test-runner.html');
-	w.onload = event => {
-		injectInteropsBrowser(w, test, rp);
-		injectTestBrowser(event.target, test.source);
-	};
-	return rp;
+	return new Promise((resolve, reject) => {
+		w.onload = () => {
+			setupInteropsBrowser(w, test);
+			injectTestBrowser(w.document, test.source);
+			resolve(w);
+		};
+		w.onerror = reject;
+	});
 }
 
 function executeInNodeJS(test) {
 	throw new Error(`unsupported yet environment to run ${test.id} from ${test.source}`);
 }
 
-function injectInteropsBrowser(targetWindow, test, resolvablePromise) {
+function setupInteropsBrowser(targetWindow, test) {
 	const interopAPIs = targetWindow.interop || (targetWindow.interop = {
 		tests: {}
 	});
 	interopAPIs.tests[test.id] = { options: test.options };
-
-	//	listener on test run
-	targetWindow.addEventListener(EVENTS.RUN_STARTED, () => {
-		// TODO: add here state service update with DEPLOYING status
-		// console.log(`started ${JSON.stringify(e.detail)}`);
-	}, { once: true });
-	targetWindow.addEventListener(EVENTS.RUN_ENDED, e => {
-		resolvablePromise.resolve(e.detail);
-	}, { once: true });
 }
 
-function injectTestBrowser(document, testSource) {
-	const s = document.createElement('script');
+function injectTestBrowser(envDocument, testSource) {
+	const s = envDocument.createElement('script');
 	s.type = 'module';
 	s.src = `/tests/${testSource}`;
-	document.head.appendChild(s);
-}
-
-function getResolvablePromise() {
-	let tmpRes, tmpRej;
-	const result = new Promise((resolve, reject) => {
-		tmpRes = resolve;
-		tmpRej = reject;
-	});
-	result.resolve = tmpRes;
-	result.reject = tmpRej;
-	return result;
+	envDocument.head.appendChild(s);
 }

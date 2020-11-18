@@ -2,7 +2,9 @@
  * Runs a session of all suites/tests
  * - performs with the current environment (browser / node instance)
  */
+import { EVENTS } from '../utils/interop-utils.js';
 import { deployTest } from './deploy-service.js';
+import { stateService } from './state/state-service-factory.js';
 
 export {
 	runSession
@@ -15,20 +17,17 @@ export {
  * @param {object} metadata - session execution metadata
  * @returns Promise resolved with test results when all tests done
  */
-async function runSession(executionData, metadata) {
+async function runSession(metadata) {
+	const executionData = stateService.getExecutionData();
 	console.info(`starting test session (${executionData.suites.length} suites)...`);
 
-	setTimeout(() => {
-		//	TODO: finalize the session, no further updates will be accepted
-		//	fs non-interactive - send shut down signal
-	}, metadata.settings.ttl);
-	console.info(`session time out watcher set to ${metadata.settings.ttl}ms`);
-
-	if (metadata.currentEnvironment.interactive) {
-		await Promise.all(executionData.suites.map(suite => executeSuite(suite, metadata)));
-	} else {
-		throw new Error('automated execution is not yet supported');
+	if (!metadata.currentEnvironment.interactive) {
+		setTimeout(() => {
+			//	TODO: finalize the session, no further updates will be accepted
+		}, metadata.settings.ttl);
+		console.info(`session time out watcher set to ${metadata.settings.ttl}ms`);
 	}
+	await Promise.all(executionData.suites.map(suite => executeSuite(suite, metadata)));
 
 	console.info('... session done');
 }
@@ -53,5 +52,16 @@ async function executeSuite(suite, metadata) {
 }
 
 async function executeTest(test, metadata) {
-	return await deployTest(test, metadata.currentEnvironment);
+	const runEnv = await deployTest(test, metadata.currentEnvironment);
+
+	return new Promise(resolve => {
+		runEnv.addEventListener(EVENTS.RUN_STARTED, e => {
+			stateService.updateRunStarted(e.detail.suite, e.detail.test);
+		}, { once: true });
+		runEnv.addEventListener(EVENTS.RUN_ENDED, e => {
+			stateService.updateRunEnded(e.detail.suite, e.detail.test, e.detail.run);
+			resolve();
+		}, { once: true });
+
+	});
 }

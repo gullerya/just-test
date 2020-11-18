@@ -6,8 +6,8 @@ const
 suite.test('suite - basic full flow', async test => {
 	const s = getSuite('suite-under-test');
 
-	s.test({ name: 't1' }, () => { });
-	s.test({ name: 't2' }, () => { });
+	s.test('t1', () => { });
+	s.test('t2', () => { });
 
 	await s.done;
 
@@ -34,8 +34,8 @@ suite.test('suite - failing this one (UI/manual test)', t => {
 suite.test('suite - all async', async test => {
 	const s = getSuite('suite-under-test');
 
-	s.test({ name: 't1' }, async t1 => { await t1.waitMillis(700); });
-	s.test({ name: 't2' }, async t2 => { await t2.waitMillis(900); });
+	s.test('t1', async t1 => { await t1.waitMillis(700); });
+	s.test('t2', async t2 => { await t2.waitMillis(900); });
 
 	await s.done;
 
@@ -46,8 +46,8 @@ suite.test('suite - all async', async test => {
 suite.test('suite - all sync', async test => {
 	const s = getSuite('suite-under-test');
 
-	s.test({ name: 't1', sync: true }, async t1 => { await t1.waitMillis(700); });
-	s.test({ name: 't2', sync: true }, async t2 => { await t2.waitMillis(900); });
+	s.test('t1', async t1 => { await t1.waitMillis(700); }, { sync: true });
+	s.test('t2', async t2 => { await t2.waitMillis(900); }, { sync: true });
 
 	await s.done;
 

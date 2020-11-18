@@ -1,4 +1,3 @@
-import { URL } from 'url';
 import fsExtra from 'fs-extra';
 import Logger from '../logger/logger.js';
 

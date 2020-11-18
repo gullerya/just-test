@@ -40,18 +40,18 @@ initComponent('just-test-test', class extends ComponentBase {
 		this.shadowRoot.querySelector('.duration').textContent = ds;
 	}
 
-	set status(status) {
+	set status(newStatus) {
 		let newState;
 		this.classList.remove('wait', 'runs', 'pass', 'fail', 'skip');
-		if (status === STATUS.PENDING) {
+		if (newStatus === STATUS.PENDING) {
 			newState = 'wait';
-		} else if (status === STATUS.RUNNING) {
+		} else if (newStatus === STATUS.RUNNING) {
 			newState = 'runs';
-		} else if (status === RESULT.PASS) {
+		} else if (newStatus === RESULT.PASS) {
 			newState = 'pass';
-		} else if (status === RESULT.FAIL || status === RESULT.ERROR) {
+		} else if (newStatus === RESULT.FAIL || newStatus === RESULT.ERROR) {
 			newState = 'fail';
-		} else if (status === RESULT.SKIP) {
+		} else if (newStatus === RESULT.SKIP) {
 			newState = 'skip';
 		}
 		setTimeout(() => {

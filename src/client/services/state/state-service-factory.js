@@ -1,13 +1,20 @@
-let stateServicePromise = null;
+let stateServiceInitPromise = null;
+let stateService = null;
 
-export async function getStateService(currentEnvironment) {
-	if (!stateServicePromise) {
+export {
+	initStateService,
+	stateService
+}
+
+async function initStateService(currentEnvironment) {
+	if (!stateServiceInitPromise) {
+		let importService;
 		if (currentEnvironment.browser) {
-			stateServicePromise = import('./data-tied-state-service.js');
+			importService = import('./data-tied-state-service.js');
 		} else {
-			stateServicePromise = import('./simple-state-service.js');
+			importService = import('./simple-state-service.js');
 		}
+		stateServiceInitPromise = importService.then(m => stateService = new m.default());
 	}
-
-	return new (await stateServicePromise).default();
+	return stateServiceInitPromise;
 }

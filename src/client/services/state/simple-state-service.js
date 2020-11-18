@@ -45,6 +45,7 @@ export default class SimpleStateService {
 			error: 0,
 			suites: []
 		};
+		console.info(`state service ${this.constructor.name} initialized`);
 	}
 
 	obtainSuite(suiteName, options) {
@@ -87,6 +88,12 @@ export default class SimpleStateService {
 			code: testCode,
 			options: testOptions
 		}));
+
+		this.model.total++;
+		if (testOptions.skip) {
+			this.model.skip++;
+			this.model.done++;
+		}
 	}
 
 	/**
@@ -116,6 +123,8 @@ export default class SimpleStateService {
 		const test = this.getTest(suiteName, testName);
 		Object.assign(test.runs[test.runs.length - 1], run);
 		Object.assign(test.lastRun, run);
+
+		this.model.done++;
 	}
 
 	/**

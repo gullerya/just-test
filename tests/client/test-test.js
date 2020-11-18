@@ -7,13 +7,9 @@ suite.test('test - normal flow all properties', async test => {
 	let r = false;
 
 	const
-		m = {
-			meta: {
-				name: 'test-under-test-a'
-			},
-			code: () => { r = true; }
-		},
-		tp = runTestCode(m);
+		tp = runTestCode(
+			() => { r = true; }, {}
+		);
 
 	test.assertEqual('test-under-test-a', m.meta.name);
 	test.assertFalse(m.meta.skip);
@@ -32,15 +28,7 @@ suite.test('test - normal flow all properties', async test => {
 suite.test('test - fail by false', async test => {
 	let r = false;
 
-	const
-		m = {
-			meta: {
-				name: 'test-under-test-fail-by-false'
-			},
-			code: () => { r = true; return false; }
-		};
-
-	await runTestCode(m);
+	await runTestCode(() => { r = true; return false; }, {});
 	test.assertTrue(r);
 	test.assertEqual(m.status, RESULT.FAIL);
 	test.assertEqual(m.error, null);

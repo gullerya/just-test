@@ -35,7 +35,7 @@ function getSuite(suiteName) {
 			const currentTestId = getTestId(sName, tName);
 			const test = globalThis.interop.tests[currentTestId];
 			if (test) {
-				dispatchRunStartEvent(sName, tName);
+				dispatchRunStartEvent(currentTestId, sName, tName);
 				const run = await runTestCode(testCode, test.options);
 				dispatchRunEndEvent(currentTestId, sName, tName, run);
 			}
@@ -104,9 +104,10 @@ function processError(error) {
 	};
 }
 
-function dispatchRunStartEvent(suiteName, testName) {
+function dispatchRunStartEvent(testId, suiteName, testName) {
 	const e = new CustomEvent(EVENTS.RUN_STARTED, {
 		detail: {
+			testId: testId,
 			suite: suiteName,
 			test: testName
 		}
@@ -134,9 +135,9 @@ TestAssets.prototype.waitMillis = async millis => {
 	return new Promise(resolve => setTimeout(resolve, millis));
 }
 
-TestAssets.prototype.getRandom = (length = DEFAULT_RANDOM_LENGTH, randomCharsets) => {
-	if (!length || typeof length !== 'number' || isNaN(length) || length > 128) {
-		throw new Error(`invalid length ${length}`);
+TestAssets.prototype.getRandom = (outputLength = DEFAULT_RANDOM_LENGTH, randomCharsets) => {
+	if (!outputLength || typeof outputLength !== 'number' || isNaN(outputLength) || outputLength > 128) {
+		throw new Error(`invalid length ${outputLength}`);
 	}
 	if (randomCharsets) {
 		if (!Array.isArray(randomCharsets)) {
@@ -147,8 +148,8 @@ TestAssets.prototype.getRandom = (length = DEFAULT_RANDOM_LENGTH, randomCharsets
 	}
 	let result = '';
 	const source = randomCharsets ? randomCharsets.join('') : DEFAULT_CHARSET;
-	const random = crypto.getRandomValues(new Uint8Array(length));
-	for (let i = 0; i < length; i++) {
+	const random = crypto.getRandomValues(new Uint8Array(outputLength));
+	for (let i = 0; i < outputLength; i++) {
 		result += source.charAt(source.length * random[i] / 256);
 	}
 	return result;
