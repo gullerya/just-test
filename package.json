@@ -1,7 +1,7 @@
 {
 	"name": "just-test",
-	"version": "2.3.10",
-	"description": "Client side JavaScript tests runner",
+	"version": "3.0.0-snapshot",
+	"description": "JavaScript tests runner",
 	"keywords": [
 		"javascript",
 		"testing",
