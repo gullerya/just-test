@@ -2,42 +2,24 @@ import fs from 'fs';
 import { performance } from 'perf_hooks';
 import glob from 'glob';
 import Logger from '../logger/logger.js';
-import buildConfig from './tests-service-config.js';
+import buildConfig from './testing-service-config.js';
 
 export {
 	CONSTANTS,
-	getTestsService
+	getTestingService
 }
 
 const
 	logger = new Logger({ context: 'tester' }),
-	CONFIG_KEY = Symbol('config'),
-	TEST_RESOURCES_PROMISE_KEY = Symbol('tester.ready'),
 	CONSTANTS = Object.freeze({
-		TESTS_METADATA: 'testsMetadata',
-		TEST_RESOURCES_PROMISE: 'testsResourcesPromise'
+		TESTS_METADATA: 'testsMetadata'
 	});
 
-let testsServiceInstance;
+let testingServiceInstance;
 
 class TestsService {
-	constructor(testsConfig, clArguments) {
-		//	build configuration
-		const effectiveConf = buildConfig(testsConfig, clArguments);
-		this[CONFIG_KEY] = effectiveConf;
-		logger.info('tests service effective config:');
-		logger.info(effectiveConf);
-
-		//	collect all test resources
-		this[TEST_RESOURCES_PROMISE_KEY] = this.collectTestResources();
-	}
-
-	get effectiveConfig() {
-		return this[CONFIG_KEY];
-	}
-
-	get testResourcesPromise() {
-		return this[TEST_RESOURCES_PROMISE_KEY];
+	verifyEnrichConfig(testingConfig, clArguments) {
+		return buildConfig(testingConfig, clArguments);
 	}
 
 	async collectTestResources() {
@@ -154,9 +136,9 @@ class TestsService {
 	}
 }
 
-function getTestsService(testsConfig) {
-	if (!testsServiceInstance) {
-		testsServiceInstance = new TestsService(testsConfig);
+function getTestingService(testsConfig) {
+	if (!testingServiceInstance) {
+		testingServiceInstance = new TestsService(testsConfig);
 	}
-	return testsServiceInstance;
+	return testingServiceInstance;
 }

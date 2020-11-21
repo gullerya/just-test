@@ -8,8 +8,6 @@
  * @param {boolean} envConfig.interactive in this context expected always to equal true
  */
 import Logger from '../../logger/logger.js';
-import { obtainEffectiveConfig } from '../../configurer.js';
-import { CONSTANTS } from '../../server/server-service.js';
 
 const logger = new Logger({ context: 'interactive env launcher' });
 

@@ -32,15 +32,30 @@ async function runMainFlow() {
 
 /**
  * fetches test session definitions
- * TODO: switch to a single API and do it as a session API (even include some session ID already)
- * 
- * @returns {Object} definitions fetched
  */
 async function loadMetadata() {
 	const started = performance.now();
 	console.info(`fetching test session metadata...`);
 
-	const mdResponse = await fetch('/api/v1/sessions/x/metadata');
+	//	get all sessions
+	const sessionsResponse = await fetch('/api/v1/sessions');
+	if (!sessionsResponse.ok) {
+		throw new Error(`failed to load sessions; status: ${sessionsResponse.status}`);
+	}
+	const sessions = await sessionsResponse.json();
+
+	//	find interactive session (first one as of now)
+	const interactiveSession = Object.values(sessions).find(s => {
+		return s &&
+			s.config &&
+			s.config.environments &&
+			(s.config.environments.length === 0 || s.config.environments[0].interactive);
+	});
+	if (!interactiveSession) {
+		throw new Error(`no interactive sessions found`);
+	}
+
+	const mdResponse = await fetch(`/api/v1/sessions/${interactiveSession.id}/config`);
 	if (!mdResponse.ok) {
 		throw new Error(`failed to load metadata; status: ${mdResponse.status}`);
 	}

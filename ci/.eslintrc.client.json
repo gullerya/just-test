@@ -7,9 +7,6 @@
 	"parserOptions": {
 		"sourceType": "module"
 	},
-	"globals": {
-		"globalThis": false
-	},
 	"rules": {
 		"no-shadow": [
 			"error",

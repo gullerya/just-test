@@ -4,15 +4,15 @@ import Logger from '../logger/logger.js';
 
 const
 	logger = new Logger({ context: 'tests-configurer' }),
-	TEST_REPORTERS = ['xUnit'],
+	TEST_REPORTS_FORMATS = ['xUnit'],
 	DEFAULT_CONFIG = Object.freeze({
 		ttl: 30000,
 		maxFail: 0,
 		maxSkip: 0,
 		include: [],
 		exclude: [],
-		reporters: [
-			{ type: 'xUnit', path: './reports/test-results.xml' }
+		reports: [
+			{ format: 'xUnit', path: './reports/test-results.xml' }
 		]
 	});
 
@@ -26,21 +26,21 @@ export default (testsConfig) => {
 	);
 
 	validate(result);
-	reduceIdenticalReporters(result);
+	_reduceIdenticalReports(result);
 	return Object.freeze(result);
 };
 
 function validate(config) {
-	//	validate reporters
-	if (!Array.isArray(config.reporters) || config.reporters.some(r => !r || typeof r !== 'object')) {
-		throw new Error(`test reporters MUST be an array of non-null objects; got ${config.reporters}`);
+	//	validate reports
+	if (!Array.isArray(config.reports) || config.reports.some(r => !r || typeof r !== 'object')) {
+		throw new Error(`test reporters MUST be an array of non-null objects; got ${config.reports}`);
 	}
-	config.reporters.forEach(reporter => {
-		if (!TEST_REPORTERS.includes(reporter.type)) {
-			throw new Error(`reporter type MUST be a one of ${TEST_REPORTERS}; got ${reporter.type}`);
+	config.reports.forEach(report => {
+		if (!TEST_REPORTS_FORMATS.includes(report.format)) {
+			throw new Error(`reporter type MUST be a one of ${TEST_REPORTS_FORMATS}; got ${report.format}`);
 		}
-		if (!reporter.path || typeof reporter.path !== 'string') {
-			throw new Error(`reporter path MUST be a non-empty string; got ${reporter.path}`);
+		if (!report.path || typeof report.path !== 'string') {
+			throw new Error(`reporter path MUST be a non-empty string; got ${report.path}`);
 		}
 	});
 
@@ -53,12 +53,12 @@ function validate(config) {
 	}
 }
 
-function reduceIdenticalReporters(config) {
+function _reduceIdenticalReports(config) {
 	const map = {};
-	const toBeRemoved = config.reporters.filter(reporter => {
-		const hash = reporter.type + reporter.path;
+	const toBeRemoved = config.reports.filter(report => {
+		const hash = report.format + report.path;
 		if (hash in map) {
-			logger.warn(`removing duplicate reporter (${JSON.stringify(reporter)})`);
+			logger.warn(`removing duplicate report (${JSON.stringify(report)})`);
 			return true;
 		} else {
 			map[hash] = true;
@@ -66,6 +66,6 @@ function reduceIdenticalReporters(config) {
 		}
 	});
 	for (const tbr of toBeRemoved) {
-		config.reporters.splice(config.reporters.indexOf(tbr), 1);
+		config.reports.splice(config.reports.indexOf(tbr), 1);
 	}
 }

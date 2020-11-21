@@ -8,9 +8,6 @@
  * @param {string} envConfig.browser in this context expected always to equal true
  */
 import Logger from '../../logger/logger.js';
-import { obtainEffectiveConfig } from '../../configurer.js';
-import { CONSTANTS as S_CONSTANTS } from '../../server/server-service.js';
-import { CONSTANTS as T_CONSTANTS } from '../../tests/tests-service.js';
 import playwright from 'playwright';
 
 const logger = new Logger({ context: 'browser env launcher' });

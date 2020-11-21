@@ -87,7 +87,8 @@ class ServerService {
 					ownPath = ownPath.startsWith('/') ? ownPath.substring(1) : ownPath;
 					await handler.handle(ownPath, req, res);
 				} catch (error) {
-					logger.error(`sending 500 for '${req.url}'; ${error}`);
+					logger.error(`sending 500 for '${req.url}' due to:`);
+					logger.error(error);
 					res.writeHead(500).end(`${error}`);
 				}
 			} else {

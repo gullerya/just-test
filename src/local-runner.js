@@ -16,7 +16,7 @@ async function go() {
 	let server;
 	try {
 		server = await startServer(clArguments);
-		const sessionResult = await executeSessionWithLocalConfig(server.baseUrl, clArguments);
+		const sessionResult = await executeSession(server.baseUrl, clArguments);
 		console.log(sessionResult);
 	} catch (error) {
 		console.error(os.EOL);
@@ -48,36 +48,11 @@ function parseCLArgs(args) {
 	return result;
 }
 
-async function executeSessionWithLocalConfig(serverBaseUrl, clArguments) {
+async function executeSession(serverBaseUrl, clArguments) {
 	const config = await readConfigAndMergeWithCLArguments(clArguments);
-
-	const options = {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application-json'
-		}
-	};
-
-	const req = http.request(`${serverBaseUrl}/api/v1/sessions`, options, res => {
-		console.log(`STATUS: ${res.statusCode}`);
-		console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-		res.setEncoding('utf-8');
-		res.on('data', chunk => {
-			console.log(`BODY: ${chunk}`);
-		});
-		res.on('end', () => {
-			console.log('No more data in response.');
-		});
-	});
-
-	req.on('error', e => {
-		console.error(`request failed to dispatch: ${e.message}`);
-	});
-
-	req.write(JSON.stringify(config));
-	req.end();
-
-	return pollForSessionEnd();
+	const sessionDetails = await sentAddSession(serverBaseUrl, config);
+	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
+	return sessionResult;
 }
 
 async function readConfigAndMergeWithCLArguments(clArguments) {
@@ -92,8 +67,73 @@ async function readConfigAndMergeWithCLArguments(clArguments) {
 	return result;
 }
 
-async function pollForSessionEnd() {
-	return new Promise(r => { });
+async function sentAddSession(serverBaseUrl, config) {
+	const addSessionUrl = `${serverBaseUrl}/api/v1/sessions`;
+	const options = {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	};
+	const body = JSON.stringify(config);
+
+	return new Promise((resolve, reject) => {
+		http
+			.request(addSessionUrl, options, res => {
+				if (res.statusCode !== 201) {
+					reject(new Error(`failed to create session; status: ${res.statusCode}, message: ${res.statusMessage}`));
+				} else {
+					let data = '';
+					res.setEncoding('utf-8');
+					res.on('error', reject);
+					res.on('data', chunk => data += chunk);
+					res.on('end', () => resolve(JSON.parse(data)));
+				}
+			})
+			.on('error', reject)
+			.end(body);
+	});
+}
+
+async function waitSessionEnd(serverBaseUrl, sessionDetails) {
+	const sessionResultUrl = `${serverBaseUrl}/api/v1/sessions/${sessionDetails.sessionId}/result`;
+	const options = {
+		method: 'GET',
+		headers: {
+			'Accept': 'application/json'
+		}
+	};
+
+	//	TODO: add global timeout
+	return new Promise((resolve, reject) => {
+		const p = () => {
+			http
+				.request(sessionResultUrl, options, res => {
+					let done = false;
+					if (res.statusCode !== 200) {
+						console.error(os.EOL);
+						console.error(`unexpected session result response; status: ${res.statusCode}, message: ${res.statusMessage}`);
+						console.error(os.EOL);
+					} else {
+						let data = '';
+						res.setEncoding('utf-8');
+						res.on('data', chunk => data += chunk);
+						res.on('end', () => {
+							if (data) {
+								done = true;
+								resolve(JSON.parse(data));
+							}
+						});
+					}
+					if (!done) {
+						setTimeout(p, 1353);
+					}
+				})
+				.on('error', reject)
+				.end();
+		};
+		p();
+	});
 }
 
 	//	coverage

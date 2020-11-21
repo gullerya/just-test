@@ -1,20 +1,25 @@
-import configurer from '../configurer.js';
-
 const
-	coverageFormats = ['lcov'],
-	defaultConfig = Object.freeze({
+	COVERAGE_FORMATS = ['lcov'],
+	DEFAULT_CONFIG = Object.freeze({
 		skip: false,
 		include: [],
 		exclude: [
 			'*.min.js'
 		],
 		reports: [
-			{ path: './reports/coverage.lcov', format: 'lcov' }
+			{ format: 'lcov', path: './reports/coverage.lcov' }
 		]
 	});
 
-export default () => {
-	const result = configurer.mergeConfig(defaultConfig, configurer.givenConfig.coverage);
+export default (coverageConfig) => {
+	const result = Object.assign(
+		{},
+		DEFAULT_CONFIG,
+		Object.entries(coverageConfig)
+			.filter(([key]) => key in DEFAULT_CONFIG)
+			.reduce((pv, [key, value]) => { pv[key] = value; return pv; }, {})
+	);
+
 	validate(result);
 	return Object.freeze(result);
 };
@@ -28,8 +33,8 @@ function validate(config) {
 		if (!report.path || typeof report.path !== 'string') {
 			throw new Error(`coverage report path MUST be a non-empty string; got ${report.path}`);
 		}
-		if (!coverageFormats.includes(report.format)) {
-			throw new Error(`coverage report format MUST be a one of ${coverageFormats}; got ${report.format}`);
+		if (!COVERAGE_FORMATS.includes(report.format)) {
+			throw new Error(`coverage report format MUST be a one of ${COVERAGE_FORMATS}; got ${report.format}`);
 		}
 	});
 

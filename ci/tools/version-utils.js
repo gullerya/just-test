@@ -12,7 +12,6 @@
  * 		major - extract the old version and auto bump to '{x + 1}.0.0-snapshot'
  */
 
-import process from 'process';
 import fs from 'fs';
 
 const args = translateCLArguments(process.argv);

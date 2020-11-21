@@ -1,31 +1,26 @@
-import fsExtra from 'fs-extra';
+import fs from 'fs';
 import Logger from '../logger/logger.js';
-
 import buildConfig from './coverage-service-config.js';
 import RangeCov from './range-cov.js';
 import LineCov from './line-cov.js';
 import FileCov from './file-cov.js';
 import coverageToLcov from './coverage-to-lcov.js';
 
+export {
+	getCoverageService
+}
+
 const
 	logger = new Logger({ context: 'coverage' }),
-	CONFIG_KEY = Symbol('config.key'),
 	NATIVE_PAGE_KEY = Symbol('native.page'),
 	IS_SUPPORTED_KEY = Symbol('native.coverage.supported'),
 	IS_RUNNING_KEY = Symbol('coverage.tracking.running'),
 	REPORTS_KEY = Symbol('coverage.reports');
 
+let coverageServiceInstance;
 class CoverageService {
-	constructor() {
-		const effectiveConf = buildConfig();
-		logger.info('converage service effective config:');
-		logger.info(effectiveConf);
-
-		this[CONFIG_KEY] = effectiveConf;
-	}
-
-	get effectiveConfig() {
-		return this[CONFIG_KEY];
+	verifyEnrichConfig(coverageConfig, clArguments) {
+		return buildConfig(coverageConfig, clArguments);
 	}
 
 	isCoverageSupported() {
@@ -191,9 +186,14 @@ class CoverageService {
 				return;
 		}
 		if (report) {
-			fsExtra.outputFileSync(reportPath, report);
+			fs.writeFileSync(reportPath, report, { encoding: 'utf-8' });
 		}
 	}
 }
 
-export default new CoverageService();
+function getCoverageService() {
+	if (!coverageServiceInstance) {
+		coverageServiceInstance = new CoverageService();
+	}
+	return coverageServiceInstance;
+}

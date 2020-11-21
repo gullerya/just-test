@@ -2,11 +2,12 @@ import Logger from '../logger/logger.js';
 import launchInteractive from './launchers/interactive-env-launcher.js';
 import launchBrowser from './launchers/browser-env-launcher.js';
 
+export {
+	getEnvironmentsService
+}
+
 const
 	logger = new Logger({ context: 'environments' }),
-	CL_ENVS_SPLITTER = ';',
-	CL_ENV_TOKENS_SPLITTER = ',',
-	ENVIRONMENTS_KEY = Symbol('environments.key'),
 	ENVIRONMENT_BLUEPRINT = Object.freeze({
 		interactive: true,
 		browser: null,
@@ -24,28 +25,26 @@ const
 		dark: true
 	});
 
-export const CONSTANTS = Object.freeze({
-	ENVS: 'envs'
-});
+let environmentsServiceInstance;
 
-export default class EnvironmentsService {
+class EnvironmentsService {
 	/**
 	 * Environment Service initializer
 	 * 
-	 * @param {Array} [envConfigs] - an array of environment configurations
+	 * @param {Array} [envsConfig] - an array of environment configurations
 	 * @param {Object} [clArguments] - command line arguments
 	 */
-	constructor(envConfigs, clArguments) {
+	verifyEnrichConfig(envsConfig, clArguments) {
 		const envs = [];
 
 		if (clArguments && clArguments.envs) {
 			const envArgs = clArguments.envs.split(CL_ENVS_SPLITTER);
 			for (const envArg of envArgs) {
-				envs.push(parseCLArgAsEnv(envArg));
+				envs.push(_parseCLArgAsEnv(envArg));
 			}
-		} else if (envConfigs && envConfigs.length) {
-			for (const envConfig of envConfigs) {
-				envs.push(processEnvConfig(envConfig));
+		} else if (envsConfig && envsConfig.length) {
+			for (const envConfig of envsConfig) {
+				envs.push(_processEnvConfig(envConfig));
 			}
 		} else {
 			logger.info('no environment configurations specified, defaulting to interactive');
@@ -55,16 +54,10 @@ export default class EnvironmentsService {
 				{ interactive: true }
 			));
 		}
-		validateEnvironments(envs);
-		reduceIdenticalEnvironments(envs);
+		_validateEnvironments(envs);
+		_reduceIdenticalEnvironments(envs);
 
-		this[ENVIRONMENTS_KEY] = Object.freeze(envs);
-
-		logger.info('environments:', this.environments);
-	}
-
-	get environments() {
-		return this[ENVIRONMENTS_KEY];
+		return envs;
 	}
 
 	launch(environments) {
@@ -82,7 +75,7 @@ export default class EnvironmentsService {
 	}
 }
 
-function parseCLArgAsEnv(clArg) {
+function _parseCLArgAsEnv(clArg) {
 	const tokens = clArg.split(CL_ENV_TOKENS_SPLITTER);
 	const tmp = {};
 	for (const token of tokens) {
@@ -100,7 +93,7 @@ function parseCLArgAsEnv(clArg) {
 	return Object.assign({}, ENVIRONMENT_BLUEPRINT, tmp);
 }
 
-function processEnvConfig(envConfig) {
+function _processEnvConfig(envConfig) {
 	const tmp = {};
 	Object.entries(envConfig).forEach(([key, value]) => {
 		if (!(key in ENVIRONMENT_BLUEPRINT)) {
@@ -118,7 +111,7 @@ function processEnvConfig(envConfig) {
 	return Object.assign({}, ENVIRONMENT_BLUEPRINT, tmp);
 }
 
-function validateEnvironments(envs) {
+function _validateEnvironments(envs) {
 	if (!envs || !envs.length) {
 		throw new Error(`at least 1 environment for a tests execution expected; found ${envs}`);
 	}
@@ -132,7 +125,7 @@ function validateEnvironments(envs) {
 	}
 }
 
-function reduceIdenticalEnvironments(envs) {
+function _reduceIdenticalEnvironments(envs) {
 	const map = {};
 	const toBeRemoved = envs.filter(e => {
 		const hash = JSON.stringify(e);
@@ -147,4 +140,11 @@ function reduceIdenticalEnvironments(envs) {
 	for (const tbr of toBeRemoved) {
 		envs.splice(envs.indexOf(tbr), 1);
 	}
+}
+
+function getEnvironmentsService() {
+	if (!environmentsServiceInstance) {
+		environmentsServiceInstance = new EnvironmentsService();
+	}
+	return environmentsServiceInstance;
 }
