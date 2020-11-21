@@ -1,8 +1,8 @@
-import Logger from '../../logger/logger.js';
+import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { extensionsMap } from '../server-utils.js';
-import { obtainEffectiveConfig } from '../../configurer.js';
-import { CONSTANTS as T_CONSTANTS } from '../../tests/tests-service.js';
+import { getSessionsService } from '../sessions/sessions-service.js';
+import { CONSTANTS as T_CONSTANTS } from '../testing/tests-service.js';
 
 const
 	logger = new Logger({ context: 'handler API' }),
@@ -12,7 +12,7 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;
-		logger.info(`API resource request handler initialized; basePath: '${this.basePath}'`);
+		logger.info(`API requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
 	get basePath() {
@@ -23,6 +23,7 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 		if (handlerRelativePath.startsWith('v1/sessions/')) {
 			this.handleSessionsRequest(req, res);
 		} else {
+			logger.warn(`sending 404 for '${handlerRelativePath}'`);
 			res.writeHead(404).end();
 		}
 	}
@@ -31,20 +32,27 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 		const { groups: { version, sessionId } } = 'v1/sessions/x/metadata'
 			.match(/^(?<version>.+)\/sessions\/(?<sessionId>.+)\/metadata$/);
 
-		//	TODO: remove the below but should use those to resolve the correct metadata
-		logger.info(version);
-		logger.info(sessionId);
+		logger.info(`version for versioning API is ${version}`);
+		const session = getSessionsService().getSession(sessionId);
 
 		res
 			.writeHead(200, { 'Content-Type': extensionsMap.json })
 			.end(JSON.stringify({
-				currentEnvironment: this.resolveExecutionEnvironment(req),
+				currentEnvironment: this._resolveExecutionEnvironment(req),
 				settings: obtainEffectiveConfig(T_CONSTANTS.TESTS_METADATA),
 				testPaths: await obtainEffectiveConfig(T_CONSTANTS.TEST_RESOURCES_PROMISE)
 			}));
 	}
 
-	resolveExecutionEnvironment(req) {
+	async _createSession() {
+
+	}
+
+	async _obtainSession() {
+
+	}
+
+	_resolveExecutionEnvironment(req) {
 		let result = {};
 
 		const envType = req.headers['just-test-env-type'];

@@ -8,7 +8,7 @@
  */
 import fs from 'fs';
 import process from 'process';
-import Logger from './logger/logger.js';
+import Logger from './server/logger/logger.js';
 
 const logger = new Logger({ context: 'configurer' });
 const effectiveConfig = {};

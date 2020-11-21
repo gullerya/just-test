@@ -4,20 +4,19 @@ const
 		handlers: [
 			'./handlers/api-request-handler.js',
 			'./handlers/aut-request-handler.js',
-			'./handlers/core-request-handler.js',
-			'./handlers/libs-request-handler.js',
-			'./handlers/tests-request-handler.js'
+			'./handlers/lib-request-handler.js',
+			'./handlers/tests-request-handler.js',
+			'./handlers/ui-request-handler.js'
 		]
 	});
 
-export default (serverConfig, clArguments) => {
+export default (serverConfig) => {
 	const result = Object.assign({}, DEFAULT_CONFIG);
+	const config = serverConfig || {};
 
 	//	port
-	if (clArguments.port) {
-		result.port = parseInt(clArguments.port);
-	} else if (serverConfig.port) {
-		result.port = parseInt(serverConfig.port);
+	if (config.port) {
+		result.port = parseInt(config.port);
 	}
 	//	TODO: future place for extensibility
 

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import Logger from '../../logger/logger.js';
+import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';
 
@@ -12,7 +12,7 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;
-		logger.info(`AUT resource request handler initialized; basePath: '${this.basePath}'`);
+		logger.info(`AUT requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
 	get basePath() {
@@ -20,6 +20,12 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	}
 
 	async handle(handlerRelativePath, req, res) {
+		if (req.method !== 'GET') {
+			logger.warn(`sending 403 for '${req.method} ${this.basePath}/${handlerRelativePath}'`);
+			res.writeHead(403).end();
+			return;
+		}
+
 		const contentType = findMimeType(handlerRelativePath, extensionsMap.txt);
 
 		fs.readFile(path.resolve(handlerRelativePath), (error, content) => {

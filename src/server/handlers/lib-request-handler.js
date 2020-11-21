@@ -1,12 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import { createRequire } from 'module';
-import Logger from '../../logger/logger.js';
+import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';
 
 const
-	logger = new Logger({ context: 'handler client libs' }),
+	logger = new Logger({ context: 'handler lib' }),
 	requirer = createRequire(import.meta.url),
 	CONFIG_KEY = Symbol('config.key');
 
@@ -14,15 +14,20 @@ export default class ClientLibsRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;
-
-		logger.info(`client lib resource request handler initialized; basePath: '${this.basePath}'`);
+		logger.info(`lib requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
 	get basePath() {
-		return '/libs';
+		return '/lib';
 	}
 
 	async handle(handlerRelativePath, req, res) {
+		if (req.method !== 'GET') {
+			logger.warn(`sending 403 for '${req.method} ${this.basePath}/${handlerRelativePath}'`);
+			res.writeHead(403).end();
+			return;
+		}
+
 		const libName = this.extractLibName(handlerRelativePath);
 		const libMain = requirer.resolve(libName);
 		const libPath = libMain.substring(0, libMain.indexOf(libName));

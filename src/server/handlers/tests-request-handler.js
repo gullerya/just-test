@@ -1,25 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-import Logger from '../../logger/logger.js';
+import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';
-import { obtainEffectiveConfig } from '../../configurer.js';
-import { CONSTANTS } from '../../tests/tests-service.js';
 
 const
 	logger = new Logger({ context: 'handler tests' }),
-	CONFIG_KEY = Symbol('config.key'),
-	TEST_RESOURCES_KEY = Symbol('test.resources.key');
+	CONFIG_KEY = Symbol('config.key');
 
 export default class TestResourcesRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;
-		this.postInit();
-	}
-
-	async postInit() {
-		this[TEST_RESOURCES_KEY] = await obtainEffectiveConfig(CONSTANTS.TEST_RESOURCES_PROMISE);
 		logger.info(`tests request handler initialized; basePath: '${this.basePath}'`);
 	}
 
@@ -28,6 +20,12 @@ export default class TestResourcesRequestHandler extends RequestHandlerBase {
 	}
 
 	async handle(handlerRelativePath, req, res) {
+		if (req.method !== 'GET') {
+			logger.warn(`sending 403 for '${req.method} ${this.basePath}/${handlerRelativePath}'`);
+			res.writeHead(403).end();
+			return;
+		}
+
 		const contentType = findMimeType(handlerRelativePath, extensionsMap.json);
 		fs.readFile(path.resolve(handlerRelativePath), (error, content) => {
 			if (!error) {

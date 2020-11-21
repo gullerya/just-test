@@ -1,29 +1,35 @@
 import fs from 'fs';
 import path from 'path';
-import Logger from '../../logger/logger.js';
+import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';
 
 const
-	logger = new Logger({ context: 'handler client core' }),
+	logger = new Logger({ context: 'handler UI' }),
 	CONFIG_KEY = Symbol('config.key');
 
 export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;
-		logger.info(`client core resource request handler initialized; basePath: '${this.basePath}'`);
+		logger.info(`UI requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
 	get basePath() {
-		return '/core';
+		return '/ui';
 	}
 
 	async handle(handlerRelativePath, req, res) {
-		const filePath = handlerRelativePath === '' ? 'env-browser/app.html' : handlerRelativePath;
+		if (req.method !== 'GET') {
+			logger.warn(`sending 403 for '${req.method} ${this.basePath}/${handlerRelativePath}'`);
+			res.writeHead(403).end();
+			return;
+		}
+
+		const filePath = handlerRelativePath === '' ? 'app.html' : handlerRelativePath;
 		const contentType = findMimeType(filePath, extensionsMap.txt);
 
-		fs.readFile(path.resolve('bin/client', filePath), (error, content) => {
+		fs.readFile(path.resolve('src/client', filePath), (error, content) => {
 			if (!error) {
 				res.writeHead(200, {
 					'Content-Type': contentType,

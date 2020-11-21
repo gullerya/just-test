@@ -1,7 +1,16 @@
+/**
+ * Server Service responsible for:
+ * - initializing the handlers and the infra configuration (port)
+ * - starting the HTTP server
+ */
 import http from 'http';
 import { performance } from 'perf_hooks';
-import Logger from '../logger/logger.js';
+import Logger from './logger/logger.js';
 import buildConfig from './server-service-config.js';
+
+export {
+	startServer
+}
 
 const
 	logger = new Logger({ context: 'server' }),
@@ -17,10 +26,10 @@ export const CONSTANTS = Object.freeze({
 	SERVER_CONFIG: 'serverConfig'
 });
 
-export default class ServerService {
-	constructor(serverConfig, clArguments) {
+class ServerService {
+	constructor(serverConfig) {
 		//	build configuration
-		const effectiveConf = buildConfig(serverConfig ?? {}, clArguments);
+		const effectiveConf = buildConfig(serverConfig);
 		this[CONFIG_KEY] = effectiveConf;
 		logger.info('server service effective config:');
 		logger.info(effectiveConf);
@@ -35,30 +44,24 @@ export default class ServerService {
 	async initHandlers() {
 		const
 			started = performance.now(),
-			handlerPromises = [],
+			handlers = [],
 			handlerBasePaths = [];
-		this[CONFIG_KEY].handlers.forEach(async h => {
-			handlerPromises.push(new Promise((resolve, reject) => {
-				import(h).then(hp => {
-					const HandlerConstructor = hp.default;
-					const handler = new HandlerConstructor(this[CONFIG_KEY]);
+		for (const h of this[CONFIG_KEY].handlers) {
+			const handlerCTor = (await import(h)).default;
+			const handler = new handlerCTor(this[CONFIG_KEY]);
 
-					handlerBasePaths.forEach(bup => {
-						if (handler.basePath === '/' || bup === '/') {
-							if (handler.basePath === bup) {
-								throw new Error(`'basePath' of handlers MUST be exclusive, violators: '${bup}' and '${handler.basePath}'`);
-							}
-						} else if (bup.indexOf(handler.basePath) === 0 || handler.basePath.indexOf(bup) === 0) {
-							throw new Error(`'basePath' of handlers MUST be exclusive, violators: '${bup}' and '${handler.basePath}'`);
-						}
-					});
-
-					handlerBasePaths.push(handler.basePath);
-					resolve(handler);
-				}).catch(reject);
-			}));
-		});
-		const handlers = await Promise.all(handlerPromises);
+			for (const bup of handlerBasePaths) {
+				if (handler.basePath === '/' || bup === '/') {
+					if (handler.basePath === bup) {
+						throw new Error(`'basePath' of handlers MUST be exclusive, violators: '${bup}' and '${handler.basePath}'`);
+					}
+				} else if (bup.indexOf(handler.basePath) === 0 || handler.basePath.indexOf(bup) === 0) {
+					throw new Error(`'basePath' of handlers MUST be exclusive, violators: '${bup}' and '${handler.basePath}'`);
+				}
+			}
+			handlerBasePaths.push(handler.basePath);
+			handlers.push(handler);
+		}
 		logger.info(`... ${handlers.length} handler/s initialized in ${Math.floor(performance.now() - started)}ms`);
 		return handlers;
 	}
@@ -76,13 +79,13 @@ export default class ServerService {
 
 		//	init dispatcher
 		const mainRequestDispatcher = async function mainRequestHandler(req, res) {
-			const path = req.url === '/' || req.url === '' ? '/core' : req.url;
+			const path = req.url === '/' || req.url === '' ? '/ui' : req.url;
 			const handler = handlers.find(h => path.startsWith(h.basePath));
 			if (handler) {
 				try {
-					let relPath = path.replace(handler.basePath, '');
-					relPath = relPath.startsWith('/') ? relPath.substring(1) : relPath;
-					await handler.handle(relPath, req, res);
+					let ownPath = path.substring(handler.basePath.length);
+					ownPath = ownPath.startsWith('/') ? ownPath.substring(1) : ownPath;
+					await handler.handle(ownPath, req, res);
 				} catch (error) {
 					logger.error(`sending 500 for '${req.url}'; ${error}`);
 					res.writeHead(500).end(`${error}`);
@@ -114,7 +117,7 @@ export default class ServerService {
 		} else {
 			resPromise = Promise.resolve();
 		}
-		return resPromise;
+		await resPromise;
 	}
 
 	get effectiveConfig() {
@@ -128,4 +131,10 @@ export default class ServerService {
 	get isRunning() {
 		return this[STATUS_KEY] === STATUS_RUNNING;
 	}
+}
+
+async function startServer(serverConfig) {
+	const server = new ServerService(serverConfig);
+	await server.start();
+	return server;
 }

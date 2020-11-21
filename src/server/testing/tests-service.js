@@ -4,17 +4,23 @@ import glob from 'glob';
 import Logger from '../logger/logger.js';
 import buildConfig from './tests-service-config.js';
 
+export {
+	CONSTANTS,
+	getTestsService
+}
+
 const
 	logger = new Logger({ context: 'tester' }),
 	CONFIG_KEY = Symbol('config'),
-	TEST_RESOURCES_PROMISE_KEY = Symbol('tester.ready');
+	TEST_RESOURCES_PROMISE_KEY = Symbol('tester.ready'),
+	CONSTANTS = Object.freeze({
+		TESTS_METADATA: 'testsMetadata',
+		TEST_RESOURCES_PROMISE: 'testsResourcesPromise'
+	});
 
-export const CONSTANTS = Object.freeze({
-	TESTS_METADATA: 'testsMetadata',
-	TEST_RESOURCES_PROMISE: 'testsResourcesPromise'
-});
+let testsServiceInstance;
 
-export default class TestsService {
+class TestsService {
 	constructor(testsConfig, clArguments) {
 		//	build configuration
 		const effectiveConf = buildConfig(testsConfig, clArguments);
@@ -146,4 +152,11 @@ export default class TestsService {
 			await new Promise(r => r(), 2000);
 		} while (!testsDone);
 	}
+}
+
+function getTestsService(testsConfig) {
+	if (!testsServiceInstance) {
+		testsServiceInstance = new TestsService(testsConfig);
+	}
+	return testsServiceInstance;
 }
