@@ -8,17 +8,15 @@
  * @param {string} envConfig.browser in this context expected always to equal true
  */
 import Logger from '../../logger/logger.js';
+import { serverConfig } from '../../server-service.js';
 import playwright from 'playwright';
 
 const logger = new Logger({ context: 'browser env launcher' });
 
 export default async function launch(envConfig) {
-	if (!envConfig || !envConfig.browser) {
-		throw new Error(`env configuration expected to have browser set to some value; got ${JSON.stringify(envConfig)}`);
+	if (!envConfig || !envConfig.browsers) {
+		throw new Error(`env configuration expected to have browsers set to some value; got ${JSON.stringify(envConfig)}`);
 	}
-
-	const serverConfig = obtainEffectiveConfig(S_CONSTANTS.SERVER_CONFIG);
-	const testsConfig = obtainEffectiveConfig(T_CONSTANTS.TESTS_METADATA);
 
 	try {
 		const browser = await playwright[envConfig.browser].launch({

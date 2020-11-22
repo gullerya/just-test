@@ -2,7 +2,7 @@ import fs from 'fs';
 import { performance } from 'perf_hooks';
 import glob from 'glob';
 import Logger from '../logger/logger.js';
-import buildConfig from './testing-service-config.js';
+import buildConfig from './testing-configurer.js';
 
 export {
 	CONSTANTS,
@@ -10,7 +10,7 @@ export {
 }
 
 const
-	logger = new Logger({ context: 'tester' }),
+	logger = new Logger({ context: 'testing' }),
 	CONSTANTS = Object.freeze({
 		TESTS_METADATA: 'testsMetadata'
 	});

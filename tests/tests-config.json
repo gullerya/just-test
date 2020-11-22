@@ -1,16 +1,19 @@
 {
-	"environments": [],
-	"tests": {
-		"ttl": 98098098,
-		"maxFail": 3,
-		"maxSkip": 1,
-		"include": [
-			"./tests/**/*.js"
-		]
-	},
-	"coverage": {
-		"include": [
-			"./bin"
-		]
-	}
+	"environments": [
+		{
+			"tests": {
+				"ttl": 98098098,
+				"maxFail": 3,
+				"maxSkip": 1,
+				"include": [
+					"./tests/**/*.js"
+				]
+			},
+			"coverage": {
+				"include": [
+					"./bin"
+				]
+			}
+		}
+	]
 }

@@ -6,10 +6,11 @@
 import http from 'http';
 import { performance } from 'perf_hooks';
 import Logger from './logger/logger.js';
-import buildConfig from './server-service-config.js';
+import buildConfig from './server-configurer.js';
 
 export {
-	startServer
+	startServer,
+	serverConfiguration as serverConfig
 }
 
 const
@@ -22,15 +23,13 @@ const
 	BASE_URL_KEY = Symbol('base.url.key'),
 	HANDLERS_READY_PROMISE_KEY = Symbol('handlers.ready.promise.key');
 
-export const CONSTANTS = Object.freeze({
-	SERVER_CONFIG: 'serverConfig'
-});
-
+let serverConfiguration;
 class ServerService {
 	constructor(serverConfig) {
 		//	build configuration
 		const effectiveConf = buildConfig(serverConfig);
 		this[CONFIG_KEY] = effectiveConf;
+		serverConfiguration = effectiveConf;
 		logger.info('server service effective config:');
 		logger.info(effectiveConf);
 

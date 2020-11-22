@@ -6,9 +6,8 @@
  */
 import Logger from '../logger/logger.js';
 import { getRandom } from '../server-utils.js';
+import buildConfig from './sessions-configurer.js';
 import { getEnvironmentsService } from '../environments/environments-service.js';
-import { getTestingService } from '../testing/testing-service.js';
-import { getCoverageService } from '../coverage/coverage-service.js';
 
 export {
 	getSessionsService
@@ -21,27 +20,25 @@ let sessionsServiceInstance;
 
 class SessionsService {
 	constructor() {
-		this.environmentsService = getEnvironmentsService();
-		this.testingService = getTestingService();
-		this.coverageService = getCoverageService();
 		this.sessions = {};
 	}
 
-	async addSession(configuration) {
-		configuration.environments = this.environmentsService.verifyEnrichConfig(configuration.environments);
-		configuration.tests = this.testingService.verifyEnrichConfig(configuration.tests);
-		configuration.coverage = this.coverageService.verifyEnrichConfig(configuration.coverage);
+	async addSession(sessionConfig) {
+		const effectiveConfig = buildConfig(sessionConfig);
 
-		console.log(configuration);
+		console.log(effectiveConfig);
 
 		const sessionId = getRandom(16);
 		this.sessions[sessionId] = {
 			id: sessionId,
-			config: configuration,
+			config: effectiveConfig,
 			status: null,
 			result: null
 		};
 		logger.info(`session created; id '${sessionId}'`);
+
+		//	TODO: consider this auto-run behaviour to be managed elsewhere
+		this.runSession(sessionId);
 		return sessionId;
 	}
 
@@ -54,6 +51,19 @@ class SessionsService {
 
 	async getAll() {
 		return this.sessions;
+	}
+
+	async runSession(sessionId) {
+		const session = this.sessions[sessionId];
+		if (!session) {
+			throw new Error(`session ID '${sessionId}' not exists`);
+		}
+
+		logger.info(`starting session '${sessionId}'...`);
+		await getEnvironmentsService().launch(session.config.environments);
+		logger.info(`... session '${sessionId}' done recording results`);
+		//	TODO: put the results to each of the sessions per environment
+		//	TODO: create reports where applicable
 	}
 }
 

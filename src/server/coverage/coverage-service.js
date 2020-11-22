@@ -1,6 +1,6 @@
 import fs from 'fs';
 import Logger from '../logger/logger.js';
-import buildConfig from './coverage-service-config.js';
+import buildConfig from './coverage-configurer.js';
 import RangeCov from './range-cov.js';
 import LineCov from './line-cov.js';
 import FileCov from './file-cov.js';
@@ -19,8 +19,8 @@ const
 
 let coverageServiceInstance;
 class CoverageService {
-	verifyEnrichConfig(coverageConfig, clArguments) {
-		return buildConfig(coverageConfig, clArguments);
+	verifyEnrichConfig(coverageConfig, environment) {
+		return buildConfig(coverageConfig, environment);
 	}
 
 	isCoverageSupported() {

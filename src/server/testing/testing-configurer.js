@@ -3,7 +3,7 @@ import Logger from '../logger/logger.js';
 //	TOOD: do reporters as a separate module, each with it's own registration routine + extensibility
 
 const
-	logger = new Logger({ context: 'tests-configurer' }),
+	logger = new Logger({ context: 'testing-configurer' }),
 	TEST_REPORTS_FORMATS = ['xUnit'],
 	DEFAULT_CONFIG = Object.freeze({
 		ttl: 30000,
