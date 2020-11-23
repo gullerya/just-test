@@ -8,7 +8,6 @@
  * @param {string} envConfig.browser in this context expected always to equal true
  */
 import Logger from '../../logger/logger.js';
-import { serverConfig } from '../../server-service.js';
 
 const logger = new Logger({ context: 'NodeJS env launcher' });
 
@@ -17,5 +16,6 @@ export default async function launch(envConfig) {
 		throw new Error(`env configuration expected to have node set to some value; got ${JSON.stringify(envConfig)}`);
 	}
 
+	logger.info(`launching NodeJS environment...`);
 	throw new Error('NodeJS environment is not yet fully supported');
 }

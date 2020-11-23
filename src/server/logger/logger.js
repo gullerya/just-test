@@ -1,6 +1,14 @@
 import util from 'util';
+import ConsoleOutput from './outputs/console-output.js';
+import FileOutput from './outputs/file-output.js';
 
-export const LOG_LEVELS = Object.freeze({
+export {
+	ConsoleOutput,
+	FileOutput,
+	LOG_LEVELS
+}
+
+const LOG_LEVELS = Object.freeze({
 	ERROR: 40,
 	WARN: 50,
 	INFO: 60,
@@ -13,7 +21,7 @@ const
 	OUTPUT_KEY = Symbol('output.key'),
 	DEFAULT_CONFIG = Object.freeze({
 		context: 'Default',
-		outputs: [console],
+		outputs: [new ConsoleOutput()],
 		level: LOG_LEVELS.INFO
 	}),
 	CONTEXTS_REGISTRAR = {};
@@ -56,14 +64,6 @@ export default class Logger {
 		this[OUTPUT_KEY]('debug', args);
 	}
 
-	//	effective for verbosity = error
-	error() {
-		if (this.level < LOG_LEVELS.ERROR) return;
-
-		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'ERR');
-		this[OUTPUT_KEY]('error', args);
-	}
-
 	//	effective for verbosity = info, warn, error
 	info() {
 		if (this.level < LOG_LEVELS.INFO) return;
@@ -72,18 +72,20 @@ export default class Logger {
 		this[OUTPUT_KEY]('info', args);
 	}
 
-	//	generic, always printed
-	log() {
-		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'LOG');
-		this[OUTPUT_KEY]('log', args);
-	}
-
 	//	effective for verbosity = warn, error
 	warn() {
 		if (this.level < LOG_LEVELS.WARN) return;
 
 		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'WRN');
 		this[OUTPUT_KEY]('warn', args);
+	}
+
+	//	effective for verbosity = error
+	error() {
+		if (this.level < LOG_LEVELS.ERROR) return;
+
+		const args = this[PROCCESS_ARGUMENTS_KEY](arguments, 'ERR');
+		this[OUTPUT_KEY]('error', args);
 	}
 
 	[PROCCESS_ARGUMENTS_KEY](args, level) {
@@ -104,15 +106,9 @@ export default class Logger {
 	}
 
 	[OUTPUT_KEY](method, args) {
-		if (method && args && args.length) {
-			for (const output of this[CONFIGURATION_KEY].outputs) {
-				try {
-					for (const arg of args) {
-						output[method](arg);
-					}
-				} catch (e) {
-					process.emitWarning(`failed to output to ${output}: ${e}`);
-				}
+		for (const output of this[CONFIGURATION_KEY].outputs) {
+			for (const arg of args) {
+				output[method](arg);
 			}
 		}
 	}

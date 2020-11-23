@@ -11,11 +11,18 @@ import Logger from '../../logger/logger.js';
 import { serverConfig } from '../../server-service.js';
 import playwright from 'playwright';
 
-const logger = new Logger({ context: 'browser env launcher' });
+const logger = new Logger({ context: 'browsers env launcher' });
 
 export default async function launch(envConfig) {
 	if (!envConfig || !envConfig.browsers) {
 		throw new Error(`env configuration expected to have browsers set to some value; got ${JSON.stringify(envConfig)}`);
+	}
+
+	for (const be of envConfig.browsers) {
+		logger.info(`launching browser '${be.type}'...`);
+		//	do launch
+		logger.info(`running tests...`);
+		//	do dispatch tests
 	}
 
 	try {
