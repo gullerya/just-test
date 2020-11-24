@@ -14,8 +14,8 @@ async function runMainFlow() {
 	const metadata = await loadMetadata();
 
 	//	environment setup
-	console.info('seting environment up...');
-	await initStateService(metadata.currentEnvironment);
+	console.info(`seting environment up (interactive = ${Boolean(metadata.interactive)})...`);
+	await initStateService(metadata.interactive);
 	installTestRegistrationAPIs();
 	await collectTests(metadata.testPaths);
 	console.info('... all set');
@@ -23,7 +23,7 @@ async function runMainFlow() {
 	//	auto session execution
 	await autorunSession(metadata);
 
-	if (!metadata.currentEnvironment.interactive) {
+	if (!metadata.interactive) {
 		console.log('send signal to server to run finalization sequence (reporting, shutdown)');
 	} else {
 		console.log('continue in interactive mode');

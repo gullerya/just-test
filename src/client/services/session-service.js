@@ -52,7 +52,7 @@ async function executeSuite(suite, metadata) {
 }
 
 async function executeTest(test, metadata) {
-	const runEnv = await deployTest(test, metadata.currentEnvironment);
+	const runEnv = await deployTest(test, metadata);
 
 	return new Promise(resolve => {
 		runEnv.addEventListener(EVENTS.RUN_STARTED, e => {

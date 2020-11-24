@@ -1,4 +1,4 @@
-import { initComponent, ComponentBase } from '/lib/rich-component/dist/rich-component.min.js';
+import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
 import { RESULT } from '../../utils/interop-utils.js';
 
 const TEST_KEY = Symbol('test.key');

@@ -10,12 +10,10 @@
  */
 export function deployTest(test, currentEnvironment) {
 	let runEndPromise;
-	if (currentEnvironment.browser) {
-		if (currentEnvironment.interactive) {
-			runEndPromise = executeInFrame(test);
-		} else {
-			runEndPromise = executeInPage(test);
-		}
+	if (currentEnvironment.interactive) {
+		runEndPromise = executeInFrame(test);
+	} else if (currentEnvironment.browser.someKeyToThrowHere) {
+		runEndPromise = executeInPage(test);
 	} else {
 		runEndPromise = executeInNodeJS(test);
 	}

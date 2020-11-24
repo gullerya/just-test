@@ -8,13 +8,15 @@ export {
 
 async function initStateService(interactiveMode = false) {
 	if (!stateServiceInitPromise) {
-		let importService;
+		let importServices = [];
 		if (interactiveMode) {
-			importService = import('./data-tied-state-service.js');
+			importServices.push(import('./data-tied-state-service.js'));
+			importServices.push(import('../../components/jt-control/jt-control.js'));
+			importServices.push(import('../../components/jt-details/jt-details.js'));
 		} else {
-			importService = import('./simple-state-service.js');
+			importServices.push(import('./simple-state-service.js'));
 		}
-		stateServiceInitPromise = importService.then(m => stateService = new m.default());
+		stateServiceInitPromise = Promise.all(importServices).then(([m]) => stateService = new m.default());
 	}
 	return stateServiceInitPromise;
 }
