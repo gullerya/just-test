@@ -34,7 +34,7 @@ class EnvironmentsService {
 	launch(environments) {
 		logger.info(`launching ${environments.length} environment/s...`);
 		const result = [];
-		for (const env of environments) {
+		for (const env of Object.values(environments)) {
 			if (env.interactive) {
 				result.push(launchInteractive(env));
 			} else if (env.browsers) {

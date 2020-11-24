@@ -1,6 +1,9 @@
 import fs from 'fs';
 import os from 'os';
 
+//	eslint-disable-next-line no-control-regex
+const FILE_OUTPUT_TEXT_CLEANER = /\u001B\[\d+m/g;
+
 export default class FileOutput {
 	constructor(baseFilePath, options = {
 		cleanStart: true,
@@ -18,7 +21,7 @@ export default class FileOutput {
 			fs.mkdirSync(path, { recursive: true });
 		}
 		this.currentLog = baseFilePath;
-		if (options.cleanStart) {
+		if (options.cleanStart && fs.existsSync(this.currentLog)) {
 			fs.truncateSync(this.currentLog);
 		}
 		this._writer();
@@ -46,7 +49,7 @@ export default class FileOutput {
 			const lines = this.buffer.splice(0);
 			fs.appendFileSync(
 				this.currentLog,
-				(lines.join(os.EOL) + os.EOL).replace(/\u001B\[\d+m/g, ''),
+				(lines.join(os.EOL) + os.EOL).replace(FILE_OUTPUT_TEXT_CLEANER, ''),
 				this.writeOptions
 			);
 			this.buffer.splice(0);

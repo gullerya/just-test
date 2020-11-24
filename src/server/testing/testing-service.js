@@ -22,17 +22,17 @@ class TestsService {
 		return buildConfig(testingConfig, clArguments);
 	}
 
-	async collectTestResources() {
+	async collectTestResources(include, exclude) {
 		logger.info('collecting test resources...');
 		const
 			started = performance.now(),
 			options = {
 				nodir: true,
 				nosort: true,
-				ignore: this.effectiveConfig.exclude
+				ignore: exclude
 			},
 			promises = [];
-		this.effectiveConfig.include.forEach(i => {
+		include.forEach(i => {
 			promises.push(new Promise(resolve => {
 				glob(i, options, (err, matches) => {
 					if (err) {
@@ -136,9 +136,9 @@ class TestsService {
 	}
 }
 
-function getTestingService(testsConfig) {
+function getTestingService() {
 	if (!testingServiceInstance) {
-		testingServiceInstance = new TestsService(testsConfig);
+		testingServiceInstance = new TestsService();
 	}
 	return testingServiceInstance;
 }

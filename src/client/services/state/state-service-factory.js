@@ -6,10 +6,10 @@ export {
 	stateService
 }
 
-async function initStateService(currentEnvironment) {
+async function initStateService(interactiveMode = false) {
 	if (!stateServiceInitPromise) {
 		let importService;
-		if (currentEnvironment.browser) {
+		if (interactiveMode) {
 			importService = import('./data-tied-state-service.js');
 		} else {
 			importService = import('./simple-state-service.js');

@@ -28,7 +28,11 @@ class SessionsService {
 
 		console.log(effectiveConfig);
 
-		const sessionId = getRandom(16);
+		let sessionId = getRandom(8);
+		while (sessionId in this.sessions) {
+			logger.error(`session ID collision (${sessionId})`);
+			sessionId = getRandom(8);
+		}
 		this.sessions[sessionId] = {
 			id: sessionId,
 			config: effectiveConfig,

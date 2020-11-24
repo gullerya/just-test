@@ -21,7 +21,7 @@ const
 	OUTPUT_KEY = Symbol('output.key'),
 	DEFAULT_CONFIG = Object.freeze({
 		context: 'Default',
-		outputs: [new ConsoleOutput()],
+		outputs: [new ConsoleOutput(), new FileOutput('./reports/logs/just-test-server.log')],
 		level: LOG_LEVELS.INFO
 	}),
 	CONTEXTS_REGISTRAR = {};

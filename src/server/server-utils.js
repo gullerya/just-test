@@ -36,7 +36,7 @@ function extractExtension(filePath) {
 
 const CHARS_SOURCE = 'abcdefghijklmnopqrstuvwxyz0123456789'
 function getRandom(outputLength) {
-	if (!outputLength || typeof outputLength !== 'number' || outputLength < 8 || outputLength > 32) {
+	if (!outputLength || typeof outputLength !== 'number' || outputLength < 4 || outputLength > 32) {
 		throw new Error(`invalid output length parameter ${outputLength}`);
 	}
 	let result = '';

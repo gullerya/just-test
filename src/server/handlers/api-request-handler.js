@@ -2,6 +2,7 @@ import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { extensionsMap } from '../server-utils.js';
 import { getSessionsService } from '../sessions/sessions-service.js';
+import { getTestingService } from '../testing/testing-service.js';
 
 const
 	logger = new Logger({ context: 'handler API' }),
@@ -37,7 +38,6 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 		}
 
 		if (!handled) {
-			logger.warn(`sending 404 for '${req.method} ${req.url}'`);
 			res.writeHead(404).end();
 		}
 	}
@@ -63,13 +63,11 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 
 	async _getAllSessions(res) {
 		const allSessions = await this.sessionsService.getAll();
-		res.writeHead(200, { 'Content-Type': extensionsMap.json })
-			.end(JSON.stringify(allSessions));
+		res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(JSON.stringify(allSessions));
 	}
 
 	async _getSession(handlerRelativePath, res) {
-		const { groups: { sessionId, entity } } = handlerRelativePath
-			.match(/^(?<version>.+)\/sessions\/(?<sessionId>[^/]+)(|\/(?<entity>.+))$/);
+		const [version, _, sessionId, entity, entityId, ...args] = handlerRelativePath.split('/');
 
 		if (!sessionId) {
 			res.writeHead(400).end(`invalid session ID part`);
@@ -87,17 +85,37 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 			return;
 		}
 
-		const result = session[entity];
+		let result;
+		let found = false;
+		if (entity === 'environments') {
+			result = await this.getEnvironmentData(session, entityId, args);
+			found = true;
+		} else if (entity === 'result') {
+			result = session.result;
+			found = true;
+		}
 
-		res.writeHead(200, { 'Content-Type': extensionsMap.json })
-			.end(result ? JSON.stringify(result) : '');
+		if (found) {
+			res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(result ? JSON.stringify(result) : '');
+		} else {
+			res.writeHead(404).end(`'${entity}' for session '${sessionId}' not found`);
+		}
+	}
 
-		// 	res
-		// 		.writeHead(200, { 'Content-Type': extensionsMap.json })
-		// 		.end(JSON.stringify({
-		// 			currentEnvironment: this._resolveExecutionEnvironment(req),
-		// 			settings: obtainEffectiveConfig(T_CONSTANTS.TESTS_METADATA),
-		// 		}));
+	async getEnvironmentData(session, envId, args) {
+		let result = null;
+		const env = session.config.environments[envId];
+		if (env) {
+			if (args[0] === 'config') {
+				result = env;
+			} else if (args[0] === 'test-file-paths') {
+				result = await getTestingService().collectTestResources(
+					env.tests.include,
+					env.tests.exclude
+				);
+			}
+		}
+		return result;
 	}
 
 	_resolveExecutionEnvironment(req) {

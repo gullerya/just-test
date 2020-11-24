@@ -21,11 +21,11 @@ async function runSession(metadata) {
 	const executionData = stateService.getExecutionData();
 	console.info(`starting test session (${executionData.suites.length} suites)...`);
 
-	if (!metadata.currentEnvironment.interactive) {
+	if (!metadata.interactive) {
 		setTimeout(() => {
 			//	TODO: finalize the session, no further updates will be accepted
 		}, metadata.settings.ttl);
-		console.info(`session time out watcher set to ${metadata.settings.ttl}ms`);
+		console.info(`session time out watcher set to ${metadata.tests.ttl}ms`);
 	}
 	await Promise.all(executionData.suites.map(suite => executeSuite(suite, metadata)));
 

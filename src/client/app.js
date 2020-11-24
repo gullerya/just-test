@@ -44,22 +44,34 @@ async function loadMetadata() {
 	}
 	const sessions = await sessionsResponse.json();
 
-	//	find interactive session (first one as of now)
-	const interactiveSession = Object.values(sessions).find(s => {
-		return s &&
-			s.config &&
-			s.config.environments &&
-			(s.config.environments.length === 0 || s.config.environments[0].interactive);
-	});
-	if (!interactiveSession) {
-		throw new Error(`no interactive sessions found`);
+	//	find interactive session (first one as of now - HARDCODED STUFF)
+	let sessionId;
+	let environment;
+	for (const session of Object.values(sessions)) {
+		if (session.config && session.config.environments) {
+			environment = Object.values(session.config.environments).find(e => e.interactive);
+			if (environment) {
+				sessionId = session.id;
+			}
+		}
+	}
+	if (!sessionId || !environment) {
+		throw new Error(`no interactive session/environment found`);
 	}
 
-	const mdResponse = await fetch(`/api/v1/sessions/${interactiveSession.id}/config`);
+	//	session config
+	const mdResponse = await fetch(`/api/v1/sessions/${sessionId}/environments/${environment.id}/config`);
 	if (!mdResponse.ok) {
 		throw new Error(`failed to load metadata; status: ${mdResponse.status}`);
 	}
 	const metadata = await mdResponse.json();
+
+	//	session tests
+	const tdResponse = await fetch(`/api/v1/sessions/${sessionId}/environments/${environment.id}/test-file-paths`);
+	if (!tdResponse.ok) {
+		throw new Error(`failed to load test file paths; status: ${tdResponse.status}`);
+	}
+	metadata.testPaths = await tdResponse.json();
 
 	console.info(`... metadata fetched (${(performance.now() - started).toFixed(1)}ms)`);
 	return metadata;
