@@ -3,16 +3,25 @@ import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-com
 initComponent('jt-error', class extends ComponentBase {
 	set data(data) {
 		if (!data || !Object.keys(data).length) {
+			this.classList.add('hidden');
 			return;
 		}
-		this.shadowRoot.querySelector('.title .type').textContent = data.type;
-		this.shadowRoot.querySelector('.title .message').textContent = data.message;
+		this.classList.remove('hidden');
+		this.shadowRoot.querySelector('.title').textContent = `${data.type} - ${data.message}`;
 
-		let stack = '';
+		let df = document.createDocumentFragment();
 		for (const line of data.stackLines) {
-			stack += `<div>${line}</div>`;
+			const text = line.replace(/^\s*at\s*/, '');
+			const lib = text.indexOf('node_modules') > 0 ||
+				text.indexOf('/ui/env-browser') > 0 ||
+				text.indexOf('/tests/tests/client/test-suite.js') >= 0;
+			const tmp = document.createElement('div');
+			tmp.className = `stack-line ${lib ? 'lib' : ''}`;
+			tmp.textContent = text;
+			df.appendChild(tmp);
 		}
-		this.shadowRoot.querySelector('.stack').innerHTML = stack;
+		this.shadowRoot.querySelector('.stack').innerHTML = '';
+		this.shadowRoot.querySelector('.stack').appendChild(df);
 	}
 
 	get defaultTieTarget() {

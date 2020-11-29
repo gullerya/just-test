@@ -32,17 +32,6 @@
 		transition: color 120ms
 	}
 
-	.header>.error-type {
-		padding: 0 8px;
-		font-family: monospace;
-		border-radius: 4px;
-		color: #f00;
-	}
-
-	.header>.error-type:hover {
-		background-color: #ccc;
-	}
-
 	.re-run {
 		width: 18px;
 		text-align: center;
@@ -60,7 +49,7 @@
 	}
 
 	.duration {
-		font-family: Courier;
+		font-family: 'Courier New', monospace;
 		text-align: right;
 	}
 
@@ -74,30 +63,6 @@
 
 	.header:hover>.duration {
 		color: #ccc;
-	}
-
-	.error {
-		height: auto;
-		min-height: 20px;
-		max-height: 0px;
-		transition: max-height 100ms;
-		overflow-x: hidden;
-		overflow-y: auto;
-		font-family: Courier;
-		background-color: #111;
-		cursor: text;
-		user-select: text;
-	}
-
-	:host(.errorOpen)>.error {
-		max-height: 240px;
-	}
-
-	.error-line {
-		padding: 2px 0 2px 24px;
-		font-family: Courier;
-		overflow: hidden;
-		white-space: nowrap;
 	}
 </style>
 
