@@ -95,7 +95,7 @@
 		display: none;
 	}
 
-	.suites>.suite-view {
+	.suites>.suite-view:not(:last-child) {
 		border-bottom: 1px solid #555;
 	}
 </style>
@@ -115,6 +115,6 @@
 
 <div class="suites">
 	<data-tier-list data-tie="justTestModel:suites">
-		<just-test-suite class="suite-view"></just-test-suite>
+		<jt-suite class="suite-view"></jt-suite>
 	</data-tier-list>
 </div>

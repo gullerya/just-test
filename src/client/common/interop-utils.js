@@ -1,24 +1,17 @@
 export {
-	EVENTS,
-	RESULT,
 	getTestId,
+	parseTestId,
 	getValidName
 }
 
-const EVENTS = Object.freeze({
-	RUN_STARTED: 'runStarted',
-	RUN_ENDED: 'runEnded'
-});
-
-const RESULT = Object.freeze({
-	ERROR: 'error',
-	FAIL: 'fail',
-	PASS: 'pass',
-	SKIP: 'skip'
-});
+const TEST_ID_SEPARATOR = '-|-';
 
 function getTestId(...names) {
-	return names.join('|');
+	return names.join(TEST_ID_SEPARATOR);
+}
+
+function parseTestId(testId) {
+	return testId.split(TEST_ID_SEPARATOR);
 }
 
 function getValidName(input) {

@@ -1,72 +1,43 @@
+import '../jt-duration/jt-duration.js';
+import '../jt-status/jt-status.js';
+import { stateService } from '../../services/state/state-service-factory.js';
 import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
-import { RESULT } from '../../utils/interop-utils.js';
+import { STATUS } from '../../common/constants.js';
+import { parseTestId } from '../../common/interop-utils.js';
 
 const TEST_KEY = Symbol('test.key');
-const STATUS = Object.freeze({
-	PENDING: 'pending',
-	RUNNING: 'running',
-	FINISHED: 'finished'
-});
 
-initComponent('just-test-test', class extends ComponentBase {
+initComponent('jt-test', class extends ComponentBase {
 	connectedCallback() {
-		this.shadowRoot.querySelector('.header > .error-type').addEventListener('click', () => {
-			this.classList.toggle('errorOpen');
+		this.addEventListener('click', () => {
+			stateService.setSelectedTest(this._testId[0], this._testId[1]);
 		});
-		this.shadowRoot.querySelector('.re-run').addEventListener('click', () => {
-			if (this[TEST_KEY].status !== STATUS.RUNNING) {
+		this.shadowRoot.querySelector('.re-run').addEventListener('click', event => {
+			event.stopPropagation();
+			if (this[TEST_KEY].status !== STATUS.RUNS) {
 				delete this[TEST_KEY].result;
 				delete this[TEST_KEY].error;
 				delete this[TEST_KEY].start;
 				delete this[TEST_KEY].duration;
-				//	test(this[TEST_KEY]);
+				// test(this[TEST_KEY]);
 			}
 		});
 	}
 
-	set test(test) {
-		this[TEST_KEY] = test;
-		this.shadowRoot.querySelector('.name').textContent = test.name;
-		this.status = test.status;
-	}
-
-	set duration(duration) {
-		let ds = '';
-		if (typeof duration === 'number') {
-			if (duration > 99) ds = (duration / 1000).toFixed(1) + ' s' + String.fromCharCode(160);
-			else if (duration > 59900) ds = (duration / 60000).toFixed(1) + ' m' + String.fromCharCode(160);
-			else ds = duration.toFixed(1) + ' ms';
+	set testId(testId) {
+		if (!testId) {
+			return;
 		}
-		this.shadowRoot.querySelector('.duration').textContent = ds;
-	}
-
-	set status(newStatus) {
-		let newState;
-		this.classList.remove('wait', 'runs', 'pass', 'fail', 'skip');
-		if (newStatus === STATUS.PENDING) {
-			newState = 'wait';
-		} else if (newStatus === STATUS.RUNNING) {
-			newState = 'runs';
-		} else if (newStatus === RESULT.PASS) {
-			newState = 'pass';
-		} else if (newStatus === RESULT.FAIL || newStatus === RESULT.ERROR) {
-			newState = 'fail';
-		} else if (newStatus === RESULT.SKIP) {
-			newState = 'skip';
-		}
-		setTimeout(() => {
-			this.classList.remove('wait', 'runs', 'pass', 'fail', 'skip');
-			this.classList.add(newState);
-		}, 0);
+		this._testId = parseTestId(testId);
 	}
 
 	set error(error) {
-		const ett = this.shadowRoot.querySelector('.error-type');
+		return;
 		const ee = this.shadowRoot.querySelector('.error');
-		ett.textContent = '';
-		ee.innerHTML = '';
 		if (error) {
-			if (error instanceof Error) {
+			ee.classList.remove('hidden');
+			ee.innerHTML = '';
+			if (error.type && error.message) {
 				const df = new DocumentFragment();
 
 				//	error title
@@ -84,11 +55,13 @@ initComponent('just-test-test', class extends ComponentBase {
 					})
 					.forEach(el => df.appendChild(el));
 
-				ett.textContent = error.type;
+				et.textContent = error.type;
 				ee.appendChild(df);
 			} else {
 				ee.textContent = error;
 			}
+		} else {
+			ee.classList.add('hidden');
 		}
 	}
 

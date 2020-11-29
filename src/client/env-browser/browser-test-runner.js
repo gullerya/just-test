@@ -1,4 +1,5 @@
-import { EVENTS, RESULT, getTestId, getValidName } from '../utils/interop-utils.js';
+import { EVENTS, STATUS } from '../common/constants.js';
+import { getTestId, getValidName } from '../common/interop-utils.js';
 
 const
 	RANDOM_CHARSETS = Object.freeze({ numeric: '0123456789', alphaLower: 'abcdefghijklmnopqrstuvwxyz', alphaUpper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' }),
@@ -68,17 +69,17 @@ function finalizeRun(options, run, result, testAssets) {
 	if (result instanceof Error) {
 		const pe = processError(result);
 		if (options.expectError && (pe.type === options.expectError || pe.message.includes(options.expectError))) {
-			run.result = RESULT.PASS;
+			run.status = STATUS.PASS;
 		} else {
-			run.result = result instanceof AssertError ? RESULT.FAIL : RESULT.ERROR;
+			run.status = STATUS.FAIL;
 			run.error = pe;
 		}
 	} else {
 		if (options.expectError) {
-			run.result = RESULT.FAIL;
-			run.error = processError(new AssertError(`expected an error with '${options.expectError}' but not seen`));
+			run.status = STATUS.FAIL;
+			run.error = processError(new AssertError(`expected an error '${options.expectError}' but not seen`));
 		} else {
-			run.result = RESULT.PASS;
+			run.status = STATUS.PASS;
 		}
 	}
 	run.asserts = testAssets.asserts;

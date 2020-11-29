@@ -1,11 +1,9 @@
 <style>
 	:host {
-		padding-left: 20px;
 		font-size: 0.8em;
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
-		line-height: 1.2em;
 	}
 
 	.header {
@@ -19,6 +17,10 @@
 
 	.header:hover {
 		background-color: rgba(32, 64, 128, 1);
+	}
+
+	.status {
+		flex: 0 0 24px;
 	}
 
 	.name {
@@ -42,14 +44,8 @@
 	}
 
 	.re-run {
-		width: 1.2em;
-		height: 1.2em;
-		margin: 0 8px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-family: monospace;
-		border-radius: 4px;
+		width: 18px;
+		text-align: center;
 		color: #999;
 		opacity: 0;
 		transition: opacity 120ms, color 120ms;
@@ -59,22 +55,17 @@
 		color: #ccc;
 	}
 
-	.re-run:before {
-		content: "\25b6";
-	}
-
 	:host(:not(.skip):not(.runs))>.header:hover>.re-run {
 		opacity: 1;
 	}
 
-	.header>.status,
 	.duration {
 		font-family: Courier;
 		text-align: right;
 	}
 
 	.header>.duration {
-		flex-basis: 99px;
+		flex-basis: 72px;
 		overflow: hidden;
 		white-space: nowrap;
 		color: #999;
@@ -85,48 +76,9 @@
 		color: #ccc;
 	}
 
-	.header>.status {
-		width: 1.2em;
-		height: 1.2em;
-		margin-left: 16px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-family: monospace;
-	}
-
-	:host(.wait)>.header>.status::before {
-		color: #ccc;
-		content: "\22ef";
-	}
-
-	:host(.runs)>.header>.status::before {
-		color: #88f;
-		content: "\22ef";
-	}
-
-	:host(.runs)>.header>.status {
-		transform: rotate(18000deg);
-		transition: transform 100s linear;
-	}
-
-	:host(.pass)>.header>.status::before {
-		color: #6f4;
-		content: "\2713";
-	}
-
-	:host(.fail)>.header>.status::before {
-		color: #f00;
-		content: "\2718";
-	}
-
-	:host(.skip)>.header>.status:before {
-		color: #ccc;
-		content: "\22ef";
-	}
-
 	.error {
 		height: auto;
+		min-height: 20px;
 		max-height: 0px;
 		transition: max-height 100ms;
 		overflow-x: hidden;
@@ -150,10 +102,8 @@
 </style>
 
 <div class="header">
-	<span class="name" data-tie="scope:name, scope:name => title"></span>
-	<span class="error-type" data-tie="scope:lastRun.error.type"></span>
-	<span class="re-run"></span>
-	<span class="duration" data-tie="scope:lastRun.duration"></span>
-	<span class="status" data-tie="scope:lastRun.status"></span>
+	<jt-status class="status" data-tie="scope:lastRun.status"></jt-status>
+	<span class="name" data-tie="scope:name"></span>
+	<span class="re-run">&#9654;</span>
+	<jt-duration class="duration" data-tie="scope:lastRun.duration"></jt-duration>
 </div>
-<div class="error"></div>

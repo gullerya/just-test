@@ -2,7 +2,7 @@
  * Runs a session of all suites/tests
  * - performs with the current environment (browser / node instance)
  */
-import { EVENTS } from '../utils/interop-utils.js';
+import { EVENTS } from '../common/constants.js';
 import { deployTest } from './deploy-service.js';
 import { stateService } from './state/state-service-factory.js';
 

@@ -2,6 +2,7 @@
  * Manages simple session state (nodejs environment or non-UI reflected plain one)
  * - module is stateless, providing only the c~tor to create the service instance
  */
+import { STATUS } from '../../common/constants.js';
 
 const
 	SUITE_PROTO = Object.freeze({
@@ -13,7 +14,6 @@ const
 		skip: null,
 		pass: null,
 		fail: null,
-		error: null,
 		tests: []
 	}),
 	TEST_PROTO = Object.freeze({
@@ -28,7 +28,6 @@ const
 		start: null,
 		duration: null,
 		status: null,
-		result: null,
 		error: null
 	});
 
@@ -42,7 +41,6 @@ export default class SimpleStateService {
 			skip: 0,
 			pass: 0,
 			fail: 0,
-			error: 0,
 			suites: []
 		};
 		console.info(`state service ${this.constructor.name} initialized`);
@@ -82,12 +80,16 @@ export default class SimpleStateService {
 			throw new Error(`test '${testName}' already found in suite '${suiteName}'`);
 		}
 
-		suite.tests.push(Object.assign({}, TEST_PROTO, {
+		const test = Object.assign({}, TEST_PROTO, {
 			id: testId,
 			name: testName,
 			code: testCode,
 			options: testOptions
-		}));
+		});
+		if (testOptions.skip) {
+			test.lastRun = { status: STATUS.SKIP };
+		}
+		suite.tests.push(test);
 
 		this.model.total++;
 		if (testOptions.skip) {
@@ -107,9 +109,9 @@ export default class SimpleStateService {
 	 */
 	updateRunStarted(suiteName, testName, run) {
 		const test = this.getTest(suiteName, testName);
-		const nRun = Object.assign({}, RUN_PROTO, run);
-		test.runs.push(nRun);
-		test.lastRun = nRun;
+		const lRun = Object.assign({}, RUN_PROTO, run, { status: STATUS.WAIT });
+		test.runs.push(lRun);
+		test.lastRun = lRun;
 	}
 
 	/**
@@ -123,7 +125,7 @@ export default class SimpleStateService {
 		const test = this.getTest(suiteName, testName);
 		Object.assign(test.runs[test.runs.length - 1], run);
 		Object.assign(test.lastRun, run);
-
+		this.model[run.status]++;
 		this.model.done++;
 	}
 
@@ -150,6 +152,10 @@ export default class SimpleStateService {
 		return Object.freeze({
 			suites: suitesData
 		});
+	}
+
+	setSelectedTest(suiteName, testName) {
+		this.model.selectedTest = this.getTest(suiteName, testName);
 	}
 
 	static getTestInternal(suite, testName) {

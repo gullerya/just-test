@@ -28,5 +28,6 @@ body {
 }
 
 .just-test-execution-frame {
+	position: absolute;
 	visibility: hidden;
 }

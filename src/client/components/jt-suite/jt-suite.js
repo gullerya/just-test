@@ -1,7 +1,7 @@
 import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
 import '../jt-test/jt-test.js'
 
-initComponent('just-test-suite', class extends ComponentBase {
+initComponent('jt-suite', class extends ComponentBase {
 	connectedCallback() {
 	}
 

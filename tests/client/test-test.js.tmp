@@ -1,4 +1,4 @@
-﻿import { RESULT } from '/aut/bin/client/utils/interop-utils.js';
+﻿import { STATUS } from '/aut/bin/client/common/constants.js';
 import { runTestCode } from '/aut/bin/client/env-browser/browser-test-runner.js';
 
 const suite = globalThis.getSuite('Single test tests');
@@ -13,13 +13,13 @@ suite.test('test - normal flow all properties', async test => {
 
 	test.assertEqual('test-under-test-a', m.meta.name);
 	test.assertFalse(m.meta.skip);
-	test.assertEqual(m.meta.status, RESULT.RUNNING);
+	test.assertEqual(m.meta.status, STATUS.RUNS);
 	test.assertEqual(m.duration, null);
 
 	test.assertTrue(tp instanceof Promise);
 	await tp;
 	test.assertTrue(r);
-	test.assertEqual(m.status, RESULT.PASS);
+	test.assertEqual(m.status, STATUS.PASS);
 	test.assertEqual(m.error, null);
 	test.assertNotEqual(m.duration, null);
 	test.assertNotEqual(m.duration, 0);
@@ -30,7 +30,7 @@ suite.test('test - fail by false', async test => {
 
 	await runTestCode(() => { r = true; return false; }, {});
 	test.assertTrue(r);
-	test.assertEqual(m.status, RESULT.FAIL);
+	test.assertEqual(m.status, STATUS.FAIL);
 	test.assertEqual(m.error, null);
 });
 
@@ -52,7 +52,7 @@ suite.test('test - fail by Error', async test => {
 
 	await runTestCode(m);
 	test.assertTrue(r);
-	test.assertEqual(m.status, RESULT.ERROR);
+	test.assertEqual(m.status, STATUS.FAIL);
 	test.assertEqual(m.error, e);
 	test.assertEqual(m.error.type, 'Error');
 	test.assertTrue(Array.isArray(m.error.stackLines));
@@ -75,7 +75,7 @@ suite.test('test - fail by AssertError', async test => {
 
 	await runTestCode(m);
 	test.assertTrue(r);
-	test.assertEqual(m.status, RESULT.FAIL);
+	test.assertEqual(m.status, STATUS.FAIL);
 	test.assertEqual(m.error.type, 'AssertError');
 	test.assertTrue(Array.isArray(m.error.stackLines));
 	test.assertTrue(m.error.stackLines.length > 2);
@@ -97,7 +97,7 @@ suite.test('test - fail by fail', async test => {
 
 	await runTestCode(m);
 	test.assertTrue(r);
-	test.assertEqual(m.status, RESULT.FAIL);
+	test.assertEqual(m.status, STATUS.FAIL);
 	test.assertEqual(m.error.type, 'AssertError');
 	test.assertTrue(Array.isArray(m.error.stackLines));
 	test.assertTrue(m.error.stackLines.length > 2);
@@ -117,7 +117,7 @@ suite.test('test - fail by expect error and none', async test => {
 
 	await runTestCode(m);
 	test.assertTrue(r);
-	test.assertEqual(m.status, RESULT.FAIL);
+	test.assertEqual(m.status, STATUS.FAIL);
 	test.assertEqual(m.error.type, 'AssertError');
 	test.assertTrue(Array.isArray(m.error.stackLines));
 	test.assertTrue(m.error.stackLines.length > 1);
@@ -137,7 +137,7 @@ suite.test('test - skip', async test => {
 
 	await runTestCode(m);
 	test.assertFalse(r);
-	test.assertEqual(m.status, RESULT.SKIP);
+	test.assertEqual(m.status, STATUS.SKIP);
 	test.assertEqual(m.duration, null);
 });
 
@@ -157,13 +157,13 @@ suite.test('test - ttl', async test => {
 	await runTestCode(m);
 	const duration = performance.now() - started;
 	test.assertTrue(r);
-	test.assertEqual(m.status, RESULT.FAIL);
+	test.assertEqual(m.status, STATUS.FAIL);
 	test.assertEqual(m.error.type, 'TimeoutError');
 	test.assertTrue(m.duration > 997 && m.duration < 1050);
 	test.assertTrue(duration > 1000 && duration < 1050);
 
 	await test.waitMillis(1200);
-	test.assertEqual(m.status, RESULT.FAIL);
+	test.assertEqual(m.status, STATUS.FAIL);
 	test.assertEqual(m.error.type, 'TimeoutError');
 	test.assertTrue(m.duration > 1000 && m.duration < 1050);
 });
@@ -204,8 +204,8 @@ suite.test('few async tests - normal flow', async test => {
 
 	test.assertTrue(r1);
 	test.assertTrue(r2);
-	test.assertEqual(m1.status, RESULT.PASS);
-	test.assertEqual(m2.status, RESULT.FAIL);
+	test.assertEqual(m1.status, STATUS.PASS);
+	test.assertEqual(m2.status, STATUS.FAIL);
 
 	test.assertTrue(m1.duration >= 1300);
 	test.assertTrue(m2.duration >= 1497);

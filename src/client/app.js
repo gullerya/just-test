@@ -1,6 +1,6 @@
 import { initStateService, stateService } from './services/state/state-service-factory.js';
 import { runSession } from './services/session-service.js';
-import { getTestId, getValidName } from './utils/interop-utils.js';
+import { getTestId, getValidName } from './common/interop-utils.js';
 
 runMainFlow();
 
