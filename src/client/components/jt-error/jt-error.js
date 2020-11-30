@@ -17,7 +17,7 @@ initComponent('jt-error', class extends ComponentBase {
 				text.indexOf('/tests/tests/client/test-suite.js') >= 0;
 			const tmp = document.createElement('div');
 			tmp.className = `stack-line ${lib ? 'lib' : ''}`;
-			tmp.textContent = text;
+			tmp.appendChild(document.createTextNode(text));
 			df.appendChild(tmp);
 		}
 		this.shadowRoot.querySelector('.stack').innerHTML = '';

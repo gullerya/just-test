@@ -15,11 +15,15 @@
 		display: flex;
 		flex-direction: column;
 	}
+
+	.output {
+		flex: 1;
+	}
 </style>
 
 <div class="header">
 </div>
 <div class="content">
 	<jt-error data-tie="justTestModel:selectedTest.lastRun.error"></jt-error>
-	<jt-output data-tie="justTestModel:selectedTest.lastRun"></jt-output>
+	<div class="output"></div>
 </div>

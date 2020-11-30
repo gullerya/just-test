@@ -2,9 +2,6 @@ import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-com
 import '../jt-test/jt-test.js'
 
 initComponent('jt-suite', class extends ComponentBase {
-	connectedCallback() {
-	}
-
 	static get htmlUrl() {
 		return import.meta.url.replace(/js$/, 'htm');
 	}

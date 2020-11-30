@@ -109,7 +109,7 @@ export default class SimpleStateService {
 	 */
 	updateRunStarted(suiteName, testName, run) {
 		const test = this.getTest(suiteName, testName);
-		const lRun = Object.assign({}, RUN_PROTO, run, { status: STATUS.WAIT });
+		const lRun = Object.assign({}, RUN_PROTO, run, { status: STATUS.RUNS });
 		test.runs.push(lRun);
 		test.lastRun = lRun;
 	}

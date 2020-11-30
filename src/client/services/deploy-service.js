@@ -1,3 +1,8 @@
+export {
+	deployTest,
+	lookupEnv
+}
+
 /**
  * deploys a single test within a given environment
  * - in the browser non-interactive context injects the test into the newly created page
@@ -8,7 +13,7 @@
  * @param {object} currentEnvironment - current envoronment
  * @returns {object: Promise} - promise to be resolved upon test run finalization
  */
-export function deployTest(test, currentEnvironment) {
+function deployTest(test, currentEnvironment) {
 	let runEndPromise;
 	if (currentEnvironment.interactive) {
 		runEndPromise = executeInFrame(test);
@@ -20,9 +25,17 @@ export function deployTest(test, currentEnvironment) {
 	return runEndPromise;
 }
 
+function lookupEnv(testId) {
+	return globalThis.document.querySelector(`[name="${testId}"]`)
+}
+
 function executeInFrame(test) {
+	const oldFrame = lookupEnv(test.id);
+	oldFrame?.remove();
+
 	const d = globalThis.document;
 	const i = d.createElement('iframe');
+	i.name = test.id;
 	i.classList.add('just-test-execution-frame');
 	i.src = 'env-browser/browser-test-runner.html';
 	d.body.appendChild(i);

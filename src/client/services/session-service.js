@@ -7,7 +7,8 @@ import { deployTest } from './deploy-service.js';
 import { stateService } from './state/state-service-factory.js';
 
 export {
-	runSession
+	runSession,
+	runTest
 }
 
 /**
@@ -32,26 +33,10 @@ async function runSession(metadata) {
 	console.info('... session done');
 }
 
-async function executeSuite(suite, metadata) {
-	const testPromises = [];
-	let syncChain = Promise.resolve();
-	suite.tests.forEach(test => {
-		if (test.options.skip) {
-			testPromises.push(Promise.resolve());
-		} else {
-			const runResultPromise = executeTest(test, metadata);
-			if (test.options.sync) {
-				syncChain = syncChain.finally(() => runResultPromise);
-			} else {
-				testPromises.push(runResultPromise);
-			}
-		}
-	});
-	testPromises.push(syncChain);
-	await Promise.all(testPromises);
-}
-
-async function executeTest(test, metadata) {
+/**
+ * executes single test
+ */
+async function runTest(test, metadata) {
 	const runEnv = await deployTest(test, metadata);
 
 	return new Promise(resolve => {
@@ -62,6 +47,24 @@ async function executeTest(test, metadata) {
 			stateService.updateRunEnded(e.detail.suite, e.detail.test, e.detail.run);
 			resolve();
 		}, { once: true });
-
 	});
+}
+
+async function executeSuite(suite, metadata) {
+	const testPromises = [];
+	let syncChain = Promise.resolve();
+	suite.tests.forEach(test => {
+		if (test.options.skip) {
+			testPromises.push(Promise.resolve());
+		} else {
+			const runResultPromise = runTest(test, metadata);
+			if (test.options.sync) {
+				syncChain = syncChain.finally(() => runResultPromise);
+			} else {
+				testPromises.push(runResultPromise);
+			}
+		}
+	});
+	testPromises.push(syncChain);
+	await Promise.all(testPromises);
 }

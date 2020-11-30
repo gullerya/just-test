@@ -19,6 +19,8 @@ initComponent('jt-status', class extends ComponentBase {
 TEMPLATE.innerHTML = `
 	<style>
 		:host {
+			font-family: monospace;
+			font-size: 1.125em;
 			color: #ccc;
 		}
 
@@ -26,18 +28,16 @@ TEMPLATE.innerHTML = `
 			content: "\\2013";
 		}
 
-		:host([type="wait"]::before) {
+		:host([type="wait"])::before {
 			content: "\\22ef";
-		}
-
-		:host([type="runs"]) {
-			transform: rotate(18000deg);
-			transition: transform 100s linear;
 		}
 
 		:host([type="runs"])::before {
+			display: inline-block;
 			color: #88f;
 			content: "\\22ef";
+			transform: rotate(18000deg);
+			transition: transform 100s linear;
 		}
 
 		:host([type="pass"])::before {

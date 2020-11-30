@@ -4,6 +4,10 @@ const
 	suite = globalThis.getSuite('Suite object APIs');
 
 suite.test('suite - basic full flow', async test => {
+	const d = document.createElement('div');
+	d.textContent = 'suite - basic full flow';
+	document.body.appendChild(d);
+
 	const s = getSuite('suite-under-test');
 
 	s.test('t1', () => { });

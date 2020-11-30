@@ -17,8 +17,7 @@ export default class DataTiedStateService extends SimpleStateService {
 			pass: 0,
 			fail: 0,
 			error: 0,
-			suites: [],
-			selectedTest: { lastRun: { error: {} } }
+			suites: []
 		}));
 	}
 }
