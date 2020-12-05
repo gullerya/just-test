@@ -26,7 +26,7 @@ class SessionsService {
 	async addSession(sessionConfig) {
 		const effectiveConfig = buildConfig(sessionConfig);
 
-		console.log(effectiveConfig);
+		logger.info(effectiveConfig);
 
 		let sessionId = getRandom(8);
 		while (sessionId in this.sessions) {

@@ -18,9 +18,10 @@ export default sessionConfig => {
 	const result = { environments: {} };
 	for (const e of sessionConfig.environments) {
 		const tmp = getEnvironmentsService().verifyEnrichConfig(e);
+		tmp.id = getRandom(4);
+		tmp.browsers = e.browsers;
 		tmp.tests = getTestingService().verifyEnrichConfig(e.tests, e);
 		tmp.coverage = getCoverageService().verifyEnrichConfig(e.coverage, e);
-		tmp.id = getRandom(4);
 		while (tmp.id in result.environments) {
 			logger.error(`session ID collision (${tmp.id})`);
 			tmp.id = getRandom(8);

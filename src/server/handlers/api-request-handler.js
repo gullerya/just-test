@@ -8,7 +8,7 @@ const
 	logger = new Logger({ context: 'handler API' }),
 	CONFIG_KEY = Symbol('config.key');
 
-export default class ClientCoreRequestHandler extends RequestHandlerBase {
+export default class APIRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;
@@ -74,6 +74,21 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 			return;
 		}
 
+		if (sessionId === 'interactive') {
+			const sessions = await this.sessionsService.getAll();
+			let result = null;
+			if (sessions && Object.values(sessions).length === 1) {
+				const session = Object.values(sessions)[0];
+				for (const e of Object.values(session.config.environments)) {
+					if (e.interactive) {
+						result = { id: session.id };
+					}
+				}
+			}
+			res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(JSON.stringify(result));
+			return;
+		}
+
 		if (!entity) {
 			res.writeHead(400).end(`invalid entity part`);
 			return;
@@ -105,6 +120,15 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	async getEnvironmentData(session, envId, args) {
 		let result = null;
 		const env = session.config.environments[envId];
+
+		if (envId === 'interactive') {
+			for (const e of Object.values(session.config.environments)) {
+				if (e.interactive) {
+					return { id: e.id };
+				}
+			}
+		}
+
 		if (env) {
 			if (args[0] === 'config') {
 				result = env;

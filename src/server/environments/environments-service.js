@@ -10,7 +10,7 @@
 
 import Logger from '../logger/logger.js';
 import buildConfig from './environments-configurer.js';
-import launchBrowser from './launchers/browser-env-launcher.js';
+import launchBrowsers from './launchers/browser-env-launcher.js';
 import launchInteractive from './launchers/interactive-env-launcher.js';
 import launchNode from './launchers/node-env-launcher.js';
 
@@ -32,13 +32,13 @@ class EnvironmentsService {
 	}
 
 	launch(environments) {
-		logger.info(`launching ${environments.length} environment/s...`);
+		logger.info(`launching ${Object.keys(environments).length} environment/s...`);
 		const result = [];
 		for (const env of Object.values(environments)) {
 			if (env.interactive) {
 				result.push(launchInteractive(env));
 			} else if (env.browsers) {
-				result.push(launchBrowser(env));
+				result.push(launchBrowsers(env));
 			} else if (env.node) {
 				result.push(launchNode(env));
 			} else {

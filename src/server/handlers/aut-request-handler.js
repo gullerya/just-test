@@ -8,7 +8,7 @@ const
 	logger = new Logger({ context: 'handler AUT' }),
 	CONFIG_KEY = Symbol('config.key');
 
-export default class ClientCoreRequestHandler extends RequestHandlerBase {
+export default class AUTRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;
