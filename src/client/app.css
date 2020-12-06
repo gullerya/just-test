@@ -1,7 +1,11 @@
 :root {
-	--jt-brand-color: #aaf;
+	--jt-color-primary: #fff;
+	--jt-color-on-primary: #000;
+	--jt-color-success: #0f0;
+	--jt-color-error: #f00;
+	--jt-color-skip: #777;
+
 	--jt-masthead-height: 64px;
-	--jt-masthead-border: 2px solid var(--jt-brand-color);
 }
 
 html,
@@ -21,6 +25,8 @@ body {
 .just-test-control {
 	flex: 0 0 50%;
 	max-width: 600px;
+	background-color: var(--jt-color-primary);
+	color: var(--jt-color-on-primary);
 }
 
 .just-test-details {

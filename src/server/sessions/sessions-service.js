@@ -64,7 +64,7 @@ class SessionsService {
 		}
 
 		logger.info(`starting session '${sessionId}'...`);
-		await getEnvironmentsService().launch(session.config.environments);
+		await getEnvironmentsService().launch(session);
 		logger.info(`... session '${sessionId}' done recording results`);
 		//	TODO: put the results to each of the sessions per environment
 		//	TODO: create reports where applicable

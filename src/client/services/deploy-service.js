@@ -1,3 +1,5 @@
+import { EVENTS } from '../common/constants.js';
+
 export {
 	deployTest,
 	lookupEnv
@@ -11,18 +13,21 @@ export {
  * 
  * @param {object} test - test (metadata) to execute
  * @param {object} currentEnvironment - current envoronment
- * @returns {object: Promise} - promise to be resolved upon test run finalization
+ * @returns {object: Promise} - promise to be resolved when test deployed
  */
 function deployTest(test, currentEnvironment) {
-	let runEndPromise;
+	let deployPromise;
 	if (currentEnvironment.interactive) {
-		runEndPromise = executeInFrame(test);
-	} else if (currentEnvironment.browser.someKeyToThrowHere) {
-		runEndPromise = executeInPage(test);
+		deployPromise = executeInFrame(test);
+	} else if (currentEnvironment.browsers) {
+		//	TODO: right now just having browsers means we are in a right browser context
+		//	TODO: in some future we's probably like to do something with this part, but
+		//	TODO: this requires passing to the client the environment/browser data
+		deployPromise = executeInPage(test);
 	} else {
-		runEndPromise = executeInNodeJS(test);
+		deployPromise = executeInNodeJS(test);
 	}
-	return runEndPromise;
+	return deployPromise;
 }
 
 function lookupEnv(testId) {
@@ -42,7 +47,7 @@ function executeInFrame(test) {
 	return new Promise((resolve, reject) => {
 		i.onload = () => {
 			setupInteropsBrowser(i.contentWindow, test);
-			injectTestBrowser(i.contentDocument, test.source);
+			injectTestIntoDocument(i.contentDocument, test.source);
 			resolve(i.contentWindow);
 		};
 		i.onerror = reject;
@@ -54,7 +59,8 @@ function executeInPage(test) {
 	return new Promise((resolve, reject) => {
 		w.onload = () => {
 			setupInteropsBrowser(w, test);
-			injectTestBrowser(w.document, test.source);
+			injectTestIntoDocument(w.document, test.source);
+			w.addEventListener(EVENTS.RUN_ENDED, w.close, { once: true });
 			resolve(w);
 		};
 		w.onerror = reject;
@@ -72,7 +78,7 @@ function setupInteropsBrowser(targetWindow, test) {
 	interopAPIs.tests[test.id] = { options: test.options };
 }
 
-function injectTestBrowser(envDocument, testSource) {
+function injectTestIntoDocument(envDocument, testSource) {
 	const s = envDocument.createElement('script');
 	s.type = 'module';
 	s.src = `/tests/${testSource}`;

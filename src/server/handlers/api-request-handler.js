@@ -24,8 +24,13 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		let handled = false;
 		if (/^.+\/sessions(|\/.+)$/.test(handlerRelativePath)) {
 			if (req.method === 'POST') {
-				await this._createSession(req, res);
-				handled = true;
+				if (handlerRelativePath.endsWith('sessions')) {
+					await this._createSession(req, res);
+					handled = true;
+				} else {
+					await this._storeResult(req, res);
+					handled = true;
+				}
 			} else if (req.method === 'GET') {
 				if (handlerRelativePath.endsWith('sessions')) {
 					await this._getAllSessions(res);
@@ -59,6 +64,20 @@ export default class APIRequestHandler extends RequestHandlerBase {
 			.end(JSON.stringify({
 				sessionId: sessionId
 			}));
+	}
+
+	async _storeResult(req, res) {
+		const sessionResult = await new Promise((resolve, reject) => {
+			try {
+				let data = '';
+				req.on('error', reject);
+				req.on('data', chunk => data += chunk);
+				req.on('end', () => resolve(JSON.parse(data)));
+			} catch (error) {
+				reject(error);
+			}
+		});
+		console.log(sessionResult);
 	}
 
 	async _getAllSessions(res) {

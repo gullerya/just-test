@@ -20,8 +20,8 @@ const
 	PROCCESS_ARGUMENTS_KEY = Symbol('process.arguments.key'),
 	OUTPUT_KEY = Symbol('output.key'),
 	DEFAULT_CONFIG = Object.freeze({
-		context: 'Default',
-		outputs: [new ConsoleOutput(), new FileOutput('./reports/logs/just-test-server.log')],
+		context: 'default',
+		outputs: [new ConsoleOutput()],
 		level: LOG_LEVELS.INFO
 	}),
 	CONTEXTS_REGISTRAR = {};
@@ -31,12 +31,14 @@ class LoggingConfiguration {
 		if (!configuration || typeof configuration !== 'object') {
 			throw new Error(`configuration object required; received '${configuration}'`);
 		}
-		Object.assign(this, DEFAULT_CONFIG, configuration);
-		if (this.context in CONTEXTS_REGISTRAR) {
-			throw new Error(`logging context '${this.context}' already registered`);
-		} else {
-			CONTEXTS_REGISTRAR[this.context] = true;
+		if (configuration.context in CONTEXTS_REGISTRAR) {
+			throw new Error(`logging context '${configuration.context}' already registered`);
 		}
+		if (configuration.outputs !== undefined && !Array.isArray(configuration.outputs)) {
+			throw new Error(`logging outputs if/when provided MUST be and array, got '${configuration.outputs}'`);
+		}
+		Object.assign(this, DEFAULT_CONFIG, configuration);
+		CONTEXTS_REGISTRAR[this.context] = true;
 	}
 }
 

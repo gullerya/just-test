@@ -11,7 +11,7 @@ import Logger from '../../logger/logger.js';
 
 const logger = new Logger({ context: 'NodeJS env launcher' });
 
-export default async function launch(envConfig) {
+export default async function launch(sessionId, envConfig) {
 	if (!envConfig || !envConfig.node) {
 		throw new Error(`env configuration expected to have node set to some value; got ${JSON.stringify(envConfig)}`);
 	}

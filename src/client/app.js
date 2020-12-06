@@ -21,10 +21,10 @@ async function runMainFlow() {
 	console.info('... all set');
 
 	//	auto session execution
-	await autorunSession(metadata);
+	await runSession(metadata);
 
 	if (!metadata.interactive) {
-		console.log('send signal to server to run finalization sequence (reporting, shutdown)');
+		await runFinallySequence(metadata);
 	} else {
 		console.log('continue in interactive mode');
 	}
@@ -55,6 +55,7 @@ async function getEnvironment() {
 		(await fetch(`/api/v1/sessions/${sesId}/environments/${envId}/test-file-paths`)).json()
 	]);
 	config.testPaths = testPaths;
+	config.sessionId = sesId;
 	return config;
 }
 
@@ -138,10 +139,6 @@ async function collectTests(testsResources) {
 	console.info(`... test resources fetched (${(performance.now() - started).toFixed(1)}ms)`);
 }
 
-async function autorunSession(metadata) {
-	await runSession(metadata);
-}
-
 function getSuite(suiteName, suiteOptions) {
 	const suiteMeta = validateNormalizeSuiteParams(suiteName, suiteOptions);
 	stateService.obtainSuite(suiteMeta.name, suiteMeta.options);
@@ -204,4 +201,14 @@ function validateNormalizeTestParams(tName, code, options) {
 	result.options = Object.freeze(Object.assign({}, TEST_OPTIONS_DEFAULT, options));
 
 	return result;
+}
+
+async function runFinallySequence(metadata) {
+	await fetch(`/api/v1/sessions/${metadata.sessionId}/environments/${metadata.id}/result`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(stateService.getAll())
+	});
 }

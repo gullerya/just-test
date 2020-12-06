@@ -31,18 +31,22 @@ class EnvironmentsService {
 		return buildConfig(environmentConfig);
 	}
 
-	launch(environments) {
-		logger.info(`launching ${Object.keys(environments).length} environment/s...`);
+	/**
+	 * receives the whole session data and runs all environments of that
+	 * @param {object} session 
+	 */
+	launch(session) {
+		logger.info(`launching session '${session.id}': ${Object.keys(session.config.environments).length} environment/s...`);
 		const result = [];
-		for (const env of Object.values(environments)) {
+		for (const env of Object.values(session.config.environments)) {
 			if (env.interactive) {
-				result.push(launchInteractive(env));
+				result.push(launchInteractive(session.id, env));
 			} else if (env.browsers) {
-				result.push(launchBrowsers(env));
+				result.push(launchBrowsers(session.id, env));
 			} else if (env.node) {
-				result.push(launchNode(env));
+				result.push(launchNode(session.id, env));
 			} else {
-				throw new Error(`unsuppoted environment configuration ${JSON.stringify(env)}`);
+				throw new Error(`unsupported environment configuration ${JSON.stringify(env)}`);
 			}
 		}
 		logger.info(`... launched`);

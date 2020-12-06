@@ -21,11 +21,11 @@ TEMPLATE.innerHTML = `
 		:host {
 			font-family: monospace;
 			font-size: 1.125em;
-			color: #ccc;
 		}
 
 		:host([type="skip"])::before {
 			content: "\\2013";
+			color: var(--jt-color-skip);
 		}
 
 		:host([type="wait"])::before {
@@ -34,20 +34,19 @@ TEMPLATE.innerHTML = `
 
 		:host([type="runs"])::before {
 			display: inline-block;
-			color: #88f;
 			content: "\\22ef";
 			transform: rotate(18000deg);
 			transition: transform 100s linear;
 		}
 
 		:host([type="pass"])::before {
-			color: #6f4;
 			content: "\\2713";
+			color: var(--jt-color-success);
 		}
 
 		:host([type="fail"])::before {
-			color: #f00;
 			content: "\\2718";
+			color: var(--jt-color-error);
 		}
 	</style>
 `;

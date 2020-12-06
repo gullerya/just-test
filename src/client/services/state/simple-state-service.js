@@ -46,6 +46,10 @@ export default class SimpleStateService {
 		console.info(`state service ${this.constructor.name} initialized`);
 	}
 
+	getAll() {
+		return this.model;
+	}
+
 	obtainSuite(suiteName, options) {
 		if (!this.model.suites.some(s => s.name === suiteName)) {
 			this.model.suites.push(Object.assign({}, SUITE_PROTO, {

@@ -25,7 +25,7 @@ async function runSession(metadata) {
 	if (!metadata.interactive) {
 		setTimeout(() => {
 			//	TODO: finalize the session, no further updates will be accepted
-		}, metadata.settings.ttl);
+		}, metadata.tests.ttl);
 		console.info(`session time out watcher set to ${metadata.tests.ttl}ms`);
 	}
 	await Promise.all(executionData.suites.map(suite => executeSuite(suite, metadata)));

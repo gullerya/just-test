@@ -43,7 +43,8 @@
 		"build": "node ./ci/tools/build.js",
 		"lint:client": "eslint -c ./ci/.eslintrc.client.json \"./src/client/**/*.js\" \"./tests/client/**/*.js\"",
 		"lint:server": "eslint -c ./ci/.eslintrc.server.json \"./src/!(client)/**/*.js\" \"./ci/**/*.js\" \"./tests/server/**/*.js\"",
-		"test": "npm run build && node ./src/local-runner.js config=./tests/tests-config.json"
+		"test:ci": "npm run build && node ./src/local-runner.js config=./tests/tests-config-ci.json",
+		"test:local": "npm run build && node ./src/local-runner.js config=./tests/tests-config-local.json"
 	},
 	"dependencies": {
 		"data-tier": "^2.11.1",
@@ -54,6 +55,6 @@
 		"chai": "^4.2.0"
 	},
 	"devDependencies": {
-		"eslint": "^7.14.0"
+		"eslint": "^7.15.0"
 	}
 }

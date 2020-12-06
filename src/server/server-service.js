@@ -78,7 +78,8 @@ class ServerService {
 
 		//	init dispatcher
 		const mainRequestDispatcher = async function mainRequestHandler(req, res) {
-			const path = req.url === '/' || req.url === '' ? '/ui' : req.url;
+			const { pathname } = new URL(req.url, `http://localhost:${port}`);
+			const path = pathname === '/' || pathname === '' ? '/ui' : pathname;
 			const handler = handlers.find(h => path.startsWith(h.basePath));
 			if (handler) {
 				try {
