@@ -28,7 +28,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 					await this._createSession(req, res);
 					handled = true;
 				} else {
-					await this._storeResult(req, res);
+					await this._storeResult(handlerRelativePath, req, res);
 					handled = true;
 				}
 			} else if (req.method === 'GET') {
@@ -66,8 +66,9 @@ export default class APIRequestHandler extends RequestHandlerBase {
 			}));
 	}
 
-	async _storeResult(req, res) {
-		const sessionResult = await new Promise((resolve, reject) => {
+	async _storeResult(handlerRelativePath, req, res) {
+		const [version, _st, sesId, _et, envId, ...args] = handlerRelativePath.split('/');
+		const sesResult = await new Promise((resolve, reject) => {
 			try {
 				let data = '';
 				req.on('error', reject);
@@ -77,7 +78,8 @@ export default class APIRequestHandler extends RequestHandlerBase {
 				reject(error);
 			}
 		});
-		console.log(sessionResult);
+		await this.sessionsService.storeResult(sesId, sesResult);
+		res.writeHead(201).end();
 	}
 
 	async _getAllSessions(res) {
@@ -86,14 +88,14 @@ export default class APIRequestHandler extends RequestHandlerBase {
 	}
 
 	async _getSession(handlerRelativePath, res) {
-		const [version, _, sessionId, entity, entityId, ...args] = handlerRelativePath.split('/');
+		const [version, _, sesId, entity, entityId, ...args] = handlerRelativePath.split('/');
 
-		if (!sessionId) {
+		if (!sesId) {
 			res.writeHead(400).end(`invalid session ID part`);
 			return;
 		}
 
-		if (sessionId === 'interactive') {
+		if (sesId === 'interactive') {
 			const sessions = await this.sessionsService.getAll();
 			let result = null;
 			if (sessions && Object.values(sessions).length === 1) {
@@ -113,9 +115,9 @@ export default class APIRequestHandler extends RequestHandlerBase {
 			return;
 		}
 
-		const session = await this.sessionsService.getSession(sessionId);
+		const session = await this.sessionsService.getSession(sesId);
 		if (!session) {
-			res.writeHead(404).end(`session '${sessionId}' not found`);
+			res.writeHead(404).end(`session '${sesId}' not found`);
 			return;
 		}
 
@@ -132,7 +134,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		if (found) {
 			res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(result ? JSON.stringify(result) : '');
 		} else {
-			res.writeHead(404).end(`'${entity}' for session '${sessionId}' not found`);
+			res.writeHead(404).end(`'${entity}' for session '${sesId}' not found`);
 		}
 	}
 

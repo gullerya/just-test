@@ -65,9 +65,20 @@ class SessionsService {
 
 		logger.info(`starting session '${sessionId}'...`);
 		await getEnvironmentsService().launch(session);
-		logger.info(`... session '${sessionId}' done recording results`);
+		logger.info(`... session '${sessionId}' started, waiting finalization...`);
+
+		// await this.storeResult(sessionId, sessionResult);
 		//	TODO: put the results to each of the sessions per environment
 		//	TODO: create reports where applicable
+	}
+
+	async storeResult(sesId, sesResult) {
+		console.log(sesResult);
+		const session = await this.getSession(sesId);
+		if (!session) {
+			throw new Error(`session ID '${sessionId}' not exists`);
+		}
+		session.result = sesResult;
 	}
 }
 

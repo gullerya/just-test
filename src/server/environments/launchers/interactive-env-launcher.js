@@ -17,7 +17,8 @@ export default async function launch(sessionId, envConfig) {
 		throw new Error(`env configuration expected to have interactive set to true; got ${JSON.stringify(envConfig)}`);
 	}
 
-	logger.info(`to run interactively open your browser and navigate to <host>:${serverConfig.port}`);
+	logger.info(`interactive session '${sessionId}' launched`);
+	logger.info(`open your browser and navigate to <host>:${serverConfig.port}`);
 
 	return new Promise(() => { });
 }

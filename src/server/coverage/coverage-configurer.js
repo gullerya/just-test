@@ -1,8 +1,8 @@
 import Logger from '../logger/logger.js';
-import { BROWSERS } from '../environments/environments-configurer.js';
 
 const
 	logger = new Logger({ context: 'coverage-configurer' }),
+	COVERAGE_SUPPORTING_BROWSER = 'chromium',
 	COVERAGE_FORMATS = ['lcov'],
 	DEFAULT_CONFIG = Object.freeze({
 		skip: false,
@@ -22,9 +22,11 @@ export default (coverageConfig, environment) => {
 	if (!coverageConfig || typeof coverageConfig !== 'object') {
 		throw new Error(`coverage config, if/when defined, MUST be a non-null object`);
 	}
-	if (environment.interactive || !environment.browsers || !environment.browsers.some(b => b.type === BROWSERS.chromium)) {
-		logger.warn(`coverage supported ONLY for ${BROWSERS.chromium} in NON-interactive environment, removing coverage from effective config`);
-		return null;
+	if (!environment.browser) {
+		throw new Error(`coverage supported ONLY in browser environement`);
+	}
+	if (environment.browser.type !== COVERAGE_SUPPORTING_BROWSER) {
+		throw new Error(`coverage supported ONLY in '${COVERAGE_SUPPORTING_BROWSER}'`);
 	}
 
 	const result = Object.assign(

@@ -10,8 +10,8 @@
 
 import Logger from '../logger/logger.js';
 import buildConfig from './environments-configurer.js';
-import launchBrowsers from './launchers/browser-env-launcher.js';
 import launchInteractive from './launchers/interactive-env-launcher.js';
+import launchBrowser from './launchers/browser-env-launcher.js';
 import launchNode from './launchers/node-env-launcher.js';
 
 export {
@@ -32,7 +32,8 @@ class EnvironmentsService {
 	}
 
 	/**
-	 * receives the whole session data and runs all environments of that
+	 * receives the whole session data and runs tests for each environment
+	 * 
 	 * @param {object} session 
 	 */
 	launch(session) {
@@ -41,8 +42,8 @@ class EnvironmentsService {
 		for (const env of Object.values(session.config.environments)) {
 			if (env.interactive) {
 				result.push(launchInteractive(session.id, env));
-			} else if (env.browsers) {
-				result.push(launchBrowsers(session.id, env));
+			} else if (env.browser) {
+				result.push(launchBrowser(session.id, env));
 			} else if (env.node) {
 				result.push(launchNode(session.id, env));
 			} else {

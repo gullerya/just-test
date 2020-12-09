@@ -19,7 +19,7 @@ function deployTest(test, currentEnvironment) {
 	let deployPromise;
 	if (currentEnvironment.interactive) {
 		deployPromise = executeInFrame(test);
-	} else if (currentEnvironment.browsers) {
+	} else if (currentEnvironment.browser) {
 		//	TODO: right now just having browsers means we are in a right browser context
 		//	TODO: in some future we's probably like to do something with this part, but
 		//	TODO: this requires passing to the client the environment/browser data

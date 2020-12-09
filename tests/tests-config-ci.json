@@ -1,11 +1,9 @@
 {
 	"environments": [
 		{
-			"browsers": [
-				{
-					"type": "chromium"
-				}
-			],
+			"browser": {
+				"type": "chromium"
+			},
 			"tests": {
 				"ttl": 98098098,
 				"maxFail": 3,

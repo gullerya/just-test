@@ -24,7 +24,7 @@ async function runMainFlow() {
 	await runSession(metadata);
 
 	if (!metadata.interactive) {
-		await runFinallySequence(metadata);
+		await runFinalizationSequence(metadata);
 	} else {
 		console.log('continue in interactive mode');
 	}
@@ -38,6 +38,7 @@ async function loadMetadata() {
 	console.info(`fetching test session metadata...`);
 
 	const envConfig = await getEnvironment();
+	console.info(`session:environment IDs: '${envConfig.sessionId}':'${envConfig.id}'`);
 
 	console.info(`... metadata fetched (${(performance.now() - started).toFixed(1)}ms)`);
 	return envConfig;
@@ -203,12 +204,18 @@ function validateNormalizeTestParams(tName, code, options) {
 	return result;
 }
 
-async function runFinallySequence(metadata) {
-	await fetch(`/api/v1/sessions/${metadata.sessionId}/environments/${metadata.id}/result`, {
+async function runFinalizationSequence(metadata) {
+	console.log(`reporting '${metadata.sessionId}':'${metadata.id}' results...`);
+	const reportSessionResponse = await fetch(`/api/v1/sessions/${metadata.sessionId}/environments/${metadata.id}/result`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json'
 		},
 		body: JSON.stringify(stateService.getAll())
 	});
+	if (reportSessionResponse.status === 201) {
+		console.log(`... reported`);
+	} else {
+		console.error(`... report failed, status: ${reportSessionResponse.status}`);
+	}
 }

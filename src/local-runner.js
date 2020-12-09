@@ -17,6 +17,7 @@ async function go() {
 	try {
 		server = await startServer(clArguments);
 		const sessionResult = await executeSession(server.baseUrl, clArguments);
+		console.log('session result:');
 		console.log(sessionResult);
 	} catch (error) {
 		console.error(os.EOL);
