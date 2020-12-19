@@ -1,4 +1,7 @@
+import Logger from '../logger/logger.js';
+
 const
+	logger = new Logger({ context: 'environment configurer' }),
 	ENVIRONMENT_BLUEPRINT = Object.freeze({
 		interactive: null,
 		browser: null,
@@ -8,47 +11,51 @@ const
 	}),
 	PRINCIPAL_ENTRIES = ['interactive', 'browser', 'node'],
 	BROWSER_TYPES = ['chromium', 'firefox', 'webkit'],
-	SCHEMES = Object.freeze({
-		light: 'light',
-		dark: 'dark'
-	});
-
-export {
-	SCHEMES
-}
+	SCHEMES = ['light', 'dark'];
 
 export default environment => {
 	validateEnvironment(environment);
 
 	const result = {};
-	if (environment.browser) {
-		result.browser = processBrowser(environment.browser);
-	} else if (environment.node) {
-		result.node = processNode(environment.node);
-	} else {
-		result.interactive = true;
+	try {
+		if (environment.browser) {
+			result.browser = processBrowser(environment.browser);
+		} else if (environment.interactive) {
+			result.interactive = processInteractive(environment.interactive);
+		} else if (environment.node) {
+			result.node = processNode(environment.node);
+		}
+	} catch (e) {
+		logger.error(e);
+		throw new Error(`environment configuration failed; violator: ${JSON.stringify(environment)}`);
 	}
 
 	return result;
 };
 
 function processBrowser(b) {
-	const tmp = { type: b.type };
-	if (b.scheme in SCHEMES) {
-		tmpB.scheme = b.scheme;
+	validateBrowser(b);
+	const result = { type: b.type };
+	if (b.scheme) {
+		result.scheme = b.scheme;
 	}
-	return tmp;
+	return result;
+}
+
+function processInteractive(i) {
+	validateInteractive(i);
+	return true;
 }
 
 function processNode(n) {
-	throw new Error(`unsupported environment ${n}`);
+	validateNode(n);
 }
 
 function validateEnvironment(e) {
 	//	no foreign entries
 	for (const key in e) {
 		if (!(key in ENVIRONMENT_BLUEPRINT)) {
-			throw new Error(`invalid entry '${key}' in environment definition; violator: ${JSON.stringify(e)}`);
+			throw new Error(`invalid entry '${key}' in environment definition`);
 		}
 	}
 
@@ -58,28 +65,31 @@ function validateEnvironment(e) {
 		if (e[pe]) { principalCounter++; }
 	}
 	if (principalCounter !== 1) {
-		throw new Error(`enviroment MUST have one and only one of those [${PRINCIPAL_ENTRIES.join(',')}]; violator: ${JSON.stringify(e)}`)
+		throw new Error(`enviroment MUST have one and only one of those [${PRINCIPAL_ENTRIES.join(',')}]`)
 	}
+}
 
-	//	browser verification
-	if (e.browser) {
-		//	browsers should be an non-empty array
-		if (typeof e.browser !== 'object') {
-			throw new Error(`browser, if/when defined, MUST be an object; violator: ${JSON.stringify(e)}`);
-		}
-		//	browser should have a type defined
-		if (!BROWSER_TYPES.includes(e.browser.type)) {
-			throw new Error(`browser MUST define one of the supported types [${BROWSER_TYPES.join(',')}]; violator: ${JSON.stringify(e)}`);
-		}
+function validateBrowser(b) {
+	//	browsers should be an non-empty array
+	if (typeof b !== 'object') {
+		throw new Error(`browser, if/when defined, MUST be an object`);
 	}
+	//	browser should have a type defined
+	if (!BROWSER_TYPES.includes(b.type)) {
+		throw new Error(`browser MUST define one of the supported types [${BROWSER_TYPES.join(',')}]`);
+	}
+	//	scheme should be valid, if any
+	if (b.scheme && !SCHEMES.includes(b.scheme)) {
+		throw new Error(`scheme MUST be one of the supported ones [${SCHEMES.join(',')}]`);
+	}
+}
 
-	//	interactive verification
-	if (e.interactive && typeof e.interactive !== 'boolean') {
-		throw new Error(`interactive, if/when defined, MUST be a boolean; violator: ${JSON.stringify(e)}`);
+function validateInteractive(i) {
+	if (typeof i !== 'boolean') {
+		throw new Error(`interactive, if/when defined, MUST be a boolean`);
 	}
+}
 
-	//	node verification
-	if (e.node) {
-		throw new Error('node environment is not supported yet');
-	}
+function validateNode() {
+	throw new Error('node environment is not supported yet');
 }

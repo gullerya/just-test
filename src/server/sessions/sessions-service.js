@@ -76,7 +76,7 @@ class SessionsService {
 		console.log(sesResult);
 		const session = await this.getSession(sesId);
 		if (!session) {
-			throw new Error(`session ID '${sessionId}' not exists`);
+			throw new Error(`session ID '${sesId}' not exists`);
 		}
 		session.result = sesResult;
 	}

@@ -51,13 +51,16 @@ export default class SimpleStateService {
 	}
 
 	obtainSuite(suiteName, options) {
-		if (!this.model.suites.some(s => s.name === suiteName)) {
-			this.model.suites.push(Object.assign({}, SUITE_PROTO, {
+		let result = this.model.suites.find(s => s.name === suiteName);
+		if (!result) {
+			result = Object.assign({}, SUITE_PROTO, {
 				name: suiteName,
-				options: options
-			}));
+				options: options,
+				tests: []
+			});
+			this.model.suites.push(result);
 		}
-		return this.model.suites.find(s => s.name === suiteName);
+		return result;
 	}
 
 	getTest(suiteName, testName) {
@@ -88,7 +91,8 @@ export default class SimpleStateService {
 			id: testId,
 			name: testName,
 			code: testCode,
-			options: testOptions
+			options: testOptions,
+			runs: []
 		});
 		if (testOptions.skip) {
 			test.lastRun = { status: STATUS.SKIP };
