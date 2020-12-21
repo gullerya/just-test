@@ -67,7 +67,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 	}
 
 	async _storeResult(handlerRelativePath, req, res) {
-		const [version, _st, sesId, _et, envId, ...args] = handlerRelativePath.split('/');
+		const [sesId] = handlerRelativePath.split('/').slice(2);
 		const sesResult = await new Promise((resolve, reject) => {
 			try {
 				let data = '';
@@ -88,7 +88,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 	}
 
 	async _getSession(handlerRelativePath, res) {
-		const [version, _, sesId, entity, entityId, ...args] = handlerRelativePath.split('/');
+		const [sesId, entity, entityId, ...args] = handlerRelativePath.split('/').slice(2);
 
 		if (!sesId) {
 			res.writeHead(400).end(`invalid session ID part`);
@@ -97,16 +97,16 @@ export default class APIRequestHandler extends RequestHandlerBase {
 
 		if (sesId === 'interactive') {
 			const sessions = await this.sessionsService.getAll();
-			let result = null;
+			let iResult = null;
 			if (sessions && Object.values(sessions).length === 1) {
-				const session = Object.values(sessions)[0];
-				for (const e of Object.values(session.config.environments)) {
+				const iSession = Object.values(sessions)[0];
+				for (const e of Object.values(iSession.config.environments)) {
 					if (e.interactive) {
-						result = { id: session.id };
+						iResult = { id: iSession.id };
 					}
 				}
 			}
-			res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(JSON.stringify(result));
+			res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(JSON.stringify(iResult));
 			return;
 		}
 

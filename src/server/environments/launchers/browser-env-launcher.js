@@ -50,10 +50,8 @@ async function launchAndRunInBrowser(sessionId, envConfig) {
 
 	context.on('page', async pe => {
 		//	coverage
-		let coverage = false;
 		if (envConfig.coverage && pe.coverage) {
 			await pe.coverage.startJSCoverage({ reportAnonymousScripts: true });
-			coverage = true;
 		}
 		pe.on('close', async () => {
 			// if (coverage) {

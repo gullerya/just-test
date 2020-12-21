@@ -1,7 +1,4 @@
-import Logger from '../logger/logger.js';
-
 const
-	logger = new Logger({ context: 'coverage-configurer' }),
 	COVERAGE_SUPPORTING_BROWSER = 'chromium',
 	COVERAGE_FORMATS = ['lcov'],
 	DEFAULT_CONFIG = Object.freeze({
