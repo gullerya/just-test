@@ -25,7 +25,7 @@ async function executeTest({ meta, code }) {
 	const run = {};
 
 	if (meta.skip) {
-		run.result = RESULT.SKIP;
+		run.result = STATUS.SKIP;
 	} else {
 		//	check if a single document required/provided
 		//	if not - create document and inject the full script of the test with only running this single test
@@ -53,17 +53,17 @@ function finalizeRun(meta, run, result, testAssets) {
 	if (result instanceof Error) {
 		const pe = processError(result);
 		if (meta.expectError && (pe.type === meta.expectError || pe.message.includes(meta.expectError))) {
-			run.result = RESULT.PASS;
+			run.result = STATUS.PASS;
 		} else {
-			run.result = result instanceof AssertError ? RESULT.FAIL : RESULT.ERROR;
+			run.result = STATUS.FAIL;
 			run.error = pe;
 		}
 	} else {
 		if (meta.expectError) {
-			run.result = RESULT.FAIL;
+			run.result = STATUS.FAIL;
 			run.error = processError(new AssertError(`expected an error with '${meta.expectError}' but not seen`));
 		} else {
-			run.result = RESULT.PASS;
+			run.result = STATUS.PASS;
 		}
 	}
 	run.asserts = testAssets.asserts;

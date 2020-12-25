@@ -11,24 +11,19 @@ suite.test('test - normal flow all properties', async test => {
 			() => { r = true; }, {}
 		);
 
-	test.assertEqual('test-under-test-a', m.meta.name);
-	test.assertFalse(m.meta.skip);
-	test.assertEqual(m.meta.status, STATUS.RUNS);
-	test.assertEqual(m.duration, null);
-
 	test.assertTrue(tp instanceof Promise);
-	await tp;
+	const m = await tp;
 	test.assertTrue(r);
-	test.assertEqual(m.status, STATUS.PASS);
-	test.assertEqual(m.error, null);
-	test.assertNotEqual(m.duration, null);
-	test.assertNotEqual(m.duration, 0);
+	test.assertEqual(STATUS.PASS, m.status);
+	test.assertEqual(undefined, m.error);
+	test.assertNotEqual(null, m.duration);
+	test.assertNotEqual(0, m.duration);
 });
 
 suite.test('test - fail by false', async test => {
 	let r = false;
 
-	await runTestCode(() => { r = true; return false; }, {});
+	const m = await runTestCode(() => { r = true; return false; }, {});
 	test.assertTrue(r);
 	test.assertEqual(m.status, STATUS.FAIL);
 	test.assertEqual(m.error, null);

@@ -13,8 +13,8 @@ initComponent('jt-test', class extends ComponentBase {
 			const testId = parseTestId(this[TEST_KEY].id);
 			stateService.setSelectedTest(testId[0], testId[1]);
 		});
-		this.shadowRoot.querySelector('.re-run').addEventListener('click', event => {
-			event.stopPropagation();
+		this.shadowRoot.querySelector('.re-run').addEventListener('click', e => {
+			e.stopPropagation();
 			runTest(this[TEST_KEY], { interactive: true });
 		});
 	}

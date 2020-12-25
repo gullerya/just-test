@@ -41,14 +41,6 @@ initComponent('jt-control', class extends ComponentBase {
 						eEl.textContent = test.error.stack;
 					}
 					tEl.appendChild(eEl);
-				} else if (test.status === STATUS.FAIL) {
-					const eEl = rDoc.createElement('failure');
-					if (test.error) {
-						eEl.setAttribute('type', test.error.type);
-						eEl.setAttribute('message', test.error.message);
-						eEl.textContent = test.error.stack;
-					}
-					tEl.appendChild(eEl);
 				} else if (test.status === STATUS.SKIP) {
 					const eEl = rDoc.createElement('skipped');
 					tEl.appendChild(eEl);
