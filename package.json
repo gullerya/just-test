@@ -51,10 +51,10 @@
 		"rich-component": "^1.6.0",
 		"data-tier-list": "^1.2.0",
 		"glob": "^7.1.6",
-		"playwright": "^1.7.0",
+		"playwright": "^1.7.1",
 		"chai": "^4.2.0"
 	},
 	"devDependencies": {
-		"eslint": "^7.15.0"
+		"eslint": "^7.16.0"
 	}
 }

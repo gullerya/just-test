@@ -1,6 +1,9 @@
 name: Publish
 
 on:
+  push:
+    branches:
+      - 'master'
   pull_request:
     types: [closed]
     branches:
@@ -18,18 +21,9 @@ jobs:
         uses: actions/setup-node@v2-beta
         with:
           node-version: 14
-
-      - name: Try cache
-        id: cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            node_modules
-            /home/runner/.cache/ms-playwright
-          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
 
       - name: Lint
@@ -42,13 +36,7 @@ jobs:
         run: npm run test
 
       - name: Report coverage
-        run: bash <(curl -s https://codecov.io/bash) -v
-
-      - name: Setup NodeJS (for publish)
-        uses: actions/setup-node@v2-beta
-        with:
-          node-version: 14
-          registry-url: https://registry.npmjs.org/
+        run: bash <(curl -s https://codecov.io/bash)
 
       - name: Publish/Deploy
         env:
