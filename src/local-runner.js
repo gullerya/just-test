@@ -7,6 +7,8 @@ import { startServer } from './server/server-service.js';
 
 go();
 
+const SESSION_STATUS_POLL_INTERVAL = 237;
+
 async function go() {
 	const clArguments = parseCLArgs(process.argv);
 	console.info(`starting local run with arguments:`);
@@ -127,7 +129,7 @@ async function waitSessionEnd(serverBaseUrl, sessionDetails) {
 						});
 					}
 					if (!done) {
-						setTimeout(p, 1353);
+						setTimeout(p, SESSION_STATUS_POLL_INTERVAL);
 					}
 				})
 				.on('error', reject)
