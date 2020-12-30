@@ -10,8 +10,22 @@
 </head>
 
 <body>
-	<jt-control class="just-test-control"></jt-control>
-	<jt-details class="just-test-details" data-tie="justTestModel:selectedTest"></jt-details>
+	<div class="header">
+		<span class="name">JustTest</span>
+		<span class="runtime">
+			<span class="done" data-tie="justTestModel:done"></span>
+			&#47;
+			<span class="total" data-tie="justTestModel:total"></span>
+		</span>
+		<span class="counter pass" data-tie="justTestModel:passed"></span>
+		<span class="counter fail" data-tie="justTestModel:failed"></span>
+		<span class="counter skip" data-tie="justTestModel:skipped"></span>
+		<span class="scroll-spacer"></span>
+	</div>
+	<main class="content">
+		<jt-control class="just-test-control"></jt-control>
+		<jt-details class="just-test-details" data-tie="justTestModel:selectedTest"></jt-details>
+	</main>
 </body>
 
 </html>

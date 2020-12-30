@@ -5,7 +5,9 @@
 	--jt-color-error: #f00;
 	--jt-color-skip: #777;
 
-	--jt-masthead-height: 64px;
+	/* typography */
+	--jt-font-base: normal 400 16px / 1.5 Tahoma, Verdana, sans-serif;
+	--jt-font-mono: normal 400 16px / 1.5 'Courier New', Courier, monospace;
 }
 
 html,
@@ -19,14 +21,46 @@ body {
 
 body {
 	display: flex;
+	flex-direction: column;
+	font: var(--jt-font-base);
+	color: var(--jt-color-on-primary);
+	background-color: var(--jt-color-primary);
+}
+
+.header {
+	flex: 0 0 52px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.header .name {
+	margin: 0 12px;
+	font-size: 120%;
+	color: #99f;
+}
+
+.header .runtime {
+	margin: 0 12px;
+	font-size: 0.75em;
+}
+
+.header .counter {
+	margin: 0 12px;
+	font-size: 1.25em;
+}
+
+.content {
+	flex: 1;
+	overflow: hidden;
+	display: flex;
 	flex-direction: row;
 }
 
 .just-test-control {
 	flex: 0 0 50%;
 	max-width: 600px;
-	background-color: var(--jt-color-primary);
-	color: var(--jt-color-on-primary);
+	border-inline-end: 1px solid var(--jt-color-on-primary);
 }
 
 .just-test-details {
