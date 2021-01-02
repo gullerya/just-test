@@ -11,8 +11,6 @@ async function initStateService(interactiveMode = false) {
 		let importServices = [];
 		if (interactiveMode) {
 			importServices.push(import('./data-tied-state-service.js'));
-			importServices.push(import('../../components/jt-control/jt-control.js'));
-			importServices.push(import('../../components/jt-details/jt-details.js'));
 		} else {
 			importServices.push(import('./simple-state-service.js'));
 		}

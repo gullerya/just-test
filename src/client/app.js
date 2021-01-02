@@ -15,7 +15,11 @@ async function runMainFlow() {
 
 	//	environment setup
 	console.info(`seting environment up (interactive = ${Boolean(metadata.interactive)})...`);
-	await initStateService(metadata.interactive);
+	if (metadata.interactive) {
+		initInteractiveComponents();
+	}
+	const sService = await initStateService(metadata.interactive);
+	sService.setSessionId(metadata.sessionId);
 	installTestRegistrationAPIs();
 	await collectTests(metadata.testPaths);
 	console.info('... all set');
@@ -105,6 +109,16 @@ async function getEnvironmentId(sesId) {
 		throw new Error(`failed to obtain environment ID`);
 	}
 	return envId;
+}
+
+/**
+ * initializes components for interactive mode
+ */
+function initInteractiveComponents() {
+	import('/libs/data-tier-list/dist/data-tier-list.min.js');
+	import('./components/jt-header/jt-header.js');
+	import('./components/jt-suite/jt-suite.js');
+	import('./components/jt-details/jt-details.js');
 }
 
 /**

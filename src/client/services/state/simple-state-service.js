@@ -33,7 +33,6 @@ const
 
 export default class SimpleStateService {
 	constructor(initState) {
-		//	TODO: validate that the provided initState is in a good shape
 		this.model = initState || {
 			total: 0,
 			done: 0,
@@ -44,6 +43,10 @@ export default class SimpleStateService {
 			suites: []
 		};
 		console.info(`state service ${this.constructor.name} initialized`);
+	}
+
+	setSessionId(sessionId) {
+		this.model.sessionId = sessionId;
 	}
 
 	getAll() {

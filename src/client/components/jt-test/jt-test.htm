@@ -1,22 +1,11 @@
 <style>
 	:host {
-		font-size: 0.8em;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.header {
 		flex-basis: 24px;
 		overflow: hidden;
-		padding: 6px;
+		padding: 0 8px;
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-	}
-
-	.header:hover {
-		background-color: rgba(32, 64, 128, 1);
 	}
 
 	.status {
@@ -28,47 +17,29 @@
 		overflow: hidden;
 		white-space: nowrap;
 		text-overflow: ellipsis;
-		color: #999;
-		transition: color 120ms
 	}
 
 	.re-run {
 		width: 18px;
 		text-align: center;
-		color: #999;
 		opacity: 0;
-		transition: opacity 120ms, color 120ms;
+		transition: opacity 120ms;
 	}
 
-	.re-run:hover {
-		color: #ccc;
-	}
-
-	:host(:not(.skip):not(.runs))>.header:hover>.re-run {
+	:host(:hover:not(.skip):not(.runs)) .re-run {
 		opacity: 1;
 	}
 
 	.duration {
-		font: var(--jt-font-mono);
-		text-align: right;
-	}
-
-	.header>.duration {
 		flex-basis: 72px;
 		overflow: hidden;
 		white-space: nowrap;
-		color: #999;
-		transition: color 120ms;
-	}
-
-	.header:hover>.duration {
-		color: #ccc;
+		font: var(--jt-font-mono);
+		text-align: end;
 	}
 </style>
 
-<div class="header">
-	<jt-status class="status" data-tie="scope:lastRun.status"></jt-status>
-	<span class="name" data-tie="scope:name"></span>
-	<span class="re-run">&#9654;</span>
-	<jt-duration class="duration" data-tie="scope:lastRun.duration"></jt-duration>
-</div>
+<jt-status class="status" data-tie="scope:lastRun.status"></jt-status>
+<span class="name" data-tie="scope:name"></span>
+<span class="re-run">&#9654;</span>
+<jt-duration class="duration" data-tie="scope:lastRun.duration"></jt-duration>
