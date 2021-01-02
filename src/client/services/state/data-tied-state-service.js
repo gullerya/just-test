@@ -16,7 +16,6 @@ export default class DataTiedStateService extends SimpleStateService {
 			skip: 0,
 			pass: 0,
 			fail: 0,
-			error: 0,
 			suites: []
 		}));
 	}

@@ -1,5 +1,6 @@
 import { initStateService, stateService } from './services/state/state-service-factory.js';
 import { runSession } from './services/session-service.js';
+import { reportResults } from './services/report-service.js';
 import { getTestId, getValidName } from './common/interop-utils.js';
 
 runMainFlow();
@@ -20,6 +21,7 @@ async function runMainFlow() {
 	}
 	const sService = await initStateService(metadata.interactive);
 	sService.setSessionId(metadata.sessionId);
+	sService.setEnvironmentId(metadata.id);
 	installTestRegistrationAPIs();
 	await collectTests(metadata.testPaths);
 	console.info('... all set');
@@ -28,7 +30,7 @@ async function runMainFlow() {
 	await runSession(metadata);
 
 	if (!metadata.interactive) {
-		await runFinalizationSequence(metadata);
+		await runFinalizationSequence(metadata, sService.getAll());
 	} else {
 		console.log('continue in interactive mode');
 	}
@@ -218,18 +220,6 @@ function validateNormalizeTestParams(tName, code, options) {
 	return result;
 }
 
-async function runFinalizationSequence(metadata) {
-	console.log(`reporting '${metadata.sessionId}':'${metadata.id}' results...`);
-	const reportSessionResponse = await fetch(`/api/v1/sessions/${metadata.sessionId}/environments/${metadata.id}/result`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(stateService.getAll())
-	});
-	if (reportSessionResponse.status === 201) {
-		console.log(`... reported`);
-	} else {
-		console.error(`... report failed, status: ${reportSessionResponse.status}`);
-	}
+async function runFinalizationSequence(metadata, results) {
+	reportResults(metadata.sessionId, metadata.id, results);
 }

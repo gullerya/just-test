@@ -1,20 +1,24 @@
 import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
+import { stateService } from '../../services/state/state-service-factory.js';
+import { reportResults } from '../../services/report-service.js';
 
 const TEMPLATE = document.createElement('template');
 TEMPLATE.innerHTML = `
 	<style>
 		:host {
+			padding: 0 8px;
 			display: flex;
 			align-items: center;
+			justify-content: space-between;
 			overflow: hidden;
 		}
 
-		h4 {
-			font: var(--jt-font-h4);
+		h5 {
+			font: var(--jt-font-h5);
 		}
 	</style>
 
-	<h4 class="name">JustTest</h4>
+	<h5 class="name">JustTest</h5>
 	<span class="sessionId" data-tie="justTestModel:sessionId"></span>
 	<span class="runtime">
 		<span class="done" data-tie="justTestModel:done"></span>
@@ -29,9 +33,11 @@ TEMPLATE.innerHTML = `
 
 initComponent('jt-header', class extends ComponentBase {
 	connectedCallback() {
-		this.shadowRoot.querySelector('.close').addEventListener('click', () => {
+		this.shadowRoot.querySelector('.close').addEventListener('click', async () => {
 			console.log('finalize session');
-			window.location.reload();
+			const state = stateService.getAll();
+			await reportResults(state.sessionId, state.environmentId, state);
+			setTimeout(() => window.location.reload(), 4000);
 		});
 	}
 

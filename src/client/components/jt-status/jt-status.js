@@ -19,8 +19,7 @@ initComponent('jt-status', class extends ComponentBase {
 TEMPLATE.innerHTML = `
 	<style>
 		:host {
-			font-family: monospace;
-			font-size: 1.125em;
+			font-size: 1.4em;
 		}
 
 		:host([type="skip"])::before {
@@ -40,12 +39,12 @@ TEMPLATE.innerHTML = `
 		}
 
 		:host([type="pass"])::before {
-			content: "\\2713";
+			content: "\\2022";
 			color: var(--jt-color-success);
 		}
 
 		:host([type="fail"])::before {
-			content: "\\2718";
+			content: "\\2022";
 			color: var(--jt-color-error);
 		}
 	</style>

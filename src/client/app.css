@@ -48,7 +48,7 @@ body {
 	flex: 0 0 50%;
 	max-width: 600px;
 	overflow: hidden auto;
-	border-inline-end: 1px solid var(--jt-color-on-primary);
+	border-inline-end: 1px solid var(--jt-color-surface);
 }
 
 .just-test-details {

@@ -10,9 +10,14 @@
 
 	.header {
 		flex-basis: 48px;
+		padding: 0 8px;
 		overflow: hidden;
 		display: flex;
 		align-items: center;
+	}
+
+	.header .expander {
+		flex: 0 0 24px;
 	}
 
 	.tests {
@@ -30,6 +35,7 @@
 </style>
 
 <div class="header">
+	<span class="expander"></span>
 	<h6 class="name" data-tie="scope:name"></h6>
 	<span class="duration" data-tie="scope:duration"></span>
 	<span class="counter pass" data-tie="scope:passed"></span>

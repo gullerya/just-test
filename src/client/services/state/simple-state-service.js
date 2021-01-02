@@ -49,6 +49,10 @@ export default class SimpleStateService {
 		this.model.sessionId = sessionId;
 	}
 
+	setEnvironmentId(environmentId) {
+		this.model.environmentId = environmentId;
+	}
+
 	getAll() {
 		return this.model;
 	}
