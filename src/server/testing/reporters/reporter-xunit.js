@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { STATUS } from '../../../client/common/constants.js';
 import { getDOMImplementation } from '../../common/xml/dom-implementation.js';
 
 export default Object.freeze({
@@ -40,6 +41,6 @@ function report(results, reportPath) {
 		rDoc.documentElement.appendChild(sEl);
 	});
 
-	const report = new DOMImplementation.XMLSerializer().serializeToString(rDoc);
-	fs.writeFileSync(report, reportPath, { encoding: 'utf-8' });
+	const reportText = new DOMImplementation.XMLSerializer().serializeToString(rDoc);
+	fs.writeFileSync(reportPath, reportText, { encoding: 'utf-8' });
 }

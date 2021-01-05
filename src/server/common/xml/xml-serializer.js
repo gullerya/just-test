@@ -1,13 +1,23 @@
+import NodeImpl from './node.js';
+
 /**
  * Surrogate and partial implementaion of [XMLSerializer]{@link https://developer.mozilla.org/en-US/docs/Web/API/XMLSerializer}
  */
+const VALID_NODE_TYPES = [
+	NodeImpl.DOCUMENT_TYPE_NODE,
+	NodeImpl.DOCUMENT_NODE,
+	NodeImpl.DOCUMENT_FRAGMENT_NODE,
+	NodeImpl.ELEMENT_NODE,
+	NodeImpl.COMMENT_NODE,
+	NodeImpl.TEXT_NODE,
+	NodeImpl.PROCESSING_INSTRUCTION_NODE,
+	NodeImpl.ATTRIBUTE_NODE
+];
+
 export default class XMLSerializerImpl {
-	/**
-	 * See {@link https://developer.mozilla.org/en-US/docs/Web/API/XMLSerializer/serializeToString}
-	 */
 	serializeToString(rootNode) {
-		if (!rootNode) {
-			throw new TypeError(`'rootNode' MUST be either Node or Attr; got '${rootNode}'`);
+		if (!rootNode || !VALID_NODE_TYPES.includes(rootNode.nodeType)) {
+			throw new TypeError(`valid 'rootNode' MUST be provided; got '${rootNode}'`);
 		}
 
 		let tmpNode = rootNode.documentElement ? rootNode.documentElement : rootNode;
@@ -21,7 +31,7 @@ export default class XMLSerializerImpl {
 	}
 
 	_serializeNode(nodeName, attributes, textContent) {
-		return `<${nodeName}${this._serializeAttributes(attributes)}${textContent ? ` ${textContent}</${nodeName}>` : '/>'}`
+		return `<${nodeName}${this._serializeAttributes(attributes)}${textContent ? `>${textContent}</${nodeName}>` : '/>'}`;
 	}
 
 	_serializeAttributes(attributes) {

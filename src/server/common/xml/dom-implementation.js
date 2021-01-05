@@ -1,4 +1,4 @@
-import XMLDocumentImpl from './document.js';
+import DocumentImpl from './document.js';
 import XMLSerializerImpl from './xml-serializer.js';
 
 export {
@@ -10,7 +10,7 @@ export {
  */
 class DOMImplementationImpl {
 	createDocument(namespaceURI, qualifiedNameStr, documentType) {
-		return new XMLDocumentImpl(namespaceURI, qualifiedNameStr, documentType);
+		return new DocumentImpl(namespaceURI, qualifiedNameStr, documentType);
 	}
 
 	createDocumentType() {
@@ -28,7 +28,7 @@ class DOMImplementationImpl {
 
 const
 	NATIVE_IMPLEMENTATION = Object.freeze({
-		instance: document?.implementation,
+		instance: globalThis.document?.implementation,
 		XMLSerializer: globalThis.XMLSerializer
 	}),
 	SURROGATE_IMPLEMENTATION = Object.freeze({

@@ -4,6 +4,7 @@ import util from 'util';
 import process from 'process';
 import http from 'http';
 import { startServer } from './server/server-service.js';
+import xUnitReporter from './server/testing/reporters/reporter-xunit.js';
 
 go();
 
@@ -18,9 +19,7 @@ async function go() {
 	let server;
 	try {
 		server = await startServer(clArguments);
-		const sessionResult = await executeSession(server.baseUrl, clArguments);
-		console.log('session result:');
-		console.log(sessionResult);
+		await executeSession(server.baseUrl, clArguments);
 	} catch (error) {
 		console.error(os.EOL);
 		console.error(error);
@@ -55,6 +54,7 @@ async function executeSession(serverBaseUrl, clArguments) {
 	const config = await readConfigAndMergeWithCLArguments(clArguments);
 	const sessionDetails = await sentAddSession(serverBaseUrl, config);
 	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
+	xUnitReporter.report(sessionResult, 'reports/results.xml');
 	return sessionResult;
 }
 
