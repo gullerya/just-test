@@ -37,7 +37,7 @@ initComponent('jt-header', class extends ComponentBase {
 			console.log('finalize session');
 			const state = stateService.getAll();
 			await reportResults(state.sessionId, state.environmentId, state);
-			setTimeout(() => window.location.reload(), 4000);
+			// setTimeout(() => window.location.reload(), 4000);
 		});
 	}
 
