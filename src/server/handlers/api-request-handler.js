@@ -67,7 +67,8 @@ export default class APIRequestHandler extends RequestHandlerBase {
 	}
 
 	async _storeResult(handlerRelativePath, req, res) {
-		const [sesId] = handlerRelativePath.split('/').slice(2);
+		console.log(handlerRelativePath);
+		const [sesId, envConst, envId] = handlerRelativePath.split('/').slice(2);
 		const sesResult = await new Promise((resolve, reject) => {
 			try {
 				let data = '';
@@ -78,7 +79,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 				reject(error);
 			}
 		});
-		await this.sessionsService.storeResult(sesId, sesResult);
+		await this.sessionsService.storeResult(sesId, envId, sesResult);
 		res.writeHead(201).end();
 	}
 

@@ -72,8 +72,11 @@ class SessionsService {
 		//	TODO: create reports where applicable
 	}
 
-	async storeResult(sesId, sesResult) {
+	async storeResult(sesId, envId, sesResult) {
+		console.log('====');
 		console.log(sesResult);
+		console.log('====');
+		console.log(`shut down the environment '${envId}'`);
 		const session = await this.getSession(sesId);
 		if (!session) {
 			throw new Error(`session ID '${sesId}' not exists`);

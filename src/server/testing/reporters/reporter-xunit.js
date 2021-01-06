@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { STATUS } from '../../../client/common/constants.js';
-import { getDOMImplementation } from '../../common/xml/dom-implementation.js';
+import { getDOMImplementation } from '../../../common/xml/dom-implementation.js';
 
 export default Object.freeze({
 	type: 'xUnit',
