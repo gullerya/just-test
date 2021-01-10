@@ -10,7 +10,8 @@ const
 		options: {},
 		total: null,
 		done: null,
-		duration: null,
+		timestamp: null,
+		time: null,
 		skip: null,
 		pass: null,
 		fail: null,
@@ -25,8 +26,8 @@ const
 		runs: []
 	}),
 	RUN_PROTO = Object.freeze({
-		start: null,
-		duration: null,
+		timestamp: null,
+		time: null,
 		status: null,
 		error: null
 	});
@@ -36,7 +37,8 @@ export default class SimpleStateService {
 		this.model = initState || {
 			total: 0,
 			done: 0,
-			duration: null,
+			timestamp: null,
+			time: null,
 			skip: 0,
 			pass: 0,
 			fail: 0,
@@ -110,6 +112,10 @@ export default class SimpleStateService {
 		if (testOptions.skip) {
 			this.model.skip++;
 			this.model.done++;
+		}
+
+		if (suite.tests.length === 1) {
+			suite.timestamp = Date.now();
 		}
 	}
 

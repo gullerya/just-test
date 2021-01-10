@@ -14,7 +14,8 @@ function report(results, reportPath) {
 	results.suites.forEach(suite => {
 		const sEl = rDoc.createElement('testsuite');
 		sEl.setAttribute('name', suite.name);
-		sEl.setAttribute('time', Math.round(parseFloat(suite.duration)) / 1000);
+		sEl.setAttribute('timestamp', new Date(suite.timestamp).toISOString());
+		sEl.setAttribute('time', Math.round(parseFloat(suite.time)) / 1000);
 		sEl.setAttribute('tests', suite.tests.length);
 		//	TODO: separate between the error and the failure
 		sEl.setAttribute('failures', suite.tests.filter(t => t.status === STATUS.FAIL).length);
@@ -23,7 +24,7 @@ function report(results, reportPath) {
 		suite.tests.forEach(test => {
 			const tEl = rDoc.createElement('testcase');
 			tEl.setAttribute('name', test.name);
-			tEl.setAttribute('time', Math.round(test.duration) / 1000);
+			tEl.setAttribute('time', Math.round(test.time) / 1000);
 			if (test.status === STATUS.FAIL) {
 				const eEl = rDoc.createElement('error');
 				if (test.error) {

@@ -16,8 +16,8 @@ suite.test('test - normal flow all properties', async test => {
 	test.assertTrue(r);
 	test.assertEqual(STATUS.PASS, m.status);
 	test.assertEqual(undefined, m.error);
-	test.assertNotEqual(null, m.duration);
-	test.assertNotEqual(0, m.duration);
+	test.assertNotEqual(null, m.time);
+	test.assertNotEqual(0, m.time);
 });
 
 suite.test('test - fail by false', async test => {
@@ -133,7 +133,7 @@ suite.test('test - skip', async test => {
 	await runTestCode(m);
 	test.assertFalse(r);
 	test.assertEqual(m.status, STATUS.SKIP);
-	test.assertEqual(m.duration, null);
+	test.assertEqual(m.time, null);
 });
 
 suite.test('test - ttl', async test => {
@@ -150,17 +150,17 @@ suite.test('test - ttl', async test => {
 
 	const started = performance.now();
 	await runTestCode(m);
-	const duration = performance.now() - started;
+	const time = performance.now() - started;
 	test.assertTrue(r);
 	test.assertEqual(m.status, STATUS.FAIL);
 	test.assertEqual(m.error.type, 'TimeoutError');
-	test.assertTrue(m.duration > 997 && m.duration < 1050);
-	test.assertTrue(duration > 1000 && duration < 1050);
+	test.assertTrue(m.time > 997 && m.time < 1050);
+	test.assertTrue(time > 1000 && time < 1050);
 
 	await test.waitMillis(1200);
 	test.assertEqual(m.status, STATUS.FAIL);
 	test.assertEqual(m.error.type, 'TimeoutError');
-	test.assertTrue(m.duration > 1000 && m.duration < 1050);
+	test.assertTrue(m.time > 1000 && m.time < 1050);
 });
 
 suite.test('few async tests - normal flow', async test => {
@@ -195,16 +195,16 @@ suite.test('few async tests - normal flow', async test => {
 
 	await Promise.all([tp1, tp2]);
 
-	const duration = performance.now() - started;
+	const time = performance.now() - started;
 
 	test.assertTrue(r1);
 	test.assertTrue(r2);
 	test.assertEqual(m1.status, STATUS.PASS);
 	test.assertEqual(m2.status, STATUS.FAIL);
 
-	test.assertTrue(m1.duration >= 1300);
-	test.assertTrue(m2.duration >= 1497);
-	test.assertTrue(duration >= 1300 && duration <= 1550);
+	test.assertTrue(m1.time >= 1300);
+	test.assertTrue(m2.time >= 1497);
+	test.assertTrue(time >= 1300 && time <= 1550);
 });
 
 suite.test('test - API negative A', async () => {

@@ -41,7 +41,7 @@ async function executeTest({ meta, code }) {
 			.then(r => { runResult = r; })
 			.catch(e => { runResult = e; })
 			.finally(() => {
-				run.duration = performance.now() - start;
+				run.time = performance.now() - start;
 				finalizeRun(meta, run, runResult, testAssets);
 			});
 	}

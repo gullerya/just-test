@@ -16,8 +16,8 @@ suite.test('suite - basic full flow', async test => {
 	await s.done;
 
 	test.assertEqual(2, s.model.tests.length);
-	test.assertNotEqual(null, s.model.duration);
-	test.assertTrue(s.model.duration > 0);
+	test.assertNotEqual(null, s.model.time);
+	test.assertTrue(s.model.time > 0);
 });
 
 suite.test('suite - skipping this one (UI/manual test)', () => {
@@ -44,7 +44,7 @@ suite.test('suite - all async', async test => {
 	await s.done;
 
 	test.assertEqual(2, s.model.tests.length);
-	test.assertTrue(s.model.duration > 897);
+	test.assertTrue(s.model.time > 897);
 });
 
 suite.test('suite - all sync', async test => {
@@ -56,7 +56,7 @@ suite.test('suite - all sync', async test => {
 	await s.done;
 
 	test.assertEqual(2, s.model.tests.length);
-	test.assertTrue(s.model.duration > 1600);
+	test.assertTrue(s.model.time > 1600);
 });
 
 suite.test('suite - API negative A', () => {
