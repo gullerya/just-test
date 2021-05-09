@@ -1,4 +1,4 @@
-import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
+import { initComponent, ComponentBase } from 'rich-component';
 import { stateService } from '../../services/state/state-service-factory.js';
 import { reportResults } from '../../services/report-service.js';
 

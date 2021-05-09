@@ -1,4 +1,4 @@
-import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
+import { initComponent, ComponentBase } from 'rich-component';
 import '../jt-test/jt-test.js'
 
 initComponent('jt-suite', class extends ComponentBase {

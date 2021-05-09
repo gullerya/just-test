@@ -3,7 +3,7 @@
  */
 
 import SimpleStateService from './simple-state-service.js';
-import { ties } from '/libs/data-tier/dist/data-tier.min.js';
+import { ties } from 'data-tier';
 
 const MODEL_KEY = 'justTestModel';
 

@@ -1,4 +1,4 @@
-import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
+import { initComponent, ComponentBase } from 'rich-component';
 import { lookupEnv } from '../../services/deploy-service.js';
 import '../jt-error/jt-error.js';
 

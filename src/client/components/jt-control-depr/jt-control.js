@@ -1,5 +1,5 @@
-import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
-import '/libs/data-tier-list/dist/data-tier-list.min.js';
+import { initComponent, ComponentBase } from 'rich-component';
+import 'data-tier-list';
 import '../jt-suite/jt-suite.js';
 import { STATUS } from '../../common/constants.js';
 

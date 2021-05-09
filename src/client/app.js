@@ -117,7 +117,7 @@ async function getEnvironmentId(sesId) {
  * initializes components for interactive mode
  */
 function initInteractiveComponents() {
-	import('/libs/data-tier-list/dist/data-tier-list.min.js');
+	import('data-tier-list');
 	import('./components/jt-header/jt-header.js');
 	import('./components/jt-suite/jt-suite.js');
 	import('./components/jt-details/jt-details.js');

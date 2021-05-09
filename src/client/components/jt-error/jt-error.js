@@ -1,4 +1,4 @@
-import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
+import { initComponent, ComponentBase } from 'rich-component';
 
 initComponent('jt-error', class extends ComponentBase {
 	set data(data) {

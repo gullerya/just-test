@@ -1,8 +1,8 @@
+import { initComponent, ComponentBase } from 'rich-component';
 import '../jt-duration/jt-duration.js';
 import '../jt-status/jt-status.js';
 import { stateService } from '../../services/state/state-service-factory.js';
 import { runTest } from '../../services/session-service.js';
-import { initComponent, ComponentBase } from '/libs/rich-component/dist/rich-component.min.js';
 import { parseTestId } from '../../common/interop-utils.js';
 
 const TEST_KEY = Symbol('test.key');
