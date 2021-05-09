@@ -7,15 +7,20 @@ initComponent('jt-details', class extends ComponentBase {
 		if (!selectedTest) {
 			return;
 		}
-		const env = lookupEnv(selectedTest.id);
-		if (!env) {
+
+		const viewContainer = this.shadowRoot.querySelector('.output');
+		const oldView = viewContainer.firstElementChild;
+		const newView = lookupEnv(selectedTest.id);
+
+		if (newView === oldView) {
 			return;
 		}
-		const currentView = this.shadowRoot.querySelector('.output > *');
-		if (currentView) {
-			document.body.appendChild(currentView);
+		if (oldView) {
+			document.body.appendChild(oldView);
 		}
-		this.shadowRoot.querySelector('.output').appendChild(env);
+		if (newView) {
+			viewContainer.appendChild(newView);
+		}
 	}
 
 	static get htmlUrl() {

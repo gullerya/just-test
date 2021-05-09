@@ -46,9 +46,14 @@ body {
 
 .suites-list {
 	flex: 0 0 50%;
-	max-width: 600px;
+	max-width: 480px;
 	overflow: hidden auto;
-	border-inline-end: 4px solid var(--jt-color-surface);
+}
+
+.splitter {
+	flex: 0 0 8px;
+	background-color: var(--jt-color-surface);
+	cursor: col-resize;
 }
 
 .just-test-details {
