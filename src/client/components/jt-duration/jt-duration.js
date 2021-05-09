@@ -14,10 +14,6 @@ initComponent('jt-duration', class extends ComponentBase {
 		this.shadowRoot.textContent = ds;
 	}
 
-	get defaultTieTarget() {
-		return 'value';
-	}
-
 	static get template() {
 		return TEMPLATE;
 	}

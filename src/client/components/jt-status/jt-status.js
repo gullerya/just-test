@@ -7,10 +7,6 @@ initComponent('jt-status', class extends ComponentBase {
 		this.setAttribute('type', value);
 	}
 
-	get defaultTieTarget() {
-		return 'value';
-	}
-
 	static get template() {
 		return TEMPLATE;
 	}

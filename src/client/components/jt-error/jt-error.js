@@ -24,10 +24,6 @@ initComponent('jt-error', class extends ComponentBase {
 		this.shadowRoot.querySelector('.stack').appendChild(df);
 	}
 
-	get defaultTieTarget() {
-		return 'data';
-	}
-
 	static get htmlUrl() {
 		return import.meta.url.replace(/js$/, 'htm');
 	}

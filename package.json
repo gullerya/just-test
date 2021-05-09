@@ -47,14 +47,15 @@
 		"test:dev": "npm run build && node ./src/local-runner.js config=./tests/tests-config-dev.json"
 	},
 	"dependencies": {
-		"data-tier": "^2.11.1",
-		"rich-component": "^1.6.0",
-		"data-tier-list": "^1.2.0",
-		"glob": "^7.1.6",
-		"playwright": "^1.7.1",
-		"chai": "^4.2.0"
+		"chai": "^4.3.4",
+		"data-tier": "^3.2.0",
+		"data-tier-list": "^2.0.0",
+		"es-module-shims": "^0.10.4",
+		"glob": "^7.1.7",
+		"playwright": "^1.10.0",
+		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
-		"eslint": "^7.17.0"
+		"eslint": "^7.26.0"
 	}
 }

@@ -18,10 +18,6 @@ initComponent('jt-details', class extends ComponentBase {
 		this.shadowRoot.querySelector('.output').appendChild(env);
 	}
 
-	get defaultTieTarget() {
-		return 'data';
-	}
-
 	static get htmlUrl() {
 		return import.meta.url.replace(/js$/, 'htm');
 	}
