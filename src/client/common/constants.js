@@ -4,8 +4,9 @@ export {
 }
 
 const EVENTS = Object.freeze({
-	RUN_STARTED: 'runStarted',
-	RUN_ENDED: 'runEnded'
+	RUN_START: 'run:start',
+	RUN_END: 'run:end',
+	TEST_SELECT: 'test:select'
 });
 
 const STATUS = Object.freeze({

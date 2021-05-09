@@ -24,12 +24,11 @@
 <body>
 	<jt-header class="header"></jt-header>
 	<main class="content">
-		<div class="suites-list">
-			<data-tier-list data-tie="justTestModel:suites => items">
-				<jt-suite class="suite-view" data-tie="item => scope"></jt-suite>
-			</data-tier-list>
-		</div>
-		<jt-details class="just-test-details" data-tie="justTestModel:selectedTest"></jt-details>
+		<div class="suites-list"></div>
+		<data-tier-list data-tie="justTestModel:suites => items" data-list-target="div.suites-list">
+			<jt-suite class="suite-view" data-tie="item => scope"></jt-suite>
+		</data-tier-list>
+		<jt-details class="just-test-details" data-tie="justTestModel:selectedTest => data"></jt-details>
 	</main>
 </body>
 

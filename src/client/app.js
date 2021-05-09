@@ -1,7 +1,7 @@
 import { initStateService, stateService } from './services/state/state-service-factory.js';
 import { runSession } from './services/session-service.js';
 import { reportResults } from './services/report-service.js';
-import { getTestId, getValidName } from './common/interop-utils.js';
+import { getTestId, getValidName, parseTestId } from './common/interop-utils.js';
 
 runMainFlow();
 
@@ -20,6 +20,9 @@ async function runMainFlow() {
 		initInteractiveComponents();
 	}
 	const sService = await initStateService(metadata.interactive);
+	if (metadata.interactive) {
+		setupUserInteractionEvents(sService);
+	}
 	sService.setSessionId(metadata.sessionId);
 	sService.setEnvironmentId(metadata.id);
 	installTestRegistrationAPIs();
@@ -222,4 +225,11 @@ function validateNormalizeTestParams(tName, code, options) {
 
 async function runFinalizationSequence(metadata, results) {
 	reportResults(metadata.sessionId, metadata.id, results);
+}
+
+function setupUserInteractionEvents(stateService) {
+	document.querySelector('.suites-list').addEventListener('test:select', e => {
+		const [sid, tid] = parseTestId(e.detail.testId);
+		stateService.setSelectedTest(sid, tid);
+	});
 }

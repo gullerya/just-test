@@ -60,7 +60,7 @@ function executeInPage(test) {
 		w.onload = () => {
 			setupInteropsBrowser(w, test);
 			injectTestIntoDocument(w.document, test.source);
-			w.addEventListener(EVENTS.RUN_ENDED, w.close, { once: true });
+			w.addEventListener(EVENTS.RUN_END, w.close, { once: true });
 			resolve(w);
 		};
 		w.onerror = reject;

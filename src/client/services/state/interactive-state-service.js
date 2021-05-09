@@ -20,4 +20,8 @@ export default class DataTiedStateService extends SimpleStateService {
 			suites: []
 		}));
 	}
+	
+	setSelectedTest(suiteName, testName) {
+		this.model.selectedTest = this.getTest(suiteName, testName);
+	}
 }

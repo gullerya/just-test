@@ -40,10 +40,10 @@ async function runTest(test, metadata) {
 	const runEnv = await deployTest(test, metadata);
 
 	return new Promise(resolve => {
-		runEnv.addEventListener(EVENTS.RUN_STARTED, e => {
+		runEnv.addEventListener(EVENTS.RUN_START, e => {
 			stateService.updateRunStarted(e.detail.suite, e.detail.test);
 		}, { once: true });
-		runEnv.addEventListener(EVENTS.RUN_ENDED, e => {
+		runEnv.addEventListener(EVENTS.RUN_END, e => {
 			stateService.updateRunEnded(e.detail.suite, e.detail.test, e.detail.run);
 			resolve();
 		}, { once: true });

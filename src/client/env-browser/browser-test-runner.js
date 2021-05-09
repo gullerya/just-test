@@ -106,7 +106,7 @@ function processError(error) {
 }
 
 function dispatchRunStartEvent(testId, suiteName, testName) {
-	const e = new CustomEvent(EVENTS.RUN_STARTED, {
+	const e = new CustomEvent(EVENTS.RUN_START, {
 		detail: {
 			testId: testId,
 			suite: suiteName,
@@ -117,7 +117,7 @@ function dispatchRunStartEvent(testId, suiteName, testName) {
 }
 
 function dispatchRunEndEvent(testId, suiteName, testName, run) {
-	const e = new CustomEvent(EVENTS.RUN_ENDED, {
+	const e = new CustomEvent(EVENTS.RUN_END, {
 		detail: {
 			testId: testId,
 			suite: suiteName,

@@ -10,7 +10,7 @@ async function initStateService(interactiveMode = false) {
 	if (!stateServiceInitPromise) {
 		let importServices = [];
 		if (interactiveMode) {
-			importServices.push(import('./data-tied-state-service.js'));
+			importServices.push(import('./interactive-state-service.js'));
 		} else {
 			importServices.push(import('./simple-state-service.js'));
 		}

@@ -180,10 +180,6 @@ export default class SimpleStateService {
 		});
 	}
 
-	setSelectedTest(suiteName, testName) {
-		this.model.selectedTest = this.getTest(suiteName, testName);
-	}
-
 	static getTestInternal(suite, testName) {
 		return suite.tests.find(t => t.name === testName);
 	}
