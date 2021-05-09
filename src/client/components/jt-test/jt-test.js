@@ -26,12 +26,12 @@ initComponent('jt-test', class extends ComponentBase {
 		const detail = {
 			testId: this[TEST_KEY].id
 		};
-		const event = new CustomEvent(EVENTS.TEST_SELECT, {
+		const selectEvent = new CustomEvent(EVENTS.TEST_SELECT, {
 			bubbles: true,
 			composed: true,
 			detail: detail
 		});
-		this.dispatchEvent(event);
+		this.dispatchEvent(selectEvent);
 	}
 
 	static get htmlUrl() {

@@ -227,9 +227,9 @@ async function runFinalizationSequence(metadata, results) {
 	reportResults(metadata.sessionId, metadata.id, results);
 }
 
-function setupUserInteractionEvents(stateService) {
+function setupUserInteractionEvents(iStateService) {
 	document.querySelector('.suites-list').addEventListener('test:select', e => {
 		const [sid, tid] = parseTestId(e.detail.testId);
-		stateService.setSelectedTest(sid, tid);
+		iStateService.setSelectedTest(sid, tid);
 	});
 }
