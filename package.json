@@ -47,7 +47,6 @@
 		"test:dev": "npm run build && node ./src/local-runner.js config=./tests/tests-config-dev.json"
 	},
 	"dependencies": {
-		"chai": "^4.3.4",
 		"data-tier": "^3.2.0",
 		"data-tier-list": "^2.0.0",
 		"es-module-shims": "^0.10.4",
