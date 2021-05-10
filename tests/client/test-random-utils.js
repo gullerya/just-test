@@ -13,9 +13,9 @@ suite.test('random all', test => {
 		sm.add(getRandom(rl));
 	}
 
-	test.assertEqual(it, sm.size);
+	test.assert.equal(it, sm.size);
 	for (const k of sm) {
-		test.assertEqual(rl, k.length);
+		test.assert.equal(rl, k.length);
 	}
 });
 
@@ -27,10 +27,10 @@ suite.test('random numeric', test => {
 		sm.add(getRandom(rl, CHAR_SOURCES.numeric))
 	}
 
-	test.assertEqual(it, sm.size);
+	test.assert.equal(it, sm.size);
 	for (const k of sm) {
-		test.assertEqual(rl, k.length);
-		test.assertTrue(/[0-9]+/.test(k));
+		test.assert.equal(rl, k.length);
+		test.assert.isTrue(/[0-9]+/.test(k));
 	}
 });
 
@@ -42,10 +42,10 @@ suite.test('random alpha lower', test => {
 		sm.add(getRandom(rl, CHAR_SOURCES.alphaLower));
 	}
 
-	test.assertEqual(it, sm.size);
+	test.assert.equal(it, sm.size);
 	for (const k of sm) {
-		test.assertEqual(rl, k.length);
-		test.assertTrue(/[a-z]+/.test(k));
+		test.assert.equal(rl, k.length);
+		test.assert.isTrue(/[a-z]+/.test(k));
 	}
 });
 
@@ -57,10 +57,10 @@ suite.test('random alpha upper', test => {
 		sm.add(getRandom(rl, CHAR_SOURCES.alphaUpper));
 	}
 
-	test.assertEqual(it, sm.size);
+	test.assert.equal(it, sm.size);
 	for (const k of sm) {
-		test.assertEqual(rl, k.length);
-		test.assertTrue(/[A-Z]+/.test(k));
+		test.assert.equal(rl, k.length);
+		test.assert.isTrue(/[A-Z]+/.test(k));
 	}
 });
 
@@ -72,9 +72,9 @@ suite.test('random alpha all', test => {
 		sm.add(getRandom(rl, CHAR_SOURCES.alphaLower + CHAR_SOURCES.alphaUpper));
 	}
 
-	test.assertEqual(it, sm.size);
+	test.assert.equal(it, sm.size);
 	for (const k of sm) {
-		test.assertEqual(rl, k.length);
-		test.assertTrue(/[a-zA-Z]+/.test(k));
+		test.assert.equal(rl, k.length);
+		test.assert.isTrue(/[a-zA-Z]+/.test(k));
 	}
 });

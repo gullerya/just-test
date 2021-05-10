@@ -1,17 +1,10 @@
 import { EVENTS, STATUS } from '../common/constants.js';
 import { getTestId, getValidName } from '../common/interop-utils.js';
-import { waitMillis, waitNextTask } from '../common/await-utils.js';
-import { getRandom } from '../common/random-utils.js';
+import { TestAsset } from '../common/test-asset.js';
 
 export {
 	getSuite,
 	runTestCode
-}
-
-class TestAssets {
-	constructor() {
-		this.asserts = 0;
-	}
 }
 
 class AssertError extends Error { }
@@ -44,24 +37,24 @@ async function runTestCode(testCode, options) {
 	const run = {};
 
 	let runResult;
-	const testAssets = new TestAssets();
+	const testAsset = new TestAsset();
 	const start = performance.now();
 	await Promise
 		.race([
 			new Promise(resolve => setTimeout(resolve, options.ttl, new TimeoutError('timeout'))),
-			new Promise(resolve => Promise.resolve(testCode(testAssets)).then(resolve).catch(resolve))
+			new Promise(resolve => Promise.resolve(testCode(testAsset)).then(resolve).catch(resolve))
 		])
 		.then(r => { runResult = r; })
 		.catch(e => { runResult = e; })
 		.finally(() => {
 			run.time = performance.now() - start;
-			finalizeRun(options, run, runResult, testAssets);
+			finalizeRun(options, run, runResult, testAsset.asserts);
 		});
 
 	return run;
 }
 
-function finalizeRun(options, run, result, testAssets) {
+function finalizeRun(options, run, result, asserts) {
 	if (result instanceof Error) {
 		const pe = processError(result);
 		if (options.expectError && (pe.type === options.expectError || pe.message.includes(options.expectError))) {
@@ -73,12 +66,12 @@ function finalizeRun(options, run, result, testAssets) {
 	} else {
 		if (options.expectError) {
 			run.status = STATUS.FAIL;
-			run.error = processError(new AssertError(`expected an error '${options.expectError}' but not seen`));
+			run.error = processError(new AssertError(`expected an error "${options.expectError}" but not seen`));
 		} else {
 			run.status = STATUS.PASS;
 		}
 	}
-	run.asserts = testAssets.asserts;
+	run.asserts = asserts;
 }
 
 function processError(error) {
@@ -122,42 +115,4 @@ function dispatchRunEndEvent(testId, suiteName, testName, run) {
 		}
 	});
 	globalThis.dispatchEvent(e);
-}
-
-TestAssets.prototype.waitNextTask = waitNextTask;
-
-TestAssets.prototype.waitMillis = waitMillis;
-
-TestAssets.prototype.getRandom = getRandom;
-
-TestAssets.prototype.assertEqual = function (expected, actual) {
-	this.asserts++;
-	if (expected !== actual) {
-		throw new AssertError(`expected: ${expected}, found: ${actual}`);
-	}
-}
-
-TestAssets.prototype.assertNotEqual = function (unexpected, actual) {
-	this.asserts++;
-	if (unexpected === actual) {
-		throw new AssertError(`unexpected: ${unexpected}, found: ${actual}`);
-	}
-}
-
-TestAssets.prototype.assertTrue = function (expression) {
-	this.asserts++;
-	if (expression !== true) {
-		throw new AssertError(`expected: true, found: ${expression}`);
-	}
-}
-
-TestAssets.prototype.assertFalse = function (expression) {
-	this.asserts++;
-	if (expression !== false) {
-		throw new AssertError(`expected: false, found: ${expression}`);
-	}
-}
-
-TestAssets.prototype.fail = message => {
-	throw new AssertError(message);
 }

@@ -15,7 +15,8 @@ initComponent('jt-error', class extends ComponentBase {
 			const lib =
 				text.indexOf('node_modules') >= 0 ||
 				text.indexOf('/ui/env-browser') >= 0 ||
-				text.indexOf('new Promise') >= 0;
+				text.indexOf('new Promise') >= 0 ||
+				text.indexOf('<anonymous>') >= 0;
 			const tmp = document.createElement('div');
 			tmp.className = `stack-line ${lib ? 'lib' : ''}`;
 			tmp.appendChild(document.createTextNode(text));
