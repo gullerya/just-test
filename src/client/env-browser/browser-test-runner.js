@@ -34,10 +34,10 @@ function getSuite(suiteName) {
 }
 
 async function runTestCode(testCode, options) {
-	const run = {};
-
 	let runResult;
+	const run = {};
 	const testAsset = new TestAsset();
+
 	const start = performance.now();
 	await Promise
 		.race([

@@ -4,22 +4,28 @@ import { getRandom } from './random-utils.js';
 import '/libs/chai/chai.js';
 
 const chai = globalThis.chai;
+const ASSERTS_KEY = Symbol('asserts');
 
 export class TestAsset {
 	constructor() {
-		this.asserts = 0;
+		this[ASSERTS_KEY] = 0;
+
 		this.waitNextTask = waitNextTask;
 		this.waitMillis = waitMillis;
 		this.getRandom = getRandom;
 	}
 
+	get asserts() {
+		return this[ASSERTS_KEY];
+	}
+
 	get assert() {
-		this.asserts++;
+		this[ASSERTS_KEY]++;
 		return chai.assert;
 	}
 
 	get expect() {
-		this.asserts++;
+		this[ASSERTS_KEY]++;
 		return chai.expect;
 	}
 }
