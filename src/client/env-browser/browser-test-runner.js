@@ -1,13 +1,9 @@
 import { EVENTS, STATUS } from '../common/constants.js';
 import { getTestId, getValidName } from '../common/interop-utils.js';
-
-const
-	RANDOM_CHARSETS = Object.freeze({ numeric: '0123456789', alphaLower: 'abcdefghijklmnopqrstuvwxyz', alphaUpper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' }),
-	DEFAULT_CHARSET = RANDOM_CHARSETS.alphaLower + RANDOM_CHARSETS.alphaUpper + RANDOM_CHARSETS.numeric,
-	DEFAULT_RANDOM_LENGTH = 8;
+import { waitMillis, waitNextTask } from '../common/await-utils.js';
+import { getRandom } from '../common/random-utils.js';
 
 export {
-	RANDOM_CHARSETS,
 	getSuite,
 	runTestCode
 }
@@ -128,33 +124,11 @@ function dispatchRunEndEvent(testId, suiteName, testName, run) {
 	globalThis.dispatchEvent(e);
 }
 
-TestAssets.prototype.waitNextTask = async () => {
-	return new Promise(resolve => setTimeout(resolve, 0));
-}
+TestAssets.prototype.waitNextTask = waitNextTask;
 
-TestAssets.prototype.waitMillis = async millis => {
-	return new Promise(resolve => setTimeout(resolve, millis));
-}
+TestAssets.prototype.waitMillis = waitMillis;
 
-TestAssets.prototype.getRandom = (outputLength = DEFAULT_RANDOM_LENGTH, randomCharsets) => {
-	if (!outputLength || typeof outputLength !== 'number' || isNaN(outputLength) || outputLength > 128) {
-		throw new Error(`invalid length ${outputLength}`);
-	}
-	if (randomCharsets) {
-		if (!Array.isArray(randomCharsets)) {
-			throw new Error('invalid "randomCharsets" parameter - array expected');
-		} else if (!randomCharsets.every(c => c && typeof c === 'string')) {
-			throw new Error('invalid "randomCharsets" parameter - all members expected to be a non-empty strings');
-		}
-	}
-	let result = '';
-	const source = randomCharsets ? randomCharsets.join('') : DEFAULT_CHARSET;
-	const random = crypto.getRandomValues(new Uint8Array(outputLength));
-	for (let i = 0; i < outputLength; i++) {
-		result += source.charAt(source.length * random[i] / 256);
-	}
-	return result;
-};
+TestAssets.prototype.getRandom = getRandom;
 
 TestAssets.prototype.assertEqual = function (expected, actual) {
 	this.asserts++;
