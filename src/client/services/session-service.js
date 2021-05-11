@@ -2,7 +2,7 @@
  * Runs a session of all suites/tests
  * - performs with the current environment (browser / node instance)
  */
-import { EVENTS } from '../common/constants.js';
+import { EVENT } from '../common/constants.js';
 import { deployTest } from './deploy-service.js';
 import { stateService } from './state/state-service-factory.js';
 
@@ -40,10 +40,10 @@ async function runTest(test, metadata) {
 	const runEnv = await deployTest(test, metadata);
 
 	return new Promise(resolve => {
-		runEnv.addEventListener(EVENTS.RUN_START, e => {
+		runEnv.addEventListener(EVENT.RUN_START, e => {
 			stateService.updateRunStarted(e.detail.suite, e.detail.test);
 		}, { once: true });
-		runEnv.addEventListener(EVENTS.RUN_END, e => {
+		runEnv.addEventListener(EVENT.RUN_END, e => {
 			stateService.updateRunEnded(e.detail.suite, e.detail.test, e.detail.run);
 			resolve();
 		}, { once: true });

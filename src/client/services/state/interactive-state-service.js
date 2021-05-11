@@ -1,5 +1,5 @@
 /**
- * Manages observable session state (browser environment only)
+ * Manages observable session state (interactive environment only)
  */
 
 import SimpleStateService from './simple-state-service.js';
@@ -20,7 +20,7 @@ export default class DataTiedStateService extends SimpleStateService {
 			suites: []
 		}));
 	}
-	
+
 	setSelectedTest(suiteName, testName) {
 		this.model.selectedTest = this.getTest(suiteName, testName);
 	}

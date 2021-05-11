@@ -1,5 +1,5 @@
 import { initComponent, ComponentBase } from 'rich-component';
-import { EVENTS } from '../../common/constants.js';
+import { EVENT } from '../../common/constants.js';
 import '../jt-duration/jt-duration.js';
 import '../jt-status/jt-status.js';
 import { runTest } from '../../services/session-service.js';
@@ -26,7 +26,7 @@ initComponent('jt-test', class extends ComponentBase {
 		const detail = {
 			testId: this[TEST_KEY].id
 		};
-		const selectEvent = new CustomEvent(EVENTS.TEST_SELECT, {
+		const selectEvent = new CustomEvent(EVENT.TEST_SELECT, {
 			bubbles: true,
 			composed: true,
 			detail: detail

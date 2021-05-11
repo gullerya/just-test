@@ -1,4 +1,4 @@
-import { EVENTS } from '../common/constants.js';
+import { EVENT } from '../common/constants.js';
 
 export {
 	deployTest,
@@ -60,7 +60,7 @@ function executeInPage(test) {
 		w.onload = () => {
 			setupInteropsBrowser(w, test);
 			injectTestIntoDocument(w.document, test.source);
-			w.addEventListener(EVENTS.RUN_END, w.close, { once: true });
+			w.addEventListener(EVENT.RUN_END, w.close, { once: true });
 			resolve(w);
 		};
 		w.onerror = reject;

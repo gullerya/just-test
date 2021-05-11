@@ -1,16 +1,13 @@
-import { EVENTS, STATUS } from '../common/constants.js';
+import { EVENT } from '../common/constants.js';
 import { getTestId, getValidName } from '../common/interop-utils.js';
-import { TestAsset } from '../common/test-asset.js';
+import { runTest } from '../common/test-runner.js';
 
 export {
-	getSuite,
-	runTestCode
+	getSuite
 }
 
-class AssertError extends Error { }
 
-class TimeoutError extends AssertError { }
-
+//	TODO: this API should be abstracted away, so that the logic could be easily attached to 'describe', for example
 function getSuite(suiteName) {
 	const sName = getValidName(suiteName);
 
@@ -26,76 +23,18 @@ function getSuite(suiteName) {
 			const test = globalThis.interop.tests[currentTestId];
 			if (test) {
 				dispatchRunStartEvent(currentTestId, sName, tName);
-				const run = await runTestCode(testCode, test.options);
+				const run = await runTest(testCode, test.options);
 				dispatchRunEndEvent(currentTestId, sName, tName, run);
+				return run;
 			}
 		}
 	}
 }
 
-async function runTestCode(testCode, options) {
-	let runResult;
-	const run = {};
-	const testAsset = new TestAsset();
-
-	const start = performance.now();
-	await Promise
-		.race([
-			new Promise(resolve => setTimeout(resolve, options.ttl, new TimeoutError('timeout'))),
-			new Promise(resolve => Promise.resolve(testCode(testAsset)).then(resolve).catch(resolve))
-		])
-		.then(r => { runResult = r; })
-		.catch(e => { runResult = e; })
-		.finally(() => {
-			run.time = performance.now() - start;
-			finalizeRun(options, run, runResult, testAsset.asserts);
-		});
-
-	return run;
-}
-
-function finalizeRun(options, run, result, asserts) {
-	if (result instanceof Error) {
-		const pe = processError(result);
-		if (options.expectError && (pe.type === options.expectError || pe.message.includes(options.expectError))) {
-			run.status = STATUS.PASS;
-		} else {
-			run.status = STATUS.FAIL;
-			run.error = pe;
-		}
-	} else {
-		if (options.expectError) {
-			run.status = STATUS.FAIL;
-			run.error = processError(new AssertError(`expected an error "${options.expectError}" but not seen`));
-		} else {
-			run.status = STATUS.PASS;
-		}
-	}
-	run.asserts = asserts;
-}
-
-function processError(error) {
-	if (!(error instanceof Error)) {
-		throw new Error(`error expected; found '${error}'`);
-	}
-
-	const replacable = globalThis.location.origin;
-	const stackLines = error.stack.split(/\r\n|\r|\n/)
-		.map(l => l.trim())
-		.map(l => l.replace(replacable, ''));
-	stackLines.shift();
-
-	//	TODO: probably extract file location from each line...
-	return {
-		name: error.name,
-		type: error.constructor.name,
-		message: error.message,
-		stackLines: stackLines
-	};
-}
-
+//	private implementation
+//
 function dispatchRunStartEvent(testId, suiteName, testName) {
-	const e = new CustomEvent(EVENTS.RUN_START, {
+	const e = new CustomEvent(EVENT.RUN_START, {
 		detail: {
 			testId: testId,
 			suite: suiteName,
@@ -106,7 +45,7 @@ function dispatchRunStartEvent(testId, suiteName, testName) {
 }
 
 function dispatchRunEndEvent(testId, suiteName, testName, run) {
-	const e = new CustomEvent(EVENTS.RUN_END, {
+	const e = new CustomEvent(EVENT.RUN_END, {
 		detail: {
 			testId: testId,
 			suite: suiteName,

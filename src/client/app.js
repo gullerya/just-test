@@ -2,6 +2,7 @@ import { initStateService, stateService } from './services/state/state-service-f
 import { runSession } from './services/session-service.js';
 import { reportResults } from './services/report-service.js';
 import { getTestId, getValidName, parseTestId } from './common/interop-utils.js';
+import { DEFAULT, EVENT } from '../client/common/constants.js';
 
 runMainFlow();
 
@@ -197,7 +198,7 @@ function validateNormalizeSuiteParams(sName, options) {
 }
 
 const TEST_OPTIONS_DEFAULT = Object.freeze({
-	ttl: 3000,
+	ttl: DEFAULT.TEST_RUN_TTL,
 	skip: false,
 	sync: false,
 	expectError: ''
@@ -228,7 +229,7 @@ async function runFinalizationSequence(metadata, results) {
 }
 
 function setupUserInteractionEvents(iStateService) {
-	document.querySelector('.suites-list').addEventListener('test:select', e => {
+	document.querySelector('.suites-list').addEventListener(EVENT.TEST_SELECT, e => {
 		const [sid, tid] = parseTestId(e.detail.testId);
 		iStateService.setSelectedTest(sid, tid);
 	});
