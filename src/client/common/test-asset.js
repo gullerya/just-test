@@ -5,28 +5,30 @@ import { getRandom } from './random-utils.js';
 import '/libs/chai/chai.js';
 
 const chai = globalThis.chai;
-const ASSERTS_KEY = Symbol('asserts');
+const ASSERTIONS_KEY = Symbol('assertions');
 
 export class TestAsset {
 	constructor() {
-		this[ASSERTS_KEY] = 0;
+		this[ASSERTIONS_KEY] = 0;
 
 		this.waitNextTask = waitNextTask;
 		this.waitMillis = waitMillis;
 		this.getRandom = getRandom;
+
+		Object.seal(this);
 	}
 
-	get asserts() {
-		return this[ASSERTS_KEY];
+	get assertions() {
+		return this[ASSERTIONS_KEY];
 	}
 
 	get assert() {
-		this[ASSERTS_KEY]++;
+		this[ASSERTIONS_KEY]++;
 		return chai.assert;
 	}
 
 	get expect() {
-		this[ASSERTS_KEY]++;
+		this[ASSERTIONS_KEY]++;
 		return chai.expect;
 	}
 }

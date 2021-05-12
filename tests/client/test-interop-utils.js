@@ -8,19 +8,19 @@ const suite = globalThis.getSuite('Common utils');
 
 suite.test('getTestId - 2 parts', test => {
 	const tid = getTestId('some', 'thing');
-	test.assert.equal('some-|-thing', tid);
+	test.assert.strictEqual('some-|-thing', tid);
 });
 
 suite.test('getTestId - 3 parts', test => {
 	const tid = getTestId('some', 'thing', 'more');
-	test.assert.equal('some-|-thing-|-more', tid);
+	test.assert.strictEqual('some-|-thing-|-more', tid);
 });
 
 suite.test('parseTestId - 2 parts', test => {
 	const base = getTestId('some', 'thing');
 	const [p1, p2] = parseTestId(base);
-	test.assert.equal('some', p1);
-	test.assert.equal('thing', p2);
+	test.assert.strictEqual('some', p1);
+	test.assert.strictEqual('thing', p2);
 });
 
 suite.test('getValidName - negative (undefined)', () => {
@@ -55,5 +55,5 @@ suite.test('getValidName - negative (emptish string)', () => {
 
 suite.test('getValidName', test => {
 	const n = getValidName('  test ');
-	test.assert.equal('test', n);
+	test.assert.strictEqual('test', n);
 });

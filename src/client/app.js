@@ -2,7 +2,7 @@ import { initStateService, stateService } from './services/state/state-service-f
 import { runSession } from './services/session-service.js';
 import { reportResults } from './services/report-service.js';
 import { getTestId, getValidName, parseTestId } from './common/interop-utils.js';
-import { DEFAULT, EVENT } from '../client/common/constants.js';
+import { DEFAULT, EVENT } from './common/constants.js';
 
 runMainFlow();
 

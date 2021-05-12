@@ -1,5 +1,6 @@
 import { DEFAULT, STATUS } from './constants.js';
 import { TestAsset } from './test-asset.js';
+import { TestRun } from './test-run.js';
 
 export {
 	runTest
@@ -11,7 +12,7 @@ class TimeoutError extends AssertError { }
 
 async function runTest(code, meta = { ttl: DEFAULT }) {
 	let runResult;
-	const run = {};
+	const run = new TestRun();
 	const testAsset = new TestAsset();
 
 	//	TODO: react on skip here as well?
@@ -25,13 +26,13 @@ async function runTest(code, meta = { ttl: DEFAULT }) {
 		runResult = e;
 	} finally {
 		run.time = performance.now() - start;
-		finalizeRun(meta, run, runResult, testAsset.asserts);
+		finalizeRun(meta, run, runResult, testAsset.assertions);
 	}
 
 	return run;
 }
 
-function finalizeRun(meta, run, result, asserts) {
+function finalizeRun(meta, run, result, assertions) {
 	if (result instanceof Error) {
 		const pe = processError(result);
 		if (meta.expectError && (pe.type === meta.expectError || pe.message.includes(meta.expectError))) {
@@ -48,7 +49,7 @@ function finalizeRun(meta, run, result, asserts) {
 			run.status = STATUS.PASS;
 		}
 	}
-	run.asserts = asserts;
+	run.assertions = assertions;
 }
 
 function processError(error) {

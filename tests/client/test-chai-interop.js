@@ -1,13 +1,13 @@
 ﻿const suite = globalThis.getSuite('Chai interoperability');
 
 suite.test('assert works - with error expected', test => {
-	test.assert.equal(0, 1);
+	test.assert.strictEqual(0, 1);
 }, {
 	expectError: 'expected 0 to equal 1'
 });
 
 suite.test('assert works - normal', test => {
-	test.assert.equal('some', 'some');
+	test.assert.strictEqual('some', 'some');
 });
 
 suite.test('expect works - with error expected', test => {

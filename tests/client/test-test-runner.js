@@ -3,20 +3,18 @@ import { runTest } from '/aut/bin/client/common/test-runner.js';
 
 const suite = globalThis.getSuite('Test APIs');
 
-suite.test('run test - normal', async test => {
-	let ta;
-	const tp = runTest(_ta => {
-		ta = _ta;
-	});
+suite.test('run test - normal (sync)', async test => {
+	const tp = runTest(() => { });
 
 	//	TODO: assert on ta object
 	test.assert.instanceOf(tp, Promise);
 	const m = await tp;
 	console.log(m);
-	test.assert.equal(STATUS.PASS, m.status);
-	test.assert.equal(undefined, m.error);
-	test.assert.isNotNull(m.time);
-	test.assert.notEqual(0, m.time);
+	test.assert.strictEqual(m.status, STATUS.PASS);
+	test.assert.isNull(m.error);
+	test.assert.strictEqual(m.assertions, 0);
+	test.assert.isNumber(m.time);
+	test.assert.isAbove(m.time, 0);
 });
 
 // suite.test('test - fail by false', async test => {

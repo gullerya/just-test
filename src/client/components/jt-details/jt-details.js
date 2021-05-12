@@ -15,11 +15,14 @@ initComponent('jt-details', class extends ComponentBase {
 		if (newView === oldView) {
 			return;
 		}
+
+		//	TODO: move this login to deploy service? (it knows how the iframes created)
+		//	TODO: do NOT move the whole iframe, causes tests duplicate execution, but only an HTML? body?
 		if (oldView) {
-			document.body.appendChild(oldView);
+			//document.body.appendChild(oldView);
 		}
 		if (newView) {
-			viewContainer.appendChild(newView);
+			//viewContainer.appendChild(newView);
 		}
 	}
 
