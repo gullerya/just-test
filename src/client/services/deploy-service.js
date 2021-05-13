@@ -1,4 +1,3 @@
-import { EVENT } from '../common/constants.js';
 import { TestRunBox } from '../common/test-run.js';
 import { getSuite } from '../env-browser/browser-test-runner.js';
 
@@ -45,21 +44,13 @@ function executeInFrame(test) {
 	const d = globalThis.document;
 	const i = d.createElement('iframe');
 	i.name = test.id;
-	i.srcdoc = '';
 	i.classList.add('just-test-execution-frame');
+	d.body.appendChild(i);
 
 	const testRunBox = new TestRunBox(test);
-	const readyPromise = new Promise((resolve, reject) => {
-		i.onload = () => {
-			i.contentWindow.getSuite = getSuite.bind(testRunBox);
-			injectTestIntoDocument(i.contentDocument, test.source);
-			resolve(testRunBox);
-		};
-		i.onerror = reject;
-	});
-
-	d.body.appendChild(i);
-	return readyPromise;
+	i.contentWindow.getSuite = getSuite.bind(testRunBox);
+	injectTestIntoDocument(i.contentDocument, test.source);
+	return Promise.resolve(testRunBox);
 }
 
 function executeInPage(test) {
@@ -70,7 +61,7 @@ function executeInPage(test) {
 		w.onload = () => {
 			w.getSuite = getSuite.bind(testRunBox);
 			injectTestIntoDocument(w.document, test.source);
-			w.addEventListener(EVENT.RUN_END, w.close, { once: true });
+			testRunBox.ended.then(w.close);
 			resolve(w);
 		};
 		w.onerror = reject;

@@ -5,8 +5,6 @@ export {
 }
 
 const EVENT = Object.freeze({
-	RUN_START: 'run:start',
-	RUN_END: 'run:end',
 	TEST_SELECT: 'test:select'
 });
 
