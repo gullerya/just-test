@@ -1,4 +1,5 @@
 import { EVENT } from '../common/constants.js';
+import { TestRunBox } from '../common/test-run.js';
 import { getSuite } from '../env-browser/browser-test-runner.js';
 
 export {
@@ -13,14 +14,14 @@ export {
  * - in NodeJS context injects the test into a NodeJS fork
  * 
  * @param {object} test - test (metadata) to execute
- * @param {object} currentEnvironment - current envoronment
+ * @param {object} sessionMetadata - current session environment
  * @returns {object: Promise} - promise to be resolved when test deployed
  */
-function deployTest(test, currentEnvironment) {
+function deployTest(test, sessionMetadata) {
 	let deployPromise;
-	if (currentEnvironment.interactive) {
+	if (sessionMetadata.interactive) {
 		deployPromise = executeInFrame(test);
-	} else if (currentEnvironment.browser) {
+	} else if (sessionMetadata.browser) {
 		//	TODO: right now just having browsers means we are in a right browser context
 		//	TODO: in some future we's probably like to do something with this part, but
 		//	TODO: this requires passing to the client the environment/browser data
@@ -47,46 +48,38 @@ function executeInFrame(test) {
 	i.srcdoc = '';
 	i.classList.add('just-test-execution-frame');
 
+	const testRunBox = new TestRunBox(test);
 	const readyPromise = new Promise((resolve, reject) => {
 		i.onload = () => {
-			setupInteropsBrowser(i.contentWindow, test);
+			i.contentWindow.getSuite = getSuite.bind(testRunBox);
 			injectTestIntoDocument(i.contentDocument, test.source);
-			resolve(i.contentWindow);
+			resolve(testRunBox);
 		};
 		i.onerror = reject;
 	});
 
 	d.body.appendChild(i);
-
 	return readyPromise;
 }
 
 function executeInPage(test) {
-	const w = globalThis.open('env-browser/browser-test-runner.html');
-	return new Promise((resolve, reject) => {
+	const w = globalThis.open('');
+	w.name = this.id;
+	const testRunBox = new TestRunBox(test);
+	const readyPromise = new Promise((resolve, reject) => {
 		w.onload = () => {
-			setupInteropsBrowser(w, test);
+			w.getSuite = getSuite.bind(testRunBox);
 			injectTestIntoDocument(w.document, test.source);
 			w.addEventListener(EVENT.RUN_END, w.close, { once: true });
 			resolve(w);
 		};
 		w.onerror = reject;
 	});
+	return readyPromise;
 }
 
 function executeInNodeJS(test) {
 	throw new Error(`unsupported yet environment to run ${test.id} from ${test.source}`);
-}
-
-//	TODO: support reuse of the iframe container for multiple tests
-function setupInteropsBrowser(targetWindow, test) {
-	const scopedSuiteAPI = {
-		tests: {
-			[test.id]: { options: test.options }
-		}
-	};
-
-	targetWindow.getSuite = getSuite.bind(scopedSuiteAPI);
 }
 
 function injectTestIntoDocument(envDocument, testSource) {

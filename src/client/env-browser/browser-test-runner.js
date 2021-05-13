@@ -1,4 +1,3 @@
-import { EVENT } from '../common/constants.js';
 import { getTestId, getValidName } from '../common/interop-utils.js';
 import { runTest } from '../common/test-runner.js';
 
@@ -6,51 +5,31 @@ export {
 	getSuite
 }
 
-//	TODO: this API should be abstracted away, so that the logic could be easily attached to 'describe', for example
+//	TODO: consider merging this with registration pass phase (see the session-service parallel)
+
+/**
+ * provides an API to run a test in a context of suite
+ * - `this` is implied to be a TestRunBox context object
+ * 
+ * @param {string} suiteName suite name - serves as a suite identifier
+ * @returns test run data
+ */
 function getSuite(suiteName) {
 	const sName = getValidName(suiteName);
 
 	return {
 		test: async (testName, testCode) => {
 			const tName = getValidName(testName);
+			const testId = getTestId(sName, tName);
 
-			if (!testCode || typeof testCode !== 'function') {
-				throw new Error(`test code MUST be a function, got '${testCode}'`);
+			if (this.test.id !== testId) {
+				return;
 			}
 
-			const currentTestId = getTestId(sName, tName);
-			const test = this.tests[currentTestId];
-			if (test) {
-				dispatchRunStartEvent(this, currentTestId, sName, tName);
-				const run = await runTest(testCode, test.options);
-				dispatchRunEndEvent(this, currentTestId, sName, tName, run);
-				return run;
-			}
+			this.resolveStarted();
+			const run = await runTest(testCode, this.test.options);
+			this.resolveEnded(run);
+			return run;
 		}
 	}
-}
-
-//	private implementation
-//
-function dispatchRunStartEvent(target, testId, suiteName, testName) {
-	const e = new CustomEvent(EVENT.RUN_START, {
-		detail: {
-			testId: testId,
-			suite: suiteName,
-			test: testName
-		}
-	});
-	target.dispatchEvent(e);
-}
-
-function dispatchRunEndEvent(target, testId, suiteName, testName, run) {
-	const e = new CustomEvent(EVENT.RUN_END, {
-		detail: {
-			testId: testId,
-			suite: suiteName,
-			test: testName,
-			run: run
-		}
-	});
-	target.dispatchEvent(e);
 }

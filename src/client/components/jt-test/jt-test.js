@@ -10,6 +10,7 @@ initComponent('jt-test', class extends ComponentBase {
 	connectedCallback() {
 		this.addEventListener('click', () => this._notifySelected());
 		this.shadowRoot.querySelector('.re-run').addEventListener('click', e => {
+			//	TODO: this should be passed via event
 			e.stopPropagation();
 			runTest(this[TEST_KEY], { interactive: true });
 		});

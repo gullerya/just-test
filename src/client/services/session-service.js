@@ -2,7 +2,7 @@
  * Runs a session of all suites/tests
  * - performs with the current environment (browser / node instance)
  */
-import { EVENT } from '../common/constants.js';
+import { parseTestId } from '../common/interop-utils.js';
 import { P } from '../common/performance-utils.js';
 import { deployTest } from './deploy-service.js';
 import { stateService } from './state/state-service-factory.js';
@@ -16,39 +16,45 @@ export {
  * executes all relevant tests, according the the sync/async options
  * - performs any needed environment related adjustments
  * 
- * @param {object} metadata - session execution metadata
+ * @param {object} sessionMetadata - session execution metadata
  * @returns Promise resolved with test results when all tests done
  */
-async function runSession(metadata) {
+async function runSession(sessionMetadata) {
 	const executionData = stateService.getExecutionData();
 	const sessionStart = P.now();
 	console.info(`starting test session (${executionData.suites.length} suites)...`);
 
-	if (!metadata.interactive) {
+	if (!sessionMetadata.interactive) {
 		setTimeout(() => {
 			//	TODO: finalize the session, no further updates will be accepted
-		}, metadata.tests.ttl);
-		console.info(`session time out watcher set to ${metadata.tests.ttl}ms`);
+		}, sessionMetadata.tests.ttl);
+		console.info(`session time out watcher set to ${sessionMetadata.tests.ttl}ms`);
 	}
-	await Promise.all(executionData.suites.map(suite => executeSuite(suite, metadata)));
+	await Promise.all(executionData.suites.map(suite => executeSuite(suite, sessionMetadata)));
 
 	console.info(`... session done (${(P.now() - sessionStart).toFixed(1)}ms)`);
 }
 
 /**
- * executes single test
+ * executes single test end-to-end:
+ * - deploys into relevant enviroment
+ * - gets the TestRunBox of the deployed test run
+ * - listens for the run events
+ * - updates the model
+ * - notifies suite for run end
  */
-async function runTest(test, metadata) {
-	const testRunBox = await deployTest(test, metadata);
+async function runTest(test, sessionMetadata) {
+	const [sid, tid] = parseTestId(test.id);
+	const testRunBox = await deployTest(test, sessionMetadata);
 
 	return new Promise(resolve => {
-		testRunBox.addEventListener(EVENT.RUN_START, e => {
-			stateService.updateRunStarted(e.detail.suite, e.detail.test);
-		}, { once: true });
-		testRunBox.addEventListener(EVENT.RUN_END, e => {
-			stateService.updateRunEnded(e.detail.suite, e.detail.test, e.detail.run);
+		testRunBox.started.then(() => {
+			stateService.updateRunStarted(sid, tid);
+		});
+		testRunBox.ended.then(run => {
+			stateService.updateRunEnded(sid, tid, run);
 			resolve();
-		}, { once: true });
+		});
 	});
 }
 
