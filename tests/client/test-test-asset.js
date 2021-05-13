@@ -11,5 +11,7 @@ suite.test('test asset - ensure all present', async test => {
 	test.assert.isObject(ta);
 	test.assert.isFunction(ta.assert);
 	test.assert.isFunction(ta.expect);
+	test.assert.isFunction(ta.waitInterval);
+	test.assert.isFunction(ta.waitNextTask);
 	test.assert.isNumber(ta.assertions);
 });

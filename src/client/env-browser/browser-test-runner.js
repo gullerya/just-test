@@ -1,10 +1,10 @@
 import { getTestId, getValidName } from '../common/interop-utils.js';
-import { runTest } from '../common/test-runner.js';
 
 export {
 	getSuite
 }
 
+//	TODO: move all of th management objects to be installed as part of the TestRunBox (this)
 //	TODO: consider merging this with registration pass phase (see the session-service parallel)
 
 /**
@@ -27,7 +27,7 @@ function getSuite(suiteName) {
 			}
 
 			this.resolveStarted();
-			const run = await runTest(testCode, this.test.options);
+			const run = await this.runTest(testCode, this.test.options);
 			this.resolveEnded(run);
 			return run;
 		}

@@ -1,7 +1,9 @@
 export {
 	DEFAULT,
 	EVENT,
-	STATUS
+	STATUS,
+	SUITE_OPTIONS_DEFAULT,
+	TEST_OPTIONS_DEFAULT
 }
 
 const EVENT = Object.freeze({
@@ -18,4 +20,16 @@ const STATUS = Object.freeze({
 
 const DEFAULT = Object.freeze({
 	TEST_RUN_TTL: 3000
+});
+
+const SUITE_OPTIONS_DEFAULT = Object.freeze({
+	skip: false,
+	sync: false
+});
+
+const TEST_OPTIONS_DEFAULT = Object.freeze({
+	ttl: DEFAULT.TEST_RUN_TTL,
+	skip: false,
+	sync: false,
+	expectError: null
 });

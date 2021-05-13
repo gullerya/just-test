@@ -1,4 +1,4 @@
-//	TODO: consider merging those 2 objects
+import { runTest } from './test-runner.js';
 
 export class TestRun {
 	constructor() {
@@ -13,6 +13,8 @@ export class TestRun {
 export class TestRunBox {
 	constructor(test) {
 		this.test = test;
+		this.runTest = runTest;
+
 		this.started = new Promise(r => {
 			this.resolveStarted = r;
 		});

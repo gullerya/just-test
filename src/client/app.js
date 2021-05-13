@@ -1,7 +1,7 @@
 import { initStateService, stateService } from './services/state/state-service-factory.js';
 import { runSession } from './services/session-service.js';
 import { reportResults } from './services/report-service.js';
-import { DEFAULT, EVENT } from './common/constants.js';
+import { EVENT, SUITE_OPTIONS_DEFAULT, TEST_OPTIONS_DEFAULT } from './common/constants.js';
 import { getTestId, getValidName, parseTestId } from './common/interop-utils.js';
 import { P } from './common/performance-utils.js';
 
@@ -178,11 +178,6 @@ function getSuite(suiteName, suiteOptions) {
 	}
 }
 
-const SUITE_OPTIONS_DEFAULT = Object.freeze({
-	skip: false,
-	sync: false
-});
-
 function validateNormalizeSuiteParams(sName, options) {
 	const result = {};
 
@@ -197,13 +192,6 @@ function validateNormalizeSuiteParams(sName, options) {
 
 	return result;
 }
-
-const TEST_OPTIONS_DEFAULT = Object.freeze({
-	ttl: DEFAULT.TEST_RUN_TTL,
-	skip: false,
-	sync: false,
-	expectError: ''
-});
 
 function validateNormalizeTestParams(tName, code, options) {
 	const result = {};

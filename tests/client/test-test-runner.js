@@ -1,8 +1,5 @@
 ﻿import { STATUS } from '/aut/bin/client/common/constants.js';
 import { runTest } from '/aut/bin/client/common/test-runner.js';
-//import { getSuite as gs } from '/ui/env-browser/browser-test-runner.js';
-
-//gs();
 
 const suite = globalThis.getSuite('Test APIs');
 

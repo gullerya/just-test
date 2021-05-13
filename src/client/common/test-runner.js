@@ -56,10 +56,10 @@ function finalizeRun(meta, run, result, assertions) {
 }
 
 function processError(error) {
-	const replacable = globalThis.location.origin;
+	const replaceable = globalThis.location.origin;
 	const stacktrace = error.stack.split(/\r\n|\r|\n/)
 		.map(l => l.trim())
-		.map(l => l.replace(replacable, ''));
+		.map(l => l.replace(replaceable, ''));
 	stacktrace.shift();
 
 	return {
