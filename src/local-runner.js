@@ -2,7 +2,7 @@ import os from 'os';
 import fs from 'fs';
 import util from 'util';
 import process from 'process';
-import http from 'http';
+import * as http from 'http';
 import { startServer } from './server/server-service.js';
 import xUnitReporter from './server/testing/reporters/reporter-xunit.js';
 

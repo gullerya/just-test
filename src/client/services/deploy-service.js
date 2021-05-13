@@ -1,4 +1,5 @@
 import { EVENT } from '../common/constants.js';
+import { getSuite } from '../env-browser/browser-test-runner.js';
 
 export {
 	deployTest,
@@ -34,6 +35,8 @@ function lookupEnv(testId) {
 	return globalThis.document.querySelector(`[name="${testId}"]`)
 }
 
+//	TODO: reuse old frame (perf)
+//	TODO: use provided frame (perf)
 function executeInFrame(test) {
 	const oldFrame = lookupEnv(test.id);
 	oldFrame?.remove();
@@ -41,10 +44,10 @@ function executeInFrame(test) {
 	const d = globalThis.document;
 	const i = d.createElement('iframe');
 	i.name = test.id;
+	i.srcdoc = '';
 	i.classList.add('just-test-execution-frame');
-	i.src = 'env-browser/browser-test-runner.html';
-	d.body.appendChild(i);
-	return new Promise((resolve, reject) => {
+
+	const readyPromise = new Promise((resolve, reject) => {
 		i.onload = () => {
 			setupInteropsBrowser(i.contentWindow, test);
 			injectTestIntoDocument(i.contentDocument, test.source);
@@ -52,6 +55,10 @@ function executeInFrame(test) {
 		};
 		i.onerror = reject;
 	});
+
+	d.body.appendChild(i);
+
+	return readyPromise;
 }
 
 function executeInPage(test) {
@@ -71,11 +78,15 @@ function executeInNodeJS(test) {
 	throw new Error(`unsupported yet environment to run ${test.id} from ${test.source}`);
 }
 
+//	TODO: support reuse of the iframe container for multiple tests
 function setupInteropsBrowser(targetWindow, test) {
-	const interopAPIs = targetWindow.interop || (targetWindow.interop = {
-		tests: {}
-	});
-	interopAPIs.tests[test.id] = { options: test.options };
+	const scopedSuiteAPI = {
+		tests: {
+			[test.id]: { options: test.options }
+		}
+	};
+
+	targetWindow.getSuite = getSuite.bind(scopedSuiteAPI);
 }
 
 function injectTestIntoDocument(envDocument, testSource) {

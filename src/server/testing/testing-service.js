@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { performance } from 'perf_hooks';
+import { performance as P } from 'perf_hooks';
 import glob from 'glob';
 import Logger from '../logger/logger.js';
 import buildConfig from './testing-configurer.js';
@@ -25,7 +25,7 @@ class TestsService {
 	async collectTestResources(include, exclude) {
 		logger.info('collecting test resources...');
 		const
-			started = performance.now(),
+			started = P.now(),
 			options = {
 				nodir: true,
 				nosort: true,
@@ -48,7 +48,7 @@ class TestsService {
 			a.push(...c);
 			return a;
 		}, []);
-		logger.info(`... test resources collected in ${Math.floor(performance.now() - started)}ms`);
+		logger.info(`... test resources collected in ${(P.now() - started).toFixed(1)}ms`);
 		logger.info(`collected ${result.length} test resources:`);
 		logger.info(result);
 		return result;
@@ -112,23 +112,23 @@ class TestsService {
 	}
 
 	async waitTestsToFinish(page, ttl) {
-		const started = performance.now();
+		const started = P.now();
 		let testsDone = false;
 
 		logger.info();
-		logger.info('waiting for tests to finish (max TTL set to ' + Math.floor(ttl / 1000) + 's)...');
+		logger.info(`waiting for tests to finish (max TTL set to ${Math.floor(ttl / 1000)}s)...`);
 		do {
 			testsDone = await page.evaluate(() => {
 				const jtv = document.querySelector('just-test-view');
 				return jtv && jtv.results && typeof jtv.results === 'object';
 			});
 
-			const currentTL = performance.now() - started;
+			const currentTL = P.now() - started;
 			if (testsDone) {
-				logger.info('... tests run finished in ' + Math.floor(currentTL / 1000) + 's');
+				logger.info(`... tests run finished in ${Math.floor(currentTL / 1000)}s`);
 			} else if (currentTL > ttl) {
-				logger.error('... max tests run TTL was set to ' + ttl + 'ms, but already passed ' + Math.floor(currentTL / 1000) + 's - abandoning')
-				throw new Error('tests run timed out after ' + Math.floor(currentTL / 1000) + 's');
+				logger.error(`... max tests run TTL was set to ${ttl}ms, but already passed ${Math.floor(currentTL / 1000)}s - abandoning`)
+				throw new Error(`tests run timed out after ${Math.floor(currentTL / 1000)}s`);
 			}
 
 			await new Promise(r => r(), 2000);

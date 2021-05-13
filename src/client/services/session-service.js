@@ -3,6 +3,7 @@
  * - performs with the current environment (browser / node instance)
  */
 import { EVENT } from '../common/constants.js';
+import { P } from '../common/performance-utils.js';
 import { deployTest } from './deploy-service.js';
 import { stateService } from './state/state-service-factory.js';
 
@@ -20,6 +21,7 @@ export {
  */
 async function runSession(metadata) {
 	const executionData = stateService.getExecutionData();
+	const sessionStart = P.now();
 	console.info(`starting test session (${executionData.suites.length} suites)...`);
 
 	if (!metadata.interactive) {
@@ -30,20 +32,20 @@ async function runSession(metadata) {
 	}
 	await Promise.all(executionData.suites.map(suite => executeSuite(suite, metadata)));
 
-	console.info('... session done');
+	console.info(`... session done (${(P.now() - sessionStart).toFixed(1)}ms)`);
 }
 
 /**
  * executes single test
  */
 async function runTest(test, metadata) {
-	const runEnv = await deployTest(test, metadata);
+	const testRunBox = await deployTest(test, metadata);
 
 	return new Promise(resolve => {
-		runEnv.addEventListener(EVENT.RUN_START, e => {
+		testRunBox.addEventListener(EVENT.RUN_START, e => {
 			stateService.updateRunStarted(e.detail.suite, e.detail.test);
 		}, { once: true });
-		runEnv.addEventListener(EVENT.RUN_END, e => {
+		testRunBox.addEventListener(EVENT.RUN_END, e => {
 			stateService.updateRunEnded(e.detail.suite, e.detail.test, e.detail.run);
 			resolve();
 		}, { once: true });

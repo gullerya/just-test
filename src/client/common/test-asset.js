@@ -1,4 +1,4 @@
-import { waitMillis, waitNextTask } from './await-utils.js';
+import { waitInterval, waitNextTask } from './await-utils.js';
 import { getRandom } from './random-utils.js';
 
 //	This should be abstracted away, probably on be testbox environment basis
@@ -12,7 +12,7 @@ export class TestAsset {
 		this[ASSERTIONS_KEY] = 0;
 
 		this.waitNextTask = waitNextTask;
-		this.waitMillis = waitMillis;
+		this.waitInterval = waitInterval;
 		this.getRandom = getRandom;
 
 		Object.seal(this);

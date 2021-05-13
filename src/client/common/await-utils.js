@@ -1,12 +1,12 @@
 export {
 	waitNextTask,
-	waitMillis,
+	waitInterval,
+}
+
+function waitInterval(millis) {
+	return new Promise(resolve => setTimeout(resolve, millis));
 }
 
 function waitNextTask() {
-	return new Promise(resolve => setTimeout(resolve, 0));
-}
-
-function waitMillis(millis) {
-	return new Promise(resolve => setTimeout(resolve, millis));
+	return waitInterval(0);
 }

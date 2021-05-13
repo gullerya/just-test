@@ -1,8 +1,9 @@
 import { initStateService, stateService } from './services/state/state-service-factory.js';
 import { runSession } from './services/session-service.js';
 import { reportResults } from './services/report-service.js';
-import { getTestId, getValidName, parseTestId } from './common/interop-utils.js';
 import { DEFAULT, EVENT } from './common/constants.js';
+import { getTestId, getValidName, parseTestId } from './common/interop-utils.js';
+import { P } from './common/performance-utils.js';
 
 runMainFlow();
 
@@ -44,13 +45,13 @@ async function runMainFlow() {
  * fetches test session definitions
  */
 async function loadMetadata() {
-	const started = performance.now();
+	const started = P.now();
 	console.info(`fetching test session metadata...`);
 
 	const envConfig = await getEnvironment();
 	console.info(`session:environment IDs: '${envConfig.sessionId}':'${envConfig.id}'`);
 
-	console.info(`... metadata fetched (${(performance.now() - started).toFixed(1)}ms)`);
+	console.info(`... metadata fetched (${(P.now() - started).toFixed(1)}ms)`);
 	return envConfig;
 }
 
@@ -145,7 +146,7 @@ function installTestRegistrationAPIs() {
  * @param {string[]} testsResources - array of paths
  */
 async function collectTests(testsResources) {
-	const started = performance.now();
+	const started = P.now();
 	console.info(`fetching ${testsResources.length} test resource/s...`);
 
 	for await (const tr of testsResources) {
@@ -157,7 +158,7 @@ async function collectTests(testsResources) {
 		}
 	}
 
-	console.info(`... test resources fetched (${(performance.now() - started).toFixed(1)}ms)`);
+	console.info(`... test resources fetched (${(P.now() - started).toFixed(1)}ms)`);
 }
 
 function getSuite(suiteName, suiteOptions) {

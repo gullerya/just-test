@@ -10,7 +10,7 @@ initComponent('jt-error', class extends ComponentBase {
 		this.shadowRoot.querySelector('.title').textContent = `${data.type} - ${data.message}`;
 
 		let df = document.createDocumentFragment();
-		for (const line of data.stackLines) {
+		for (const line of data.stacktrace) {
 			const text = line.replace(/^\s*at\s*/, '');
 			const lib =
 				text.indexOf('node_modules') >= 0 ||

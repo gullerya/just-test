@@ -1,10 +1,10 @@
 /**
  * Server Service responsible for:
  * - initializing the handlers and the infra configuration (port)
- * - starting the HTTP server
+ * - starting the server
  */
-import http from 'http';
-import { performance } from 'perf_hooks';
+import * as http from 'http';
+import { performance as P } from 'perf_hooks';
 import Logger from './logger/logger.js';
 import buildConfig from './server-configurer.js';
 
@@ -42,7 +42,7 @@ class ServerService {
 
 	async initHandlers() {
 		const
-			started = performance.now(),
+			started = P.now(),
 			handlers = [],
 			handlerBasePaths = [];
 		for (const h of this[CONFIG_KEY].handlers) {
@@ -61,13 +61,13 @@ class ServerService {
 			handlerBasePaths.push(handler.basePath);
 			handlers.push(handler);
 		}
-		logger.info(`... ${handlers.length} handler/s initialized in ${Math.floor(performance.now() - started)}ms`);
+		logger.info(`... ${handlers.length} handler/s initialized in ${(P.now() - started).toFixed(1)}ms`);
 		return handlers;
 	}
 
 	async start() {
 		if (this[STATUS_KEY] === STATUS_RUNNING) {
-			logger.error('http server already running');
+			logger.error('server is already running');
 			return null;
 		}
 
@@ -98,7 +98,8 @@ class ServerService {
 
 		//	init server
 		logger.info(`\tregistered ${handlers.length} request handler/s`);
-		this[SERVER_KEY] = http.createServer(mainRequestDispatcher).listen(port);
+		const server = http.createServer(mainRequestDispatcher);
+		this[SERVER_KEY] = server.listen(port);
 
 		this[STATUS_KEY] = STATUS_RUNNING;
 		logger.info(`... local server started on port ${port}`);

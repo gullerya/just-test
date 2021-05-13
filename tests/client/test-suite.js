@@ -28,7 +28,7 @@ suite.test('suite - erroring this one (UI/manual test)', () => {
 });
 
 suite.test('suite - timing out this one (UI/manual test)', async t => {
-	await t.waitMillis(1000);
+	await t.waitInterval(1000);
 }, { ttl: 500 });
 
 suite.test('suite - failing this one (UI/manual test)', t => {
@@ -38,8 +38,8 @@ suite.test('suite - failing this one (UI/manual test)', t => {
 suite.test('suite - all async', async test => {
 	const s = getSuite('suite-under-test');
 
-	s.test('t1', async t1 => { await t1.waitMillis(700); });
-	s.test('t2', async t2 => { await t2.waitMillis(900); });
+	s.test('t1', async t1 => { await t1.waitInterval(700); });
+	s.test('t2', async t2 => { await t2.waitInterval(900); });
 
 	await s.done;
 
@@ -50,8 +50,8 @@ suite.test('suite - all async', async test => {
 suite.test('suite - all sync', async test => {
 	const s = getSuite('suite-under-test');
 
-	s.test('t1', async t1 => { await t1.waitMillis(700); }, { sync: true });
-	s.test('t2', async t2 => { await t2.waitMillis(900); }, { sync: true });
+	s.test('t1', async t1 => { await t1.waitInterval(700); }, { sync: true });
+	s.test('t2', async t2 => { await t2.waitInterval(900); }, { sync: true });
 
 	await s.done;
 

@@ -6,7 +6,6 @@ export {
 	getSuite
 }
 
-
 //	TODO: this API should be abstracted away, so that the logic could be easily attached to 'describe', for example
 function getSuite(suiteName) {
 	const sName = getValidName(suiteName);
@@ -20,11 +19,11 @@ function getSuite(suiteName) {
 			}
 
 			const currentTestId = getTestId(sName, tName);
-			const test = globalThis.interop.tests[currentTestId];
+			const test = this.tests[currentTestId];
 			if (test) {
-				dispatchRunStartEvent(currentTestId, sName, tName);
+				dispatchRunStartEvent(this, currentTestId, sName, tName);
 				const run = await runTest(testCode, test.options);
-				dispatchRunEndEvent(currentTestId, sName, tName, run);
+				dispatchRunEndEvent(this, currentTestId, sName, tName, run);
 				return run;
 			}
 		}
@@ -33,7 +32,7 @@ function getSuite(suiteName) {
 
 //	private implementation
 //
-function dispatchRunStartEvent(testId, suiteName, testName) {
+function dispatchRunStartEvent(target, testId, suiteName, testName) {
 	const e = new CustomEvent(EVENT.RUN_START, {
 		detail: {
 			testId: testId,
@@ -41,10 +40,10 @@ function dispatchRunStartEvent(testId, suiteName, testName) {
 			test: testName
 		}
 	});
-	globalThis.dispatchEvent(e);
+	target.dispatchEvent(e);
 }
 
-function dispatchRunEndEvent(testId, suiteName, testName, run) {
+function dispatchRunEndEvent(target, testId, suiteName, testName, run) {
 	const e = new CustomEvent(EVENT.RUN_END, {
 		detail: {
 			testId: testId,
@@ -53,5 +52,5 @@ function dispatchRunEndEvent(testId, suiteName, testName, run) {
 			run: run
 		}
 	});
-	globalThis.dispatchEvent(e);
+	target.dispatchEvent(e);
 }

@@ -1,13 +1,13 @@
 ﻿import {
-	waitMillis,
+	waitInterval,
 	waitNextTask
 } from '/aut/bin/client/common/await-utils.js';
 
 const suite = globalThis.getSuite('Await utils');
 
-suite.test('waitMillis', async test => {
+suite.test('waitInterval', async test => {
 	const startTime = performance.now();
-	await waitMillis(75);
+	await waitInterval(75);
 	const endTime = performance.now();
 	test.assert.isTrue(endTime - startTime > 75);
 });
