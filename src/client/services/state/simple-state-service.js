@@ -67,7 +67,19 @@ export default class SimpleStateService {
 				options: options,
 				tests: []
 			});
-			this.model.suites.push(result);
+
+			//	insert preserving alphabetical order
+			let inserted = false;
+			for (let i = 0; i < this.model.suites.length; i++) {
+				if (result.name < this.model.suites[i].name) {
+					this.model.suites.splice(i, 0, result);
+					inserted = true;
+					break;
+				}
+			}
+			if (!inserted) {
+				this.model.suites.push(result);
+			}
 		}
 		return result;
 	}

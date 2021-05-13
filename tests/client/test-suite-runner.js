@@ -1,7 +1,7 @@
 ﻿import { getSuite } from '/aut/bin/client/env-browser/browser-test-runner.js';
 
 const
-	suite = globalThis.getSuite('Suite object APIs');
+	suite = globalThis.getSuite('Suite APIs');
 
 suite.test('suite - basic full flow', async test => {
 	const d = document.createElement('div');
