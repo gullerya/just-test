@@ -8,12 +8,6 @@
 		"sourceType": "module"
 	},
 	"rules": {
-		"no-shadow": [
-			"error",
-			{
-				"builtinGlobals": true,
-				"hoist": "all"
-			}
-		]
+		"no-shadow": 2
 	}
 }

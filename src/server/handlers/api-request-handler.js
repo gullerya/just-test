@@ -68,7 +68,8 @@ export default class APIRequestHandler extends RequestHandlerBase {
 
 	async _storeResult(handlerRelativePath, req, res) {
 		console.log(handlerRelativePath);
-		const [sesId, envConst, envId] = handlerRelativePath.split('/').slice(2);
+		/* eslint-disable no-unused-vars */
+		const [sesId, _envConst, envId] = handlerRelativePath.split('/').slice(2);
 		const sesResult = await new Promise((resolve, reject) => {
 			try {
 				let data = '';
