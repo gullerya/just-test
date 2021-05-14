@@ -214,7 +214,7 @@ function validateNormalizeTestParams(tName, code, options) {
 }
 
 async function runFinalizationSequence(metadata, results) {
-	reportResults(metadata.sessionId, metadata.id, results);
+	await reportResults(metadata.sessionId, metadata.id, results);
 }
 
 function setupUserInteractionEvents(iStateService) {

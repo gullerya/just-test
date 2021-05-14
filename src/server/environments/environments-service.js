@@ -10,16 +10,15 @@
 
 import Logger from '../logger/logger.js';
 import buildConfig from './environments-configurer.js';
-import launchInteractive from './launchers/interactive-env-launcher.js';
-import launchBrowser from './launchers/browser-env-launcher.js';
-import launchNode from './launchers/node-env-launcher.js';
+import launchInteractive from './interactive/interactive-env-service.js';
+import launchBrowser from './browser/browser-env-service.js';
+import launchNode from './nodejs/nodejs-env-service.js';
 
 export {
 	getEnvironmentsService
 }
 
-const
-	logger = new Logger({ context: 'environments' });
+const logger = new Logger({ context: 'environments' });
 
 let environmentsServiceInstance;
 
@@ -33,10 +32,11 @@ class EnvironmentsService {
 
 	/**
 	 * receives the whole session data and runs tests for each environment
+	 * - multiple environments supported
 	 * 
 	 * @param {object} session 
 	 */
-	launch(session) {
+	async launch(session) {
 		logger.info(`launching session '${session.id}': ${Object.keys(session.config.environments).length} environment/s...`);
 		const result = [];
 		for (const env of Object.values(session.config.environments)) {
@@ -50,8 +50,9 @@ class EnvironmentsService {
 				throw new Error(`unsupported environment configuration ${JSON.stringify(env)}`);
 			}
 		}
-		logger.info(`... launched`);
-		return Promise.all(result);
+		const enviroments = await Promise.all(result);
+		logger.info(`... launched ${enviroments.length} environment/s`);
+		return enviroments;
 	}
 }
 
