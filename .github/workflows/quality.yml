@@ -28,7 +28,7 @@ jobs:
       - name: Lint
         run: |
           npm run lint:client
-          npm run list:server
+          npm run lint:server
 
       - name: Test
         run: npm run test
