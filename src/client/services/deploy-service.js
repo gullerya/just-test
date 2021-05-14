@@ -54,19 +54,17 @@ function executeInFrame(test) {
 }
 
 function executeInPage(test) {
-	const w = globalThis.open('');
-	w.name = this.id;
+	const w = globalThis.open('', test.id);
 	const testRunBox = new TestRunBox(test);
-	const readyPromise = new Promise((resolve, reject) => {
-		w.onload = () => {
-			w.getSuite = getSuite.bind(testRunBox);
-			injectTestIntoDocument(w.document, test.source);
-			testRunBox.ended.then(w.close);
-			resolve(w);
-		};
-		w.onerror = reject;
-	});
-	return readyPromise;
+	w.getSuite = getSuite.bind(testRunBox);
+
+	const base = w.document.createElement('base');
+	base.href = globalThis.location.origin;
+	w.document.head.appendChild(base);
+
+	injectTestIntoDocument(w.document, test.source);
+	testRunBox.ended.then(w.close);
+	return Promise.resolve(testRunBox);
 }
 
 function executeInNodeJS(test) {

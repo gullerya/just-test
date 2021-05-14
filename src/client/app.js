@@ -17,7 +17,7 @@ async function runMainFlow() {
 	const metadata = await loadMetadata();
 
 	//	environment setup
-	console.info(`seting environment up (interactive = ${Boolean(metadata.interactive)})...`);
+	console.info(`setting up environment (interactive = ${Boolean(metadata.interactive)})...`);
 	if (metadata.interactive) {
 		initInteractiveComponents();
 	}

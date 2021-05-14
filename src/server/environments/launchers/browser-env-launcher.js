@@ -49,6 +49,10 @@ async function launchAndRunInBrowser(sessionId, envConfig) {
 	});
 
 	context.on('page', async pe => {
+		pe.title().then(t => console.log(`test page opened ${t}`));
+		//	THIS is the place to collect per test data:
+		//	logs, errors, coverage etc
+
 		//	coverage
 		if (envConfig.coverage && pe.coverage) {
 			await pe.coverage.startJSCoverage({ reportAnonymousScripts: true });
@@ -77,18 +81,20 @@ async function launchAndRunInBrowser(sessionId, envConfig) {
 	});
 	mainPage.on('error', e => {
 		bLogger.error('"error" event fired on page', e);
+		//	TODO: close the session?
 	});
 	mainPage.on('pageerror', e => {
-		bLogger.error('"pageerror" event fired on page ', e);
+		bLogger.error('"pageerror" event fired on page:');
+		bLogger.error(e);
+		bLogger.info('closing the session due to previous error/s');
+		closeBrowser(browser);
 	});
 
 	logger.info(`setting timeout for the whole tests execution to ${envConfig.tests.ttl} as per configuration`);
 	const timeoutHandle = setTimeout(() => {
 		logger.error('tests execution timed out, closing environment...');
 		browser.removeListener('disconnected', onDisconnected);
-		browser.close().finally(() => {
-			logger.error('... closed');
-		});
+		closeBrowser(browser);
 	}, envConfig.tests.ttl);
 
 	function onDisconnected() {
@@ -100,4 +106,12 @@ async function launchAndRunInBrowser(sessionId, envConfig) {
 	const envEntryUrl = `http://localhost:${serverConfig.port}?ses-id=${sessionId}&env-id=${envConfig.id}`;
 	logger.info(`navigating testing environment to '${envEntryUrl}'...`);
 	await mainPage.goto(envEntryUrl);
+}
+
+function closeBrowser(browser) {
+	const closePromise = browser.close()
+	closePromise.finally(() => {
+		logger.error('... closed');
+	});
+	return closePromise;
 }
