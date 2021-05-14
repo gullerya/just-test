@@ -41,8 +41,8 @@
 	},
 	"scripts": {
 		"build": "node ./ci/tools/build.js",
-		"lint:client": "eslint -c ./ci/.eslintrc.client.json \"./src/client/**/*.js\" \"./tests/client/**/*.js\"",
-		"lint:server": "eslint -c ./ci/.eslintrc.server.json \"./src/!(client)/**/*.js\" \"./ci/**/*.js\" \"./tests/server/**/*.js\"",
+		"lint:client": "eslint -c ./ci/.eslintrc.client.json \"./src/client/**/*.js\" \"./src/common/**/*.js\" \"./tests/client/**/*.js\"",
+		"lint:server": "eslint -c ./ci/.eslintrc.server.json \"./src/server/**/*.js\" \"./src/common/**/*.js\" \"./ci/**/*.js\" \"./tests/server/**/*.js\"",
 		"test:ci": "npm run build && node ./src/local-runner.js config=./tests/tests-config-ci.json",
 		"test:dev": "npm run build && node ./src/local-runner.js config=./tests/tests-config-dev.json"
 	},
