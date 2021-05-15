@@ -34,6 +34,7 @@ async function runMainFlow() {
 	//	auto session execution
 	await runSession(metadata);
 
+	//	finalization
 	if (metadata.interactive) {
 		console.log('continue in interactive mode');
 	} else {

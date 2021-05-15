@@ -16,7 +16,7 @@ async function runTest(code, meta = { ttl: DEFAULT.TEST_RUN_TTL }) {
 	const run = new TestRun();
 	const testAsset = new TestAsset();
 
-	//	TODO: react on skip here as well?
+	run.timestamp = Date.now();
 	const start = P.now();
 	try {
 		runResult = await Promise.race([
