@@ -28,20 +28,44 @@ export default class FileOutput {
 	}
 
 	debug(arg) {
+		if (this._closing) return;
 		this.buffer.push(arg);
 	}
 
 	info(arg) {
+		if (this._closing) return;
 		this.buffer.push(arg);
 	}
 
 	warn(arg) {
+		if (this._closing) return;
 		this.buffer.push(arg);
-
 	}
 
 	error(arg) {
+		if (this._closing) return;
 		this.buffer.push(arg);
+	}
+
+	async close(timeout = 100) {
+		this._closing = true;
+
+		const t = this;
+		await Promise.race([
+			new Promise(r => setTimeout(r, timeout)),
+			new Promise(r => {
+				function probe() {
+					if (t._closed) {
+						r();
+					} else {
+						setTimeout(probe, 23);
+					}
+				}
+				probe();
+			})
+		]);
+
+		this._closed = true;
 	}
 
 	_writer() {
@@ -54,7 +78,11 @@ export default class FileOutput {
 			);
 			this.buffer.splice(0);
 		}
-		setTimeout(() => this._writer(), 50);
+		if (this._closing) {
+			this._closed = true;
+		} else {
+			setTimeout(() => this._writer(), 50);
+		}
 	}
 
 	_errorHandler(e) {

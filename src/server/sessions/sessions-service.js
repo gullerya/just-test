@@ -21,6 +21,7 @@ let sessionsServiceInstance;
 class SessionsService {
 	constructor() {
 		this.sessions = {};
+		this.environments = {};
 	}
 
 	async addSession(sessionConfig) {
@@ -42,7 +43,7 @@ class SessionsService {
 		logger.info(`session created; id '${sessionId}'`);
 
 		//	TODO: consider this auto-run behaviour to be managed elsewhere
-		this.runSession(sessionId);
+		await this.runSession(sessionId);
 		return sessionId;
 	}
 
@@ -64,22 +65,26 @@ class SessionsService {
 		}
 
 		logger.info(`starting session '${sessionId}'...`);
-		await getEnvironmentsService().launch(session);
+		const environments = await getEnvironmentsService().launch(session);
+		this.environments[sessionId] = environments;
 		logger.info(`... session '${sessionId}' started, waiting finalization...`);
-
-		// await this.storeResult(sessionId, sessionResult);
-		//	TODO: put the results to each of the sessions per environment
-		//	TODO: create reports where applicable
 	}
 
 	async storeResult(sesId, envId, sesResult) {
-		console.log(`shut down the environment '${envId}'`);
 		const session = await this.getSession(sesId);
 		if (!session) {
 			throw new Error(`session ID '${sesId}' not exists`);
 		}
 		session.result = sesResult;
-		console.log(session);
+		logger.info(`environment '${envId}' reported results, dismissing...`);
+		const env = this.environments[sesId].find(e => e.envConfig.id === envId);
+		if (env) {
+			await env.dismiss();
+			this.environments[sesId].splice(this.environments[sesId].indexOf(env), 1);
+			logger.info(`... environment '${envId}' dismissed`);
+		} else {
+			logger.warn(`... environment '${envId}' was not found`);
+		}
 	}
 }
 

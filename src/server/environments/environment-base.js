@@ -10,7 +10,7 @@ export class EnvironmentBase {
 		throw new Error('not implemented');
 	}
 
-	async dispose() {
+	async dismiss() {
 		throw new Error('not implemented');
 	}
 }

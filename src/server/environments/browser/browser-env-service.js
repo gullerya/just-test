@@ -42,10 +42,13 @@ class BrowserEnvImpl extends EnvironmentBase {
 				log: (name, severity, message, args) => console.log(`${name} ${severity} ${message} ${args}`)
 			}
 		});
+
+		this.consoleLogger = new FileOutput(`./reports/logs/${browserType}-${browser.version()}.log`);
 		const bLogger = new Logger({
 			context: `${browserType}-${browser.version()}`,
-			outputs: [new FileOutput(`./reports/logs/${browserType}-${browser.version()}.log`)]
+			outputs: [this.consoleLogger]
 		});
+
 		const context = await browser.newContext({
 			logger: {
 				isEnabled: () => true,
@@ -54,7 +57,6 @@ class BrowserEnvImpl extends EnvironmentBase {
 		});
 
 		context.on('page', async pe => {
-			pe.title().then(t => console.log(`test page opened ${t}`));
 			//	THIS is the place to collect per test data:
 			//	logs, errors, coverage etc
 
@@ -86,41 +88,43 @@ class BrowserEnvImpl extends EnvironmentBase {
 		});
 		mainPage.on('error', e => {
 			bLogger.error('"error" event fired on page', e);
-			//	TODO: close the session?
 		});
 		mainPage.on('pageerror', e => {
 			bLogger.error('"pageerror" event fired on page:');
 			bLogger.error(e);
-			bLogger.info('closing the session due to previous error/s');
+			bLogger.info('closing the environment due to previous error/s');
 			BrowserEnvImpl.closeBrowser(browser);
 		});
 
 		logger.info(`setting timeout for the whole tests execution to ${this.envConfig.tests.ttl} as per configuration`);
-		const timeoutHandle = setTimeout(() => {
+		this.timeoutHandle = setTimeout(() => {
 			logger.error('tests execution timed out, closing environment...');
-			browser.removeListener('disconnected', onDisconnected);
 			BrowserEnvImpl.closeBrowser(browser);
 		}, this.envConfig.tests.ttl);
-
-		function onDisconnected() {
-			clearTimeout(timeoutHandle);
-			logger.info(`environment '${this.envConfig.id}' DONE (disconnected)`);
-		}
-		browser.once('disconnected', onDisconnected);
+		browser.once('disconnected', () => this.onDisconnected());
 
 		const envEntryUrl = `http://localhost:${serverConfig.port}?ses-id=${this.sessionId}&env-id=${this.envConfig.id}`;
 		logger.info(`navigating testing environment to '${envEntryUrl}'...`);
 		await mainPage.goto(envEntryUrl);
+
+		this.browser = browser;
 	}
 
-	async dispose() {
+	async dismiss() {
+		await this.consoleLogger.close();
+		await BrowserEnvImpl.closeBrowser(this.browser);
+	}
 
+	onDisconnected() {
+		clearTimeout(this.timeoutHandle);
+		logger.info(`browser environment '${this.envConfig.id}' disconnected`);
 	}
 
 	static closeBrowser(browser) {
+		logger.info('closing browser...')
 		const closePromise = browser.close()
 		closePromise.finally(() => {
-			logger.error('... closed');
+			logger.info('... closed');
 		});
 		return closePromise;
 	}
@@ -139,7 +143,7 @@ async function launch(sessionId, envConfig) {
 		throw new Error(`env configuration expected to have browser set to some value; got ${JSON.stringify(envConfig)}`);
 	}
 
-	const result = new BrowserEnvImpl(sessionId);
+	const result = new BrowserEnvImpl(sessionId, envConfig);
 	await result.launch();
 	return result;
 }

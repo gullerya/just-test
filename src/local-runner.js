@@ -8,7 +8,7 @@ import xUnitReporter from './server/testing/reporters/reporter-xunit.js';
 
 go();
 
-const SESSION_STATUS_POLL_INTERVAL = 237;
+const SESSION_STATUS_POLL_INTERVAL = 1237;
 
 async function go() {
 	const clArguments = parseCLArgs(process.argv);
