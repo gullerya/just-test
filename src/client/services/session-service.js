@@ -20,10 +20,10 @@ export {
  * @returns Promise resolved with test results when all tests done
  */
 async function runSession(sessionMetadata) {
-	const executionData = stateService.getExecutionData();
-	const sessionStart = P.now();
-	console.info(`starting test session (${executionData.suites.length} suites)...`);
+	const started = P.now();
 
+	const executionData = stateService.getExecutionData();
+	console.info(`starting test session (${executionData.suites.length} suites)...`);
 	if (!sessionMetadata.interactive) {
 		setTimeout(() => {
 			//	TODO: finalize the session, no further updates will be accepted
@@ -32,7 +32,8 @@ async function runSession(sessionMetadata) {
 	}
 	await Promise.all(executionData.suites.map(suite => executeSuite(suite, sessionMetadata)));
 
-	console.info(`... session done (${(P.now() - sessionStart).toFixed(1)}ms)`);
+	const ended = P.now();
+	console.info(`... session done (${(ended - started).toFixed(1)}ms)`);
 }
 
 /**

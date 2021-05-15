@@ -14,7 +14,11 @@ async function initStateService(interactiveMode = false) {
 		} else {
 			importServices.push(import('./simple-state-service.js'));
 		}
-		stateServiceInitPromise = Promise.all(importServices).then(([m]) => stateService = new m.default());
+		stateServiceInitPromise = Promise.all(importServices)
+			.then(([m]) => {
+				stateService = new m.default();
+				return stateService;
+			});
 	}
 	return stateServiceInitPromise;
 }

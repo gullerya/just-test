@@ -12,7 +12,7 @@ export default class DataTiedStateService extends SimpleStateService {
 		super(ties.get(MODEL_KEY) ? ties.get(MODEL_KEY) : ties.create(MODEL_KEY, {
 			total: 0,
 			done: 0,
-			timestampt: null,
+			timestamp: null,
 			time: null,
 			skip: 0,
 			pass: 0,

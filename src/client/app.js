@@ -34,10 +34,10 @@ async function runMainFlow() {
 	//	auto session execution
 	await runSession(metadata);
 
-	if (!metadata.interactive) {
-		await runFinalizationSequence(metadata, sService.getAll());
-	} else {
+	if (metadata.interactive) {
 		console.log('continue in interactive mode');
+	} else {
+		await reportResults(metadata.sessionId, metadata.id, sService.getAll());
 	}
 }
 
@@ -211,10 +211,6 @@ function validateNormalizeTestParams(tName, code, options) {
 	result.options = Object.freeze(Object.assign({}, TEST_OPTIONS_DEFAULT, options));
 
 	return result;
-}
-
-async function runFinalizationSequence(metadata, results) {
-	await reportResults(metadata.sessionId, metadata.id, results);
 }
 
 function setupUserInteractionEvents(iStateService) {

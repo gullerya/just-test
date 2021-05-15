@@ -8,13 +8,13 @@ const
 	SUITE_PROTO = Object.freeze({
 		name: 'Unspecified',
 		options: {},
-		total: null,
-		done: null,
+		total: 0,
+		done: 0,
 		timestamp: null,
 		time: null,
-		skip: null,
-		pass: null,
-		fail: null,
+		skip: 0,
+		pass: 0,
+		fail: 0,
 		tests: []
 	}),
 	TEST_PROTO = Object.freeze({
@@ -120,14 +120,18 @@ export default class SimpleStateService {
 		}
 		suite.tests.push(test);
 
+		//	update session globals
 		this.model.total++;
 		if (testOptions.skip) {
 			this.model.skip++;
 			this.model.done++;
 		}
 
-		if (suite.tests.length === 1) {
-			suite.timestamp = Date.now();
+		//	update suite globals
+		suite.total++;
+		if (testOptions.skip) {
+			suite.skip++;
+			suite.done++;
 		}
 	}
 
@@ -150,6 +154,17 @@ export default class SimpleStateService {
 			this.model[pRun.status]--;
 			this.model.done--;
 		}
+
+		//	update session globals
+		if (!this.model.done && !this.model.timestamp) {
+			this.model.timestamp = Date.now();
+		}
+
+		//	update suite globals
+		const suite = this.obtainSuite(suiteName);
+		if (!suite.done && !suite.timestamp) {
+			suite.timestamp = Date.now();
+		}
 	}
 
 	/**
@@ -163,8 +178,21 @@ export default class SimpleStateService {
 		const test = this.getTest(suiteName, testName);
 		Object.assign(test.runs[test.runs.length - 1], run);
 		Object.assign(test.lastRun, run);
+
+		//	update session globals
 		this.model[run.status]++;
 		this.model.done++;
+		if (this.model.done === this.model.total) {
+			this.model.time = Date.now() - this.model.timestamp;
+		}
+
+		//	update suite globals
+		const suite = this.obtainSuite(suiteName);
+		suite[run.status]++;
+		suite.done++;
+		if (suite.done === suite.total) {
+			suite.time = Date.now() - suite.timestamp;
+		}
 	}
 
 	/**
