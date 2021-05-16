@@ -8,6 +8,7 @@
  * @param {string} envConfig.browser in this context expected always to equal true
  */
 import Logger, { FileOutput } from '../../logger/logger.js';
+import { waitInterval } from '../../../client/common/await-utils.js';
 import { serverConfig } from '../../server-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 import playwright from 'playwright';
@@ -111,6 +112,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 	}
 
 	async dismiss() {
+		await waitInterval(999);
 		await this.consoleLogger.close();
 		await BrowserEnvImpl.closeBrowser(this.browser);
 	}

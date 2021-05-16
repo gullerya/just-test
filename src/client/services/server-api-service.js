@@ -1,12 +1,27 @@
 export {
-	uniFetch
+	postSessionDone
 }
 
+async function postSessionDone(sesId, envId) {
+	if (!sesId || typeof sesId !== 'string') {
+		throw new Error(`invalid session ID parameter '${sesId}'`);
+	}
+	if (!envId || typeof envId !== 'string') {
+		throw new Error(`invalid environment ID parameter '${envId}'`);
+	}
+
+	await initPromise;
+	const response = await uniFetch(`/api/v1/sessions/${sesId}/environments/${envId}/done`, {
+		method: 'PUT'
+	});
+	console.debug(response.status);
+}
+
+// internal implementation details
+//
 let uniFetch;
 let initPromise = initFetch();
 initPromise.then(r => { uniFetch = r; });
-
-//	TODO: add here higher level REST APIs caller
 
 async function initFetch() {
 	let result;

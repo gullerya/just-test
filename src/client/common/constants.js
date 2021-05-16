@@ -15,7 +15,8 @@ const STATUS = Object.freeze({
 	WAIT: 'wait',
 	RUNS: 'runs',
 	PASS: 'pass',
-	FAIL: 'fail'
+	FAIL: 'fail',
+	ERROR: 'error'
 });
 
 const DEFAULT = Object.freeze({

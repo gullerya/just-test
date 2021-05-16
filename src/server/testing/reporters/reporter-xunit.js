@@ -9,7 +9,14 @@ export default Object.freeze({
 
 function report(results, reportPath) {
 	const DOMImplementation = getDOMImplementation();
+
 	const rDoc = DOMImplementation.instance.createDocument(null, 'testsuites');
+	rDoc.documentElement.setAttribute('timestamp', new Date(results.timestamp).toISOString());
+	rDoc.documentElement.setAttribute('time', Math.round(parseFloat(results.time)) / 1000);
+	let sessionTests = 0;
+	let sessionFailures = 0;
+	let sessionErrors = 0;
+	let sessionSkips = 0;
 
 	results.suites.forEach(suite => {
 		const sEl = rDoc.createElement('testsuite');
@@ -17,30 +24,61 @@ function report(results, reportPath) {
 		sEl.setAttribute('timestamp', new Date(suite.timestamp).toISOString());
 		sEl.setAttribute('time', Math.round(parseFloat(suite.time)) / 1000);
 		sEl.setAttribute('tests', suite.tests.length);
-		//	TODO: separate between the error and the failure
-		sEl.setAttribute('failures', suite.tests.filter(t => t.status === STATUS.FAIL).length);
-		sEl.setAttribute('errors', suite.tests.filter(t => t.status === STATUS.FAIL).length);
-		sEl.setAttribute('skip', suite.tests.filter(t => t.status === STATUS.SKIP).length);
+		let suiteFailures = 0;
+		let suiteErrors = 0;
+		let suiteSkips = 0;
+
 		suite.tests.forEach(test => {
+			const lastRun = test.lastRun;
 			const tEl = rDoc.createElement('testcase');
 			tEl.setAttribute('name', test.name);
-			tEl.setAttribute('time', Math.round(test.time) / 1000);
-			if (test.status === STATUS.FAIL) {
-				const eEl = rDoc.createElement('error');
-				if (test.error) {
-					eEl.setAttribute('type', test.error.type);
-					eEl.setAttribute('message', test.error.message);
-					eEl.textContent = test.error.stack;
+			tEl.setAttribute('time', Math.round(lastRun.time) / 1000);
+			tEl.setAttribute('assertions', lastRun.assertions);
+			tEl.setAttribute('status', lastRun.status);
+
+			if (lastRun.status === STATUS.FAIL) {
+				suiteFailures++;
+				const eEl = rDoc.createElement('failure');
+				if (lastRun.error) {
+					eEl.setAttribute('type', lastRun.error.type);
+					eEl.setAttribute('message', lastRun.error.message);
+					eEl.textContent = lastRun.error.stacktrace;
 				}
 				tEl.appendChild(eEl);
-			} else if (test.status === STATUS.SKIP) {
+			} else if (lastRun.status === STATUS.ERROR) {
+				suiteErrors++;
+				const eEl = rDoc.createElement('error');
+				if (lastRun.error) {
+					eEl.setAttribute('type', lastRun.error.type);
+					eEl.setAttribute('message', lastRun.error.message);
+					eEl.textContent = lastRun.error.stacktrace;
+				}
+				tEl.appendChild(eEl);
+			} else if (lastRun.status === STATUS.SKIP) {
+				suiteSkips++;
 				const eEl = rDoc.createElement('skipped');
 				tEl.appendChild(eEl);
 			}
+
 			sEl.appendChild(tEl);
 		});
+
+		sEl.setAttribute('failures', suiteFailures);
+		sEl.setAttribute('errors', suiteErrors);
+		sEl.setAttribute('skipped', suiteSkips);
+
+		sessionTests += suite.tests.length;
+		sessionFailures += suiteFailures;
+		sessionErrors += suiteErrors;
+		sessionSkips += suiteSkips;
+
 		rDoc.documentElement.appendChild(sEl);
 	});
+
+	rDoc.documentElement.setAttribute('tests', sessionTests);
+	rDoc.documentElement.setAttribute('failures', sessionFailures);
+	rDoc.documentElement.setAttribute('errors', sessionErrors);
+	rDoc.documentElement.setAttribute('skipped', sessionSkips);
 
 	const reportText = new DOMImplementation.XMLSerializer().serializeToString(rDoc);
 	fs.writeFileSync(reportPath, reportText, { encoding: 'utf-8' });

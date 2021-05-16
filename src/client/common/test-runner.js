@@ -34,6 +34,10 @@ async function runTest(code, meta = { ttl: DEFAULT.TEST_RUN_TTL }) {
 }
 
 function finalizeRun(meta, run, result, assertions) {
+	if (meta.expectError) {
+		assertions++;
+	}
+
 	if (result && typeof result.name === 'string' && typeof result.message === 'string' && result.stack) {
 		const pe = processError(result);
 		if (meta.expectError && (pe.type === meta.expectError || pe.message.includes(meta.expectError))) {

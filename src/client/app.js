@@ -39,6 +39,7 @@ async function runMainFlow() {
 		console.log('continue in interactive mode');
 	} else {
 		await reportResults(metadata.sessionId, metadata.id, sService.getAll());
+		//	TODO: close the session by REST API
 	}
 }
 
