@@ -55,7 +55,19 @@ async function executeSession(serverBaseUrl, clArguments) {
 	const sessionDetails = await sentAddSession(serverBaseUrl, config);
 	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
 	xUnitReporter.report(sessionResult, 'reports/results.xml');
-	return sessionResult;
+
+	//	analysis
+	const maxFail = config.environments[0].tests.maxFail;
+	if (sessionResult.fail >= maxFail) {
+		console.error(`failing due to too many errors; max allowed: ${maxFail}, found: ${sessionResult.fail}`);
+		process.exitCode = 1;
+		return;
+	}
+	const maxSkip = config.environments[0].tests.maxSkip;
+	if (sessionResult.skip > maxSkip) {
+		console.error(`failing due to too many skipped; max allowed: ${maxSkip}, found: ${sessionResult.skip}`);
+		process.exitCode = 1;
+	}
 }
 
 async function readConfigAndMergeWithCLArguments(clArguments) {

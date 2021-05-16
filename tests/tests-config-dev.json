@@ -4,8 +4,8 @@
 			"interactive": true,
 			"tests": {
 				"ttl": 98098098,
-				"maxFail": 3,
-				"maxSkip": 1,
+				"maxFail": 0,
+				"maxSkip": 0,
 				"include": [
 					"./tests/**/*.js"
 				]
