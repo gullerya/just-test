@@ -15,6 +15,7 @@ initComponent('jt-error', class extends ComponentBase {
 			const lib =
 				text.indexOf('node_modules') >= 0 ||
 				text.indexOf('/ui/') >= 0 ||
+				text.indexOf('/libs/') >= 0 ||
 				text.indexOf('new Promise') >= 0 ||
 				text.indexOf('<anonymous>') >= 0;
 			const tmp = document.createElement('div');

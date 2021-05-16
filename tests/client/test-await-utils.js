@@ -9,12 +9,16 @@ suite.test('waitInterval', async test => {
 	const startTime = performance.now();
 	await waitInterval(75);
 	const endTime = performance.now();
-	test.assert.isTrue(endTime - startTime > 75);
+	test.assert.isTrue(endTime - startTime >= 75);
 });
 
 suite.test('waitNextTask', async test => {
-	const startTime = performance.now();
+	const ordered = [];
+	setTimeout(() => ordered.push('b'), 0);
+	ordered.push('a');
 	await waitNextTask();
-	const endTime = performance.now();
-	test.assert.isTrue(endTime - startTime > 1);
+	ordered.push('c');
+	test.assert.isTrue(ordered.indexOf('a') === 0);
+	test.assert.isTrue(ordered.indexOf('b') === 1);
+	test.assert.isTrue(ordered.indexOf('c') === 2);
 });

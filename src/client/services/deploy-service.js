@@ -44,12 +44,17 @@ function executeInFrame(test) {
 	const d = globalThis.document;
 	const i = d.createElement('iframe');
 	i.name = test.id;
+	i.srcdoc = '';
 	i.classList.add('just-test-execution-frame');
-	d.body.appendChild(i);
 
 	const testRunBox = new TestRunBox(test);
-	i.contentWindow.getSuite = getSuite.bind(testRunBox);
-	injectTestIntoDocument(i.contentDocument, test.source);
+	i.onload = () => {
+		i.contentWindow.getSuite = getSuite.bind(testRunBox);
+		injectTestIntoDocument(i.contentDocument, test.source);
+		i.onload = null;
+	};
+	d.body.appendChild(i);
+
 	return Promise.resolve(testRunBox);
 }
 
