@@ -58,13 +58,11 @@ async function executeSession(serverBaseUrl, clArguments) {
 
 	//	analysis
 	const maxFail = config.environments[0].tests.maxFail;
-	if (sessionResult.fail >= maxFail) {
+	const maxSkip = config.environments[0].tests.maxSkip;
+	if (sessionResult.fail > maxFail) {
 		console.error(`failing due to too many errors; max allowed: ${maxFail}, found: ${sessionResult.fail}`);
 		process.exitCode = 1;
-		return;
-	}
-	const maxSkip = config.environments[0].tests.maxSkip;
-	if (sessionResult.skip > maxSkip) {
+	} else if (sessionResult.skip > maxSkip) {
 		console.error(`failing due to too many skipped; max allowed: ${maxSkip}, found: ${sessionResult.skip}`);
 		process.exitCode = 1;
 	}
