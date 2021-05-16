@@ -43,7 +43,12 @@ function finalizeRun(meta, run, result, assertions) {
 		if (meta.expectError && (pe.type === meta.expectError || pe.message.includes(meta.expectError))) {
 			run.status = STATUS.PASS;
 		} else {
-			run.status = STATUS.FAIL;
+			if ((pe.type && pe.type.toLowerCase().includes('assert')) ||
+				(pe.name && pe.name.toLowerCase().includes('assert'))) {
+				run.status = STATUS.FAIL;
+			} else {
+				run.status = STATUS.ERROR;
+			}
 			run.error = pe;
 		}
 	} else if (result === false) {

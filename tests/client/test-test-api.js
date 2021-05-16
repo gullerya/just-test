@@ -28,7 +28,7 @@ suite.test('run test - fail by false (sync)', async test => {
 	test.assert.isNumber(m.time);
 });
 
-suite.test('run test - fail by error (sync)', async test => {
+suite.test('run test - fail by assert (sync)', async test => {
 	const tp = runTest(ta => ta.assert.fail('reason'));
 
 	test.assert.instanceOf(tp, Promise);
@@ -42,6 +42,22 @@ suite.test('run test - fail by error (sync)', async test => {
 	test.assert.isAbove(m.error.stacktrace.length, 0);
 
 	test.assert.strictEqual(m.assertions, 1);
+	test.assert.isNumber(m.time);
+});
+
+suite.test('run test - fail by error (sync)', async test => {
+	const tp = runTest(() => nonsense);
+
+	test.assert.instanceOf(tp, Promise);
+	const m = await tp;
+	test.assert.strictEqual(m.status, STATUS.ERROR);
+	test.assert.isObject(m.error);
+	test.assert.strictEqual(m.error.type, 'ReferenceError');
+	test.assert.strictEqual(m.error.name, 'ReferenceError');
+	test.assert.isArray(m.error.stacktrace);
+	test.assert.isAbove(m.error.stacktrace.length, 0);
+
+	test.assert.strictEqual(m.assertions, 0);
 	test.assert.isNumber(m.time);
 });
 
@@ -75,7 +91,7 @@ suite.test('run test - fail by false (async)', async test => {
 	test.assert.isNumber(m.time);
 });
 
-suite.test('run test - fail by error (async)', async test => {
+suite.test('run test - fail by assert (async)', async test => {
 	const tp = runTest(async ta => {
 		await ta.waitNextTask();
 		ta.assert.fail('reason');
@@ -95,6 +111,25 @@ suite.test('run test - fail by error (async)', async test => {
 	test.assert.isNumber(m.time);
 });
 
+suite.test('run test - fail by error (async)', async test => {
+	const tp = runTest(async () => {
+		await ta.waitNextTask();
+		nonsense;
+	});
+
+	test.assert.instanceOf(tp, Promise);
+	const m = await tp;
+	test.assert.strictEqual(m.status, STATUS.ERROR);
+	test.assert.isObject(m.error);
+	test.assert.strictEqual(m.error.type, 'ReferenceError');
+	test.assert.strictEqual(m.error.name, 'ReferenceError');
+	test.assert.isArray(m.error.stacktrace);
+	test.assert.isAbove(m.error.stacktrace.length, 0);
+
+	test.assert.strictEqual(m.assertions, 0);
+	test.assert.isNumber(m.time);
+});
+
 suite.test('run test - fail by timeout (async)', async test => {
 	const ttl = 30;
 	const tp = runTest(async ta => {
@@ -105,7 +140,7 @@ suite.test('run test - fail by timeout (async)', async test => {
 
 	test.assert.instanceOf(tp, Promise);
 	const m = await tp;
-	test.assert.strictEqual(m.status, STATUS.FAIL);
+	test.assert.strictEqual(m.status, STATUS.ERROR);
 	test.assert.isObject(m.error);
 	test.assert.strictEqual(m.error.type, 'TimeoutError');
 	test.assert.strictEqual(m.error.name, 'Error');
