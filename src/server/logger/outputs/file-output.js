@@ -24,6 +24,8 @@ export default class FileOutput {
 		if (options.cleanStart && fs.existsSync(this.currentLog)) {
 			fs.truncateSync(this.currentLog);
 		}
+
+		this._writer = this._writer.bind(this);
 		this._writer();
 	}
 
@@ -47,25 +49,27 @@ export default class FileOutput {
 		this.buffer.push(arg);
 	}
 
-	async close(timeout = 100) {
+	async close(timeout = 96) {
 		this._closing = true;
 
-		const t = this;
 		await Promise.race([
 			new Promise(r => setTimeout(r, timeout)),
 			new Promise(r => {
-				function probe() {
-					if (t._closed) {
+				const probe = () => {
+					if (!this._nextIteration) {
 						r();
 					} else {
-						setTimeout(probe, 23);
+						setTimeout(probe, 24);
 					}
 				}
 				probe();
 			})
 		]);
 
-		this._closed = true;
+		if (this._nextIteration) {
+			clearTimeout(this._nextIteration);
+			this._nextIteration = null;
+		}
 	}
 
 	_writer() {
@@ -78,10 +82,8 @@ export default class FileOutput {
 			);
 			this.buffer.splice(0);
 		}
-		if (this._closing) {
-			this._closed = true;
-		} else {
-			setTimeout(() => this._writer(), 50);
+		if (!this._closing) {
+			this._nextIteration = setTimeout(this._writer, 48);
 		}
 	}
 
