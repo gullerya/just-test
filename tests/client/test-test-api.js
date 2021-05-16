@@ -46,6 +46,7 @@ suite.test('run test - fail by assert (sync)', async test => {
 });
 
 suite.test('run test - fail by error (sync)', async test => {
+	/* eslint-disable no-undef */
 	const tp = runTest(() => nonsense);
 
 	test.assert.instanceOf(tp, Promise);
@@ -112,8 +113,9 @@ suite.test('run test - fail by assert (async)', async test => {
 });
 
 suite.test('run test - fail by error (async)', async test => {
-	const tp = runTest(async () => {
+	const tp = runTest(async ta => {
 		await ta.waitNextTask();
+		/* eslint-disable no-undef */
 		nonsense;
 	});
 
