@@ -15,50 +15,77 @@ import launchBrowser from './browser/browser-env-service.js';
 import launchNode from './nodejs/nodejs-env-service.js';
 
 export {
-	getEnvironmentsService
+	verifyEnrichConfig,
+	launch,
+	dismiss,
+	dismissAll
 }
 
 const logger = new Logger({ context: 'environments' });
+const environments = {};
 
-let environmentsServiceInstance;
+function verifyEnrichConfig(environmentConfig) {
+	if (!environmentConfig || typeof environmentConfig !== 'object') {
+		throw new Error(`environment config MUST be a non-null object, got ${environmentConfig}`);
+	}
+	return buildConfig(environmentConfig);
+}
 
-class EnvironmentsService {
-	verifyEnrichConfig(environmentConfig) {
-		if (!environmentConfig || typeof environmentConfig !== 'object') {
-			throw new Error(`environment config MUST be a non-null object, got ${environmentConfig}`);
+/**
+ * receives the whole session data and runs tests for each environment
+ * - multiple environments supported
+ * 
+ * @param {object} session 
+ */
+async function launch(session) {
+	const envsToLaunch = Object.keys(session.config.environments).length;
+	logger.info(`launching session '${session.id}': ${envsToLaunch} environment/s...`);
+
+	let envsLaunched = 0;
+	for (const envConfig of Object.values(session.config.environments)) {
+		let env;
+		if (envConfig.interactive) {
+			env = await launchInteractive(session.id, envConfig);
+		} else if (envConfig.browser) {
+			env = await launchBrowser(session.id, envConfig);
+		} else if (envConfig.node) {
+			env = await launchNode(session.id, envConfig);
+		} else {
+			throw new Error(`unsupported environment configuration ${JSON.stringify(envConfig)}`);
 		}
-		return buildConfig(environmentConfig);
+		environments[envConfig.id] = env;
+		envsLaunched++;
 	}
 
-	/**
-	 * receives the whole session data and runs tests for each environment
-	 * - multiple environments supported
-	 * 
-	 * @param {object} session 
-	 */
-	async launch(session) {
-		logger.info(`launching session '${session.id}': ${Object.keys(session.config.environments).length} environment/s...`);
-		const result = [];
-		for (const env of Object.values(session.config.environments)) {
-			if (env.interactive) {
-				result.push(launchInteractive(session.id, env));
-			} else if (env.browser) {
-				result.push(launchBrowser(session.id, env));
-			} else if (env.node) {
-				result.push(launchNode(session.id, env));
-			} else {
-				throw new Error(`unsupported environment configuration ${JSON.stringify(env)}`);
-			}
-		}
-		const enviroments = await Promise.all(result);
-		logger.info(`... launched ${enviroments.length} environment/s`);
-		return enviroments;
+	logger.info(`... launched ${envsLaunched} environment/s`);
+}
+
+/**
+ * dismisses environment
+ * 
+ * @param {string} envId environment ID to be dismissed
+ */
+async function dismiss(envId) {
+	if (!envId || typeof envId !== 'string') {
+		throw new Error(`environment ID MUST be a non-empty string, got '${envId}'`);
+	}
+
+	const envToDismiss = environments[envId];
+	if (envToDismiss) {
+		await envToDismiss.dismiss();
+		delete environments[envId];
+	} else {
+		logger.warn(`environment '${envId}' was not found`);
 	}
 }
 
-function getEnvironmentsService() {
-	if (!environmentsServiceInstance) {
-		environmentsServiceInstance = new EnvironmentsService();
+/**
+ * dismisses all environments
+ */
+async function dismissAll() {
+	const dismissPromises = [];
+	for (const envId of Object.keys(environments)) {
+		dismissPromises.push(dismiss(envId));
 	}
-	return environmentsServiceInstance;
+	await Promise.all(dismissPromises);
 }

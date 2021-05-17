@@ -9,7 +9,7 @@
  */
 import Logger, { FileOutput } from '../../logger/logger.js';
 import { waitInterval } from '../../../client/common/await-utils.js';
-import { serverConfig } from '../../server-service.js';
+import { config as serverConfig } from '../../server-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 import playwright from 'playwright';
 
@@ -93,14 +93,14 @@ class BrowserEnvImpl extends EnvironmentBase {
 		mainPage.on('pageerror', e => {
 			bLogger.error('"pageerror" event fired on page:');
 			bLogger.error(e);
-			bLogger.info('closing the environment due to previous error/s');
-			BrowserEnvImpl.closeBrowser(browser);
+			bLogger.info('dismissing the environment due to previous error/s...');
+			this.dismiss();
 		});
 
 		logger.info(`setting timeout for the whole tests execution to ${this.envConfig.tests.ttl} as per configuration`);
 		this.timeoutHandle = setTimeout(() => {
-			logger.error('tests execution timed out, closing environment...');
-			BrowserEnvImpl.closeBrowser(browser);
+			logger.error('tests execution timed out, dismissing the environment...');
+			this.dismiss();
 		}, this.envConfig.tests.ttl);
 		browser.once('disconnected', () => this.onDisconnected());
 
@@ -112,9 +112,14 @@ class BrowserEnvImpl extends EnvironmentBase {
 	}
 
 	async dismiss() {
-		await waitInterval(999);
-		await this.consoleLogger.close();
-		await BrowserEnvImpl.closeBrowser(this.browser);
+		if (!this._dismissPromise) {
+			logger.info(`dismissing environment '${this.envConfig.id}'...`);
+			this._dismissPromise = waitInterval(999)
+				.then(() => this.consoleLogger.close())
+				.then(() => BrowserEnvImpl.closeBrowser(this.browser))
+				.then(() => logger.info(`... environment '${this.envConfig.id}' dismissed`));
+		}
+		return this._dismissPromise;
 	}
 
 	onDisconnected() {
@@ -122,13 +127,10 @@ class BrowserEnvImpl extends EnvironmentBase {
 		logger.info(`browser environment '${this.envConfig.id}' disconnected`);
 	}
 
-	static closeBrowser(browser) {
-		logger.info('closing browser...')
-		const closePromise = browser.close()
-		closePromise.finally(() => {
-			logger.info('... closed');
-		});
-		return closePromise;
+	static async closeBrowser(browser) {
+		logger.info('closing browser...');
+		await browser.close();
+		logger.info('... browser closed');
 	}
 }
 

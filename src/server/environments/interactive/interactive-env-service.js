@@ -7,7 +7,7 @@
  * @param {boolean} envConfig.interactive in this context expected always to equal true
  */
 import Logger from '../../logger/logger.js';
-import { serverConfig } from '../../server-service.js';
+import { config as serverConfig } from '../../server-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 
 export default launch;
@@ -28,6 +28,7 @@ class InteractiveEnvImpl extends EnvironmentBase {
 
 	async dismiss() {
 		logger.info(`please close your browser/tab, environment '${this.envConfig.id}' is not longer alive`);
+		return Promise.resolve();
 	}
 }
 

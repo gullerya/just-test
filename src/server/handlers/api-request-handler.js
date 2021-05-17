@@ -1,7 +1,7 @@
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { extensionsMap } from '../server-utils.js';
-import { getSessionsService } from '../sessions/sessions-service.js';
+import { addSession, storeResult, getAll, getSession } from '../sessions/sessions-service.js';
 import { getTestingService } from '../testing/testing-service.js';
 
 const
@@ -12,7 +12,6 @@ export default class APIRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;
-		this.sessionsService = getSessionsService();
 		logger.info(`API requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
@@ -59,7 +58,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 			}
 		});
 
-		const sessionId = await this.sessionsService.addSession(sessionConfig);
+		const sessionId = await addSession(sessionConfig);
 		res.writeHead(201, { 'Content-Type': extensionsMap.json })
 			.end(JSON.stringify({
 				sessionId: sessionId
@@ -80,12 +79,12 @@ export default class APIRequestHandler extends RequestHandlerBase {
 				reject(error);
 			}
 		});
-		await this.sessionsService.storeResult(sesId, envId, sesResult);
+		await storeResult(sesId, envId, sesResult);
 		res.writeHead(201).end();
 	}
 
 	async _getAllSessions(res) {
-		const allSessions = await this.sessionsService.getAll();
+		const allSessions = await getAll();
 		res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(JSON.stringify(allSessions));
 	}
 
@@ -98,7 +97,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		}
 
 		if (sesId === 'interactive') {
-			const sessions = await this.sessionsService.getAll();
+			const sessions = await getAll();
 			let iResult = null;
 			if (sessions && Object.values(sessions).length === 1) {
 				const iSession = Object.values(sessions)[0];
@@ -117,7 +116,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 			return;
 		}
 
-		const session = await this.sessionsService.getSession(sesId);
+		const session = await getSession(sesId);
 		if (!session) {
 			res.writeHead(404).end(`session '${sesId}' not found`);
 			return;

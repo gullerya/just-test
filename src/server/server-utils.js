@@ -1,9 +1,6 @@
-import crypto from 'crypto';
-
 export {
 	extensionsMap,
-	findMimeType,
-	getRandom
+	findMimeType
 }
 
 const extensionsMap = Object.freeze({
@@ -22,7 +19,7 @@ function findMimeType(filePath, fallback) {
 	if (!result && fallback) {
 		result = fallback;
 	}
-	return result ?? null;
+	return result || null;
 }
 
 function extractExtension(filePath) {
@@ -32,19 +29,4 @@ function extractExtension(filePath) {
 	} else {
 		return '';
 	}
-}
-
-const CHARS_SOURCE = 'abcdefghijklmnopqrstuvwxyz0123456789'
-function getRandom(outputLength) {
-	if (!outputLength || typeof outputLength !== 'number' || outputLength < 4 || outputLength > 32) {
-		throw new Error(`invalid output length parameter ${outputLength}`);
-	}
-	let result = '';
-	const sLen = CHARS_SOURCE.length;
-	const random = new Uint8Array(outputLength);
-	crypto.randomFillSync(random);
-	for (let i = 0; i < outputLength; i++) {
-		result += CHARS_SOURCE.charAt(sLen * random[i] / 256);
-	}
-	return result;
 }

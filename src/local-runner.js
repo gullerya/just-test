@@ -3,7 +3,7 @@ import fs from 'fs';
 import util from 'util';
 import process from 'process';
 import * as http from 'http';
-import { startServer } from './server/server-service.js';
+import { start, stop } from './server/server-service.js';
 import xUnitReporter from './server/testing/reporters/reporter-xunit.js';
 
 go();
@@ -18,7 +18,7 @@ async function go() {
 
 	let server;
 	try {
-		server = await startServer(clArguments);
+		server = await start(clArguments);
 		await executeSession(server.baseUrl, clArguments);
 	} catch (error) {
 		console.error(os.EOL);
@@ -27,8 +27,9 @@ async function go() {
 		process.exitCode = 1;
 	} finally {
 		if (server && server.isRunning) {
-			await server.stop();
+			await stop();
 		}
+		//	TODO: print summary
 		console.info(`${os.EOL}-------`);
 		console.info(`... local run finished`);
 	}

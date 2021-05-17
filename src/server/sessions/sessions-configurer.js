@@ -1,6 +1,6 @@
 import Logger from '../logger/logger.js';
-import { getRandom } from '../server-utils.js';
-import { getEnvironmentsService } from '../environments/environments-service.js';
+import { getRandom } from '../../client/common/random-utils.js';
+import { verifyEnrichConfig } from '../environments/environments-service.js';
 import { getTestingService } from '../testing/testing-service.js';
 import { getCoverageService } from '../coverage/coverage-service.js';
 
@@ -17,8 +17,8 @@ export default sessionConfig => {
 
 	const result = { environments: {} };
 	for (const e of sessionConfig.environments) {
-		const tmp = getEnvironmentsService().verifyEnrichConfig(e);
-		tmp.id = getRandom(4);
+		const tmp = verifyEnrichConfig(e);
+		tmp.id = getRandom(8);
 		tmp.browsers = e.browsers;
 		tmp.tests = getTestingService().verifyEnrichConfig(e.tests, e);
 		tmp.coverage = getCoverageService().verifyEnrichConfig(e.coverage, e);

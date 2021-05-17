@@ -7,10 +7,12 @@ import * as http from 'http';
 import { performance as P } from 'perf_hooks';
 import Logger from './logger/logger.js';
 import buildConfig from './server-configurer.js';
+import { dismissAll } from './environments/environments-service.js';
 
 export {
-	startServer,
-	serverConfiguration as serverConfig
+	config,
+	start,
+	stop
 }
 
 const
@@ -23,13 +25,15 @@ const
 	BASE_URL_KEY = Symbol('base.url.key'),
 	HANDLERS_READY_PROMISE_KEY = Symbol('handlers.ready.promise.key');
 
-let serverConfiguration;
+let config;
+let server;
+
 class ServerService {
 	constructor(serverConfig) {
 		//	build configuration
 		const effectiveConf = buildConfig(serverConfig);
 		this[CONFIG_KEY] = effectiveConf;
-		serverConfiguration = effectiveConf;
+		config = effectiveConf;
 		logger.info('server service effective config:');
 		logger.info(effectiveConf);
 
@@ -98,8 +102,8 @@ class ServerService {
 
 		//	init server
 		logger.info(`\tregistered ${handlers.length} request handler/s`);
-		const server = http.createServer(mainRequestDispatcher);
-		this[SERVER_KEY] = server.listen(port);
+		const s = http.createServer(mainRequestDispatcher);
+		this[SERVER_KEY] = s.listen(port);
 
 		this[STATUS_KEY] = STATUS_RUNNING;
 		logger.info(`... local server started on port ${port}`);
@@ -135,8 +139,15 @@ class ServerService {
 	}
 }
 
-async function startServer(serverConfig) {
-	const server = new ServerService(serverConfig);
+async function start(serverConfig) {
+	server = new ServerService(serverConfig);
 	await server.start();
 	return server;
+}
+
+async function stop() {
+	await Promise.all([
+		server.stop(),
+		dismissAll()
+	]);
 }
