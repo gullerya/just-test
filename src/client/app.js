@@ -136,9 +136,7 @@ function initInteractiveComponents() {
  */
 function installTestRegistrationAPIs() {
 	console.info('installing registration APIs');
-	Object.defineProperties(globalThis, {
-		getSuite: { value: getSuite }
-	});
+	globalThis.getSuite = getSuite;
 }
 
 /**

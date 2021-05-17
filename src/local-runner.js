@@ -4,6 +4,7 @@ import util from 'util';
 import process from 'process';
 import * as http from 'http';
 import { start, stop } from './server/server-service.js';
+import { ready as perfReady } from './client/common/performance-utils.js';
 import xUnitReporter from './server/testing/reporters/reporter-xunit.js';
 
 go();
@@ -11,6 +12,8 @@ go();
 const SESSION_STATUS_POLL_INTERVAL = 1237;
 
 async function go() {
+	const P = await perfReady;
+	const startTime = P.now();
 	const clArguments = parseCLArgs(process.argv);
 	console.info(`starting local run with arguments:`);
 	console.info(`${JSON.stringify(clArguments)}`);
@@ -30,7 +33,8 @@ async function go() {
 		if (server && server.isRunning) {
 			await stop();
 		}
-		//	TODO: print summary
+
+		const endTime = P.now();
 		console.info(`${os.EOL}-------`);
 		console.info(`... local run finished${os.EOL}`);
 		console.info('TESTS SUMMARY:');
@@ -38,7 +42,9 @@ async function go() {
 		console.info(`TOTAL: ${sessionResult.total}`);
 		console.info(`PASSED: ${sessionResult.pass}`);
 		console.info(`FAILED: ${sessionResult.fail}`);
-		console.info(`SKIPPED: ${sessionResult.skip}`);
+		console.info(`ERRORED: ${sessionResult.error}`);
+		console.info(`SKIPPED: ${sessionResult.skip}${os.EOL}`);
+		console.info(`SESSION SUMMARY: ${process.exitCode ? 'FAILURE' : 'SUCCESS'} (${((endTime - startTime) / 1000).toFixed(1)}s)${os.EOL}`);
 	}
 }
 
@@ -68,8 +74,8 @@ async function executeSession(serverBaseUrl, clArguments) {
 	//	TODO: this should be externalized
 	const maxFail = config.environments[0].tests.maxFail;
 	const maxSkip = config.environments[0].tests.maxSkip;
-	if (sessionResult.fail > maxFail) {
-		console.error(`failing due to too many errors; max allowed: ${maxFail}, found: ${sessionResult.fail}`);
+	if ((sessionResult.fail + sessionResult.error) > maxFail) {
+		console.error(`failing due to too many failures/errors; max allowed: ${maxFail}, found: ${sessionResult.fail + sessionResult.error}`);
 		process.exitCode = 1;
 	} else if (sessionResult.skip > maxSkip) {
 		console.error(`failing due to too many skipped; max allowed: ${maxSkip}, found: ${sessionResult.skip}`);

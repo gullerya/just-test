@@ -3,8 +3,6 @@ export {
 }
 
 async function reportResults(sesId, envId, results) {
-	console.log(JSON.stringify(results));
-
 	console.log(`reporting '${sesId}':'${envId}' results...`);
 	const reportSessionResponse = await fetch(`/api/v1/sessions/${sesId}/environments/${envId}/result`, {
 		method: 'POST',

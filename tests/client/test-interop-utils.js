@@ -8,12 +8,12 @@ const suite = globalThis.getSuite('Common utils');
 
 suite.test('getTestId - 2 parts', test => {
 	const tid = getTestId('some', 'thing');
-	test.assert.strictEqual('some-|-thing', tid);
+	test.assert.strictEqual('some\u26abthing', tid);
 });
 
 suite.test('getTestId - 3 parts', test => {
 	const tid = getTestId('some', 'thing', 'more');
-	test.assert.strictEqual('some-|-thing-|-more', tid);
+	test.assert.strictEqual('some\u26abthing\u26abmore', tid);
 });
 
 suite.test('parseTestId - 2 parts', test => {
@@ -51,6 +51,12 @@ suite.test('getValidName - negative (emptish string)', () => {
 	getValidName('  \t ');
 }, {
 	expectError: 'name MUST NOT be empty'
+});
+
+suite.test('getValidName - negative (invalide sequence within)', () => {
+	getValidName('Some\u26abthing');
+}, {
+	expectError: 'name MUST NOT include'
 });
 
 suite.test('getValidName', test => {

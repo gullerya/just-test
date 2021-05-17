@@ -1,5 +1,5 @@
 import { TestRunBox } from '../common/test-run.js';
-import { getSuite } from '../env-browser/suite-api.js';
+import { getSuite } from '../common/suite-runner.js';
 
 export {
 	deployTest,

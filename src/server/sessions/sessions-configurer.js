@@ -19,7 +19,6 @@ export default sessionConfig => {
 	for (const e of sessionConfig.environments) {
 		const tmp = verifyEnrichConfig(e);
 		tmp.id = getRandom(8);
-		tmp.browsers = e.browsers;
 		tmp.tests = getTestingService().verifyEnrichConfig(e.tests, e);
 		tmp.coverage = getCoverageService().verifyEnrichConfig(e.coverage, e);
 		while (tmp.id in result.environments) {

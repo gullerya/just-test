@@ -15,6 +15,7 @@ const
 		skip: 0,
 		pass: 0,
 		fail: 0,
+		error: 0,
 		tests: []
 	}),
 	TEST_PROTO = Object.freeze({
@@ -42,6 +43,7 @@ export default class SimpleStateService {
 			skip: 0,
 			pass: 0,
 			fail: 0,
+			error: 0,
 			suites: []
 		};
 		console.info(`state service ${this.constructor.name} initialized`);

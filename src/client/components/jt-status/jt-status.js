@@ -39,6 +39,7 @@ TEMPLATE.innerHTML = `
 			color: var(--jt-color-success);
 		}
 
+		:host([type="error"])::before,
 		:host([type="fail"])::before {
 			content: "\\2022";
 			color: var(--jt-color-error);
