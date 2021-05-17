@@ -17,9 +17,10 @@ async function go() {
 	console.info(`-------${os.EOL}`);
 
 	let server;
+	let sessionResult;
 	try {
 		server = await start(clArguments);
-		await executeSession(server.baseUrl, clArguments);
+		sessionResult = await executeSession(server.baseUrl, clArguments);
 	} catch (error) {
 		console.error(os.EOL);
 		console.error(error);
@@ -31,7 +32,13 @@ async function go() {
 		}
 		//	TODO: print summary
 		console.info(`${os.EOL}-------`);
-		console.info(`... local run finished`);
+		console.info(`... local run finished${os.EOL}`);
+		console.info('TESTS SUMMARY:');
+		console.info('========');
+		console.info(`TOTAL: ${sessionResult.total}`);
+		console.info(`PASSED: ${sessionResult.pass}`);
+		console.info(`FAILED: ${sessionResult.fail}`);
+		console.info(`SKIPPED: ${sessionResult.skip}`);
 	}
 }
 
@@ -58,6 +65,7 @@ async function executeSession(serverBaseUrl, clArguments) {
 	xUnitReporter.report(sessionResult, 'reports/results.xml');
 
 	//	analysis
+	//	TODO: this should be externalized
 	const maxFail = config.environments[0].tests.maxFail;
 	const maxSkip = config.environments[0].tests.maxSkip;
 	if (sessionResult.fail > maxFail) {
@@ -67,6 +75,8 @@ async function executeSession(serverBaseUrl, clArguments) {
 		console.error(`failing due to too many skipped; max allowed: ${maxSkip}, found: ${sessionResult.skip}`);
 		process.exitCode = 1;
 	}
+
+	return sessionResult;
 }
 
 async function readConfigAndMergeWithCLArguments(clArguments) {
