@@ -4,7 +4,7 @@ export {
 }
 
 let ready;
-let P = globalThis.performance ? performance : null;
+let P = globalThis.performance ? globalThis.performance : null;
 
 if (!P) {
 	ready = import('perf_hooks').then(m => {

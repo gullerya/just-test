@@ -31,7 +31,7 @@ export default class TestResourcesRequestHandler extends RequestHandlerBase {
 			if (!error) {
 				res.writeHead(200, {
 					'Content-Type': contentType,
-					'Cache-Control': 'private, max-age=32'
+					'Cache-Control': 'private, max-age=8'
 				}).end(content);
 			} else {
 				if (error.code === 'ENOENT') {

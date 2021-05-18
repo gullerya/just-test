@@ -1,5 +1,5 @@
 import Logger from '../logger/logger.js';
-import { getRandom } from '../../client/common/random-utils.js';
+import { getRandom } from '../../common/random-utils.js';
 import { verifyEnrichConfig } from '../environments/environments-service.js';
 import { getTestingService } from '../testing/testing-service.js';
 import { getCoverageService } from '../coverage/coverage-service.js';

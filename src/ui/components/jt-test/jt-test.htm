@@ -1,0 +1,47 @@
+<style>
+	:host {
+		flex-basis: 24px;
+		overflow: hidden;
+		padding: 0 8px;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.status {
+		flex: 0 0 24px;
+	}
+
+	.name {
+		flex: 1;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	.re-run {
+		width: 18px;
+		text-align: center;
+		opacity: 0;
+		transition: opacity 120ms;
+		cursor: pointer;
+		user-select: none;
+	}
+
+	:host(:hover:not(.skip):not(.runs)) .re-run {
+		opacity: 1;
+	}
+
+	.duration {
+		flex-basis: 72px;
+		overflow: hidden;
+		white-space: nowrap;
+		font: var(--jt-font-mono);
+		text-align: end;
+	}
+</style>
+
+<jt-status class="status" data-tie="scope:lastRun.status => value"></jt-status>
+<span class="name" data-tie="scope:name"></span>
+<span class="re-run">&#9654;</span>
+<jt-duration class="duration" data-tie="scope:lastRun.time => value"></jt-duration>

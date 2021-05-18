@@ -29,7 +29,7 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 		const filePath = handlerRelativePath === '' ? 'app.html' : handlerRelativePath;
 		const contentType = findMimeType(filePath, extensionsMap.txt);
 
-		fs.readFile(path.resolve('src/client', filePath), (error, content) => {
+		fs.readFile(path.resolve('bin/ui', filePath), (error, content) => {
 			if (!error) {
 				res.writeHead(200, {
 					'Content-Type': contentType,

@@ -25,11 +25,10 @@
 		"bin"
 	],
 	"bin": {
-		"just-test": "bin/main.js"
+		"just-test": "bin/local-runner.js"
 	},
 	"type": "module",
-	"main": "dist/just-test.js",
-	"browser": "dist/just-test.js",
+	"main": "bin/local-runner.js",
 	"author": {
 		"name": "Guller Yuri",
 		"email": "gullerya@gmail.com"
@@ -41,9 +40,9 @@
 	},
 	"scripts": {
 		"build": "node ./ci/tools/build.js",
-		"lint:client": "eslint -c ./ci/.eslintrc.client.json \"./src/client/**/*.js\" \"./src/common/**/*.js\" \"./tests/client/**/*.js\"",
-		"lint:server": "eslint -c ./ci/.eslintrc.server.json \"./src/server/**/*.js\" \"./src/common/**/*.js\" \"./ci/**/*.js\" \"./tests/server/**/*.js\"",
-		"test:ci": "npm run build && node ./src/local-runner.js config=./tests/tests-config-ci.json",
+		"lint:client": "eslint -c ./ci/.eslintrc.client.json \"./src/client/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/client/**/*.js\"",
+		"lint:server": "eslint -c ./ci/.eslintrc.server.json \"./src/common/**/*.js\" \"./src/server/**/*.js\" \"./src/*.js\" \"./ci/**/*.js\" \"./tests/server/**/*.js\"",
+		"test:ci": "npm run build && node ./src/local-runner.js config=./tests/tests-config-ci-b.json",
 		"test:dev": "npm run build && node ./src/local-runner.js config=./tests/tests-config-dev.json"
 	},
 	"dependencies": {

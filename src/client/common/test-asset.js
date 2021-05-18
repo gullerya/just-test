@@ -1,5 +1,5 @@
-import { waitInterval, waitNextTask } from './await-utils.js';
-import { getRandom } from './random-utils.js';
+import { waitInterval, waitNextTask } from '/core/common/await-utils.js';
+import { getRandom } from '/core/common/random-utils.js';
 
 //	This should be abstracted away, probably on be testbox environment basis
 import '/libs/chai/chai.js';

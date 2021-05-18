@@ -1,7 +1,7 @@
-import { DEFAULT, STATUS } from './constants.js';
+import { DEFAULT, STATUS } from '/core/common/constants.js';
 import { TestAsset } from './test-asset.js';
 import { TestRun } from './test-run.js';
-import { P } from './performance-utils.js';
+import { P } from '/core/common/performance-utils.js';
 
 export {
 	runTest

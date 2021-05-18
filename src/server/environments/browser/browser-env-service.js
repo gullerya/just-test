@@ -8,7 +8,7 @@
  * @param {string} envConfig.browser in this context expected always to equal true
  */
 import Logger, { FileOutput } from '../../logger/logger.js';
-import { waitInterval } from '../../../client/common/await-utils.js';
+import { waitInterval } from '../../../common/await-utils.js';
 import { config as serverConfig } from '../../server-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 import playwright from 'playwright';

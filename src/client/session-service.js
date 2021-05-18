@@ -2,8 +2,8 @@
  * Runs a session of all suites/tests
  * - performs with the current environment (browser / node instance)
  */
-import { parseTestId } from '../common/interop-utils.js';
-import { P } from '../common/performance-utils.js';
+import { parseTestId } from '/core/common/interop-utils.js';
+import { P } from '/core/common/performance-utils.js';
 import { deployTest } from './deploy-service.js';
 import { stateService } from './state/state-service-factory.js';
 

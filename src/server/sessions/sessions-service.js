@@ -5,7 +5,7 @@
  * - providing session data upon demand
  */
 import Logger from '../logger/logger.js';
-import { getRandom } from '../../client/common/random-utils.js';
+import { getRandom } from '../../common/random-utils.js';
 import buildConfig from './sessions-configurer.js';
 import { launch, dismiss } from '../environments/environments-service.js';
 

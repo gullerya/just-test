@@ -2,7 +2,7 @@
 	"environments": [
 		{
 			"browser": {
-				"type": "chromium"
+				"type": "webkit"
 			},
 			"tests": {
 				"ttl": 98098098,

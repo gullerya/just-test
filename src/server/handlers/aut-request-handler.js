@@ -32,7 +32,7 @@ export default class AUTRequestHandler extends RequestHandlerBase {
 			if (!error) {
 				res.writeHead(200, {
 					'Content-Type': contentType,
-					'Cache-Control': 'private, max-age=32'
+					'Cache-Control': 'private, max-age=16'
 				}).end(content);
 			} else {
 				if (error.code === 'ENOENT') {
