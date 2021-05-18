@@ -1,4 +1,4 @@
-﻿import { STATUS } from '/aut/bin/client/common/constants.js';
+﻿import { STATUS } from '/aut/bin/common/constants.js';
 import { runTest } from '/aut/bin/client/common/test-runner.js';
 
 const suite = globalThis.getSuite('Test APIs');

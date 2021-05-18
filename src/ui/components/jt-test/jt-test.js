@@ -1,8 +1,8 @@
-import { initComponent, ComponentBase } from 'rich-component';
-import { EVENT } from '../../common/constants.js';
 import '../jt-duration/jt-duration.js';
 import '../jt-status/jt-status.js';
-import { runTest } from '../../services/session-service.js';
+import { initComponent, ComponentBase } from 'rich-component';
+import { EVENT } from '/core/common/constants.js';
+import { runTest } from '/core/client/session-service.js';
 
 const TEST_KEY = Symbol('test.key');
 

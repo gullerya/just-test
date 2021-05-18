@@ -1,4 +1,4 @@
-import { getTestId, getValidName } from '/core/common/interop-utils.js';
+import { getTestId, getValidName } from '../../common/interop-utils.js';
 
 export {
 	getSuite

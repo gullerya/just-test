@@ -2,7 +2,7 @@
  * Manages simple session state (nodejs environment or non-UI reflected plain one)
  * - module is stateless, providing only the c~tor to create the service instance
  */
-import { STATUS } from '../../common/constants.js';
+import { STATUS } from '../common/constants.js';
 
 const
 	SUITE_PROTO = Object.freeze({

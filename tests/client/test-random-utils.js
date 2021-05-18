@@ -1,4 +1,4 @@
-﻿import { CHAR_SOURCES, getRandom } from '/aut/bin/client/common/random-utils.js';
+﻿import { CHAR_SOURCES, getRandom } from '/aut/bin/common/random-utils.js';
 
 const suite = globalThis.getSuite('Random utils');
 

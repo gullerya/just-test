@@ -2,7 +2,7 @@
 	getTestId,
 	parseTestId,
 	getValidName
-} from '/aut/bin/client/common/interop-utils.js';
+} from '/aut/bin/common/interop-utils.js';
 
 const suite = globalThis.getSuite('Common utils');
 

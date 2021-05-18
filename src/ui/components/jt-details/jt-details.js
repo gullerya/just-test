@@ -1,5 +1,5 @@
 import { initComponent, ComponentBase } from 'rich-component';
-import { lookupEnv } from '../../services/deploy-service.js';
+import { lookupEnv } from '/core/client/deploy-service.js';
 import '../jt-error/jt-error.js';
 
 initComponent('jt-details', class extends ComponentBase {

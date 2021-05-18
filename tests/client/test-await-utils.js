@@ -1,7 +1,7 @@
 ﻿import {
 	waitInterval,
 	waitNextTask
-} from '/aut/bin/client/common/await-utils.js';
+} from '/aut/bin/common/await-utils.js';
 
 const suite = globalThis.getSuite('Await utils');
 

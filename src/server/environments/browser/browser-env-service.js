@@ -104,7 +104,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}, this.envConfig.tests.ttl);
 		browser.once('disconnected', () => this.onDisconnected());
 
-		const envEntryUrl = `http://localhost:${serverConfig.port}?ses-id=${this.sessionId}&env-id=${this.envConfig.id}`;
+		const envEntryUrl = `http://localhost:${serverConfig.port}/core/client/app.html?ses-id=${this.sessionId}&env-id=${this.envConfig.id}`;
 		logger.info(`navigating testing environment to '${envEntryUrl}'...`);
 		await mainPage.goto(envEntryUrl);
 

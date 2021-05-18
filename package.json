@@ -42,7 +42,7 @@
 		"build": "node ./ci/tools/build.js",
 		"lint:client": "eslint -c ./ci/.eslintrc.client.json \"./src/client/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/client/**/*.js\"",
 		"lint:server": "eslint -c ./ci/.eslintrc.server.json \"./src/common/**/*.js\" \"./src/server/**/*.js\" \"./src/*.js\" \"./ci/**/*.js\" \"./tests/server/**/*.js\"",
-		"test:ci": "npm run build && node ./src/local-runner.js config=./tests/tests-config-ci-b.json",
+		"test:ci": "npm run build && node ./src/local-runner.js config=./tests/tests-config-ci.json",
 		"test:dev": "npm run build && node ./src/local-runner.js config=./tests/tests-config-dev.json"
 	},
 	"dependencies": {
