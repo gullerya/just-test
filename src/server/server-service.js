@@ -65,7 +65,7 @@ class ServerService {
 			handlerBasePaths.push(handler.basePath);
 			handlers.push(handler);
 		}
-		logger.info(`... ${handlers.length} handler/s initialized in ${(P.now() - started).toFixed(1)}ms`);
+		logger.info(`... initialized ${handlers.length} handler/s (${(P.now() - started).toFixed(1)}ms)`);
 		return handlers;
 	}
 

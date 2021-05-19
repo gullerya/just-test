@@ -1,7 +1,7 @@
 import Logger from '../logger/logger.js';
 import { getRandom } from '../../common/random-utils.js';
 import { verifyEnrichConfig } from '../environments/environments-service.js';
-import { getTestingService } from '../testing/testing-service.js';
+import { verifyEnrichConfig as verifyEnrichTestsConfig } from '../testing/testing-service.js';
 import { getCoverageService } from '../coverage/coverage-service.js';
 
 const
@@ -19,7 +19,7 @@ export default sessionConfig => {
 	for (const e of sessionConfig.environments) {
 		const tmp = verifyEnrichConfig(e);
 		tmp.id = getRandom(8);
-		tmp.tests = getTestingService().verifyEnrichConfig(e.tests, e);
+		tmp.tests = verifyEnrichTestsConfig(e.tests, e);
 		tmp.coverage = getCoverageService().verifyEnrichConfig(e.coverage, e);
 		while (tmp.id in result.environments) {
 			logger.error(`session ID collision (${tmp.id})`);
