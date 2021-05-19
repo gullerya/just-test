@@ -37,12 +37,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 	async launch() {
 		const browserType = this.envConfig.browser.type;
 		logger.info(`launching '${browserType}'...`);
-		const browser = await playwright[browserType].launch({
-			logger: {
-				isEnabled: () => true,
-				log: (name, severity, message, args) => console.log(`${name} ${severity} ${message} ${args}`)
-			}
-		});
+		const browser = await playwright[browserType].launch();
 
 		this.consoleLogger = new FileOutput(`./reports/logs/${browserType}-${browser.version()}.log`);
 		const bLogger = new Logger({
@@ -50,12 +45,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 			outputs: [this.consoleLogger]
 		});
 
-		const context = await browser.newContext({
-			logger: {
-				isEnabled: () => true,
-				log: (name, severity, message, args) => console.log(`${name} ${severity} ${message} ${args}`)
-			}
-		});
+		const context = await browser.newContext();
 
 		context.on('page', async pe => {
 			//	THIS is the place to collect per test data:
@@ -75,16 +65,12 @@ class BrowserEnvImpl extends EnvironmentBase {
 			});
 		});
 
-		const mainPage = await context.newPage({
-			logger: {
-				isEnabled: () => true,
-				log: (name, severity, message, args) => console.log(`${name} ${severity} ${message} ${args}`)
-			}
-		});
-		mainPage.on('console', async msgs => {
-			for (const msg of msgs.args()) {
-				const consoleMessage = await msg.evaluate(o => o);
-				bLogger.info(consoleMessage);
+		const mainPage = await context.newPage();
+		mainPage.on('console', async msg => {
+			const type = msg.type();
+			for (const msgArg of msg.args()) {
+				const consoleMessage = await msgArg.evaluate(o => o);
+				bLogger[type](consoleMessage);
 			}
 		});
 		mainPage.on('error', e => {

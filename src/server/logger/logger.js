@@ -90,6 +90,10 @@ export default class Logger {
 		this[OUTPUT_KEY]('error', args);
 	}
 
+	//	aliases
+	get log() { return this.info; }
+	get warning() { return this.warn; }
+
 	[PROCCESS_ARGUMENTS_KEY](args, level) {
 		let result = [];
 		for (const arg of args) {
