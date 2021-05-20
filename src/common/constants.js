@@ -7,7 +7,8 @@ export {
 }
 
 const EVENT = Object.freeze({
-	TEST_SELECT: 'test:select'
+	TEST_SELECT: 'test:select',
+	TEST_RERUN: 'test:rerun'
 });
 
 const STATUS = Object.freeze({

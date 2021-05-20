@@ -3,21 +3,29 @@ import './components/jt-header/jt-header.js';
 import './components/jt-suite/jt-suite.js';
 import './components/jt-details/jt-details.js';
 
-import stateService from './interactive-state-service.js';
-import { loadMetadata, execute } from '/core/client/main.js';
 import { EVENT } from '/core/common/constants.js';
 import { parseTestId } from '/core/common/interop-utils.js';
+import { loadMetadata, execute } from '/core/client/main.js';
+import { runTest } from '/core/client/session-service.js';
+import stateService from './interactive-state-service.js';
 
 (async () => {
-	setupUserEvents();
 	const metadata = await loadMetadata();
+	setupUserEvents(metadata);
 	await execute(metadata, stateService);
 	console.log('continue in interactive mode');
 })();
 
-function setupUserEvents(iStateService) {
-	document.querySelector('.suites-list').addEventListener(EVENT.TEST_SELECT, e => {
+function setupUserEvents(metadata) {
+	const suitesList = document.querySelector('.suites-list');
+	suitesList.addEventListener(EVENT.TEST_SELECT, e => {
 		const [sid, tid] = parseTestId(e.detail.testId);
-		iStateService.setSelectedTest(sid, tid);
+		stateService.setSelectedTest(sid, tid);
+	});
+	suitesList.addEventListener(EVENT.TEST_RERUN, e => {
+		const [sid, tid] = parseTestId(e.detail.testId);
+		const test = stateService.getTest(sid, tid);
+		runTest(test, metadata, stateService);
+		stateService.setSelectedTest(sid, tid);
 	});
 }

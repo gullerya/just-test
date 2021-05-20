@@ -15,8 +15,6 @@ const
 		TESTS_METADATA: 'testsMetadata'
 	});
 
-let testingServiceInstance;
-
 function verifyEnrichConfig(testingConfig, clArguments) {
 	return buildConfig(testingConfig, clArguments);
 }

@@ -28,7 +28,7 @@ TEMPLATE.innerHTML = `
 	<span class="counter pass" data-tie="justTestModel:passed"></span>
 	<span class="counter fail" data-tie="justTestModel:failed"></span>
 	<span class="counter skip" data-tie="justTestModel:skipped"></span>
-	<button class="close">Close</button>
+	<button class="close">Report & Exit</button>
 `;
 
 initComponent('jt-header', class extends ComponentBase {

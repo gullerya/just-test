@@ -32,25 +32,24 @@ function lookupEnv(testId) {
 	return globalThis.document.querySelector(`[name="${testId}"]`)
 }
 
-//	TODO: reuse old frame (perf)
-//	TODO: use provided frame (perf)
 function executeInFrame(test) {
-	const oldFrame = lookupEnv(test.id);
-	oldFrame?.remove();
-
 	const d = globalThis.document;
-	const i = d.createElement('iframe');
-	i.name = test.id;
-	i.srcdoc = '';
-	i.classList.add('just-test-execution-frame');
+
+	let f = lookupEnv(test.id);
+	if (!f) {
+		f = d.createElement('iframe');
+		f.name = test.id;
+		f.classList.add('just-test-execution-frame');
+	}
+	f.srcdoc = '';
 
 	const testRunBox = new TestRunBox(test);
-	i.onload = () => {
-		i.contentWindow.getSuite = getSuite.bind(testRunBox);
-		injectTestIntoDocument(i.contentDocument, test.source);
-		i.onload = null;
+	f.onload = () => {
+		f.contentWindow.getSuite = getSuite.bind(testRunBox);
+		injectTestIntoDocument(f.contentDocument, test.source);
+		f.onload = null;
 	};
-	d.body.appendChild(i);
+	d.body.appendChild(f);
 
 	return Promise.resolve(testRunBox);
 }
