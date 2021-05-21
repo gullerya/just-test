@@ -14,7 +14,7 @@
 			},
 			"coverage": {
 				"include": [
-					"./bin"
+					"./bin/**/*.{js,css}"
 				]
 			}
 		}

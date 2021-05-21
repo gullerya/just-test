@@ -1,4 +1,4 @@
-﻿import { runTest } from '/aut/bin/client/common/test-runner.js';
+﻿import { runTest } from '/aut/bin/client/om/test-runner.js';
 
 const suite = globalThis.getSuite('Test asset');
 

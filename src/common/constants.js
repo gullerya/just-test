@@ -3,7 +3,8 @@ export {
 	EVENT,
 	STATUS,
 	SUITE_OPTIONS_DEFAULT,
-	TEST_OPTIONS_DEFAULT
+	TEST_OPTIONS_DEFAULT,
+	INTEROP_NAMES
 }
 
 const EVENT = Object.freeze({
@@ -34,4 +35,9 @@ const TEST_OPTIONS_DEFAULT = Object.freeze({
 	skip: false,
 	sync: false,
 	expectError: null
+});
+
+const INTEROP_NAMES = Object.freeze({
+	START_COVERAGE_METHOD: 'jtStartCoverage',
+	TAKE_COVERAGE_METHOD: 'jtTakeCoverage'
 });

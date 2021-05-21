@@ -1,8 +1,7 @@
 const
-	COVERAGE_SUPPORTING_BROWSER = 'chromium',
+	COVERAGE_SUPPORTING_BROWSERS = ['chromium'],
 	COVERAGE_FORMATS = ['lcov'],
 	DEFAULT_CONFIG = Object.freeze({
-		skip: false,
 		include: [],
 		exclude: [
 			'*.min.js'
@@ -22,8 +21,8 @@ export default (coverageConfig, environment) => {
 	if (!environment.browser) {
 		throw new Error(`coverage supported ONLY in browser environement`);
 	}
-	if (environment.browser.type !== COVERAGE_SUPPORTING_BROWSER) {
-		throw new Error(`coverage supported ONLY in '${COVERAGE_SUPPORTING_BROWSER}'`);
+	if (!COVERAGE_SUPPORTING_BROWSERS.includes(environment.browser.type)) {
+		throw new Error(`coverage supported ONLY in [${COVERAGE_SUPPORTING_BROWSERS.join(', ')}]`);
 	}
 
 	const result = Object.assign(

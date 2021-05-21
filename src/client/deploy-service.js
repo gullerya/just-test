@@ -1,5 +1,6 @@
-import { TestRunBox } from './common/test-run.js';
-import { getSuite } from './common/suite-runner.js';
+import { INTEROP_NAMES } from '/core/common/constants.js';
+import { TestRunBox } from './om/test-run.js';
+import { getSuite } from './om/suite-runner.js';
 
 export {
 	deployTest,
@@ -54,7 +55,7 @@ function executeInFrame(test) {
 	return Promise.resolve(testRunBox);
 }
 
-function executeInPage(test) {
+async function executeInPage(test) {
 	const w = globalThis.open('', test.id);
 	const testRunBox = new TestRunBox(test);
 	w.getSuite = getSuite.bind(testRunBox);
@@ -63,8 +64,16 @@ function executeInPage(test) {
 	base.href = globalThis.location.origin;
 	w.document.head.appendChild(base);
 
+	if (w[INTEROP_NAMES.START_COVERAGE_METHOD]) {
+		await w[INTEROP_NAMES.START_COVERAGE_METHOD]();
+	}
 	injectTestIntoDocument(w.document, test.source);
-	testRunBox.ended.then(w.close);
+	testRunBox.ended.then(async () => {
+		if (w[INTEROP_NAMES.TAKE_COVERAGE_METHOD]) {
+			await w[INTEROP_NAMES.TAKE_COVERAGE_METHOD](test.id);
+		}
+		w.close();
+	});
 	return Promise.resolve(testRunBox);
 }
 

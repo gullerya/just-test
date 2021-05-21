@@ -151,7 +151,7 @@ function getSuite(suiteName, suiteOptions) {
 				const testId = getTestId(suiteName, testMeta.name);
 				_stateService.addTest(suiteName, testMeta.name, testId, testMeta.code, testMeta.options);
 			} catch (e) {
-				console.error(`failed to process test '${testName} : ${JSON.stringify(testOptions)}':`, e);
+				console.error(`failed to register test '${testName} : ${JSON.stringify(testOptions)}':`, e);
 			}
 		}
 	}

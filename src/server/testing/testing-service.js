@@ -25,18 +25,18 @@ async function collectTestResources(include, exclude) {
 		started = P.now(),
 		options = { nodir: true, nosort: true, ignore: exclude },
 		promises = [];
-	include.forEach(i => {
+	for (const i of include) {
 		promises.push(new Promise(resolve => {
 			glob(i, options, (err, matches) => {
 				if (err) {
-					logger.error(`failed to collect test resources: ${err}`);
+					logger.error(`failed to collect test resources from '${i}': ${err}`);
 					resolve([]);
 				} else {
 					resolve(matches);
 				}
 			})
 		}));
-	});
+	}
 	const result = (await Promise.all(promises)).reduce((a, c) => {
 		a.push(...c);
 		return a;

@@ -8,8 +8,10 @@
  * @param {string} envConfig.browser in this context expected always to equal true
  */
 import Logger, { FileOutput } from '../../logger/logger.js';
+import { INTEROP_NAMES } from '../../../common/constants.js';
 import { waitInterval } from '../../../common/await-utils.js';
 import { config as serverConfig } from '../../server-service.js';
+import { collectTargetSources } from '../../coverage/coverage-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 import playwright from 'playwright';
 
@@ -45,27 +47,15 @@ class BrowserEnvImpl extends EnvironmentBase {
 			outputs: [this.consoleLogger]
 		});
 
-		const context = await browser.newContext();
+		const browsingContext = await browser.newContext();
 
-		context.on('page', async pe => {
-			//	THIS is the place to collect per test data:
-			//	logs, errors, coverage etc
+		if (this.envConfig.coverage) {
+			await this.installCoverageCollector(this.envConfig.coverage, browsingContext);
+		}
 
-			//	coverage
-			if (this.envConfig.coverage && pe.coverage) {
-				await pe.coverage.startJSCoverage({ reportAnonymousScripts: true });
-			}
-			pe.on('close', async () => {
-				// if (coverage) {
-				// 	const coverage = await pe.coverage.stopJSCoverage();
-				// 	for (const entry of coverage) {
-				// 		console.log(entry);
-				// 	}
-				// }
-			});
-		});
+		browsingContext.on('page', async () => { });
 
-		const mainPage = await context.newPage();
+		const mainPage = await browsingContext.newPage();
 		mainPage.on('console', async msg => {
 			const type = msg.type();
 			for (const msgArg of msg.args()) {
@@ -95,6 +85,43 @@ class BrowserEnvImpl extends EnvironmentBase {
 		await mainPage.goto(envEntryUrl);
 
 		this.browser = browser;
+	}
+
+	async installCoverageCollector(coverageConfig, browsingContext) {
+		const coverageTargets = await collectTargetSources(coverageConfig);
+		if (!coverageTargets || !coverageTargets.length) {
+			console.log('no target found, skipping coverage collection');
+			return;
+		}
+
+		browsingContext.exposeBinding(INTEROP_NAMES.START_COVERAGE_METHOD, async ({ page }) => {
+			await Promise.all([
+				page.coverage.startJSCoverage(),
+				page.coverage.startCSSCoverage()
+			]);
+		});
+
+		browsingContext.exposeBinding(INTEROP_NAMES.TAKE_COVERAGE_METHOD, async ({ page }, testId) => {
+			const [cssCoverage, jsCoverage] = await Promise.all([
+				page.coverage.stopCSSCoverage(),
+				page.coverage.stopJSCoverage()
+			]);
+
+			for (const entry of cssCoverage) {
+				const trPath = entry.url.replace(`http://localhost:${serverConfig.port}/aut/`, './');
+				if (coverageTargets.indexOf(trPath) < 0) {
+					continue;
+				}
+				console.log(testId + ' - ' + trPath);
+			}
+			for (const entry of jsCoverage) {
+				const trPath = entry.url.replace(`http://localhost:${serverConfig.port}/aut/`, './');
+				if (coverageTargets.indexOf(trPath) < 0) {
+					continue;
+				}
+				console.log(testId + ' - ' + trPath);
+			}
+		});
 	}
 
 	async dismiss() {
