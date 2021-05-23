@@ -1,16 +1,18 @@
-import fs from 'fs';
+// import fs from 'fs';
 import Logger from '../logger/logger.js';
 import { P } from '../../common/performance-utils.js';
 import buildConfig from './coverage-configurer.js';
 import RangeCov from './model/range-cov.js';
 import LineCov from './model/line-cov.js';
 import FileCov from './model/file-cov.js';
-import toLcov from './reporters/coverage-to-lcov.js';
+import lcovReporter from './reporters/lcov-reporter.js';
 import glob from 'glob';
 
 export {
+	collectTargetSources,
+	lcovReporter,
 	verifyEnrichConfig,
-	collectTargetSources
+	processV8ScriptCoverage
 }
 
 const
@@ -98,22 +100,22 @@ async function report(covConf, reportPath) {
 		}
 
 		//	order all ranges accross the functions
-		entry.functions.forEach(f => {
-			f.ranges.forEach(r => {
-				const jtr = new RangeCov(r.startOffset, r.endOffset, r.count);
-				const added = fileCov.ranges.some((tr, ti, ta) => {
-					if (jtr.startsBefore(tr)) {
-						ta.splice(ti, 0, jtr);
-						return true;
-					} else {
-						return false;
-					}
-				});
-				if (!added) {
-					fileCov.ranges.push(jtr);
-				}
-			});
-		});
+		// entry.functions.forEach(f => {
+		// 	f.ranges.forEach(r => {
+		// 		const jtr = new RangeCov(r.startOffset, r.endOffset, r.count);
+		// 		const added = fileCov.ranges.some((tr, ti, ta) => {
+		// 			if (jtr.startsBefore(tr)) {
+		// 				ta.splice(ti, 0, jtr);
+		// 				return true;
+		// 			} else {
+		// 				return false;
+		// 			}
+		// 		});
+		// 		if (!added) {
+		// 			fileCov.ranges.push(jtr);
+		// 		}
+		// 	});
+		// });
 
 		//	apply ranges to lines
 		fileCov.ranges.forEach(rangeCov => {
@@ -154,17 +156,44 @@ async function report(covConf, reportPath) {
 	logger.info(`... coverage report written ("${covConf.format}" format)`);
 }
 
-function writeReport(data, conf, reportPath) {
-	let report;
-	switch (conf.format) {
-		case 'lcov':
-			report = toLcov.convert(data);
-			break;
-		default:
-			logger.error(`invalid coverage format "${conf.format}" required`);
-			return;
+function processV8ScriptCoverage(url, scriptCoverage) {
+	const result = new FileCov(url);
+
+	if (!scriptCoverage || !Array.isArray(scriptCoverage.functions)) {
+		throw new Error(`invalid script coverage ${scriptCoverage}`);
 	}
-	if (report) {
-		fs.writeFileSync(reportPath, report, { encoding: 'utf-8' });
+
+	for (const fCov of scriptCoverage.functions) {
+		for (const rCov of fCov.ranges) {
+			const jtr = new RangeCov(rCov.startOffset, rCov.endOffset, rCov.count);
+			const added = result.ranges.some((tr, ti, ta) => {
+				if (jtr.startsBefore(tr)) {
+					ta.splice(ti, 0, jtr);
+					return true;
+				} else {
+					return false;
+				}
+			});
+			if (!added) {
+				result.ranges.push(jtr);
+			}
+		}
 	}
+
+	return result;
 }
+
+// function writeReport(data, conf, reportPath) {
+// 	let report;
+// 	switch (conf.format) {
+// 		case 'lcov':
+// 			report = toLcov.convert(data);
+// 			break;
+// 		default:
+// 			logger.error(`invalid coverage format "${conf.format}" required`);
+// 			return;
+// 	}
+// 	if (report) {
+// 		fs.writeFileSync(reportPath, report, { encoding: 'utf-8' });
+// 	}
+// }

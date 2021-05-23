@@ -5,7 +5,8 @@ import process from 'process';
 import * as http from 'http';
 import { start, stop } from './server/server-service.js';
 import { ready as perfReady } from './common/performance-utils.js';
-import xUnitReporter from './server/testing/reporters/reporter-xunit.js';
+import { xUnitReporter } from './server/testing/testing-service.js';
+import { lcovReporter } from './server/coverage/coverage-service.js';
 
 go();
 
@@ -69,6 +70,7 @@ async function executeSession(serverBaseUrl, clArguments) {
 	const sessionDetails = await sentAddSession(serverBaseUrl, config);
 	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
 	xUnitReporter.report(sessionResult, 'reports/results.xml');
+	fs.writeFileSync('reports/coverage.json', JSON.stringify(lcovReporter.convert(sessionResult), null, `\t`));
 
 	//	analysis
 	//	TODO: this should be externalized

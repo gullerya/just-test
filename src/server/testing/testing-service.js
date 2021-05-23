@@ -2,11 +2,13 @@ import { performance as P } from 'perf_hooks';
 import glob from 'glob';
 import Logger from '../logger/logger.js';
 import buildConfig from './testing-configurer.js';
+import xUnitReporter from './reporters/xunit-reporter.js';
 
 export {
 	CONSTANTS,
+	collectTestResources,
 	verifyEnrichConfig,
-	collectTestResources
+	xUnitReporter
 }
 
 const

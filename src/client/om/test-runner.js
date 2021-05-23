@@ -26,7 +26,7 @@ async function runTest(code, meta = { ttl: DEFAULT.TEST_RUN_TTL }) {
 	} catch (e) {
 		runResult = e;
 	} finally {
-		run.time = P.now() - start;
+		run.time = Math.round((P.now() - start) * 10000) / 10000;
 		finalizeRun(meta, run, runResult, testAsset.assertions);
 	}
 

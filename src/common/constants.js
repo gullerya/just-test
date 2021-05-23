@@ -1,11 +1,18 @@
 export {
 	DEFAULT,
 	EVENT,
+	INTEROP_NAMES,
 	STATUS,
 	SUITE_OPTIONS_DEFAULT,
-	TEST_OPTIONS_DEFAULT,
-	INTEROP_NAMES
+	TEST_ID_SEPARATOR,
+	TEST_OPTIONS_DEFAULT
 }
+
+const TEST_ID_SEPARATOR = ' => ';
+
+const DEFAULT = Object.freeze({
+	TEST_RUN_TTL: 3000
+});
 
 const EVENT = Object.freeze({
 	TEST_SELECT: 'test:select',
@@ -19,10 +26,6 @@ const STATUS = Object.freeze({
 	PASS: 'pass',
 	FAIL: 'fail',
 	ERROR: 'error'
-});
-
-const DEFAULT = Object.freeze({
-	TEST_RUN_TTL: 3000
 });
 
 const SUITE_OPTIONS_DEFAULT = Object.freeze({

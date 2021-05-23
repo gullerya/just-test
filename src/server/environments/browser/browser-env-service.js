@@ -11,7 +11,7 @@ import Logger, { FileOutput } from '../../logger/logger.js';
 import { INTEROP_NAMES } from '../../../common/constants.js';
 import { waitInterval } from '../../../common/await-utils.js';
 import { config as serverConfig } from '../../server-service.js';
-import { collectTargetSources } from '../../coverage/coverage-service.js';
+import { collectTargetSources, processV8ScriptCoverage } from '../../coverage/coverage-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 import playwright from 'playwright';
 
@@ -30,6 +30,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 	constructor(sessionId, envConfig) {
 		super(sessionId);
 		this.envConfig = envConfig;
+		this.cdpSessions = {};
 	}
 
 	/**
@@ -94,33 +95,36 @@ class BrowserEnvImpl extends EnvironmentBase {
 			return;
 		}
 
-		browsingContext.exposeBinding(INTEROP_NAMES.START_COVERAGE_METHOD, async ({ page }) => {
-			await Promise.all([
-				page.coverage.startJSCoverage(),
-				page.coverage.startCSSCoverage()
-			]);
+
+		browsingContext.exposeBinding(INTEROP_NAMES.START_COVERAGE_METHOD, async ({ page }, testId) => {
+			const cdpSession = await page.context().newCDPSession(page);
+			await cdpSession.send('Profiler.enable');
+			await cdpSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
+			this.cdpSessions[testId] = cdpSession;
 		});
 
 		browsingContext.exposeBinding(INTEROP_NAMES.TAKE_COVERAGE_METHOD, async ({ page }, testId) => {
-			const [cssCoverage, jsCoverage] = await Promise.all([
-				page.coverage.stopCSSCoverage(),
-				page.coverage.stopJSCoverage()
-			]);
+			const result = {};
 
-			for (const entry of cssCoverage) {
+			const cdpSession = this.cdpSessions[testId];
+			const jsCoverage = await cdpSession.send('Profiler.takePreciseCoverage');
+			await cdpSession.send('Profiler.stopPreciseCoverage');
+			await cdpSession.detach();
+			delete this.cdpSessions[testId];
+
+			for (const entry of jsCoverage.result) {
 				const trPath = entry.url.replace(`http://localhost:${serverConfig.port}/aut/`, './');
 				if (coverageTargets.indexOf(trPath) < 0) {
 					continue;
 				}
-				console.log(testId + ' - ' + trPath);
-			}
-			for (const entry of jsCoverage) {
-				const trPath = entry.url.replace(`http://localhost:${serverConfig.port}/aut/`, './');
-				if (coverageTargets.indexOf(trPath) < 0) {
+				//	TODO: should check each new entry, cause seen unequal duplications
+				if (result[trPath]) {
 					continue;
 				}
-				console.log(testId + ' - ' + trPath);
+				result[trPath] = processV8ScriptCoverage(trPath, entry);
 			}
+
+			return result;
 		});
 	}
 

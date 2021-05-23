@@ -57,20 +57,23 @@ function executeInFrame(test) {
 
 async function executeInPage(test) {
 	const w = globalThis.open('', test.id);
-	const testRunBox = new TestRunBox(test);
+	const toCoverage = Boolean(w[INTEROP_NAMES.START_COVERAGE_METHOD]);
+	// if (toCoverage) {
+	// 	await w[INTEROP_NAMES.START_COVERAGE_METHOD](test.id);
+	// }
+
+	const testRunBox = new TestRunBox(test, toCoverage);
 	w.getSuite = getSuite.bind(testRunBox);
 
 	const base = w.document.createElement('base');
 	base.href = globalThis.location.origin;
 	w.document.head.appendChild(base);
 
-	if (w[INTEROP_NAMES.START_COVERAGE_METHOD]) {
-		await w[INTEROP_NAMES.START_COVERAGE_METHOD]();
-	}
 	injectTestIntoDocument(w.document, test.source);
 	testRunBox.ended.then(async () => {
-		if (w[INTEROP_NAMES.TAKE_COVERAGE_METHOD]) {
-			await w[INTEROP_NAMES.TAKE_COVERAGE_METHOD](test.id);
+		if (toCoverage) {
+			const coverage = await w[INTEROP_NAMES.TAKE_COVERAGE_METHOD](test.id);
+			testRunBox.resolveCoverage(coverage);
 		}
 		w.close();
 	});

@@ -1,4 +1,4 @@
-﻿const TOTAL_TESTS = 10;
+﻿const TOTAL_TESTS = 2;
 const suite = globalThis.getSuite(`Test ${TOTAL_TESTS} tests in suite`);
 
 

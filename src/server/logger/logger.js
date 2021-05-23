@@ -91,6 +91,7 @@ export default class Logger {
 	}
 
 	//	aliases
+	get dir() { return this.info; }
 	get log() { return this.info; }
 	get warning() { return this.warn; }
 

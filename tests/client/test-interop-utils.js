@@ -1,19 +1,20 @@
 ﻿import {
+	TEST_ID_SEPARATOR,
 	getTestId,
 	parseTestId,
 	getValidName
 } from '/aut/bin/common/interop-utils.js';
 
-const suite = globalThis.getSuite('Common utils');
+const suite = globalThis.getSuite('Interop utils');
 
 suite.test('getTestId - 2 parts', test => {
 	const tid = getTestId('some', 'thing');
-	test.assert.strictEqual('some\u26abthing', tid);
+	test.assert.strictEqual(`some${TEST_ID_SEPARATOR}thing`, tid);
 });
 
 suite.test('getTestId - 3 parts', test => {
 	const tid = getTestId('some', 'thing', 'more');
-	test.assert.strictEqual('some\u26abthing\u26abmore', tid);
+	test.assert.strictEqual(`some${TEST_ID_SEPARATOR}thing${TEST_ID_SEPARATOR}more`, tid);
 });
 
 suite.test('parseTestId - 2 parts', test => {
@@ -54,7 +55,7 @@ suite.test('getValidName - negative (emptish string)', () => {
 });
 
 suite.test('getValidName - negative (invalide sequence within)', () => {
-	getValidName('Some\u26abthing');
+	getValidName(`Some${TEST_ID_SEPARATOR}thing`);
 }, {
 	expectError: 'name MUST NOT include'
 });

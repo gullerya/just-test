@@ -1,10 +1,11 @@
+import { TEST_ID_SEPARATOR } from './constants.js';
+
 export {
+	TEST_ID_SEPARATOR,
 	getTestId,
 	parseTestId,
 	getValidName
 }
-
-const TEST_ID_SEPARATOR = '\u26ab';
 
 function getTestId(...names) {
 	return names.join(TEST_ID_SEPARATOR);

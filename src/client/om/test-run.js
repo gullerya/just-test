@@ -7,13 +7,15 @@ export class TestRun {
 		this.assertions = 0;
 		this.status = null;
 		this.error = null;
+		this.coverage = null;
 		Object.seal(this);
 	}
 }
 
 export class TestRunBox {
-	constructor(test) {
+	constructor(test, coverage = false) {
 		this.test = test;
+
 		this.runTest = runTest;
 
 		this.started = new Promise(r => {
@@ -22,5 +24,11 @@ export class TestRunBox {
 		this.ended = new Promise(r => {
 			this.resolveEnded = r;
 		});
+		if (coverage) {
+			this.coveragePromise = new Promise(r => {
+				this.resolveCoverage = r;
+			});
+		}
+		Object.seal(this);
 	}
 }
