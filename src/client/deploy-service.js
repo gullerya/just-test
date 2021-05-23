@@ -58,10 +58,6 @@ function executeInFrame(test) {
 async function executeInPage(test) {
 	const w = globalThis.open('', test.id);
 	const toCoverage = Boolean(w[INTEROP_NAMES.START_COVERAGE_METHOD]);
-	// if (toCoverage) {
-	// 	await w[INTEROP_NAMES.START_COVERAGE_METHOD](test.id);
-	// }
-
 	const testRunBox = new TestRunBox(test, toCoverage);
 	w.getSuite = getSuite.bind(testRunBox);
 
@@ -69,6 +65,9 @@ async function executeInPage(test) {
 	base.href = globalThis.location.origin;
 	w.document.head.appendChild(base);
 
+	if (toCoverage) {
+		await w[INTEROP_NAMES.START_COVERAGE_METHOD](test.id);
+	}
 	injectTestIntoDocument(w.document, test.source);
 	testRunBox.ended.then(async () => {
 		if (toCoverage) {

@@ -58,9 +58,6 @@ async function collectTargetSources(config) {
 }
 
 async function report(covConf, reportPath) {
-	logger.info();
-	logger.info('processing coverage data...');
-
 	const
 		jsCoverageReports = this[REPORTS_KEY],
 		covData = {
@@ -99,24 +96,6 @@ async function report(covConf, reportPath) {
 			}
 		}
 
-		//	order all ranges accross the functions
-		// entry.functions.forEach(f => {
-		// 	f.ranges.forEach(r => {
-		// 		const jtr = new RangeCov(r.startOffset, r.endOffset, r.count);
-		// 		const added = fileCov.ranges.some((tr, ti, ta) => {
-		// 			if (jtr.startsBefore(tr)) {
-		// 				ta.splice(ti, 0, jtr);
-		// 				return true;
-		// 			} else {
-		// 				return false;
-		// 			}
-		// 		});
-		// 		if (!added) {
-		// 			fileCov.ranges.push(jtr);
-		// 		}
-		// 	});
-		// });
-
 		//	apply ranges to lines
 		fileCov.ranges.forEach(rangeCov => {
 			for (let i = 0, l = fileCov.lines.length; i < l; i++) {
@@ -149,11 +128,6 @@ async function report(covConf, reportPath) {
 
 		covData.tests[0].coverage.files.push(fileCov);
 	}
-
-	//	produce report
-	this.writeReport(covData, covConf, reportPath);
-
-	logger.info(`... coverage report written ("${covConf.format}" format)`);
 }
 
 function processV8ScriptCoverage(url, scriptCoverage) {
@@ -164,36 +138,15 @@ function processV8ScriptCoverage(url, scriptCoverage) {
 	}
 
 	for (const fCov of scriptCoverage.functions) {
+		//	add up to functions coverage
+		//	TODO
+
+		//	add up to ranges coverage
 		for (const rCov of fCov.ranges) {
 			const jtr = new RangeCov(rCov.startOffset, rCov.endOffset, rCov.count);
-			const added = result.ranges.some((tr, ti, ta) => {
-				if (jtr.startsBefore(tr)) {
-					ta.splice(ti, 0, jtr);
-					return true;
-				} else {
-					return false;
-				}
-			});
-			if (!added) {
-				result.ranges.push(jtr);
-			}
+			result.addRangeCov(jtr);
 		}
 	}
 
 	return result;
 }
-
-// function writeReport(data, conf, reportPath) {
-// 	let report;
-// 	switch (conf.format) {
-// 		case 'lcov':
-// 			report = toLcov.convert(data);
-// 			break;
-// 		default:
-// 			logger.error(`invalid coverage format "${conf.format}" required`);
-// 			return;
-// 	}
-// 	if (report) {
-// 		fs.writeFileSync(reportPath, report, { encoding: 'utf-8' });
-// 	}
-// }

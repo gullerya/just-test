@@ -1,4 +1,4 @@
-import { topLevel } from '/core/common/cov-test.js';
+import { topLevel } from '/aut/bin/common/cov-test.js';
 
 const suite = getSuite('Coverage tests');
 

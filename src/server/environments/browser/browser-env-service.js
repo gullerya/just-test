@@ -103,8 +103,8 @@ class BrowserEnvImpl extends EnvironmentBase {
 			this.cdpSessions[testId] = cdpSession;
 		});
 
-		browsingContext.exposeBinding(INTEROP_NAMES.TAKE_COVERAGE_METHOD, async ({ page }, testId) => {
-			const result = {};
+		browsingContext.exposeBinding(INTEROP_NAMES.TAKE_COVERAGE_METHOD, async (_, testId) => {
+			const result = [];
 
 			const cdpSession = this.cdpSessions[testId];
 			const jsCoverage = await cdpSession.send('Profiler.takePreciseCoverage');
@@ -121,7 +121,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 				if (result[trPath]) {
 					continue;
 				}
-				result[trPath] = processV8ScriptCoverage(trPath, entry);
+				result.push(processV8ScriptCoverage(trPath, entry));
 			}
 
 			return result;

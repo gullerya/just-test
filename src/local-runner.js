@@ -70,7 +70,16 @@ async function executeSession(serverBaseUrl, clArguments) {
 	const sessionDetails = await sentAddSession(serverBaseUrl, config);
 	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
 	xUnitReporter.report(sessionResult, 'reports/results.xml');
-	fs.writeFileSync('reports/coverage.json', JSON.stringify(lcovReporter.convert(sessionResult), null, `\t`));
+	fs.writeFileSync('reports/coverage.lcov',
+		lcovReporter.convert(
+			sessionResult.suites.flatMap(s => s.tests).map(t => {
+				return {
+					id: t.id,
+					coverage: t.lastRun.coverage
+				};
+			})
+		)
+	);
 
 	//	analysis
 	//	TODO: this should be externalized

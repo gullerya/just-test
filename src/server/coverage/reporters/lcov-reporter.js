@@ -32,7 +32,7 @@
 // 	]
 // };
 
-// import os from 'os';
+import os from 'os';
 
 export default {
 	convert
@@ -44,53 +44,32 @@ export default {
  * @param {object} coverageData coverage data in `just-test` format
  */
 function convert(coverageData) {
-	return coverageData;
+	const testReports = [];
+	coverageData.forEach(test => {
+		//	test name
+		let testReport = `TN:${test.id}${os.EOL}`;
 
-	// const verficationError = verifyCoverageData(coverageData);
-	// if (verficationError) {
-	// 	console.error(verficationError);
-	// 	return null;
-	// }
+		//	files
+		test.coverage.forEach(file => {
+			//	file name
+			testReport += `SF:${file.url}${os.EOL}`;
 
-	// const testReports = [];
-	// coverageData.tests.forEach(test => {
-	// 	//	test name
-	// 	let testReport = `TN:${test.testName}${os.EOL}${os.EOL}`;
+			//	lines
+			let hitLines = 0;
+			file.lines.forEach(lineCov => {
+				const lineHitsMax = lineCov.covRanges.reduce((a, c) => Math.max(a, c.hits), 0);
+				testReport += `DA:${lineCov.number},${lineHitsMax}${os.EOL}`;
+				hitLines += lineHitsMax > 0 ? 1 : 0;
+			});
 
-	// 	//	files
-	// 	test.coverage.files.forEach(file => {
-	// 		//	file name
-	// 		testReport += `SF:${file.path}${os.EOL}`;
+			testReport += `LF:${file.lines.length}${os.EOL}`;
+			testReport += `LH:${hitLines}${os.EOL}`;
+			testReport += `end_of_record${os.EOL}${os.EOL}`;
+		});
 
-	// 		//	lines
-	// 		let hitLines = 0;
-	// 		file.lines.forEach(lineCov => {
-	// 			const lineHitsMax = lineCov.covRanges.reduce((a, c) => Math.max(a, c.hits), 0);
-	// 			testReport += `DA:${lineCov.number},${lineHitsMax}${os.EOL}`;
-	// 			hitLines += lineHitsMax > 0 ? 1 : 0;
-	// 		});
+		//	end of record
+		testReports.push(testReport);
+	});
 
-	// 		testReport += `LF:${file.lines.length}${os.EOL}`;
-	// 		testReport += `LH:${hitLines}${os.EOL}`;
-	// 		testReport += `end_of_record${os.EOL}`;
-	// 	});
-
-	// 	//	end of record
-	// 	testReport += 'end_of_record';
-	// 	testReports.push(testReport);
-	// });
-
-	// return testReports.join(os.EOL + os.EOL + os.EOL);
-}
-
-function verifyCoverageData(coverageData) {
-	if (!coverageData || typeof coverageData !== 'object' ||
-		!Array.isArray(coverageData.tests) || !coverageData.tests.length ||
-		coverageData.tests.some(test => !test.testName || !/^[a-zA-Z._]+$/.test(test.testName) ||
-			!test.coverage || !Array.isArray(test.coverage.files) || !test.coverage.files.length)
-	) {
-		return 'coverage data is corrupted or incomplete';
-	} else {
-		return null;
-	}
+	return testReports.join(os.EOL + os.EOL + os.EOL);
 }

@@ -1,15 +1,1 @@
-const some = 'some';
-
-export {
-	topLevel
-}
-
-function topLevel() {
-	let a = 1;
-
-	const innerLambda = () => { };
-
-	const promise = new Promise(r => {
-		r();
-	});
-}
+const some = 'some'; export { topLevel }; function topLevel() { let a = 1; const innerLambda = (r) => { r ? r() : undefined; }; const promise = new Promise(innerLambda); innerLambda(); } let be = 'else';

@@ -3,7 +3,7 @@ import Range from './range.js';
 export default class RangeCov extends Range {
 	constructor(beg, end, hits) {
 		super(beg, end);
-		this.hits = hits ?? 0;
+		this.hits = hits || 0;
 	}
 
 	static merge(rcA, rcB) {
