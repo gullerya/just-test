@@ -33,6 +33,36 @@ suite.test('RangeCov - negative (beg lesser than end)', () => {
 	expectError: 'beg MUST preceed end'
 });
 
+suite.test('range - isAfterNonAdjacent / isBeforeNonAdjacent', test => {
+	const a1 = new RangeCov(0, 3, 1);
+	const b1 = new RangeCov(4, 7, 1);
+
+	test.assert.isTrue(a1.isBeforeNonAdjacent(b1));
+	test.assert.isTrue(b1.isAfterNonAdjacent(a1));
+
+	const a2 = new RangeCov(0, 3, 1);
+	const b2 = new RangeCov(3, 7, 1);
+
+	test.assert.isFalse(a2.isBeforeNonAdjacent(b2));
+	test.assert.isFalse(b2.isAfterNonAdjacent(a2));
+});
+
+suite.test('range - isWithin / contains', test => {
+	const a1 = new RangeCov(0, 7, 1);
+	const b1 = new RangeCov(4, 7, 1);
+
+	test.assert.isTrue(a1.contains(b1));
+	test.assert.isTrue(b1.isWithin(a1));
+
+	const a2 = new RangeCov(0, 6, 1);
+	const b2 = new RangeCov(3, 7, 1);
+
+	test.assert.isFalse(a2.isWithin(b2));
+	test.assert.isFalse(b2.isWithin(a2));
+	test.assert.isFalse(a2.contains(b2));
+	test.assert.isFalse(b2.contains(a2));
+});
+
 suite.test('merge distant ranges', test => {
 	const a = new RangeCov(0, 3, 1);
 	const b = new RangeCov(4, 7, 1);

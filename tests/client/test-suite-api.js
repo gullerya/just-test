@@ -4,7 +4,8 @@ const
 	suite = globalThis.getSuite('Suite APIs');
 
 suite.test('suite - base API', test => {
-	const s = getSuite('suite-under-test');
+	const sn = test.getRandom();
+	const s = getSuite(sn);
 
 	test.assert.isObject(s);
 	test.assert.isFunction(s.test);

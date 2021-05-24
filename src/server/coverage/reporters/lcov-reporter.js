@@ -39,6 +39,7 @@
 // };
 
 import os from 'os';
+import { calcRangeCoverage } from '../../../common/models/coverage/range-utils.js';
 
 export default {
 	convert
@@ -51,31 +52,32 @@ export default {
  */
 function convert(coverageData) {
 	const testReports = [];
-	coverageData.forEach(test => {
+
+	for (const test of coverageData) {
 		//	test name
 		let testReport = `TN:${test.id}${os.EOL}`;
 
 		//	files
-		test.coverage.forEach(file => {
+		for (const fileCov of test.coverage) {
 			//	file name
-			testReport += `SF:${file.url}${os.EOL}`;
+			testReport += `SF:${fileCov.url}${os.EOL}`;
 
 			//	lines
-			let hitLines = 0;
-			file.lines.forEach(lineCov => {
-				const lineHitsMax = lineCov.ranges.reduce((a, c) => Math.max(a, c.hits), 0);
+			let allLinesHit = 0;
+			for (const lineCov of fileCov.lines) {
+				const lineHitsMax = calcRangeCoverage(lineCov, fileCov.ranges).max;
 				testReport += `DA:${lineCov.number},${lineHitsMax}${os.EOL}`;
-				hitLines += lineHitsMax > 0 ? 1 : 0;
-			});
+				allLinesHit += lineHitsMax > 0 ? 1 : 0;
+			}
 
-			testReport += `LF:${file.lines.length}${os.EOL}`;
-			testReport += `LH:${hitLines}${os.EOL}`;
+			testReport += `LF:${fileCov.lines.length}${os.EOL}`;
+			testReport += `LH:${allLinesHit}${os.EOL}`;
 			testReport += `end_of_record${os.EOL}${os.EOL}`;
-		});
+		}
 
 		//	end of record
 		testReports.push(testReport);
-	});
+	}
 
 	return testReports.join(os.EOL + os.EOL + os.EOL);
 }

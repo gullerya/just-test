@@ -1,19 +1,12 @@
-export default class RangeCov {
+import BaseRange from './base-range.js';
+export default class RangeCov extends BaseRange {
 	constructor(beg, end, hits) {
-		if (typeof beg !== 'number' || beg < 0) {
-			throw new Error(`beg MUST be a non-negative number; got '${beg}'`);
+		super(beg, end);
+
+		if (typeof hits !== 'number' || hits < 0) {
+			throw new Error(`hits MUST be a non-negative number; got '${hits}'`);
 		}
-		if (typeof end !== 'number' || end < 0) {
-			throw new Error(`end MUST be a non-negative number; got '${end}'`);
-		}
-		if (beg >= end) {
-			throw new Error(`beg MUST preceed end; got beg = ${beg}, end = ${end}`);
-		}
-		if (typeof hits !== 'number') {
-			throw new Error(`hits MUST be a number; got '${hits}'`);
-		}
-		this.beg = beg;
-		this.end = end;
+
 		this.hits = hits;
 	}
 }
