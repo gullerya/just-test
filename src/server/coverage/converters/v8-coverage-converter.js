@@ -42,14 +42,14 @@ function buildBaseSet(fileCov) {
 		linePos = 1;
 	//	all lines but last
 	for (const eolPos of eolPoses) {
-		const skip = false;
+		let loc = true;
 		if (eolPos.index === indexPos) {
-			skip = true;	//	empty line
+			loc = false;		//	empty line
 		}
 		if (text.substring(eolPos + eolPos[0].length).match(/\s*\/\//)) {
-			skip = true;	//	comment staring with `//`
+			loc = false;		//	comment staring with `//`
 		}
-		if (!skip) {
+		if (loc) {
 			fileCov.lines.push(new LineCov(linePos, indexPos, eolPos.index));
 		}
 		indexPos = eolPos.index + eolPos[0].length;
