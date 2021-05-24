@@ -14,7 +14,7 @@ initComponent('jt-error', class extends ComponentBase {
 			const text = line.replace(/^\s*at\s*/, '');
 			const lib =
 				text.indexOf('node_modules') >= 0 ||
-				text.indexOf('/ui/') >= 0 ||
+				text.indexOf('/core/') >= 0 ||
 				text.indexOf('/libs/') >= 0 ||
 				text.indexOf('new Promise') >= 0 ||
 				text.indexOf('<anonymous>') >= 0;

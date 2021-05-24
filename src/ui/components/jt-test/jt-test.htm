@@ -20,16 +20,21 @@
 	}
 
 	.re-run {
-		width: 18px;
+		width: 24px;
+		padding: 3px;
 		text-align: center;
-		opacity: 0;
-		transition: opacity 120ms;
+		border-radius: 50%;
+		visibility: hidden;
 		cursor: pointer;
 		user-select: none;
 	}
 
-	:host(:hover:not(.skip):not(.runs)) .re-run {
-		opacity: 1;
+	.re-run:hover {
+		background-color: #ddd;
+	}
+
+	:host(:hover) .re-run {
+		visibility: visible;
 	}
 
 	.duration {

@@ -117,6 +117,7 @@ function installTestRegistrationAPIs() {
 	Object.defineProperty(globalThis, 'getSuite', { value: getSuite });
 }
 
+//	TODO: on each failure here user should get a visual feedback
 /**
  * imports suites/tests metadata
  * - has a side effect of collecting suites/tests metadata in the state service
@@ -140,6 +141,9 @@ async function collectTests(testsResources, stateService) {
 	console.info(`... test resources fetched (${(P.now() - started).toFixed(1)}ms)`);
 }
 
+//	TODO: this and below are registration methods
+//	TODO: move them into suite-runner.js
+//	TODO: on each failure here user should get a visual feedback
 function getSuite(suiteName, suiteOptions) {
 	const suiteMeta = validateNormalizeSuiteParams(suiteName, suiteOptions);
 	_stateService.obtainSuite(suiteMeta.name, suiteMeta.options);

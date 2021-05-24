@@ -2,9 +2,9 @@
 import Logger from '../logger/logger.js';
 import { P } from '../../common/performance-utils.js';
 import buildConfig from './coverage-configurer.js';
-import RangeCov from './model/range-cov.js';
-import LineCov from './model/line-cov.js';
-import FileCov from './model/file-cov.js';
+import LineCov from '../../common/models/coverage/line-cov.js';
+import FileCov from '../../common/models/coverage/file-cov.js';
+import processV8ScriptCoverage from './converters/v8-coverage-converter.js';
 import lcovReporter from './reporters/lcov-reporter.js';
 import glob from 'glob';
 
@@ -115,7 +115,7 @@ async function report(covConf, reportPath) {
 		fileCov.lines.forEach(l => {
 			if (l.isCoveredPart()) {
 				let s = '';
-				l.covRanges.forEach(lcr => {
+				l.ranges.forEach(lcr => {
 					if (lcr.hits) {
 						s += '^' + fileCov.text.substring(lcr.beg, lcr.end) + '^';
 					} else {
@@ -128,25 +128,4 @@ async function report(covConf, reportPath) {
 
 		covData.tests[0].coverage.files.push(fileCov);
 	}
-}
-
-function processV8ScriptCoverage(url, scriptCoverage) {
-	const result = new FileCov(url);
-
-	if (!scriptCoverage || !Array.isArray(scriptCoverage.functions)) {
-		throw new Error(`invalid script coverage ${scriptCoverage}`);
-	}
-
-	for (const fCov of scriptCoverage.functions) {
-		//	add up to functions coverage
-		//	TODO
-
-		//	add up to ranges coverage
-		for (const rCov of fCov.ranges) {
-			const jtr = new RangeCov(rCov.startOffset, rCov.endOffset, rCov.count);
-			result.addRangeCov(jtr);
-		}
-	}
-
-	return result;
 }

@@ -3,8 +3,9 @@ import RangeCov from './range-cov.js';
 export default class FileCov {
 	constructor(url) {
 		this.url = url;
-		this.lines = [];
+		this.functions = [];
 		this.ranges = [];
+		this.lines = [];
 		Object.seal(this);
 	}
 

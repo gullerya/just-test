@@ -20,9 +20,15 @@
 // 			coverage: {
 // 				files: [
 // 					{
-// 						path: '/some/full/path/to/file.js',
+// 						url: './some/full/path/to/file.js',
+//						functions: [
+//							...	
+//						],
+//						ranges: [
+//							...	
+//						],
 // 						lines: [
-// 							{number: 1, beg: 12, end: 25, covRanges: [ { beg: 12, end: 15, hits: 0 }, { beg: 15, end: 25, hits: 5 } ]},
+// 							{number: 1, beg: 12, end: 25, hits: 5, ranges: [ { beg: 12, end: 15, hits: 0 }, { beg: 15, end: 25, hits: 5 } ]},
 // 							{ ... },
 // 						]
 // 					}
@@ -57,7 +63,7 @@ function convert(coverageData) {
 			//	lines
 			let hitLines = 0;
 			file.lines.forEach(lineCov => {
-				const lineHitsMax = lineCov.covRanges.reduce((a, c) => Math.max(a, c.hits), 0);
+				const lineHitsMax = lineCov.ranges.reduce((a, c) => Math.max(a, c.hits), 0);
 				testReport += `DA:${lineCov.number},${lineHitsMax}${os.EOL}`;
 				hitLines += lineHitsMax > 0 ? 1 : 0;
 			});
