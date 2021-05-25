@@ -54,7 +54,20 @@ class BrowserEnvImpl extends EnvironmentBase {
 			await this.installCoverageCollector(this.envConfig.coverage, browsingContext);
 		}
 
-		browsingContext.on('page', async () => { });
+		// browsingContext.on('page', async page => {
+		// 	if (page === mainPage) {
+		// 		return;
+		// 	}
+
+		// 	const title = await page.title();
+		// 	console.log(title);
+		// 	// await page.coverage.startJSCoverage();
+
+		// 	const cdpSession = await page.context().newCDPSession(page);
+		// 	await cdpSession.send('Profiler.enable');
+		// 	await cdpSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
+		// 	this.cdpSessions[title] = cdpSession;
+		// });
 
 		const mainPage = await browsingContext.newPage();
 		mainPage.on('console', async msg => {
@@ -100,9 +113,11 @@ class BrowserEnvImpl extends EnvironmentBase {
 			await cdpSession.send('Profiler.enable');
 			await cdpSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
 			this.cdpSessions[testId] = cdpSession;
+
+			// await page.coverage.startJSCoverage();
 		});
 
-		browsingContext.exposeBinding(INTEROP_NAMES.TAKE_COVERAGE_METHOD, async (_, testId) => {
+		browsingContext.exposeBinding(INTEROP_NAMES.TAKE_COVERAGE_METHOD, async ({ page }, testId) => {
 			const result = [];
 
 			const cdpSession = this.cdpSessions[testId];
@@ -111,16 +126,27 @@ class BrowserEnvImpl extends EnvironmentBase {
 			await cdpSession.detach();
 			delete this.cdpSessions[testId];
 
-			for (const entry of jsCoverage) {
-				const trPath = entry.url.replace(`http://localhost:${serverConfig.port}/aut/`, './');
+			// const jsCoverage = await page.coverage.stopJSCoverage();
+
+			const filteredEntries = jsCoverage.map(e => {
+				const trPath = e.url.replace(`http://localhost:${serverConfig.port}/aut/`, './');
 				if (coverageTargets.indexOf(trPath) < 0) {
-					continue;
+					return null;
+				} else {
+					const result = { ...e };
+					result.url = trPath;
+					return result;
 				}
+			}).filter(Boolean);
+
+			console.log(`${filteredEntries.length} - ${testId} - ${filteredEntries.map(e => e.scriptId).join(', ')}`);
+
+			for (const scriptEntry of filteredEntries) {
 				//	TODO: should check each new entry, cause seen unequal duplications
-				if (result[trPath]) {
+				if (result[scriptEntry.url]) {
 					continue;
 				}
-				result.push(processV8ScriptCoverage(trPath, entry));
+				result.push(processV8ScriptCoverage(scriptEntry));
 			}
 
 			return result;

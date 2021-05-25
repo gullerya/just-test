@@ -59,15 +59,19 @@ async function executeInPage(test) {
 	const w = globalThis.open('', test.id);
 	const toCoverage = Boolean(w[INTEROP_NAMES.START_COVERAGE_METHOD]);
 	const testRunBox = new TestRunBox(test, toCoverage);
-	w.getSuite = getSuite.bind(testRunBox);
+	if (toCoverage) {
+		await w[INTEROP_NAMES.START_COVERAGE_METHOD](test.id);
+	}
+
+	//	add iframe
+
+	//	inject the relevant part
 
 	const base = w.document.createElement('base');
 	base.href = globalThis.location.origin;
 	w.document.head.appendChild(base);
+	w.getSuite = getSuite.bind(testRunBox);
 
-	if (toCoverage) {
-		await w[INTEROP_NAMES.START_COVERAGE_METHOD](test.id);
-	}
 	injectTestIntoDocument(w.document, test.source);
 	testRunBox.ended.then(async () => {
 		if (toCoverage) {
@@ -86,6 +90,6 @@ function executeInNodeJS(test) {
 function injectTestIntoDocument(envDocument, testSource) {
 	const s = envDocument.createElement('script');
 	s.type = 'module';
-	s.src = `/tests/${testSource}`;
+	s.src = `/tests/${testSource}?${performance.now()}`;
 	envDocument.head.appendChild(s);
 }

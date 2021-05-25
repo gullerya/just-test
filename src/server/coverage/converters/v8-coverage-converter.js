@@ -5,21 +5,20 @@ import RangeCov from '../../../common/models/coverage/range-cov.js';
 
 export default convert;
 
-function convert(scriptUrl, scriptCoverage) {
-	if (!scriptUrl || typeof scriptUrl !== 'string') {
-		throw new Error(`invalid script URL '${scriptUrl}'`);
-	}
-	if (!scriptCoverage || !Array.isArray(scriptCoverage.functions)) {
+function convert(scriptCoverage) {
+	if (!scriptCoverage ||
+		!Array.isArray(scriptCoverage.functions) ||
+		!scriptCoverage.url || typeof scriptCoverage.url !== 'string') {
 		throw new Error(`invalid script coverage ${scriptCoverage}`);
 	}
 
-	const result = new FileCov(scriptUrl);
+	const result = new FileCov(scriptCoverage.url);
 
 	buildBaseSet(result);
 
 	for (const fCov of scriptCoverage.functions) {
 		if (fCov.isBlockCoverage) {
-			console.log(fCov.ranges);
+			//	console.log(fCov.ranges);
 		}
 
 		//	add up to functions coverage

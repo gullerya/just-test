@@ -1,7 +1,7 @@
 import RangeCov from '/aut/bin/common/models/coverage/range-cov.js';
 import { merge } from '/aut/bin/common/models/coverage/range-utils.js';
 
-const suite = getSuite('Coverage model');
+const suite = globalThis.getSuite('Coverage model');
 
 suite.test('RangeCov - negative (beg not a number)', () => {
 	new RangeCov('some');
