@@ -47,17 +47,18 @@ function buildBaseSet(fileCov) {
 		linePos = 1;
 	//	all lines but last
 	for (const eolPos of eolPoses) {
+		const lineText = text.substring(indexPos, eolPos.index);
 		let loc = true;
 		if (eolPos.index === indexPos) {
 			loc = false;		//	empty line
 		}
-		if (text.substring(indexPos, eolPos.index).match(/\s*\/\//)) {
+		if (lineText.match(/\s*\/\//)) {
 			loc = false;		//	comment staring with `//`
 		}
-		if (text.substring(indexPos, eolPos.index).match(/\/\*\*/)) {
+		if (lineText.match(/\/\*\*/)) {
 			comment = true;
 		}
-		if (text.substring(indexPos, eolPos.index).match(/\*\//)) {
+		if (lineText.match(/\*\//)) {
 			comment = false;
 			loc = false;
 		}

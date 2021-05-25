@@ -95,7 +95,6 @@ class BrowserEnvImpl extends EnvironmentBase {
 			return;
 		}
 
-
 		browsingContext.exposeBinding(INTEROP_NAMES.START_COVERAGE_METHOD, async ({ page }, testId) => {
 			const cdpSession = await page.context().newCDPSession(page);
 			await cdpSession.send('Profiler.enable');
