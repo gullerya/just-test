@@ -42,7 +42,8 @@ function buildBaseSet(fileCov) {
 
 	//	setup lines from source
 	const eolPoses = text.matchAll(/[\r\n]{1,2}/gm);
-	let indexPos = 0,
+	let comment = false,
+		indexPos = 0,
 		linePos = 1;
 	//	all lines but last
 	for (const eolPos of eolPoses) {
@@ -50,10 +51,17 @@ function buildBaseSet(fileCov) {
 		if (eolPos.index === indexPos) {
 			loc = false;		//	empty line
 		}
-		if (text.substring(indexPos).match(/\s*\/\//)) {
+		if (text.substring(indexPos, eolPos.index).match(/\s*\/\//)) {
 			loc = false;		//	comment staring with `//`
 		}
-		if (loc) {
+		if (text.substring(indexPos, eolPos.index).match(/\/\*\*/)) {
+			comment = true;
+		}
+		if (text.substring(indexPos, eolPos.index).match(/\*\//)) {
+			comment = false;
+			loc = false;
+		}
+		if (loc && !comment) {
 			fileCov.lines.push(new LineCov(linePos, indexPos, eolPos.index));
 		}
 		indexPos = eolPos.index + eolPos[0].length;
