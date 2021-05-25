@@ -18,6 +18,10 @@ function convert(scriptUrl, scriptCoverage) {
 	buildBaseSet(result);
 
 	for (const fCov of scriptCoverage.functions) {
+		if (fCov.isBlockCoverage) {
+			console.log(fCov.ranges);
+		}
+
 		//	add up to functions coverage
 		//	TODO
 
@@ -46,7 +50,7 @@ function buildBaseSet(fileCov) {
 		if (eolPos.index === indexPos) {
 			loc = false;		//	empty line
 		}
-		if (text.substring(eolPos + eolPos[0].length).match(/\s*\/\//)) {
+		if (text.substring(indexPos).match(/\s*\/\//)) {
 			loc = false;		//	comment staring with `//`
 		}
 		if (loc) {

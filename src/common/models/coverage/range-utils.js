@@ -57,7 +57,7 @@ function merge(a, b) {
 function calcRangeCoverage(testedRange, coveredRanges) {
 	RangeCov.validate(testedRange, ...coveredRanges);
 
-	let min = 0, max = 0;
+	let min = Number.MAX_VALUE, max = 0;
 	for (const cr of coveredRanges) {
 		if (!overlap(testedRange, cr)) {
 			continue;
@@ -65,6 +65,7 @@ function calcRangeCoverage(testedRange, coveredRanges) {
 		min = Math.min(min, cr.hits);
 		max = Math.max(max, cr.hits);
 	}
+
 	return { min, max };
 }
 

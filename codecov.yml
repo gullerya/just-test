@@ -1,2 +1,2 @@
 fixes:
-  - "bin/::src/"
+  - "./bin/::src/"

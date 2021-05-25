@@ -107,12 +107,12 @@ class BrowserEnvImpl extends EnvironmentBase {
 			const result = [];
 
 			const cdpSession = this.cdpSessions[testId];
-			const jsCoverage = await cdpSession.send('Profiler.takePreciseCoverage');
+			const jsCoverage = (await cdpSession.send('Profiler.takePreciseCoverage')).result;
 			await cdpSession.send('Profiler.stopPreciseCoverage');
 			await cdpSession.detach();
 			delete this.cdpSessions[testId];
 
-			for (const entry of jsCoverage.result) {
+			for (const entry of jsCoverage) {
 				const trPath = entry.url.replace(`http://localhost:${serverConfig.port}/aut/`, './');
 				if (coverageTargets.indexOf(trPath) < 0) {
 					continue;
