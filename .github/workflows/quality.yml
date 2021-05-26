@@ -85,7 +85,7 @@ jobs:
           node-version: 14
 
       - name: Install
-        run: npm install
+        run: npm install && npx playwright install-deps
 
       - name: Build
         run: npm run build
