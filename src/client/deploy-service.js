@@ -20,7 +20,8 @@ export {
 function deployTest(test, sessionMetadata) {
 	let deployPromise;
 	if (sessionMetadata.interactive || sessionMetadata.browser.type === 'firefox') {
-		deployPromise = executeInFrame(test);
+		deployPromise = executeInPage(test);
+		//deployPromise = executeInFrame(test);
 	} else if (sessionMetadata.browser) {
 		deployPromise = executeInPage(test);
 	} else {
@@ -56,17 +57,13 @@ function executeInFrame(test) {
 }
 
 async function executeInPage(test) {
-	const w = globalThis.open('', test.id);
-	const toCoverage = Boolean(w[INTEROP_NAMES.START_COVERAGE_METHOD]);
-	const testRunBox = new TestRunBox(test, toCoverage);
-	if (toCoverage) {
+	const w = globalThis.open('', '_blank', 'width=1200');
+	const isCoverage = Boolean(w[INTEROP_NAMES.START_COVERAGE_METHOD]);
+	if (isCoverage) {
 		await w[INTEROP_NAMES.START_COVERAGE_METHOD](test.id);
 	}
 
-	//	add iframe
-
-	//	inject the relevant part
-
+	const testRunBox = new TestRunBox(test, isCoverage);
 	const base = w.document.createElement('base');
 	base.href = globalThis.location.origin;
 	w.document.head.appendChild(base);
@@ -74,7 +71,7 @@ async function executeInPage(test) {
 
 	injectTestIntoDocument(w.document, test.source);
 	testRunBox.ended.then(async () => {
-		if (toCoverage) {
+		if (isCoverage) {
 			const coverage = await w[INTEROP_NAMES.TAKE_COVERAGE_METHOD](test.id);
 			testRunBox.resolveCoverage(coverage);
 		}
@@ -90,6 +87,6 @@ function executeInNodeJS(test) {
 function injectTestIntoDocument(envDocument, testSource) {
 	const s = envDocument.createElement('script');
 	s.type = 'module';
-	s.src = `/tests/${testSource}?${performance.now()}`;
+	s.src = `/tests/${testSource}`;
 	envDocument.head.appendChild(s);
 }

@@ -7,7 +7,7 @@
 				"maxFail": 0,
 				"maxSkip": 0,
 				"include": [
-					"./tests/**/*.js"
+					"./tests/**/*-random-utils.js"
 				]
 			}
 		}

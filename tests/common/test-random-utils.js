@@ -18,7 +18,7 @@ suite.test('random all', test => {
 
 suite.test('random numeric', test => {
 	const it = 100;
-	const rl = 12;
+	const rl = 10;
 	const sm = new Set();
 	for (let i = 0; i < it; i++) {
 		sm.add(getRandom(rl, CHAR_SOURCES.numeric))
@@ -33,7 +33,7 @@ suite.test('random numeric', test => {
 
 suite.test('random alpha lower', test => {
 	const it = 100;
-	const rl = 8;
+	const rl = 12;
 	const sm = new Set();
 	for (let i = 0; i < it; i++) {
 		sm.add(getRandom(rl, CHAR_SOURCES.alphaLower));
@@ -48,7 +48,7 @@ suite.test('random alpha lower', test => {
 
 suite.test('random alpha upper', test => {
 	const it = 100;
-	const rl = 8;
+	const rl = 14;
 	const sm = new Set();
 	for (let i = 0; i < it; i++) {
 		sm.add(getRandom(rl, CHAR_SOURCES.alphaUpper));
@@ -63,7 +63,7 @@ suite.test('random alpha upper', test => {
 
 suite.test('random alpha all', test => {
 	const it = 100;
-	const rl = 8;
+	const rl = 16;
 	const sm = new Set();
 	for (let i = 0; i < it; i++) {
 		sm.add(getRandom(rl, CHAR_SOURCES.alphaLower + CHAR_SOURCES.alphaUpper));

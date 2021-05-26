@@ -18,7 +18,7 @@ function convert(scriptCoverage) {
 
 	for (const fCov of scriptCoverage.functions) {
 		if (fCov.isBlockCoverage) {
-			//	console.log(fCov.ranges);
+			console.log(fCov.ranges);
 		}
 
 		//	add up to functions coverage

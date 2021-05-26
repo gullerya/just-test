@@ -30,7 +30,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 	constructor(sessionId, envConfig) {
 		super(sessionId);
 		this.envConfig = envConfig;
-		this.cdpSessions = {};
+		this.tctx = {};
 	}
 
 	/**
@@ -109,10 +109,30 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}
 
 		browsingContext.exposeBinding(INTEROP_NAMES.START_COVERAGE_METHOD, async ({ page }, testId) => {
-			const cdpSession = await page.context().newCDPSession(page);
-			await cdpSession.send('Profiler.enable');
-			await cdpSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
-			this.cdpSessions[testId] = cdpSession;
+			const session = await page.context().newCDPSession(page);
+
+			//if (!this.setc) {
+			//	this.setc = true;
+			await Promise.all([
+				session.send('Profiler.enable'),
+				session.send('Debugger.enable')
+			]);
+			await Promise.all([
+				session.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true }),
+				session.send('Debugger.setSkipAllPauses', { skip: true })
+			]);
+			//}
+
+			this.tctx[testId] = {
+				session: session,
+				scripts: []
+			};
+
+			session.on('Debugger.scriptParsed', e => {
+				if (e.url.includes('/aut/')) {
+					this.tctx[testId].scripts.push(e.scriptId);
+				}
+			});
 
 			// await page.coverage.startJSCoverage();
 		});
@@ -120,17 +140,33 @@ class BrowserEnvImpl extends EnvironmentBase {
 		browsingContext.exposeBinding(INTEROP_NAMES.TAKE_COVERAGE_METHOD, async ({ page }, testId) => {
 			const result = [];
 
-			const cdpSession = this.cdpSessions[testId];
-			const jsCoverage = (await cdpSession.send('Profiler.takePreciseCoverage')).result;
-			await cdpSession.send('Profiler.stopPreciseCoverage');
-			await cdpSession.detach();
-			delete this.cdpSessions[testId];
+			const session = this.tctx[testId].session;
+
+
+			const jsCoverage = (await session.send('Profiler.takePreciseCoverage')).result;
+			// await session.send('Profiler.stopPreciseCoverage');
+			await new Promise(r => setTimeout(r, 1500));
+			// await cdpSession.detach();
+			// delete this.cdpSessions[testId];
 
 			// const jsCoverage = await page.coverage.stopJSCoverage();
 
+			// const filteredEntries = jsCoverage.map(e => {
+			// 	const trPath = e.url.replace(`http://localhost:${serverConfig.port}/aut/`, './');
+			// 	if (coverageTargets.indexOf(trPath) < 0) {
+			// 		return null;
+			// 	} else {
+			// 		const result = { ...e };
+			// 		result.url = trPath;
+			// 		return result;
+			// 	}
+			// }).filter(Boolean);
+
+			console.log(Object.values(this.tctx).map(o => o.scripts));
+
 			const filteredEntries = jsCoverage.map(e => {
 				const trPath = e.url.replace(`http://localhost:${serverConfig.port}/aut/`, './');
-				if (coverageTargets.indexOf(trPath) < 0) {
+				if (this.tctx[testId].scripts.indexOf(e.scriptId) < 0) {
 					return null;
 				} else {
 					const result = { ...e };
