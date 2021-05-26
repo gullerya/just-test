@@ -72,7 +72,7 @@ function parseCLArgs(args) {
 
 async function executeSession(serverBaseUrl, clArguments) {
 	const config = await readConfigAndMergeWithCLArguments(clArguments);
-	const sessionDetails = await sentAddSession(serverBaseUrl, config);
+	const sessionDetails = await sendAddSession(serverBaseUrl, config);
 	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
 	xUnitReporter.report(sessionResult, 'reports/results.xml');
 	fs.writeFileSync('reports/coverage.lcov',
@@ -113,7 +113,7 @@ async function readConfigAndMergeWithCLArguments(clArguments) {
 	return result;
 }
 
-async function sentAddSession(serverBaseUrl, config) {
+async function sendAddSession(serverBaseUrl, config) {
 	const addSessionUrl = `${serverBaseUrl}/api/v1/sessions`;
 	const options = {
 		method: 'POST',
