@@ -40,7 +40,7 @@ class ServerService {
 		//	init service
 		this[STATUS_KEY] = STATUS_STOPPED;
 		this[SERVER_KEY] = null;
-		this[BASE_URL_KEY] = `http://localhost:${this.effectiveConfig.port}`;
+		this[BASE_URL_KEY] = this.effectiveConfig.origin;
 		this[HANDLERS_READY_PROMISE_KEY] = this.initHandlers();
 	}
 
@@ -77,12 +77,14 @@ class ServerService {
 
 		const handlers = await this[HANDLERS_READY_PROMISE_KEY];
 
-		const port = this[CONFIG_KEY].port;
-		logger.info(`starting local server on port ${port}...`);
+		const
+			origin = this[CONFIG_KEY].origin,
+			port = this[CONFIG_KEY].port;
+		logger.info(`starting server on port ${port} (full origin '${origin}')...`);
 
 		//	init dispatcher
 		const mainRequestDispatcher = async function mainRequestHandler(req, res) {
-			const { pathname } = new URL(req.url, `http://localhost:${port}`);
+			const { pathname } = new URL(req.url, origin);
 			const path = pathname === '/' || pathname === '' ? '/ui' : pathname;
 			const handler = handlers.find(h => path.startsWith(h.basePath));
 			if (handler) {

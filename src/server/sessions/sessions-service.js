@@ -5,6 +5,7 @@
  * - providing session data upon demand
  */
 import Logger from '../logger/logger.js';
+import { parseTestId } from '../../common/interop-utils.js';
 import { getRandom } from '../../common/random-utils.js';
 import buildConfig from './sessions-configurer.js';
 import { launch, dismiss } from '../environments/environments-service.js';
@@ -69,8 +70,21 @@ async function storeResult(sesId, envId, sesResult) {
 	if (!session) {
 		throw new Error(`session ID '${sesId}' not exists`);
 	}
+
+	//	enrich with artifacts
+	const artifacts = await dismiss(envId);
+	if (artifacts.coverage) {
+		for (const [testId, coverage] of Object.entries(artifacts.coverage)) {
+			const [sid] = parseTestId(testId);
+			const suite = sesResult.suites.find(s => s.id === sid);
+			const test = suite.tests.find(t => t.id === testId);
+			test.lastRun.coverage = coverage;
+		}
+	}
+	if (artifacts.logs) {
+		//	TBD
+	}
+
 	session.result = sesResult;
 	logger.info(`environment '${envId}' reported results for session '${sesId}'`);
-
-	await dismiss(envId);
 }

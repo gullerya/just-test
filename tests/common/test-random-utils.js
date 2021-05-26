@@ -81,3 +81,15 @@ suite.test('negative - length null', () => {
 }, {
 	expectError: 'MUST be a number'
 });
+
+suite.test('negative - length less then 1', () => {
+	getRandom(0);
+}, {
+	expectError: 'MUST be a number'
+});
+
+suite.test('negative - length above the 128', () => {
+	getRandom(0);
+}, {
+	expectError: 'MUST be a number'
+});

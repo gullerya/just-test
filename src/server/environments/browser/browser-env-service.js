@@ -9,6 +9,7 @@
  */
 import Logger, { FileOutput } from '../../logger/logger.js';
 import { INTEROP_NAMES } from '../../../common/constants.js';
+import { waitInterval } from '../../../common/await-utils.js';
 import { config as serverConfig } from '../../server-service.js';
 import { collectTargetSources, processV8ScriptCoverage } from '../../coverage/coverage-service.js';
 import { EnvironmentBase } from '../environment-base.js';
@@ -28,8 +29,16 @@ class BrowserEnvImpl extends EnvironmentBase {
 	 */
 	constructor(sessionId, envConfig) {
 		super(sessionId);
+
 		this.envConfig = envConfig;
-		this.scriptsCoverageMap = {};
+		this.browser = null;
+		this.consoleLogger = null;
+		this.coverageSession = null;
+		this.scriptsCoverageMap = null;
+		this.dismissPromise = null;
+		this.timeoutHandle = null;
+
+		Object.seal(this);
 	}
 
 	/**
@@ -48,27 +57,11 @@ class BrowserEnvImpl extends EnvironmentBase {
 		});
 
 		const browsingContext = await browser.newContext();
+		const mainPage = await browsingContext.newPage();
 
 		if (this.envConfig.coverage) {
-			await this.installCoverageCollector(this.envConfig.coverage, browsingContext);
+			await this.installCoverageCollector(this.envConfig.coverage, browsingContext, mainPage);
 		}
-
-		// browsingContext.on('page', async page => {
-		// 	if (page === mainPage) {
-		// 		return;
-		// 	}
-
-		// 	const title = await page.title();
-		// 	console.log(title);
-		// 	// await page.coverage.startJSCoverage();
-
-		// 	const cdpSession = await page.context().newCDPSession(page);
-		// 	await cdpSession.send('Profiler.enable');
-		// 	await cdpSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
-		// 	this.cdpSessions[title] = cdpSession;
-		// });
-
-		const mainPage = await browsingContext.newPage();
 		mainPage.on('console', async msg => {
 			const type = msg.type();
 			for (const msgArg of msg.args()) {
@@ -93,36 +86,33 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}, this.envConfig.tests.ttl);
 		browser.once('disconnected', () => this.onDisconnected());
 
-		const envEntryUrl = `http://localhost:${serverConfig.port}/core/client/app.html?ses-id=${this.sessionId}&env-id=${this.envConfig.id}`;
+		const envEntryUrl = `${serverConfig.origin}/core/client/app.html?ses-id=${this.sessionId}&env-id=${this.envConfig.id}`;
 		logger.info(`navigating testing environment to '${envEntryUrl}'...`);
 		await mainPage.goto(envEntryUrl);
-
-		const covSession = await browsingContext.newCDPSession(mainPage);
-		await covSession.send('Profiler.enable');
-		await covSession.send('Debugger.enable');
-		await covSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
-		await covSession.send('Debugger.setSkipAllPauses', { skip: true })
-		setTimeout(async () => {
-			const jsCoverage = (await covSession.send('Profiler.takePreciseCoverage')).result;
-			for (const scriptCoverage of jsCoverage) {
-				if (!(scriptCoverage.scriptId in this.scriptsCoverageMap)) {
-					continue;
-				}
-
-				console.log(`${scriptCoverage.scriptId} - ${JSON.stringify(scriptCoverage)}`);
-			}
-		}, 4000);
 
 		this.browser = browser;
 	}
 
-	async installCoverageCollector(coverageConfig, browsingContext) {
+	async installCoverageCollector(coverageConfig, browsingContext, _mainPage) {
 		const coverageTargets = await collectTargetSources(coverageConfig);
 		if (!coverageTargets || !coverageTargets.length) {
-			console.log('no target found, skipping coverage collection');
+			console.log('no coverage targets found, skipping coverage collection');
 			return;
 		}
 
+		//	install coverage session
+		this.coverageSession = await browsingContext.newCDPSession(_mainPage);
+		await Promise.all([
+			this.coverageSession.send('Profiler.enable'),
+			this.coverageSession.send('Debugger.enable'),
+		]);
+		await Promise.all([
+			this.coverageSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true }),
+			this.coverageSession.send('Debugger.setSkipAllPauses', { skip: true })
+		]);
+
+		//	install test registrar and scripts listener
+		this.scriptsCoverageMap = {};
 		browsingContext.exposeBinding(INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE, async ({ page }, testId) => {
 			const session = await browsingContext.newCDPSession(page);
 
@@ -131,12 +121,8 @@ class BrowserEnvImpl extends EnvironmentBase {
 				session.send('Debugger.setSkipAllPauses', { skip: true })
 			]);
 
-			this.scriptsCoverageMap[testId] = {
-				scripts: []
-			};
-
 			session.on('Debugger.scriptParsed', e => {
-				if (e.url.includes('/aut/')) {
+				if (e.url.startsWith(`${serverConfig.origin}/aut/`)) {
 					if (!this.scriptsCoverageMap[e.scriptId]) {
 						this.scriptsCoverageMap[e.scriptId] = testId;
 					} else {
@@ -144,77 +130,63 @@ class BrowserEnvImpl extends EnvironmentBase {
 					}
 				}
 			});
-
-			//	TODO: dispose session on the page dismiss
-		});
-
-		browsingContext.exposeBinding('non-sense-to-be-removed', async ({ page }, testId) => {
-			return;
-			const result = [];
-
-			const session = this.tctx[testId].session;
-
-
-			//const jsCoverage = (await session.send('Profiler.takePreciseCoverage')).result;
-			// await session.send('Profiler.stopPreciseCoverage');
-			//await new Promise(r => setTimeout(r, 1500));
-			// await cdpSession.detach();
-			// delete this.cdpSessions[testId];
-
-			// const jsCoverage = await page.coverage.stopJSCoverage();
-
-			// const filteredEntries = jsCoverage.map(e => {
-			// 	const trPath = e.url.replace(`http://localhost:${serverConfig.port}/aut/`, './');
-			// 	if (coverageTargets.indexOf(trPath) < 0) {
-			// 		return null;
-			// 	} else {
-			// 		const result = { ...e };
-			// 		result.url = trPath;
-			// 		return result;
-			// 	}
-			// }).filter(Boolean);
-
-			console.log(Object.values(this.tctx).map(o => o.scripts));
-
-			const filteredEntries = jsCoverage.map(e => {
-				const trPath = e.url.replace(`http://localhost:${serverConfig.port}/aut/`, './');
-				if (this.tctx[testId].scripts.indexOf(e.scriptId) < 0) {
-					return null;
-				} else {
-					const result = { ...e };
-					result.url = trPath;
-					return result;
-				}
-			}).filter(Boolean);
-
-			console.log(`${filteredEntries.length} - ${testId} - ${filteredEntries.map(e => e.scriptId).join(', ')}`);
-
-			for (const scriptEntry of filteredEntries) {
-				//	TODO: should check each new entry, cause seen unequal duplications
-				if (result[scriptEntry.url]) {
-					continue;
-				}
-				result.push(processV8ScriptCoverage(scriptEntry));
-			}
-
-			return result;
 		});
 	}
 
 	async dismiss() {
-		// if (!this._dismissPromise) {
-		// 	logger.info(`dismissing environment '${this.envConfig.id}'...`);
-		// 	this._dismissPromise = waitInterval(999)
-		// 		.then(() => this.consoleLogger.close())
-		// 		.then(() => BrowserEnvImpl.closeBrowser(this.browser))
-		// 		.then(() => logger.info(`... environment '${this.envConfig.id}' dismissed`));
-		// }
-		// return this._dismissPromise;
+		if (!this.dismissPromise) {
+			logger.info(`dismissing environment '${this.envConfig.id}'...`);
+			this.dismissPromise = waitInterval(999)
+				.then(async () => {
+					await this.consoleLogger.close();
+					const artifacts = await this.collectArtifacts();
+					await BrowserEnvImpl.closeBrowser(this.browser);
+					logger.info(`... environment '${this.envConfig.id}' dismissed`);
+					return artifacts;
+				});
+		}
+		return this.dismissPromise;
 	}
 
 	onDisconnected() {
 		clearTimeout(this.timeoutHandle);
 		logger.info(`browser environment '${this.envConfig.id}' disconnected`);
+	}
+
+	async collectArtifacts() {
+		const [coverage, logs] = await Promise.all([
+			this.collectCoverage(),
+			this.collectLogs()
+		]);
+		return { coverage, logs };
+	}
+
+	async collectCoverage() {
+		if (!this.coverageSession) {
+			return null;
+		}
+
+		const result = {};
+		const jsCoverage = (await this.coverageSession.send('Profiler.takePreciseCoverage')).result;
+		for (const scriptCoverage of jsCoverage) {
+			const testId = this.scriptsCoverageMap[scriptCoverage.scriptId];
+			if (!testId) {
+				continue;
+			}
+
+			const trPath = scriptCoverage.url.replace(`${serverConfig.origin}/aut/`, './');
+			const trSCov = { ...scriptCoverage };
+			trSCov.url = trPath;
+
+			result[testId] = result[testId] || [];
+			result[testId].push(processV8ScriptCoverage(trSCov));
+		}
+		return result;
+	}
+
+	async collectLogs() {
+		//	TODO
+		return null;
 	}
 
 	static async closeBrowser(browser) {

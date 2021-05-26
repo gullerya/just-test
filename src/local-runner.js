@@ -31,21 +31,26 @@ async function go() {
 		console.error(os.EOL);
 		process.exitCode = 1;
 	} finally {
-		// if (server && server.isRunning) {
-		// 	await stop();
-		// }
+		if (server && server.isRunning) {
+			await stop();
+		}
 
 		const endTime = P.now();
 		console.info(`${os.EOL}-------`);
 		console.info(`... local run finished${os.EOL}`);
-		console.info('TESTS SUMMARY:');
-		console.info('========');
-		console.info(`TOTAL: ${sessionResult.total}`);
-		console.info(`PASSED: ${sessionResult.pass}`);
-		console.info(`FAILED: ${sessionResult.fail}`);
-		console.info(`ERRORED: ${sessionResult.error}`);
-		console.info(`SKIPPED: ${sessionResult.skip}${os.EOL}`);
-		console.info(`SESSION SUMMARY: ${process.exitCode ? 'FAILURE' : 'SUCCESS'} (${((endTime - startTime) / 1000).toFixed(1)}s)${os.EOL}`);
+		if (sessionResult) {
+			console.info('TESTS SUMMARY:');
+			console.info('========');
+			console.info(`TOTAL: ${sessionResult.total}`);
+			console.info(`PASSED: ${sessionResult.pass}`);
+			console.info(`FAILED: ${sessionResult.fail}`);
+			console.info(`ERRORED: ${sessionResult.error}`);
+			console.info(`SKIPPED: ${sessionResult.skip}${os.EOL}`);
+			console.info(`SESSION SUMMARY: ${process.exitCode ? 'FAILURE' : 'SUCCESS'} (${((endTime - startTime) / 1000).toFixed(1)}s)${os.EOL}`);
+		} else {
+			console.info(`SESSION SUMMARY: FAILURE (${((endTime - startTime) / 1000).toFixed(1)}s)${os.EOL}`);
+			process.exit(1);
+		}
 	}
 }
 
@@ -70,16 +75,16 @@ async function executeSession(serverBaseUrl, clArguments) {
 	const sessionDetails = await sentAddSession(serverBaseUrl, config);
 	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
 	xUnitReporter.report(sessionResult, 'reports/results.xml');
-	// fs.writeFileSync('reports/coverage.lcov',
-	// 	lcovReporter.convert(
-	// 		sessionResult.suites.flatMap(s => s.tests).map(t => {
-	// 			return {
-	// 				id: t.id,
-	// 				coverage: t.lastRun.coverage
-	// 			};
-	// 		})
-	// 	)
-	// );
+	fs.writeFileSync('reports/coverage.lcov',
+		lcovReporter.convert(
+			sessionResult.suites.flatMap(s => s.tests).map(t => {
+				return {
+					id: t.id,
+					coverage: t.lastRun.coverage
+				};
+			})
+		)
+	);
 
 	//	analysis
 	//	TODO: this should be externalized

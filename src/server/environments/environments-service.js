@@ -70,13 +70,16 @@ async function dismiss(envId) {
 		throw new Error(`environment ID MUST be a non-empty string, got '${envId}'`);
 	}
 
+	let artifacts = null;
 	const envToDismiss = environments[envId];
 	if (envToDismiss) {
-		await envToDismiss.dismiss();
+		artifacts = await envToDismiss.dismiss();
 		delete environments[envId];
 	} else {
 		logger.warn(`environment '${envId}' was not found`);
 	}
+
+	return artifacts;
 }
 
 /**

@@ -6,6 +6,7 @@ import { STATUS } from '../common/constants.js';
 
 const
 	SUITE_PROTO = Object.freeze({
+		id: null,
 		name: 'Unspecified',
 		options: {},
 		total: 0,
@@ -65,6 +66,7 @@ export default class SimpleStateService {
 		let result = this.model.suites.find(s => s.name === suiteName);
 		if (!result) {
 			result = Object.assign({}, SUITE_PROTO, {
+				id: suiteName,
 				name: suiteName,
 				options: options,
 				tests: []

@@ -54,6 +54,10 @@ function convert(coverageData) {
 	const testReports = [];
 
 	for (const test of coverageData) {
+		if (!test.coverage || !Array.isArray(test.coverage) || !test.coverage.length) {
+			continue;
+		}
+
 		//	test name
 		let testReport = `TN:${test.id}${os.EOL}`;
 
