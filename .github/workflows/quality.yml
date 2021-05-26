@@ -75,7 +75,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: artifacts
+          name: artifacts-firefox
           path: ./reports
 
   quality_pipeline_webkit:
