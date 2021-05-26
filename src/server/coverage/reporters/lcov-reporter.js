@@ -83,5 +83,5 @@ function convert(coverageData) {
 		testReports.push(testReport);
 	}
 
-	return testReports.join(os.EOL + os.EOL + os.EOL);
+	return testReports.join(os.EOL);
 }

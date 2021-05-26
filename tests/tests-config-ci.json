@@ -9,7 +9,7 @@
 				"maxFail": 0,
 				"maxSkip": 0,
 				"include": [
-					"./tests/**/*-random-utils.js"
+					"./tests/**/*.js"
 				]
 			},
 			"coverage": {
