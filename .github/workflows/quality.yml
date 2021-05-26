@@ -7,7 +7,27 @@ on:
     - cron: "0 */6 * * *"
 
 jobs:
-  quality_pipeline:
+  quality_pipeline_buildless:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup NodeJS 14
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install
+        run: npm install
+
+      - name: Lint
+        run: |
+          npm run lint:client
+          npm run lint:server
+
+  quality_pipeline_chromium:
     runs-on: ubuntu-18.04
 
     steps:
@@ -25,13 +45,50 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Lint
-        run: |
-          npm run lint:client
-          npm run lint:server
-
       - name: Test
         run: npm run test:ci
 
       - name: Report coverage
         run: bash <(curl -s https://codecov.io/bash)
+
+  quality_pipeline_firefox:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup NodeJS 14
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm run test:ci:firefox
+
+  quality_pipeline_webkit:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup NodeJS 14
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm run test:ci:webkit
