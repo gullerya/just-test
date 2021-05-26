@@ -72,6 +72,12 @@ jobs:
       - name: Test
         run: npm run test:ci:firefox
 
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: ./reports
+
   quality_pipeline_webkit:
     runs-on: ubuntu-18.04
 
