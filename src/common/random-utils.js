@@ -21,8 +21,8 @@ export {
 }
 
 function getRandom(len = DEFAULT_RANDOM_LENGTH, charSource = DEFAULT_CHAR_SOURCE) {
-	if (!len || typeof len !== 'number' || isNaN(len) || len > 128) {
-		throw new Error(`invalid length ${len}`);
+	if (!len || typeof len !== 'number' || isNaN(len) || len > 128 || len < 1) {
+		throw new Error(`length parameter, when provided, MUST be a number in 1-128 range; got '${len}'`);
 	}
 	if (!charSource || typeof charSource !== 'string') {
 		throw new Error(`'charSource' MUST be a non-empty string, got '${JSON.stringify(charSource)}'`);

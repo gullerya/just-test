@@ -75,3 +75,9 @@ suite.test('random alpha all', test => {
 		test.assert.isTrue(/[a-zA-Z]+/.test(k));
 	}
 });
+
+suite.test('negative - length null', () => {
+	getRandom(null);
+}, {
+	expectError: 'MUST be a number'
+});

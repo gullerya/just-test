@@ -64,9 +64,6 @@ async function runTest(test, sessionMetadata, stateService) {
 			stateService.updateRunStarted(sid, tid);
 		});
 		testRunBox.ended.then(async run => {
-			if (testRunBox.coveragePromise) {
-				run.coverage = await testRunBox.coveragePromise;
-			}
 			stateService.updateRunEnded(sid, tid, run);
 			resolve();
 		});

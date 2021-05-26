@@ -20,8 +20,7 @@ export {
 function deployTest(test, sessionMetadata) {
 	let deployPromise;
 	if (sessionMetadata.interactive || sessionMetadata.browser.type === 'firefox') {
-		deployPromise = executeInPage(test);
-		//deployPromise = executeInFrame(test);
+		deployPromise = executeInFrame(test);
 	} else if (sessionMetadata.browser) {
 		deployPromise = executeInPage(test);
 	} else {
@@ -58,9 +57,9 @@ function executeInFrame(test) {
 
 async function executeInPage(test) {
 	const w = globalThis.open('', '_blank');
-	const isCoverage = Boolean(w[INTEROP_NAMES.START_COVERAGE_METHOD]);
+	const isCoverage = Boolean(w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE]);
 	if (isCoverage) {
-		await w[INTEROP_NAMES.START_COVERAGE_METHOD](test.id);
+		await w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE](test.id);
 	}
 
 	const testRunBox = new TestRunBox(test, isCoverage);
@@ -70,11 +69,7 @@ async function executeInPage(test) {
 	w.getSuite = getSuite.bind(testRunBox);
 
 	injectTestIntoDocument(w.document, test.source);
-	testRunBox.ended.then(async () => {
-		if (isCoverage) {
-			const coverage = await w[INTEROP_NAMES.TAKE_COVERAGE_METHOD](test.id);
-			testRunBox.resolveCoverage(coverage);
-		}
+	testRunBox.ended.then(() => {
 		w.close();
 	});
 	return Promise.resolve(testRunBox);

@@ -31,9 +31,9 @@ async function go() {
 		console.error(os.EOL);
 		process.exitCode = 1;
 	} finally {
-		if (server && server.isRunning) {
-			await stop();
-		}
+		// if (server && server.isRunning) {
+		// 	await stop();
+		// }
 
 		const endTime = P.now();
 		console.info(`${os.EOL}-------`);
@@ -70,16 +70,16 @@ async function executeSession(serverBaseUrl, clArguments) {
 	const sessionDetails = await sentAddSession(serverBaseUrl, config);
 	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
 	xUnitReporter.report(sessionResult, 'reports/results.xml');
-	fs.writeFileSync('reports/coverage.lcov',
-		lcovReporter.convert(
-			sessionResult.suites.flatMap(s => s.tests).map(t => {
-				return {
-					id: t.id,
-					coverage: t.lastRun.coverage
-				};
-			})
-		)
-	);
+	// fs.writeFileSync('reports/coverage.lcov',
+	// 	lcovReporter.convert(
+	// 		sessionResult.suites.flatMap(s => s.tests).map(t => {
+	// 			return {
+	// 				id: t.id,
+	// 				coverage: t.lastRun.coverage
+	// 			};
+	// 		})
+	// 	)
+	// );
 
 	//	analysis
 	//	TODO: this should be externalized

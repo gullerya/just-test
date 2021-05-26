@@ -9,7 +9,6 @@
  */
 import Logger, { FileOutput } from '../../logger/logger.js';
 import { INTEROP_NAMES } from '../../../common/constants.js';
-import { waitInterval } from '../../../common/await-utils.js';
 import { config as serverConfig } from '../../server-service.js';
 import { collectTargetSources, processV8ScriptCoverage } from '../../coverage/coverage-service.js';
 import { EnvironmentBase } from '../environment-base.js';
@@ -30,7 +29,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 	constructor(sessionId, envConfig) {
 		super(sessionId);
 		this.envConfig = envConfig;
-		this.tctx = {};
+		this.scriptsCoverageMap = {};
 	}
 
 	/**
@@ -98,6 +97,22 @@ class BrowserEnvImpl extends EnvironmentBase {
 		logger.info(`navigating testing environment to '${envEntryUrl}'...`);
 		await mainPage.goto(envEntryUrl);
 
+		const covSession = await browsingContext.newCDPSession(mainPage);
+		await covSession.send('Profiler.enable');
+		await covSession.send('Debugger.enable');
+		await covSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
+		await covSession.send('Debugger.setSkipAllPauses', { skip: true })
+		setTimeout(async () => {
+			const jsCoverage = (await covSession.send('Profiler.takePreciseCoverage')).result;
+			for (const scriptCoverage of jsCoverage) {
+				if (!(scriptCoverage.scriptId in this.scriptsCoverageMap)) {
+					continue;
+				}
+
+				console.log(`${scriptCoverage.scriptId} - ${JSON.stringify(scriptCoverage)}`);
+			}
+		}, 4000);
+
 		this.browser = browser;
 	}
 
@@ -108,44 +123,41 @@ class BrowserEnvImpl extends EnvironmentBase {
 			return;
 		}
 
-		browsingContext.exposeBinding(INTEROP_NAMES.START_COVERAGE_METHOD, async ({ page }, testId) => {
-			const session = await page.context().newCDPSession(page);
+		browsingContext.exposeBinding(INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE, async ({ page }, testId) => {
+			const session = await browsingContext.newCDPSession(page);
 
-			//if (!this.setc) {
-			//	this.setc = true;
 			await Promise.all([
-				session.send('Profiler.enable'),
-				session.send('Debugger.enable')
-			]);
-			await Promise.all([
-				session.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true }),
+				session.send('Debugger.enable'),
 				session.send('Debugger.setSkipAllPauses', { skip: true })
 			]);
-			//}
 
-			this.tctx[testId] = {
-				session: session,
+			this.scriptsCoverageMap[testId] = {
 				scripts: []
 			};
 
 			session.on('Debugger.scriptParsed', e => {
 				if (e.url.includes('/aut/')) {
-					this.tctx[testId].scripts.push(e.scriptId);
+					if (!this.scriptsCoverageMap[e.scriptId]) {
+						this.scriptsCoverageMap[e.scriptId] = testId;
+					} else {
+						console.error(`unexpected duplication of script ${e.scriptId} [${e.url}]`);
+					}
 				}
 			});
 
-			// await page.coverage.startJSCoverage();
+			//	TODO: dispose session on the page dismiss
 		});
 
-		browsingContext.exposeBinding(INTEROP_NAMES.TAKE_COVERAGE_METHOD, async ({ page }, testId) => {
+		browsingContext.exposeBinding('non-sense-to-be-removed', async ({ page }, testId) => {
+			return;
 			const result = [];
 
 			const session = this.tctx[testId].session;
 
 
-			const jsCoverage = (await session.send('Profiler.takePreciseCoverage')).result;
+			//const jsCoverage = (await session.send('Profiler.takePreciseCoverage')).result;
 			// await session.send('Profiler.stopPreciseCoverage');
-			await new Promise(r => setTimeout(r, 1500));
+			//await new Promise(r => setTimeout(r, 1500));
 			// await cdpSession.detach();
 			// delete this.cdpSessions[testId];
 
@@ -190,14 +202,14 @@ class BrowserEnvImpl extends EnvironmentBase {
 	}
 
 	async dismiss() {
-		if (!this._dismissPromise) {
-			logger.info(`dismissing environment '${this.envConfig.id}'...`);
-			this._dismissPromise = waitInterval(999)
-				.then(() => this.consoleLogger.close())
-				.then(() => BrowserEnvImpl.closeBrowser(this.browser))
-				.then(() => logger.info(`... environment '${this.envConfig.id}' dismissed`));
-		}
-		return this._dismissPromise;
+		// if (!this._dismissPromise) {
+		// 	logger.info(`dismissing environment '${this.envConfig.id}'...`);
+		// 	this._dismissPromise = waitInterval(999)
+		// 		.then(() => this.consoleLogger.close())
+		// 		.then(() => BrowserEnvImpl.closeBrowser(this.browser))
+		// 		.then(() => logger.info(`... environment '${this.envConfig.id}' dismissed`));
+		// }
+		// return this._dismissPromise;
 	}
 
 	onDisconnected() {

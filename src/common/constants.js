@@ -41,6 +41,5 @@ const TEST_OPTIONS_DEFAULT = Object.freeze({
 });
 
 const INTEROP_NAMES = Object.freeze({
-	START_COVERAGE_METHOD: 'jtStartCoverage',
-	TAKE_COVERAGE_METHOD: 'jtTakeCoverage'
+	REGISTER_TEST_FOR_COVERAGE: '_registerTestForCoverage'
 });
