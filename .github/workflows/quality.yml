@@ -73,6 +73,7 @@ jobs:
         run: npm run test:ci:firefox
 
       - name: Upload artifacts
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: artifacts-firefox

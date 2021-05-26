@@ -1,5 +1,5 @@
 fixes:
-  - "./bin/::src/"
+  - "bin/::src/"
 parsers:
   v1:
     include_full_missed_files: true
