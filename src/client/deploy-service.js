@@ -57,7 +57,7 @@ function executeInFrame(test) {
 }
 
 async function executeInPage(test) {
-	const w = globalThis.open('', '_blank', 'width=1200');
+	const w = globalThis.open('', '_blank');
 	const isCoverage = Boolean(w[INTEROP_NAMES.START_COVERAGE_METHOD]);
 	if (isCoverage) {
 		await w[INTEROP_NAMES.START_COVERAGE_METHOD](test.id);
