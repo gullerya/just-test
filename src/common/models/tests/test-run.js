@@ -5,6 +5,7 @@ export class TestRun {
 		this.assertions = 0;
 		this.status = null;
 		this.error = null;
+		this.coverage = null;
 		Object.seal(this);
 	}
 }
