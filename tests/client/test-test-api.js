@@ -23,7 +23,7 @@ suite.test('run test - fail by false (sync)', async test => {
 	const m = await tp;
 	test.assert.strictEqual(m.status, STATUS.FAIL);
 	test.assert.isNull(m.error);
-	test.assert.strictEqual(m.assertions, 0);
+	test.assert.strictEqual(m.assertions, 1);
 	test.assert.isNumber(m.time);
 });
 
@@ -87,7 +87,7 @@ suite.test('run test - fail by false (async)', async test => {
 	const m = await tp;
 	test.assert.strictEqual(m.status, STATUS.FAIL);
 	test.assert.isNull(m.error);
-	test.assert.strictEqual(m.assertions, 0);
+	test.assert.strictEqual(m.assertions, 1);
 	test.assert.isNumber(m.time);
 	test.assert.isAbove(m.time, 0);
 });

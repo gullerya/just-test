@@ -3,36 +3,9 @@
  * - module is stateless, providing only the c~tor to create the service instance
  */
 import { STATUS } from '../common/constants.js';
-
-const
-	SUITE_PROTO = Object.freeze({
-		id: null,
-		name: 'Unspecified',
-		options: {},
-		total: 0,
-		done: 0,
-		timestamp: null,
-		time: null,
-		skip: 0,
-		pass: 0,
-		fail: 0,
-		error: 0,
-		tests: []
-	}),
-	TEST_PROTO = Object.freeze({
-		id: null,
-		name: 'Unspecified',
-		source: null,
-		options: {},
-		lastRun: null,
-		runs: []
-	}),
-	RUN_PROTO = Object.freeze({
-		timestamp: null,
-		time: null,
-		status: null,
-		error: null
-	});
+import { Suite } from '../common/models/tests/suite.js';
+import { Test } from '../common/models/tests/test.js';
+import { TestRun } from '../common/models/tests/test-run.js';
 
 export default class SimpleStateService {
 	constructor(initState) {
@@ -65,12 +38,10 @@ export default class SimpleStateService {
 	obtainSuite(suiteName, options) {
 		let result = this.model.suites.find(s => s.name === suiteName);
 		if (!result) {
-			result = Object.assign({}, SUITE_PROTO, {
-				id: suiteName,
-				name: suiteName,
-				options: options,
-				tests: []
-			});
+			result = new Suite();
+			result.id = suiteName;
+			result.name = suiteName;
+			result.options = options;
 
 			//	insert preserving alphabetical order
 			let inserted = false;
@@ -112,15 +83,16 @@ export default class SimpleStateService {
 			throw new Error(`test '${testName}' already found in suite '${suiteName}'`);
 		}
 
-		const test = Object.assign({}, TEST_PROTO, {
-			id: testId,
-			name: testName,
-			code: testCode,
-			options: testOptions,
-			runs: []
-		});
+		const test = new Test();
+		test.id = testId;
+		test.name = testName;
+		test.code = testCode;
+		test.options = testOptions;
 		if (testOptions.skip) {
-			test.lastRun = { status: STATUS.SKIP };
+			const lRun = new TestRun();
+			lRun.status = STATUS.SKIP;
+			test.lastRun = lRun;
+			test.runs.push(lRun);
 		}
 		suite.tests.push(test);
 
@@ -151,9 +123,10 @@ export default class SimpleStateService {
 	updateRunStarted(suiteName, testName, run) {
 		const test = this.getTest(suiteName, testName);
 		const pRun = test.lastRun;
-		const lRun = Object.assign({}, RUN_PROTO, run, { status: STATUS.RUNS });
-		test.runs.push(lRun);
+		const lRun = new TestRun();
+		lRun.status = STATUS.RUNS;
 		test.lastRun = lRun;
+		test.runs.push(lRun);
 		if (pRun) {
 			this.model[pRun.status]--;
 			this.model.done--;

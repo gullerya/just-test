@@ -1,6 +1,7 @@
 import { DEFAULT, STATUS } from '../../common/constants.js';
 import { TestAsset } from './test-asset.js';
-import { TestRun } from './test-run.js';
+import { TestRun } from '/core/common/models/tests/test-run.js';
+import { TestError } from '/core/common/models/tests/test-error.js';
 import { P } from '../../common/performance-utils.js';
 
 export {
@@ -38,30 +39,32 @@ function finalizeRun(meta, run, result, assertions) {
 		assertions++;
 	}
 
+	let runError = null;
 	if (result && typeof result.name === 'string' && typeof result.message === 'string' && result.stack) {
-		const pe = processError(result);
-		if (meta.expectError && (pe.type === meta.expectError || pe.message.includes(meta.expectError))) {
+		runError = processError(result);
+		if (meta.expectError && (runError.type === meta.expectError || runError.message.includes(meta.expectError))) {
 			run.status = STATUS.PASS;
 		} else {
-			if ((pe.type && pe.type.toLowerCase().includes('assert')) ||
-				(pe.name && pe.name.toLowerCase().includes('assert'))) {
+			if ((runError.type && runError.type.toLowerCase().includes('assert')) ||
+				(runError.name && runError.name.toLowerCase().includes('assert'))) {
 				run.status = STATUS.FAIL;
 			} else {
 				run.status = STATUS.ERROR;
 			}
-			run.error = pe;
 		}
 	} else if (result === false) {
 		run.status = STATUS.FAIL;
+		assertions++;
 	} else {
 		if (meta.expectError) {
 			run.status = STATUS.FAIL;
-			run.error = processError(new AssertError(`expected for error "${meta.expectError}" but not happened`));
+			runError = processError(new AssertError(`expected for error "${meta.expectError}" but not happened`));
 		} else {
 			run.status = STATUS.PASS;
 		}
 	}
 	run.assertions = assertions;
+	run.error = runError;
 }
 
 function processError(error) {
@@ -71,10 +74,10 @@ function processError(error) {
 		.map(l => l.replace(replaceable, ''));
 	stacktrace.shift();
 
-	return {
-		name: error.name,
-		type: error.constructor.name,
-		message: error.message,
-		stacktrace: stacktrace
-	};
+	return new TestError(
+		error.name,
+		error.constructor.name,
+		error.message,
+		stacktrace
+	);
 }
