@@ -18,10 +18,10 @@ export default (coverageConfig, environment) => {
 	if (!coverageConfig || typeof coverageConfig !== 'object') {
 		throw new Error(`coverage config, if/when defined, MUST be a non-null object`);
 	}
-	if (!environment.browser) {
-		throw new Error(`coverage supported ONLY in browser environement`);
+	if (environment.interactive) {
+		throw new Error(`coverage is NOT supported in interactive environement`);
 	}
-	if (!COVERAGE_SUPPORTING_BROWSERS.includes(environment.browser.type)) {
+	if (environment.browser && !COVERAGE_SUPPORTING_BROWSERS.includes(environment.browser.type)) {
 		throw new Error(`coverage supported ONLY in [${COVERAGE_SUPPORTING_BROWSERS.join(', ')}]`);
 	}
 

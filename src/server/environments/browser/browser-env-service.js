@@ -42,10 +42,6 @@ class BrowserEnvImpl extends EnvironmentBase {
 		Object.seal(this);
 	}
 
-	/**
-	 * launches browser and then runs the tests
-	 * - each test runs in own context
-	 */
 	async launch() {
 		const browserType = this.envConfig.browser.type;
 		logger.info(`launching '${browserType}'...`);

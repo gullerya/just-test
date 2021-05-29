@@ -25,7 +25,23 @@ class NodeEnvImpl extends EnvironmentBase {
 	constructor(sessionId, envConfig) {
 		super(sessionId);
 
-		logger.log(envConfig);
+		this.envConfig = envConfig;
+		this.consoleLogger = null;
+		this.dismissPromise = null;
+		this.timeoutHandle = null;
+
+		Object.seal(this);
+
+		logger.log('...');
+	}
+
+	async launch() {
+		//	spawn nodeprocess
+		//	
+		throw 'here';
+	}
+
+	async dismiss() {
 	}
 }
 

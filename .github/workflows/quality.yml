@@ -7,7 +7,7 @@ on:
     - cron: "0 */6 * * *"
 
 jobs:
-  quality_pipeline_buildless:
+  quality_pipeline_static_analysis:
     runs-on: ubuntu-18.04
 
     steps:

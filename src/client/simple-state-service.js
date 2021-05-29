@@ -3,23 +3,14 @@
  * - module is stateless, providing only the c~tor to create the service instance
  */
 import { STATUS } from '../common/constants.js';
+import { Session } from '../common/models/tests/session.js';
 import { Suite } from '../common/models/tests/suite.js';
 import { Test } from '../common/models/tests/test.js';
 import { TestRun } from '../common/models/tests/test-run.js';
 
 export default class SimpleStateService {
 	constructor(initState) {
-		this.model = initState || {
-			total: 0,
-			done: 0,
-			timestamp: null,
-			time: null,
-			skip: 0,
-			pass: 0,
-			fail: 0,
-			error: 0,
-			suites: []
-		};
+		this.model = initState || new Session();
 		console.info(`state service ${this.constructor.name} initialized`);
 	}
 

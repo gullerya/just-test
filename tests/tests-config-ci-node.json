@@ -1,0 +1,20 @@
+{
+	"environments": [
+		{
+			"node": true,
+			"tests": {
+				"ttl": 98098098,
+				"maxFail": 0,
+				"maxSkip": 0,
+				"include": [
+					"./tests/**/*.js"
+				]
+			},
+			"coverage": {
+				"include": [
+					"./bin/**/*.{js,css}"
+				]
+			}
+		}
+	]
+}

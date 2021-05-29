@@ -49,6 +49,7 @@ function processInteractive(i) {
 
 function processNode(n) {
 	validateNode(n);
+	return true;
 }
 
 function validateEnvironment(e) {
@@ -90,6 +91,8 @@ function validateInteractive(i) {
 	}
 }
 
-function validateNode() {
-	throw new Error('node environment is not supported yet');
+function validateNode(n) {
+	if (typeof n !== 'boolean') {
+		throw new Error(`node environment, if/when defined, MUST be a boolean`);
+	}
 }

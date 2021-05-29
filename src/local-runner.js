@@ -16,9 +16,9 @@ async function go() {
 	const P = await perfReady;
 	const startTime = P.now();
 	const clArguments = parseCLArgs(process.argv);
-	console.info(`starting local run with arguments:`);
-	console.info(`${JSON.stringify(clArguments)}`);
-	console.info(`-------${os.EOL}`);
+	console.info(`Starting local run...`);
+	console.info(`arguments: ${JSON.stringify(clArguments)}`);
+	console.info(`${'='.repeat(64)}${os.EOL}`);
 
 	let server;
 	let sessionResult;
@@ -36,7 +36,7 @@ async function go() {
 		}
 
 		const endTime = P.now();
-		console.info(`${os.EOL}-------`);
+		console.info(`${os.EOL}${'='.repeat(64)}`);
 		console.info(`... local run finished${os.EOL}`);
 		if (sessionResult) {
 			console.info('TESTS SUMMARY:');

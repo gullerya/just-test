@@ -5,6 +5,12 @@ import { reportResults } from './report-service.js';
 (async () => {
 	const metadata = await loadMetadata();
 	const stateService = new SimpleStateService();
-	await execute(metadata, stateService);
-	await reportResults(metadata.sessionId, metadata.id, stateService.getAll());
+	try {
+		await execute(metadata, stateService);
+		await reportResults(metadata.sessionId, metadata.id, stateService.getAll());
+	} catch (e) {
+		//	TODO: report an env failure here
+		console.log(e);
+		await reportResults(metadata.sessionId, metadata.id, stateService.getAll());
+	}
 })();

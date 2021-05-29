@@ -69,7 +69,7 @@ async function executeInPage(test) {
 	w.getSuite = getSuite.bind(testRunBox);
 
 	injectTestIntoDocument(w.document, test.source);
-	testRunBox.ended.then(() => {
+	testRunBox.runEnded.then(() => {
 		w.close();
 	});
 	return Promise.resolve(testRunBox);
