@@ -6,10 +6,10 @@ export class TestRunBox {
 
 		this.runTest = runTest;
 
-		this.started = new Promise(r => {
+		this.runStarted = new Promise(r => {
 			this.resolveStarted = r;
 		});
-		this.ended = new Promise(r => {
+		this.runEnded = new Promise(r => {
 			this.resolveEnded = r;
 		});
 

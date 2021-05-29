@@ -12,12 +12,14 @@ class AssertError extends Error { }
 
 class TimeoutError extends AssertError { }
 
+//	TODO: this one is internal and should receive the TestRun object as part of it's parameters
 async function runTest(code, meta = { ttl: DEFAULT.TEST_RUN_TTL }) {
 	let runResult;
 	const run = new TestRun();
+	run.timestamp = Date.now();
+
 	const testAsset = new TestAsset();
 
-	run.timestamp = Date.now();
 	const start = P.now();
 	try {
 		runResult = await Promise.race([

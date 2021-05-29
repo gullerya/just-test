@@ -23,6 +23,9 @@ class NodeEnvImpl extends EnvironmentBase {
 	 * @param {object} envConfig environment setup
 	 */
 	constructor(sessionId, envConfig) {
+		super(sessionId);
+
+		logger.log(envConfig);
 	}
 }
 

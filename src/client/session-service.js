@@ -60,10 +60,10 @@ async function runTest(test, sessionMetadata, stateService) {
 	const testRunBox = await deployTest(test, sessionMetadata);
 
 	return new Promise(resolve => {
-		testRunBox.started.then(() => {
+		testRunBox.runStarted.then(() => {
 			stateService.updateRunStarted(sid, tid);
 		});
-		testRunBox.ended.then(async run => {
+		testRunBox.runEnded.then(async run => {
 			stateService.updateRunEnded(sid, tid, run);
 			resolve();
 		});

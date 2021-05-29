@@ -120,7 +120,7 @@ export default class SimpleStateService {
 	 * @param {string} testName - test name
 	 * @param {object} run - run data
 	 */
-	updateRunStarted(suiteName, testName, run) {
+	updateRunStarted(suiteName, testName) {
 		const test = this.getTest(suiteName, testName);
 		const pRun = test.lastRun;
 		const lRun = new TestRun();
