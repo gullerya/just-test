@@ -1,8 +1,9 @@
 /**
  * This will launch browser environment, that is:
- * - launching browser instance as specified
- * - running all tests in that instance
- * - shuting the browser and reporting the run results
+ * - launching browser main instance
+ * - loading session runner client
+ * - tracking test run instances and collecting data (coverage, logs)
+ * - dismissing all upon finalization / crash
  * 
  * @param {Object} envConfig environment configuration
  * @param {string} envConfig.browser in this context expected always to equal true
