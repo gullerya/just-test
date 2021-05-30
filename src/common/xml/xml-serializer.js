@@ -26,6 +26,9 @@ export default class XMLSerializerImpl {
 		for (const child of tmpNode.childNodes) {
 			textContent += (this.serializeToString(child));
 		}
+		if (!textContent && tmpNode.textContent) {
+			textContent = tmpNode.textContent;
+		}
 
 		return this._serializeNode(tmpNode.nodeName, tmpNode.attributes, textContent);
 	}

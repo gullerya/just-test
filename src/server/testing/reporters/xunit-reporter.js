@@ -38,13 +38,14 @@ function report(results, reportPath) {
 
 			if (lastRun.status === STATUS.FAIL) {
 				suiteFailures++;
-				const eEl = rDoc.createElement('failure');
+				const fEl = rDoc.createElement('failure');
+					console.log(lastRun.error);
 				if (lastRun.error) {
-					eEl.setAttribute('type', lastRun.error.type);
-					eEl.setAttribute('message', lastRun.error.message);
-					eEl.textContent = lastRun.error.stacktrace;
+					fEl.setAttribute('type', lastRun.error.type);
+					fEl.setAttribute('message', lastRun.error.message);
+					fEl.textContent = lastRun.error.stacktrace;
 				}
-				tEl.appendChild(eEl);
+				tEl.appendChild(fEl);
 			} else if (lastRun.status === STATUS.ERROR) {
 				suiteErrors++;
 				const eEl = rDoc.createElement('error');

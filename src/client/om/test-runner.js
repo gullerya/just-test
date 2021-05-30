@@ -73,7 +73,8 @@ function processError(error) {
 	const replaceable = globalThis.location.origin;
 	const stacktrace = error.stack.split(/\r\n|\r|\n/)
 		.map(l => l.trim())
-		.map(l => l.replace(replaceable, ''));
+		.map(l => l.replace(replaceable, ''))
+		.map(l => l.replace(/^\s*at\s*/, ''));
 	stacktrace.shift();
 
 	return new TestError(

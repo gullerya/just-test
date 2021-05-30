@@ -11,7 +11,7 @@ initComponent('jt-error', class extends ComponentBase {
 
 		let df = document.createDocumentFragment();
 		for (const line of data.stacktrace) {
-			const text = line.replace(/^\s*at\s*/, '');
+			const text = line;
 			const lib =
 				text.indexOf('node_modules') >= 0 ||
 				text.indexOf('/core/') >= 0 ||
