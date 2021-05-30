@@ -6,7 +6,7 @@ const
 	logger = new Logger({ context: 'testing configurer' }),
 	TEST_REPORTS_FORMATS = ['xUnit'],
 	DEFAULT_CONFIG = Object.freeze({
-		ttl: 30000,
+		ttl: 1000 * 60,
 		maxFail: 0,
 		maxSkip: 0,
 		include: [],

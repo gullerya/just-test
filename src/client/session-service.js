@@ -24,14 +24,8 @@ async function runSession(sessionMetadata, stateService) {
 
 	const executionData = stateService.getExecutionData();
 	console.info(`starting test session (${executionData.suites.length} suites)...`);
-	if (!sessionMetadata.interactive) {
-		setTimeout(() => {
-			//	TODO: finalize the session, no further updates will be accepted
-		}, sessionMetadata.tests.ttl);
-		console.info(`session time out watcher set to ${sessionMetadata.tests.ttl}ms`);
-	}
-	await Promise.all(executionData.suites.map(suite => runSuite(suite, sessionMetadata, stateService)));
-
+	const suitePromises = executionData.suites.map(suite => runSuite(suite, sessionMetadata, stateService));
+	await Promise.all(suitePromises);
 	const ended = P.now();
 	console.info(`... session done (${(ended - started).toFixed(1)}ms)`);
 }
@@ -52,7 +46,9 @@ async function runSuite(suite, metadata, stateService) {
 		}
 	});
 	testPromises.push(syncChain);
+	console.log(`suite '${suite.name}' started...`);
 	await Promise.all(testPromises);
+	console.log(`... suite '${suite.name}' done`);
 }
 
 async function runTest(test, sessionMetadata, stateService) {

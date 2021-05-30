@@ -5,11 +5,12 @@
 				"type": "webkit"
 			},
 			"tests": {
-				"ttl": 98098098,
+				"ttl": 30000,
 				"maxFail": 0,
 				"maxSkip": 0,
 				"include": [
-					"./tests/**/*.js"
+					"./tests/client/**/*.js",
+					"./tests/common/**/*.js"
 				]
 			}
 		}

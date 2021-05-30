@@ -3,7 +3,7 @@
 		{
 			"node": true,
 			"tests": {
-				"ttl": 98098098,
+				"ttl": 300000,
 				"maxFail": 0,
 				"maxSkip": 0,
 				"include": [

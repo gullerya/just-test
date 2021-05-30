@@ -3,7 +3,6 @@
 		{
 			"interactive": true,
 			"tests": {
-				"ttl": 98098098,
 				"maxFail": 0,
 				"maxSkip": 0,
 				"include": [

@@ -76,7 +76,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 			this.dismiss();
 		});
 
-		logger.info(`setting timeout for the whole tests execution to ${this.envConfig.tests.ttl} as per configuration`);
+		logger.info(`setting timeout for the whole tests execution to ${this.envConfig.tests.ttl}ms as per configuration`);
 		this.timeoutHandle = setTimeout(() => {
 			logger.error('tests execution timed out, dismissing the environment...');
 			this.dismiss();

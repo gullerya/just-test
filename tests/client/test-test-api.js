@@ -65,7 +65,7 @@ suite.test('run test - fail by error (sync)', async test => {
 //
 suite.test('run test - normal (async)', async test => {
 	const tp = runTest(async ta => {
-		await ta.waitNextTask();
+		await ta.waitInterval(2);
 	});
 
 	test.assert.instanceOf(tp, Promise);
@@ -94,7 +94,7 @@ suite.test('run test - fail by false (async)', async test => {
 
 suite.test('run test - fail by assert (async)', async test => {
 	const tp = runTest(async ta => {
-		await ta.waitNextTask();
+		await ta.waitInterval(3);
 		ta.assert.fail('reason');
 	});
 
@@ -115,7 +115,7 @@ suite.test('run test - fail by assert (async)', async test => {
 
 suite.test('run test - fail by error (async)', async test => {
 	const tp = runTest(async ta => {
-		await ta.waitNextTask();
+		await ta.waitInterval(3);
 		/* eslint-disable no-undef */
 		nonsense;
 	});
@@ -154,5 +154,5 @@ suite.test('run test - fail by timeout (async)', async test => {
 
 	test.assert.strictEqual(m.assertions, 0);
 	test.assert.isNumber(m.time);
-	test.assert.isAbove(m.time, 0);
+	test.assert.isAbove(m.time, ttl - 1);
 });

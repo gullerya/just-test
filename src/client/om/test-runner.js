@@ -74,7 +74,8 @@ function processError(error) {
 	const stacktrace = error.stack.split(/\r\n|\r|\n/)
 		.map(l => l.trim())
 		.map(l => l.replace(replaceable, ''))
-		.map(l => l.replace(/^\s*at\s*/, ''));
+		.map(l => l.replace(/^\s*at\s*/, ''))
+		.filter(Boolean);
 	stacktrace.shift();
 
 	return new TestError(
