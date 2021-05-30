@@ -6,7 +6,6 @@ export class Test {
 		this.options = {};
 		this.lastRun = null;
 		this.runs = [];
-		this.code = null;
 		Object.seal(this);
 	}
 }

@@ -41,7 +41,7 @@ async function launch(session) {
 	const envsToLaunch = Object.keys(session.config.environments).length;
 	logger.info(`launching session '${session.id}': ${envsToLaunch} environment/s...`);
 
-	let envsLaunched = 0;
+	let envsLaunched = [];
 	for (const envConfig of Object.values(session.config.environments)) {
 		let env;
 		if (envConfig.interactive) {
@@ -54,10 +54,11 @@ async function launch(session) {
 			throw new Error(`unsupported environment configuration ${JSON.stringify(envConfig)}`);
 		}
 		environments[envConfig.id] = env;
-		envsLaunched++;
+		envsLaunched.push(env);
 	}
 
-	logger.info(`... launched ${envsLaunched} environment/s`);
+	logger.info(`... launched ${envsLaunched.length} environment/s`);
+	return envsLaunched;
 }
 
 /**

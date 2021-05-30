@@ -9,6 +9,7 @@
  */
 import Logger from '../../logger/logger.js';
 import { EnvironmentBase } from '../environment-base.js';
+import { fork } from 'child_process';
 
 export default launch;
 
@@ -31,14 +32,19 @@ class NodeEnvImpl extends EnvironmentBase {
 		this.timeoutHandle = null;
 
 		Object.seal(this);
-
-		logger.log('...');
 	}
 
 	async launch() {
-		//	spawn nodeprocess
-		//	
-		throw 'here';
+		logger.info(`launching 'NodeJS' environment...`);
+		const nodeEnv = fork('bin/client/app.js', {
+			timeout: this.envConfig.tests.ttl
+		});
+		nodeEnv.on('close', () => {
+			logger.info('closed');
+			this.emit('dismissed', null);
+		});
+		nodeEnv.on('error', () => { logger.info('error'); });
+		//	TODO: check message??
 	}
 
 	async dismiss() {

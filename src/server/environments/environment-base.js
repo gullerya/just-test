@@ -1,5 +1,8 @@
-export class EnvironmentBase {
+import { EventEmitter } from 'events';
+
+export class EnvironmentBase extends EventEmitter {
 	constructor(sessionId) {
+		super();
 		if (!sessionId || typeof sessionId !== 'string') {
 			throw new Error(`invalid session ID '${sessionId}'`);
 		}

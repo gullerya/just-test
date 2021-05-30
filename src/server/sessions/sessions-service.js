@@ -61,7 +61,13 @@ async function runSession(sessionId) {
 	}
 
 	logger.info(`starting session '${sessionId}'...`);
-	await launch(session);
+	const sesEnvs = await launch(session);
+	for (const sesEnv of sesEnvs) {
+		sesEnv.on('dismissed', event => {
+			//	TODO: handle here the abnormal session finalization
+			console.log(event);
+		});
+	}
 	logger.info(`... session '${sessionId}' started, waiting finalization...`);
 }
 

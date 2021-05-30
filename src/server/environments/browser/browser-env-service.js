@@ -44,7 +44,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 
 	async launch() {
 		const browserType = this.envConfig.browser.type;
-		logger.info(`launching '${browserType}'...`);
+		logger.info(`launching '${browserType}' environment...`);
 		const browser = await playwright[browserType].launch();
 
 		this.consoleLogger = new FileOutput(`./reports/logs/${browserType}-${browser.version()}.log`);

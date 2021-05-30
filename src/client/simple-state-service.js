@@ -77,7 +77,6 @@ export default class SimpleStateService {
 		const test = new Test();
 		test.id = testId;
 		test.name = testName;
-		test.code = testCode;
 		test.options = testOptions;
 		if (testOptions.skip) {
 			const lRun = new TestRun();

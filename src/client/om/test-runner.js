@@ -1,7 +1,7 @@
 import { DEFAULT, STATUS } from '../../common/constants.js';
 import { TestAsset } from './test-asset.js';
-import { TestRun } from '/core/common/models/tests/test-run.js';
-import { TestError } from '/core/common/models/tests/test-error.js';
+import { TestRun } from '../../common/models/tests/test-run.js';
+import { TestError } from '../../common/models/tests/test-error.js';
 import { P } from '../../common/performance-utils.js';
 
 export {
