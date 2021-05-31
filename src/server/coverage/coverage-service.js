@@ -1,6 +1,6 @@
 // import fs from 'fs';
 import Logger from '../logger/logger.js';
-import { P } from '../../common/performance-utils.js';
+import { perfReady } from '../../common/performance-utils.js';
 import buildConfig from './coverage-configurer.js';
 import processV8ScriptCoverage from './converters/v8-coverage-converter.js';
 import lcovReporter from './reporters/lcov-reporter.js';
@@ -30,6 +30,7 @@ async function collectTargetSources(config) {
 
 	logger.info('collecting coverage targets...');
 	const
+		P = await perfReady,
 		started = P.now(),
 		options = { nodir: true, nosort: true, ignore: config.exclude },
 		promises = [];

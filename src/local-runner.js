@@ -4,7 +4,7 @@ import util from 'util';
 import process from 'process';
 import * as http from 'http';
 import { start, stop } from './server/server-service.js';
-import { ready as perfReady } from './common/performance-utils.js';
+import { perfReady } from './common/performance-utils.js';
 import { xUnitReporter } from './server/testing/testing-service.js';
 import { lcovReporter } from './server/coverage/coverage-service.js';
 

@@ -1,7 +1,7 @@
 import { runSession } from './session-service.js';
 import { SUITE_OPTIONS_DEFAULT, TEST_OPTIONS_DEFAULT } from '../common/constants.js';
 import { getTestId, getValidName } from '../common/interop-utils.js';
-import { P, ready as performanceReady } from '../common/performance-utils.js';
+import { perfReady } from '../common/performance-utils.js';
 
 export {
 	loadMetadata,
@@ -35,7 +35,7 @@ async function execute(metadata, stateService) {
  * fetches test session definitions
  */
 async function loadMetadata() {
-	await performanceReady;
+	const P = await perfReady;
 	const started = P.now();
 	console.info(`fetching test session metadata...`);
 
@@ -127,6 +127,7 @@ function installTestRegistrationAPIs() {
  * @param {object} stateService - state service
  */
 async function collectTests(testsResources, stateService) {
+	const P = await perfReady;
 	const started = P.now();
 	console.info(`fetching ${testsResources.length} test resource/s...`);
 

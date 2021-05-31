@@ -2,7 +2,7 @@
  * Runs a session of all suites/tests
  */
 import { parseTestId } from '../common/interop-utils.js';
-import { P } from '../common/performance-utils.js';
+import { perfReady } from '../common/performance-utils.js';
 import { deployTest } from './deploy-service.js';
 
 export {
@@ -20,6 +20,7 @@ export {
  * @returns Promise resolved with test results when all tests done
  */
 async function runSession(sessionMetadata, stateService) {
+	const P = await perfReady;
 	const started = P.now();
 
 	const executionData = stateService.getExecutionData();

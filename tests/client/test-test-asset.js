@@ -4,7 +4,7 @@ const suite = globalThis.getSuite('Test asset');
 
 suite.test('test asset - ensure all present', async test => {
 	let ta;
-	runTest(_ta => {
+	await runTest(_ta => {
 		ta = _ta;
 	});
 

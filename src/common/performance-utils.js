@@ -1,16 +1,11 @@
 export {
-	P,
-	ready
+	perfReady
 }
 
-let ready;
-let P = globalThis.performance ? globalThis.performance : null;
+let perfReady;
 
-if (!P) {
-	ready = import('perf_hooks').then(m => {
-		P = m.performance;
-		return P;
-	});
+if (globalThis.performance) {
+	perfReady = Promise.resolve(globalThis.performance);
 } else {
-	ready = Promise.resolve(P);
+	perfReady = import('perf_hooks').then(m => m.performance);
 }
