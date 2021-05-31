@@ -65,7 +65,11 @@ async function runSession(sessionId) {
 	for (const sesEnv of sesEnvs) {
 		sesEnv.on('dismissed', event => {
 			//	TODO: handle here the abnormal session finalization
-			console.log(event);
+			sesEnvs.splice(sesEnvs.indexOf(sesEnv), 1);
+			if (!sesEnvs.length) {
+				console.log('all session environments closed, finalizing session');
+				storeResult(sessionId, sesEnv.envConfig.id, event);
+			}
 		});
 	}
 	logger.info(`... session '${sessionId}' started, waiting finalization...`);
@@ -79,18 +83,23 @@ async function storeResult(sesId, envId, sesResult) {
 
 	//	enrich with artifacts
 	const artifacts = await dismiss(envId);
-	if (artifacts.coverage) {
-		for (const [testId, coverage] of Object.entries(artifacts.coverage)) {
-			const [sid] = parseTestId(testId);
-			const suite = sesResult.suites.find(s => s.id === sid);
-			const test = suite.tests.find(t => t.id === testId);
-			test.lastRun.coverage = coverage;
+	if (artifacts) {
+		if (artifacts.coverage) {
+			for (const [testId, coverage] of Object.entries(artifacts.coverage)) {
+				const [sid] = parseTestId(testId);
+				const suite = sesResult.suites.find(s => s.id === sid);
+				const test = suite.tests.find(t => t.id === testId);
+				test.lastRun.coverage = coverage;
+			}
+		}
+		if (artifacts.logs) {
+			//	TBD
 		}
 	}
-	if (artifacts.logs) {
-		//	TBD
-	}
 
+	//	TODO: when multi environmental run will be supported
+	//	TODO: store result per environment and only then the session as a whole
+	//	TODO: or merge the results into one
 	session.result = sesResult;
 	logger.info(`environment '${envId}' reported results for session '${sesId}'`);
 }

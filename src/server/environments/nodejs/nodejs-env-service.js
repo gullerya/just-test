@@ -7,7 +7,7 @@
  * @param {Object} envConfig environment configuration
  * @param {string} envConfig.node in this context expected always to equal true
  */
-import Logger from '../../logger/logger.js';
+import Logger, { FileOutput } from '../../logger/logger.js';
 import { EnvironmentBase } from '../environment-base.js';
 import { fork } from 'child_process';
 
@@ -36,10 +36,29 @@ class NodeEnvImpl extends EnvironmentBase {
 
 	async launch() {
 		logger.info(`launching 'NodeJS' environment...`);
+
+		const verNamed = `node-${process.version.replace(/^[^0-9]+/, '')}`;
+		this.consoleLogger = new FileOutput(`./reports/logs/${verNamed}.log`);
+		const nLogger = new Logger({
+			context: verNamed,
+			outputs: [this.consoleLogger]
+		});
+
 		const nodeEnv = fork('bin/client/app.js', {
+			stdio: 'pipe',
 			timeout: this.envConfig.tests.ttl
 		});
-		nodeEnv.on('close', () => {
+		nodeEnv.stdout.on('data', data => {
+			nLogger.info(data.toString().trim());
+		});
+		nodeEnv.stderr.on('data', data => {
+			nLogger.error(data.toString().trim());
+		});
+		nodeEnv.on('message', message => {
+			logger.info(message);
+		});
+		nodeEnv.on('close', (...args) => {
+			console.log(args);
 			logger.info('closed');
 			this.emit('dismissed', null);
 		});
