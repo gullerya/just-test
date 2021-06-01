@@ -3,14 +3,15 @@ import { loadMetadata, execute } from './main.js';
 import { reportResults } from './report-service.js';
 
 (async () => {
-	const metadata = await loadMetadata();
+	let metadata;
 	const stateService = new SimpleStateService();
 	try {
+		metadata = await loadMetadata();
 		await execute(metadata, stateService);
 		await reportResults(metadata.sessionId, metadata.id, stateService.getAll());
 	} catch (e) {
-		//	TODO: report an env failure here
-		console.log(e);
+		console.error(e);
+		console.error('session execution failed with the previous error');
 		await reportResults(metadata.sessionId, metadata.id, stateService.getAll());
 	}
 })();

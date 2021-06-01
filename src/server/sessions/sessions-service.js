@@ -30,12 +30,11 @@ async function addSession(sessionConfig) {
 		logger.error(`session ID collision (${sessionId})`);
 		sessionId = getRandom(8);
 	}
-	sessions[sessionId] = {
+	sessions[sessionId] = Object.seal({
 		id: sessionId,
 		config: effectiveConfig,
-		status: null,
 		result: null
-	};
+	});
 	logger.info(`session created; id '${sessionId}'`);
 
 	//	TODO: consider auto-run behaviour to be managed elsewhere
@@ -68,14 +67,14 @@ async function runSession(sessionId) {
 			sesEnvs.splice(sesEnvs.indexOf(sesEnv), 1);
 			if (!sesEnvs.length) {
 				console.log('all session environments closed, finalizing session');
-				storeResult(sessionId, sesEnv.envConfig.id, event);
+				finalizeSession(sessionId);
 			}
 		});
 	}
 	logger.info(`... session '${sessionId}' started, waiting finalization...`);
 }
 
-async function storeResult(sesId, envId, sesResult) {
+async function storeResult(sesId, envId, envResult) {
 	const session = await getSession(sesId);
 	if (!session) {
 		throw new Error(`session ID '${sesId}' not exists`);
@@ -87,7 +86,7 @@ async function storeResult(sesId, envId, sesResult) {
 		if (artifacts.coverage) {
 			for (const [testId, coverage] of Object.entries(artifacts.coverage)) {
 				const [sid] = parseTestId(testId);
-				const suite = sesResult.suites.find(s => s.id === sid);
+				const suite = envResult.suites.find(s => s.id === sid);
 				const test = suite.tests.find(t => t.id === testId);
 				test.lastRun.coverage = coverage;
 			}
@@ -100,6 +99,19 @@ async function storeResult(sesId, envId, sesResult) {
 	//	TODO: when multi environmental run will be supported
 	//	TODO: store result per environment and only then the session as a whole
 	//	TODO: or merge the results into one
-	session.result = sesResult;
+	session.result = envResult;
 	logger.info(`environment '${envId}' reported results for session '${sesId}'`);
+}
+
+async function finalizeSession(sesId) {
+	const session = await getSession(sesId);
+	if (!session) {
+		throw new Error(`session ID '${sesId}' not exists`);
+	}
+	if (session.result) {
+		return;
+	}
+
+	//	TODO: calculate session status/result from the envs, or error
+	session.result = 'failure';
 }

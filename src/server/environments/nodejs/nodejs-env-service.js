@@ -37,10 +37,10 @@ class NodeEnvImpl extends EnvironmentBase {
 	async launch() {
 		logger.info(`launching 'NodeJS' environment...`);
 
-		const verNamed = `node-${process.version.replace(/^[^0-9]+/, '')}`;
-		this.consoleLogger = new FileOutput(`./reports/logs/${verNamed}.log`);
+		const versionNamed = `nodejs-${process.version.replace(/^[^0-9]+/, '')}`;
+		this.consoleLogger = new FileOutput(`./reports/logs/${versionNamed}.log`);
 		const nLogger = new Logger({
-			context: verNamed,
+			context: versionNamed,
 			outputs: [this.consoleLogger]
 		});
 
@@ -48,12 +48,8 @@ class NodeEnvImpl extends EnvironmentBase {
 			stdio: 'pipe',
 			timeout: this.envConfig.tests.ttl
 		});
-		nodeEnv.stdout.on('data', data => {
-			nLogger.info(data.toString().trim());
-		});
-		nodeEnv.stderr.on('data', data => {
-			nLogger.error(data.toString().trim());
-		});
+		nodeEnv.stdout.on('data', data => nLogger.info(data.toString().trim()));
+		nodeEnv.stderr.on('data', data => nLogger.error(data.toString().trim()));
 		nodeEnv.on('message', message => {
 			logger.info(message);
 		});
