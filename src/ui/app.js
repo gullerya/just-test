@@ -7,13 +7,21 @@ import { EVENT } from '/core/common/constants.js';
 import { parseTestId } from '/core/common/interop-utils.js';
 import { loadMetadata, execute } from '/core/client/main.js';
 import { runTest } from '/core/client/session-service.js';
+import { getEnvironmentConfig } from '/core/client/environments/environment-config.js';
 import stateService from './interactive-state-service.js';
 
 (async () => {
-	const metadata = await loadMetadata();
-	setupUserEvents(metadata);
-	await execute(metadata, stateService);
-	console.log('continue in interactive mode');
+	let envConfig;
+	try {
+		envConfig = await getEnvironmentConfig();
+		const metadata = await loadMetadata(envConfig.sesId, envConfig.envId);
+		setupUserEvents(metadata);
+		await execute(metadata, stateService);
+		console.log('continue in interactive mode');
+	} catch (e) {
+		console.error(e);
+		console.error('session execution failed due to the previous error/s');
+	}
 })();
 
 function setupUserEvents(metadata) {

@@ -2,6 +2,10 @@ export {
 	postSessionDone
 }
 
+async function getSessionMetadata() {
+	fetch('/api/v1/sessions/interactive')
+}
+
 async function postSessionDone(sesId, envId) {
 	if (!sesId || typeof sesId !== 'string') {
 		throw new Error(`invalid session ID parameter '${sesId}'`);

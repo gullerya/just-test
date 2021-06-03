@@ -1,17 +1,23 @@
 import SimpleStateService from './simple-state-service.js';
 import { loadMetadata, execute } from './main.js';
 import { reportResults } from './report-service.js';
+import { getEnvironmentConfig } from './environments/environment-config.js';
 
 (async () => {
-	let metadata;
+	let sesEnvResult;
+	let envConfig;
 	const stateService = new SimpleStateService();
 	try {
-		metadata = await loadMetadata();
+		envConfig = await getEnvironmentConfig();
+		const metadata = await loadMetadata(envConfig.sesId, envConfig.envId);
 		await execute(metadata, stateService);
-		await reportResults(metadata.sessionId, metadata.id, stateService.getAll());
+		sesEnvResult = stateService.getAll();
 	} catch (e) {
 		console.error(e);
-		console.error('session execution failed with the previous error');
-		await reportResults(metadata.sessionId, metadata.id, stateService.getAll());
+		console.error('session execution failed due to the previous error/s');
+		//	TODO: the below one should probably be replaced with the error state
+		sesEnvResult = stateService.getAll();
+	} finally {
+		await reportResults(envConfig.sesId, envConfig.envId, sesEnvResult);
 	}
 })();

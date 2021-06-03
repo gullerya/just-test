@@ -9,7 +9,7 @@
  * @param {string} envConfig.browser in this context expected always to equal true
  */
 import Logger, { FileOutput } from '../../logger/logger.js';
-import { INTEROP_NAMES } from '../../../common/constants.js';
+import { INTEROP_NAMES, SESSION_ENVIRONMENT_KEYS } from '../../../common/constants.js';
 import { waitInterval } from '../../../common/await-utils.js';
 import { config as serverConfig } from '../../server-service.js';
 import { collectTargetSources, processV8ScriptCoverage } from '../../coverage/coverage-service.js';
@@ -83,7 +83,9 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}, this.envConfig.tests.ttl);
 		browser.once('disconnected', () => this.onDisconnected());
 
-		const envEntryUrl = `${serverConfig.origin}/core/client/app.html?ses-id=${this.sessionId}&env-id=${this.envConfig.id}`;
+		const envEntryUrl = `${serverConfig.origin}/core/client/app.html` +
+			`?${SESSION_ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}` +
+			`&${SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`;
 		logger.info(`navigating testing environment to '${envEntryUrl}'...`);
 		await mainPage.goto(envEntryUrl);
 

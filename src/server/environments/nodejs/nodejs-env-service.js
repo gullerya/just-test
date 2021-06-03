@@ -8,6 +8,7 @@
  * @param {string} envConfig.node in this context expected always to equal true
  */
 import Logger, { FileOutput } from '../../logger/logger.js';
+import { SESSION_ENVIRONMENT_KEYS } from '../../../common/constants.js';
 import { EnvironmentBase } from '../environment-base.js';
 import { fork } from 'child_process';
 
@@ -44,10 +45,17 @@ class NodeEnvImpl extends EnvironmentBase {
 			outputs: [this.consoleLogger]
 		});
 
-		const nodeEnv = fork('bin/client/app.js', {
-			stdio: 'pipe',
-			timeout: this.envConfig.tests.ttl
-		});
+		const nodeEnv = fork(
+			'bin/client/environments/nodejs-entry-point.js',
+			[
+				`${SESSION_ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}`,
+				`${SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`
+			],
+			{
+				stdio: 'pipe',
+				timeout: this.envConfig.tests.ttl
+			}
+		);
 		nodeEnv.stdout.on('data', data => nLogger.info(data.toString().trim()));
 		nodeEnv.stderr.on('data', data => nLogger.error(data.toString().trim()));
 		nodeEnv.on('message', message => {

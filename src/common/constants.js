@@ -2,6 +2,7 @@ export {
 	DEFAULT,
 	EVENT,
 	INTEROP_NAMES,
+	SESSION_ENVIRONMENT_KEYS,
 	STATUS,
 	SUITE_OPTIONS_DEFAULT,
 	TEST_ID_SEPARATOR,
@@ -42,4 +43,9 @@ const TEST_OPTIONS_DEFAULT = Object.freeze({
 
 const INTEROP_NAMES = Object.freeze({
 	REGISTER_TEST_FOR_COVERAGE: '_registerTestForCoverage'
+});
+
+const SESSION_ENVIRONMENT_KEYS = Object.freeze({
+	SESSION_ID: 'ses-id',
+	ENVIRONMENT_ID: 'env-id'
 });

@@ -34,14 +34,11 @@ async function execute(metadata, stateService) {
 /**
  * fetches test session definitions
  */
-async function loadMetadata() {
+async function loadMetadata(sesId, envId) {
 	const P = await perfReady;
 	const started = P.now();
 	console.info(`fetching test session metadata...`);
-
-	const envConfig = await getEnvironment();
-	console.info(`session:environment IDs: '${envConfig.sessionId}':'${envConfig.id}'`);
-
+	const envConfig = await getEnvironment(sesId, envId);
 	console.info(`... metadata fetched (${(P.now() - started).toFixed(1)}ms)`);
 	return envConfig;
 }
@@ -50,9 +47,7 @@ async function loadMetadata() {
  * looks for an environment ID in URL params and fetches
  * no ID - assumes interactive mode -> fetch from server
  */
-async function getEnvironment() {
-	const sesId = await getSessionId();
-	const envId = await getEnvironmentId(sesId);
+async function getEnvironment(sesId, envId) {
 	const [config, testPaths] = await Promise.all([
 		(await fetch(`/api/v1/sessions/${sesId}/environments/${envId}/config`)).json(),
 		(await fetch(`/api/v1/sessions/${sesId}/environments/${envId}/test-file-paths`)).json()
@@ -60,53 +55,6 @@ async function getEnvironment() {
 	config.testPaths = testPaths;
 	config.sessionId = sesId;
 	return config;
-}
-
-/**
- * looks for session ID in URL params
- * if not present, asks for the current interactive
- * if fails - throws
- */
-async function getSessionId() {
-	const sp = new URL(globalThis.location.href).searchParams;
-	let sesId = sp.get('ses-id');
-	if (!sesId) {
-		const r = await fetch('/api/v1/sessions/interactive');
-		if (!r.ok) {
-			throw new Error(`failed to load interactive session; status: ${r.status}`);
-		}
-		const session = await r.json();
-		sesId = session.id;
-	}
-	if (!sesId) {
-		throw new Error(`failed to obtain session ID`);
-	}
-	return sesId;
-}
-
-/**
- * looks for environment ID in URL params
- * if not present, asks for the interactive based on sesson ID
- * if fails - throws
- */
-async function getEnvironmentId(sesId) {
-	const sp = new URL(globalThis.location.href).searchParams;
-	let envId = sp.get('env-id');
-	if (!envId) {
-		if (!sesId) {
-			throw new Error(`no environment ID found in URL and session ID is empty (${sesId})`);
-		}
-		const r = await fetch(`/api/v1/sessions/${sesId}/environments/interactive`);
-		if (!r.ok) {
-			throw new Error(`failed to load interactive environment of session '${sesId}'; status: ${r.status}`);
-		}
-		const environment = await r.json();
-		envId = environment.id;
-	}
-	if (!envId) {
-		throw new Error(`failed to obtain environment ID`);
-	}
-	return envId;
 }
 
 /**

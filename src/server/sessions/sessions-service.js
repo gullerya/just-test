@@ -62,7 +62,7 @@ async function runSession(sessionId) {
 	logger.info(`starting session '${sessionId}'...`);
 	const sesEnvs = await launch(session);
 	for (const sesEnv of sesEnvs) {
-		sesEnv.on('dismissed', event => {
+		sesEnv.on('dismissed', () => {
 			//	TODO: handle here the abnormal session finalization
 			sesEnvs.splice(sesEnvs.indexOf(sesEnv), 1);
 			if (!sesEnvs.length) {

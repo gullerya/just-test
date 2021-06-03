@@ -7,6 +7,7 @@
  * @param {boolean} envConfig.interactive in this context expected always to equal true
  */
 import Logger from '../../logger/logger.js';
+import { SESSION_ENVIRONMENT_KEYS } from '../../../common/constants.js';
 import { config as serverConfig } from '../../server-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 
@@ -21,8 +22,12 @@ class InteractiveEnvImpl extends EnvironmentBase {
 	}
 
 	async launch() {
+
+
 		logger.info(`interactive environment for session '${this.sessionId}' launched`);
-		logger.info(`open your browser and navigate to <host>:${serverConfig.port}`);
+		logger.info(`open your browser and navigate to ${serverConfig.origin}` +
+			`?${SESSION_ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}` +
+			`&${SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`);
 		return Promise.resolve();
 	}
 
