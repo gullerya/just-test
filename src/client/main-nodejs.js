@@ -3,6 +3,7 @@ import { getTestId, getValidName } from '../common/interop-utils.js';
 import { perfReady } from '../common/performance-utils.js';
 import { runSession } from './session-service.js';
 import * as serverAPI from './server-api-service.js';
+import path from 'node:path';
 
 export {
 	loadMetadata,
@@ -68,7 +69,8 @@ async function collectTests(testsResources, stateService) {
 
 	for await (const tr of testsResources) {
 		try {
-			await import(`/tests/${tr}`);
+			const rPath = path.resolve(tr);
+			await import(rPath);
 			stateService.getUnSourced().forEach(t => t.source = tr);
 		} catch (e) {
 			console.error(`failed to import '${tr}':`, e);

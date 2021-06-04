@@ -7,10 +7,11 @@
  * @param {Object} envConfig environment configuration
  * @param {string} envConfig.node in this context expected always to equal true
  */
-import Logger, { FileOutput } from '../../logger/logger.js';
-import { SESSION_ENVIRONMENT_KEYS } from '../../../common/constants.js';
-import { EnvironmentBase } from '../environment-base.js';
 import { fork } from 'child_process';
+import { SESSION_ENVIRONMENT_KEYS } from '../../../common/constants.js';
+import Logger, { FileOutput } from '../../logger/logger.js';
+import { config as serverConfig } from '../../server-service.js';
+import { EnvironmentBase } from '../environment-base.js';
 
 export default launch;
 
@@ -49,7 +50,8 @@ class NodeEnvImpl extends EnvironmentBase {
 			'bin/client/environments/nodejs-entry-point.js',
 			[
 				`${SESSION_ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}`,
-				`${SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`
+				`${SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`,
+				`${SESSION_ENVIRONMENT_KEYS.SERVER_ORIGIN}=${serverConfig.origin}`
 			],
 			{
 				stdio: 'pipe',

@@ -47,5 +47,6 @@ const INTEROP_NAMES = Object.freeze({
 
 const SESSION_ENVIRONMENT_KEYS = Object.freeze({
 	SESSION_ID: 'ses-id',
-	ENVIRONMENT_ID: 'env-id'
+	ENVIRONMENT_ID: 'env-id',
+	SERVER_ORIGIN: 'server-origin'
 });

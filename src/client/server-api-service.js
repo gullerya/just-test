@@ -1,9 +1,20 @@
+import { getEnvironmentConfig } from './environment-config.js';
+
 export {
+	getSessionMetadata,
 	postSessionDone
 }
 
-async function getSessionMetadata() {
-	fetch('/api/v1/sessions/interactive')
+async function getSessionMetadata(sesId, envId) {
+	await initPromise;
+
+	const [config, testPaths] = await Promise.all([
+		(await uniFetch(`/api/v1/sessions/${sesId}/environments/${envId}/config`)).json(),
+		(await uniFetch(`/api/v1/sessions/${sesId}/environments/${envId}/test-file-paths`)).json()
+	]);
+	config.testPaths = testPaths;
+	config.sessionId = sesId;
+	return config;
 }
 
 async function postSessionDone(sesId, envId) {
@@ -33,9 +44,10 @@ async function initFetch() {
 		result = globalThis.fetch;
 	} else {
 		const http = (await import('http')).default;
+		const envConfig = await getEnvironmentConfig();
 		result = async (url, options) => {
 			return new Promise((resolve, reject) => {
-				http.request(url, options, res => {
+				http.request(envConfig.serverOrigin + url, options, res => {
 					if (res.statusCode < 200 && res.statusCode > 299) {
 						resolve({
 							ok: false,

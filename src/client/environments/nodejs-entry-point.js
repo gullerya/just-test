@@ -5,9 +5,9 @@
  */
 
 import SimpleStateService from '../simple-state-service.js';
-import { loadMetadata, execute } from '../main.js';
+import { loadMetadata, execute } from '../main-nodejs.js';
 import { reportResults } from '../report-service.js';
-import { getEnvironmentConfig } from './environment-config.js';
+import { getEnvironmentConfig } from '../environment-config.js';
 
 (async () => {
 	let sesEnvResult;

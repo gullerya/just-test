@@ -7,7 +7,7 @@ import { EVENT } from '/core/common/constants.js';
 import { parseTestId } from '/core/common/interop-utils.js';
 import { loadMetadata, execute } from '/core/client/main.js';
 import { runTest } from '/core/client/session-service.js';
-import { getEnvironmentConfig } from '/core/client/environments/environment-config.js';
+import { getEnvironmentConfig } from '/core/client/environment-config.js';
 import stateService from './interactive-state-service.js';
 
 (async () => {

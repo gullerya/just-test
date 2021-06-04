@@ -7,7 +7,6 @@
 				"maxFail": 0,
 				"maxSkip": 0,
 				"include": [
-					"./tests/common/**/*.js",
 					"./tests/server/**/*.js"
 				]
 			},

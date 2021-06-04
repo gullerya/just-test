@@ -19,7 +19,7 @@ export {
  */
 function deployTest(test, sessionMetadata) {
 	let deployPromise;
-	if (sessionMetadata.interactive || sessionMetadata.browser.type === 'firefox') {
+	if (sessionMetadata.interactive || sessionMetadata.browser?.type === 'firefox') {
 		deployPromise = executeInFrame(test);
 	} else if (sessionMetadata.browser) {
 		deployPromise = executeInPage(test);
