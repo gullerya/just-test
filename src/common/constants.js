@@ -3,6 +3,7 @@ export {
 	EVENT,
 	INTEROP_NAMES,
 	SESSION_ENVIRONMENT_KEYS,
+	TESTBOX_ENVIRONMENT_KEYS,
 	STATUS,
 	SUITE_OPTIONS_DEFAULT,
 	TEST_ID_SEPARATOR,
@@ -49,4 +50,9 @@ const SESSION_ENVIRONMENT_KEYS = Object.freeze({
 	SESSION_ID: 'ses-id',
 	ENVIRONMENT_ID: 'env-id',
 	SERVER_ORIGIN: 'server-origin'
+});
+
+const TESTBOX_ENVIRONMENT_KEYS = Object.freeze({
+	TEST_ID: 'test-id',
+	TEST_URL: 'test-url'
 });

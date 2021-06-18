@@ -7,7 +7,9 @@
  * @param {Object} envConfig environment configuration
  * @param {string} envConfig.node in this context expected always to equal true
  */
-import { fork } from 'child_process';
+import { fork } from 'node:child_process';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { SESSION_ENVIRONMENT_KEYS } from '../../../common/constants.js';
 import Logger, { FileOutput } from '../../logger/logger.js';
 import { config as serverConfig } from '../../server-service.js';
@@ -16,6 +18,7 @@ import { EnvironmentBase } from '../environment-base.js';
 export default launch;
 
 const logger = new Logger({ context: 'NodeJS env service' });
+const ownDir = dirname(fileURLToPath(import.meta.url));
 
 class NodeEnvImpl extends EnvironmentBase {
 
@@ -46,8 +49,9 @@ class NodeEnvImpl extends EnvironmentBase {
 			outputs: [this.consoleLogger]
 		});
 
+		const entryPointClientPath = resolve(ownDir, '../../../client/environments/nodejs-entry-point.js');
 		const nodeEnv = fork(
-			'bin/client/environments/nodejs-entry-point.js',
+			entryPointClientPath,
 			[
 				`${SESSION_ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}`,
 				`${SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`,

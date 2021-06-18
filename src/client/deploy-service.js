@@ -10,7 +10,7 @@ export {
 /**
  * deploys a single test within a given environment
  * - in the browser non-interactive context injects the test into the newly created page
- * - in the browder interactive context injects the test into the newly created frame
+ * - in the browser interactive context injects the test into the newly created frame
  * - in NodeJS context injects the test into a NodeJS fork
  * 
  * @param {object} test - test (metadata) to execute
@@ -75,8 +75,9 @@ async function executeInPage(test) {
 	return Promise.resolve(testRunBox);
 }
 
-function executeInNodeJS(test) {
-	throw new Error(`unsupported yet environment to run ${test.id} from ${test.source}`);
+async function executeInNodeJS(test) {
+	const TestRunBoxNodeJS = (await import('./om/test-box-nodejs.js')).TestRunBoxNodeJS;
+	return TestRunBoxNodeJS.execute(test);
 }
 
 function injectTestIntoDocument(envDocument, testSource) {
