@@ -1,5 +1,5 @@
 import { INTEROP_NAMES } from '../common/constants.js';
-import { TestRunBox } from './om/test-box.js';
+import { TestRunBox } from './om/test-run-box.js';
 import { getSuite } from './om/suite-runner.js';
 
 export {

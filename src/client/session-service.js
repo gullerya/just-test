@@ -56,8 +56,6 @@ async function runTest(test, sessionMetadata, stateService) {
 	const [sid, tid] = parseTestId(test.id);
 	const testRunBox = await deployTest(test, sessionMetadata);
 
-	console.log(testRunBox);
-
 	return new Promise(resolve => {
 		testRunBox.runStarted.then(() => {
 			stateService.updateRunStarted(sid, tid);
