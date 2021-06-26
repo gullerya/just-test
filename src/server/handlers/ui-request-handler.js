@@ -16,7 +16,7 @@ export default class ClientCoreRequestHandler extends RequestHandlerBase {
 	}
 
 	get basePath() {
-		return '/ui';
+		return 'ui';
 	}
 
 	async handle(handlerRelativePath, req, res) {

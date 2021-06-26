@@ -6,7 +6,6 @@
 import * as http from 'http';
 import { performance as P } from 'perf_hooks';
 import Logger from './logger/logger.js';
-import buildConfig from './server-configurer.js';
 import { dismissAll } from './environments/environments-service.js';
 
 export {
@@ -30,14 +29,9 @@ let server;
 
 class ServerService {
 	constructor(serverConfig) {
-		//	build configuration
-		const effectiveConf = buildConfig(serverConfig);
-		this[CONFIG_KEY] = effectiveConf;
-		config = effectiveConf;
-		logger.info('server service effective config:');
-		logger.info(effectiveConf);
+		this[CONFIG_KEY] = serverConfig;
+		config = serverConfig;
 
-		//	init service
 		this[STATUS_KEY] = STATUS_STOPPED;
 		this[SERVER_KEY] = null;
 		this[BASE_URL_KEY] = this.effectiveConfig.origin;
@@ -47,25 +41,18 @@ class ServerService {
 	async initHandlers() {
 		const
 			started = P.now(),
-			handlers = [],
-			handlerBasePaths = [];
-		for (const h of this[CONFIG_KEY].handlers) {
+			candidates = this[CONFIG_KEY].handlers,
+			handlers = {};
+		logger.info(`initializing ${candidates.length} handler/s...`);
+		for (const h of candidates) {
 			const handlerCTor = (await import(h)).default;
 			const handler = new handlerCTor(this[CONFIG_KEY]);
-
-			for (const bup of handlerBasePaths) {
-				if (handler.basePath === '/' || bup === '/') {
-					if (handler.basePath === bup) {
-						throw new Error(`'basePath' of handlers MUST be exclusive, violators: '${bup}' and '${handler.basePath}'`);
-					}
-				} else if (bup.indexOf(handler.basePath) === 0 || handler.basePath.indexOf(bup) === 0) {
-					throw new Error(`'basePath' of handlers MUST be exclusive, violators: '${bup}' and '${handler.basePath}'`);
-				}
+			if (handler.basePath in handlers) {
+				throw new Error(`base path '${handler.basePath}' is already registered`);
 			}
-			handlerBasePaths.push(handler.basePath);
-			handlers.push(handler);
+			handlers[handler.basePath] = handler;
 		}
-		logger.info(`... initialized ${handlers.length} handler/s (${(P.now() - started).toFixed(1)}ms)`);
+		logger.info(`... initialized ${Object.keys(handlers).length} handler/s (${(P.now() - started).toFixed(1)}ms)`);
 		return handlers;
 	}
 
@@ -80,16 +67,17 @@ class ServerService {
 		const
 			origin = this[CONFIG_KEY].origin,
 			port = this[CONFIG_KEY].port;
-		logger.info(`starting server on port ${port} (full origin '${origin}')...`);
+		logger.info(`starting listening on port ${port} (full origin '${origin}')...`);
 
 		//	init dispatcher
 		const mainRequestDispatcher = async function mainRequestHandler(req, res) {
 			const { pathname } = new URL(req.url, origin);
 			const path = pathname === '/' || pathname === '' ? '/ui' : pathname;
-			const handler = handlers.find(h => path.startsWith(h.basePath));
+			const basePath = path.split('/')[1];
+			const handler = handlers[basePath];
 			if (handler) {
 				try {
-					let ownPath = path.substring(handler.basePath.length);
+					let ownPath = path.substring(handler.basePath.length + 1);
 					ownPath = ownPath.startsWith('/') ? ownPath.substring(1) : ownPath;
 					await handler.handle(ownPath, req, res);
 				} catch (error) {
@@ -106,9 +94,17 @@ class ServerService {
 		logger.info(`\tregistered ${handlers.length} request handler/s`);
 		const s = http.createServer(mainRequestDispatcher);
 		this[SERVER_KEY] = s.listen(port);
-
-		this[STATUS_KEY] = STATUS_RUNNING;
-		logger.info(`... local server started on port ${port}`);
+		s.on('listening', () => {
+			this[STATUS_KEY] = STATUS_RUNNING;
+			logger.info(`... listening on port ${port}`);
+		});
+		this.stopPromise = new Promise(r => {
+			s.on('close', () => {
+				this[STATUS_KEY] = STATUS_STOPPED;
+				logger.info(`port ${port} closed`);
+				r();
+			});
+		});
 	}
 
 	async stop() {

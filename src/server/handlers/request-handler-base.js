@@ -1,10 +1,9 @@
+const basePathValidator = /^[a-z]+$/;
 export class RequestHandlerBase {
 	constructor() {
-		const bup = this.basePath;
-		if (bup !== '/') {
-			if (!bup || typeof bup !== 'string' || !bup.length || !bup.startsWith('/') || bup.endsWith('/')) {
-				throw new Error('extending handler MUST provide basePath as a non-null and non-empty string starting starting with "/" and NOT ending with "/"');
-			}
+		const bp = this.basePath;
+		if (!bp || typeof bp !== 'string' || !basePathValidator.test(bp)) {
+			throw new Error(`extending handler MUST provide basePath as a string matching '${basePathValidator}'`);
 		}
 	}
 

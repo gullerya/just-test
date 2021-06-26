@@ -1,9 +1,9 @@
+import path from 'node:path';
 import { SUITE_OPTIONS_DEFAULT, TEST_OPTIONS_DEFAULT } from '../common/constants.js';
 import { getTestId, getValidName } from '../common/interop-utils.js';
 import { perfReady } from '../common/performance-utils.js';
 import { runSession } from './session-service.js';
 import * as serverAPI from './server-api-service.js';
-import path from 'node:path';
 
 export {
 	loadMetadata,

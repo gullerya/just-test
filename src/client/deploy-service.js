@@ -1,4 +1,4 @@
-import { INTEROP_NAMES } from '../common/constants.js';
+import { DEFAULT, INTEROP_NAMES, TESTBOX_ENVIRONMENT_KEYS } from '../common/constants.js';
 import { TestRunBox } from './om/test-run-box.js';
 import { getSuite } from './om/suite-runner.js';
 
@@ -23,8 +23,10 @@ function deployTest(test, sessionMetadata) {
 		deployPromise = executeInFrame(test);
 	} else if (sessionMetadata.browser) {
 		deployPromise = executeInPage(test);
-	} else {
+	} else if (sessionMetadata.node === true) {
 		deployPromise = executeInNodeJS(test);
+	} else {
+		throw new Error(`unexpected configuration ${JSON.stringify(sessionMetadata)}`);
 	}
 	return deployPromise;
 }
@@ -75,9 +77,32 @@ async function executeInPage(test) {
 	return Promise.resolve(testRunBox);
 }
 
+//	This one should create child process
 async function executeInNodeJS(test) {
-	const TestRunBoxNodeJS = (await import('./om/test-box-nodejs.js')).TestRunBoxNodeJS;
-	return TestRunBoxNodeJS.execute(test);
+	const fork = (await import('node:child_process')).fork;
+	const path = (await import('node:path')).default;
+
+	const nodeEnv = fork(
+		path.resolve('bin/client/nodejs/test-box-nodejs.js'),
+		[
+			`${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${test.id}`,
+			`${TESTBOX_ENVIRONMENT_KEYS.TEST_URL}=${test.source}`
+		],
+		{
+			timeout: DEFAULT.TEST_RUN_TTL
+		}
+	);
+	nodeEnv.on('close', (...args) => {
+		console.log(args);
+		console.info('closed ' + test.id);
+	});
+	nodeEnv.on('error', e => { console.error(e); });
+	//	TODO: create here TestBox that will listen to messages from process and interop with the suite runner	
+
+	return Promise.resolve({
+		runStarted: new Promise(() => { }),
+		runEnded: new Promise(() => { })
+	});
 }
 
 function injectTestIntoDocument(envDocument, testSource) {

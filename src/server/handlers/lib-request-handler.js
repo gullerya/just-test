@@ -18,7 +18,7 @@ export default class ClientLibsRequestHandler extends RequestHandlerBase {
 	}
 
 	get basePath() {
-		return '/libs';
+		return 'libs';
 	}
 
 	async handle(handlerRelativePath, req, res) {

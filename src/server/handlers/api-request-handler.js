@@ -16,7 +16,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 	}
 
 	get basePath() {
-		return '/api';
+		return 'api';
 	}
 
 	async handle(handlerRelativePath, req, res) {

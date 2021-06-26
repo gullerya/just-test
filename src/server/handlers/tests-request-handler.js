@@ -16,7 +16,7 @@ export default class TestResourcesRequestHandler extends RequestHandlerBase {
 	}
 
 	get basePath() {
-		return '/tests';
+		return 'tests';
 	}
 
 	async handle(handlerRelativePath, req, res) {

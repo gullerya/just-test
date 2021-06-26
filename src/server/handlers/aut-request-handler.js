@@ -16,7 +16,7 @@ export default class AUTRequestHandler extends RequestHandlerBase {
 	}
 
 	get basePath() {
-		return '/aut';
+		return 'aut';
 	}
 
 	async handle(handlerRelativePath, req, res) {

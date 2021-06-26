@@ -10,13 +10,13 @@ Following lines are describing those URL patterns and their behaviour.
 
 ## `/api`
 
-`api` namespace dedicated to API calls: session API, metadata API etc.
+`api` namespace is dedicated to API calls: session API, metadata API etc.
 
 //	TODO: spec for all API endpoints
 
 ## `/core`
 
-`core` namespace used to serve `just-test` own core resources, runner components, common modules etc.
+`core` namespace is used to serve `just-test` own core resources, runner components, common modules etc.
 
 ## `/ui`
 
@@ -24,7 +24,7 @@ Core URL space is reserved to serve JustTest own client application resources.
 
 ## `/aut`
 
-`aut` handler dedicated to serve an arbitrariy AUT (application under test) resources.
+`aut` handler is dedicated to serve an arbitrariy AUT (application under test) resources.
 
 As a rule of thumb, any code/resource that your tests need to fetch to be tested should be requested by this URL space.
 
