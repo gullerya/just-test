@@ -7,42 +7,50 @@
 import fs from 'fs';
 import Logger from './logger/logger.js';
 import buildConfig from './configuration/server-configurer.js';
-import { start as serverStart } from './server-service.js';
+import { start as serverStart, stop } from './server-service.js';
 
-const logger = new Logger({ context: 'JustTest CLI' })
+export {
+	start,
+	stop
+}
 
-logger.info('Starting JustTest server');
+const logger = new Logger({ context: 'JustTest CLI' });
 
-Promise
-	.all([
-		collectArgs(),
-		collectEnvs()
-	])
-	.then(([args, envs]) => {
-		const customConfig = {};
-		const enar = Object.assign({}, envs, args);
-		if (enar.config_file) {
-			const cf = JSON.parse(fs.readFileSync(enar.config_file));
-			Object.assign(customConfig, cf);
-		}
-		Object.assign(customConfig, enar);
-		return buildConfig(customConfig);
-	})
-	.then(effectiveConfig => {
-		logger.info('effective configuration:', effectiveConfig);
-		logger.info('starting server...');
-		return serverStart(effectiveConfig);
-	})
-	.then(serverService => {
-		return serverService.stopPromise;
-	})
-	.catch(error => {
-		logger.error(error);
-		logger.error('failed to start server due to previous error/s');
-	})
-	.finally(() => {
-		logger.info('JustTest server exited');
-	});
+if (process.argv[1] && process.argv[1].endsWith('cli.js')) {
+	go()
+		.then(serverService => {
+			return serverService.stopPromise;
+		})
+		.catch(error => {
+			logger.error(error);
+			logger.error('failed to start server due to previous error/s');
+		})
+		.finally(() => {
+			logger.info('JustTest server exited');
+		});
+}
+
+async function start() {
+	logger.info('Starting JustTest server');
+	const [args, envs] = await Promise.all([collectArgs(), collectEnvs()]);
+
+	//	resolve effective configuration
+	const customConfig = {};
+	const enar = Object.assign({}, envs, args);
+	if (enar.config_file) {
+		const cf = JSON.parse(fs.readFileSync(enar.config_file));
+		Object.assign(customConfig, cf);
+	}
+	Object.assign(customConfig, enar);
+	const effectiveConfig = buildConfig(customConfig);
+
+	//	init server service
+	logger.info('effective configuration:', effectiveConfig);
+	logger.info('starting server...');
+	const serverService = serverStart(effectiveConfig);
+
+	return serverService;
+}
 
 async function collectEnvs() {
 	//	TODO: resolve ENV keys to normalized config object

@@ -3,7 +3,7 @@ import fs from 'fs';
 import util from 'util';
 import process from 'process';
 import * as http from 'http';
-import { start, stop } from './server/server-service.js';
+import { start, stop } from './server/cli.js';
 import { perfReady } from './common/performance-utils.js';
 import { xUnitReporter } from './server/testing/testing-service.js';
 import { lcovReporter } from './server/coverage/coverage-service.js';
@@ -17,13 +17,12 @@ async function go() {
 	const startTime = P.now();
 	const clArguments = parseCLArgs(process.argv);
 	console.info(`Starting local run...`);
-	console.info(`arguments: ${JSON.stringify(clArguments)}`);
 	console.info(`${'='.repeat(64)}${os.EOL}`);
 
 	let server;
 	let sessionResult;
 	try {
-		server = await start(clArguments);
+		server = await start();
 		sessionResult = await executeSession(server.baseUrl, clArguments);
 	} catch (error) {
 		console.error(os.EOL);
@@ -102,11 +101,11 @@ async function executeSession(serverBaseUrl, clArguments) {
 }
 
 async function readConfigAndMergeWithCLArguments(clArguments) {
-	if (!clArguments || !clArguments.config || typeof clArguments.config !== 'string') {
-		throw new Error(`invalid config argument (${clArguments?.config})`);
+	if (!clArguments || !clArguments.config_file || typeof clArguments.config_file !== 'string') {
+		throw new Error(`invalid config_file argument (${clArguments?.config_file})`);
 	}
 
-	const configText = await util.promisify(fs.readFile)(clArguments.config, { encoding: 'utf-8' });
+	const configText = await util.promisify(fs.readFile)(clArguments.config_file, { encoding: 'utf-8' });
 	const result = JSON.parse(configText);
 	//	merge with command line arguments
 
