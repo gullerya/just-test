@@ -36,4 +36,4 @@ Assume, that `/aut/` path is translated to point to the root of your repository.
 
 ## `/tests`
 
-This URL space is also used internally by the JustTest client application, it's purpose to fetch tests themselves.
+This URL space is also used internally by the JustTest runner application, it's purpose to fetch tests themselves.

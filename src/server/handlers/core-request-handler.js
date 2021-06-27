@@ -7,9 +7,9 @@ import { findMimeType, extensionsMap } from '../server-utils.js';
 const
 	logger = new Logger({ context: 'handler core' }),
 	CONFIG_KEY = Symbol('config.key'),
-	sourceRoots = ['client', 'common'];
+	sourceRoots = ['runner', 'common'];
 
-export default class ClientCoreRequestHandler extends RequestHandlerBase {
+export default class RunnerCoreRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;

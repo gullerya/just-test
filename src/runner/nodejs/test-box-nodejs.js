@@ -33,8 +33,8 @@ async function obtainConfiguration() {
 	}
 }
 
-function setupTestRunEnvironment(testRunConfig) {
-	globalThis.getSuite = (suiteName) => {
+function setupTestRunEnvironment() {
+	globalThis.getSuite = () => {
 		return {
 			test: (name, code, options) => {
 				//	TODO: do conditional execution

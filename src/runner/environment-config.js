@@ -34,7 +34,7 @@ async function getEnvironmentConfig() {
 		if (!result) {
 			throw new Error(`illegal environment configuration '${JSON.stringify(result)}'`);
 		} else {
-			console.info('client environment config:');
+			console.info('runner environment config:');
 			console.info(JSON.stringify(result));
 		}
 		cachedEnvConfig = result;

@@ -24,7 +24,7 @@ jobs:
 
       - name: Lint
         run: |
-          npm run lint:client
+          npm run lint:runner
           npm run lint:server
 
   quality_pipeline_chromium:

@@ -1,6 +1,6 @@
 import { initComponent, ComponentBase } from 'rich-component';
 import stateService from '../../interactive-state-service.js';
-import { reportResults } from '/core/client/report-service.js';
+import { reportResults } from '/core/runner/report-service.js';
 
 const TEMPLATE = document.createElement('template');
 TEMPLATE.innerHTML = `

@@ -1,5 +1,5 @@
 /**
- * NodeJS specific session runner client
+ * NodeJS specific session runner
  * - obtains the environment configuration
  * - sets up object model in the NodeJS environment way
  */

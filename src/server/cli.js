@@ -17,7 +17,7 @@ export {
 const logger = new Logger({ context: 'JustTest CLI' });
 
 if (process.argv[1] && process.argv[1].endsWith('cli.js')) {
-	go()
+	start()
 		.then(serverService => {
 			return serverService.stopPromise;
 		})

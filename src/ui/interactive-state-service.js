@@ -1,7 +1,7 @@
 /**
  * Manages observable session state (interactive environment only)
  */
-import SimpleStateService from '/core/client/simple-state-service.js';
+import SimpleStateService from '/core/runner/simple-state-service.js';
 import { Session } from '/core/common/models/tests/session.js';
 import { ties } from 'data-tier';
 

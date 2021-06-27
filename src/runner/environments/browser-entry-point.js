@@ -1,5 +1,5 @@
 /**
- * browser specific session runner client
+ * browser specific session runner
  * - retrieves the session and environment IDs from search params
  * - sets up object model in the browser environment way
  */

@@ -40,7 +40,7 @@
 	},
 	"scripts": {
 		"build": "node ./ci/tools/build.js",
-		"lint:client": "eslint -c ./ci/.eslintrc.client.json \"./src/client/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/client/**/*.js\"",
+		"lint:runner": "eslint -c ./ci/.eslintrc.runner.json \"./src/runner/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/runner/**/*.js\"",
 		"lint:server": "eslint -c ./ci/.eslintrc.server.json \"./src/common/**/*.js\" \"./src/server/**/*.js\" \"./src/*.js\" \"./ci/**/*.js\" \"./tests/server/**/*.js\"",
 		"test:dev": "node ./src/local-runner.js config_file=./tests/tests-config-dev.json",
 		"test:ci": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-chromium.json",

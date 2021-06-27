@@ -10,7 +10,7 @@ const
 	requirer = createRequire(import.meta.url),
 	CONFIG_KEY = Symbol('config.key');
 
-export default class ClientLibsRequestHandler extends RequestHandlerBase {
+export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;

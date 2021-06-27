@@ -1,7 +1,7 @@
 /**
  * This will launch browser environment, that is:
  * - launching browser main instance
- * - loading session runner client
+ * - loading session runner
  * - tracking test run instances and collecting data (coverage, logs)
  * - dismissing all upon finalization / crash
  * 
@@ -83,7 +83,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}, this.envConfig.tests.ttl);
 		browser.once('disconnected', () => this.onDisconnected());
 
-		const envEntryUrl = `${serverConfig.origin}/core/client/app.html` +
+		const envEntryUrl = `${serverConfig.origin}/core/runner/app.html` +
 			`?${SESSION_ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}` +
 			`&${SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`;
 		logger.info(`navigating testing environment to '${envEntryUrl}'...`);

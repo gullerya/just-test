@@ -1,4 +1,4 @@
-﻿import { getSuite as getSuiteUT } from '/aut/bin/client/om/suite-runner.js';
+﻿import { getSuite as getSuiteUT } from '/aut/bin/runner/om/suite-runner.js';
 
 const
 	suite = globalThis.getSuite('Suite APIs');
