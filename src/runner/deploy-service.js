@@ -41,18 +41,21 @@ function executeInFrame(test) {
 	let f = lookupEnv(test.id);
 	if (!f) {
 		f = d.createElement('iframe');
-		f.name = test.id;
 		f.classList.add('just-test-execution-frame');
 	}
-	f.srcdoc = '';
+	f.src = `about:blank?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${test.id}`;
 
-	const testRunBox = new TestRunBox(test);
-	f.onload = () => {
-		f.contentWindow.getSuite = getSuite.bind(testRunBox);
-		injectTestIntoDocument(f.contentDocument, test.source);
-		f.onload = null;
-	};
-	d.body.appendChild(f);
+	//	here consume IPC service and use it to bind this window with the frame's window
+	const
+
+		//	const testRunBox = new TestRunBox(test);
+		// f.onload = () => {
+		// 	f.contentWindow.getSuite = getSuite.bind(testRunBox);
+		// 	injectTestIntoDocument(f.contentDocument, test.source);
+		// 	f.onload = null;
+		// };
+
+		d.body.appendChild(f);
 
 	return Promise.resolve(testRunBox);
 }
