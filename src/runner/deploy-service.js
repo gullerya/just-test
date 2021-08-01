@@ -1,4 +1,5 @@
 import { DEFAULT, INTEROP_NAMES, TESTBOX_ENVIRONMENT_KEYS } from '../common/constants.js';
+import { ENVIRONMENT_TYPES, TestRunManager } from '../runner/ipc-service/ipc-service.js';
 import { TestRunBox } from './om/test-run-box.js';
 import { getSuite } from './om/suite-runner.js';
 
@@ -46,18 +47,19 @@ function executeInFrame(test) {
 	f.src = `about:blank?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${test.id}`;
 
 	//	here consume IPC service and use it to bind this window with the frame's window
-	const
+	let testRunManager;
 
-		//	const testRunBox = new TestRunBox(test);
-		// f.onload = () => {
-		// 	f.contentWindow.getSuite = getSuite.bind(testRunBox);
-		// 	injectTestIntoDocument(f.contentDocument, test.source);
-		// 	f.onload = null;
-		// };
+	//	const testRunBox = new TestRunBox(test);
+	f.onload = () => {
+		// f.contentWindow.getSuite = getSuite.bind(testRunBox);
+		testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, f.contentWindow)
+		injectTestIntoDocument(f.contentDocument, test.source);
+		f.onload = null;
+	};
 
-		d.body.appendChild(f);
+	d.body.appendChild(f);
 
-	return Promise.resolve(testRunBox);
+	return Promise.resolve(testRunManager);
 }
 
 async function executeInPage(test) {
@@ -111,6 +113,6 @@ async function executeInNodeJS(test) {
 function injectTestIntoDocument(envDocument, testSource) {
 	const s = envDocument.createElement('script');
 	s.type = 'module';
-	s.src = `/tests/${testSource}`;
+	s.src = `/core/runner/environments/browser-test-runner.js`;
 	envDocument.head.appendChild(s);
 }

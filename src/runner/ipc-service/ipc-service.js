@@ -6,7 +6,7 @@
  * - supports both, browser and NodeJS environments yet providing unified API
  */
 import * as BrowserIPC from './ipc-browser-impl.js';
-import * as Node_JsIPC from './ipc-node-impl.js';
+import * as Node_JsIPC from './ipc-nodejs-impl.js';
 
 export {
 	ENVIRONMENT_TYPES
@@ -80,7 +80,7 @@ export class TestRunManager {
 				? Node_JsIPC
 				: null;
 
-		setupListeners(processObject)
+		this.setupListeners(processObject)
 		Object.freeze(this);
 	}
 
