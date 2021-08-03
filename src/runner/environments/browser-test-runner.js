@@ -57,7 +57,7 @@ function initEnvironment(testConfig) {
 }
 
 function loadTest(testConfig) {
-	import('/tests/' + testConfig.source);
+	import(`/tests/${testConfig.source}`);
 }
 
 async function runTest(code, meta) {

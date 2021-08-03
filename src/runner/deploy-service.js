@@ -115,7 +115,7 @@ async function executeInNodeJS(test) {
 function injectTestIntoDocument(envDocument, testSource) {
 	const s = envDocument.createElement('script');
 	s.type = 'module';
-	s.src = `/core/runner/environments/browser-test-runner.js`;
+	s.src = `/test/${testSource}`;
 	envDocument.head.appendChild(s);
 }
 
