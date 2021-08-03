@@ -17,6 +17,12 @@ const ENVIRONMENT_TYPES = Object.freeze({
 	NODE_JS: 'node_js'
 });
 
+const MESSAGE_TYPES = Object.freeze({
+	GET_TEST_CONFIG: 'getTestConfig',
+	TEST_CONFIG: 'testConfig',
+	RUN_RESULT: 'runResult'
+});
+
 let messageId = 0;
 
 export class TestRunWorker {
@@ -45,27 +51,27 @@ export class TestRunWorker {
 	 */
 	async getTestConfig(testId) {
 		const mid = messageId++;
-		const resultPromise = this.ipcEngine.waitMessage(this.processObject, mid, 1000);
+		const resultPromise = this.ipcEngine.waitMessage(this.processObject, MESSAGE_TYPES.TEST_CONFIG, mid, 1000);
 		this.ipcEngine.sendMessage(this.processObject, {
 			mid: mid,
-			type: 'getTestConfig',
+			type: MESSAGE_TYPES.GET_TEST_CONFIG,
 			testId: testId
 		});
-		return await resultPromise;
+		return (await resultPromise).data;
 	}
 
 	sendRunResult(runResult) {
 		const mid = messageId++;
 		this.ipcEngine.sendMessage(this.processObject, {
 			mid: mid,
-			type: 'sendRunResult',
+			type: MESSAGE_TYPES.RUN_RESULT,
 			runResult: runResult
 		});
 	}
 }
 
 export class TestRunManager {
-	constructor(envType, processObject) {
+	constructor(envType, processObject, testConfigsMap) {
 		if (!Object.values(ENVIRONMENT_TYPES).some(et => et === envType)) {
 			throw new Error(`invalid environment type '${envType}'`);
 		}
@@ -74,6 +80,7 @@ export class TestRunManager {
 		}
 		this.envType = envType;
 		this.processObject = processObject;
+		this.testConfigsMap = testConfigsMap;
 		this.ipcEngine = envType === ENVIRONMENT_TYPES.BROWSER
 			? BrowserIPC
 			: envType === ENVIRONMENT_TYPES.NODE_JS
@@ -86,7 +93,19 @@ export class TestRunManager {
 
 	setupListeners(processObject) {
 		processObject.addEventListener('message', message => {
-			console.log(message.data);
+			if (!message || !message.data) {
+				return;
+			}
+
+			if (message.data.type === MESSAGE_TYPES.GET_TEST_CONFIG) {
+				this.ipcEngine.sendMessage(this.processObject, {
+					mid: message.data.mid,
+					type: MESSAGE_TYPES.TEST_CONFIG,
+					data: this.testConfigsMap[message.data.testId]
+				});
+			} else if (message.data.type === MESSAGE_TYPES.RUN_RESULT) {
+				console.log(message.data.runResult);
+			}
 		}, false);
 	}
 }

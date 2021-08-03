@@ -31,7 +31,7 @@ function getEnvironmentTest() {
 	let result = null;
 	const sp = new URL(globalThis.location.href).searchParams;
 	if (sp) {
-		const testId = sp.get(TESTBOX_ENVIRONMENT_KEYS.TEST_ID);
+		const testId = decodeURIComponent(sp.get(TESTBOX_ENVIRONMENT_KEYS.TEST_ID));
 		if (testId) {
 			result = {
 				testId: testId

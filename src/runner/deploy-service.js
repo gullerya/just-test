@@ -44,7 +44,7 @@ function executeInFrame(test) {
 		f = d.createElement('iframe');
 		f.classList.add('just-test-execution-frame');
 	}
-	f.src = `about:blank?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${test.id}`;
+	f.src = `about:blank?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encodeURIComponent(test.id)}`;
 
 	//	here consume IPC service and use it to bind this window with the frame's window
 	let testRunManager;
@@ -52,8 +52,10 @@ function executeInFrame(test) {
 	//	const testRunBox = new TestRunBox(test);
 	f.onload = () => {
 		// f.contentWindow.getSuite = getSuite.bind(testRunBox);
-		testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, f.contentWindow)
-		injectTestIntoDocument(f.contentDocument, test.source);
+		testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, f.contentWindow, {
+			[test.id]: test
+		});
+		injectBrowserTestRunner(f.contentDocument, test.source);
 		f.onload = null;
 	};
 
@@ -111,6 +113,13 @@ async function executeInNodeJS(test) {
 }
 
 function injectTestIntoDocument(envDocument, testSource) {
+	const s = envDocument.createElement('script');
+	s.type = 'module';
+	s.src = `/core/runner/environments/browser-test-runner.js`;
+	envDocument.head.appendChild(s);
+}
+
+function injectBrowserTestRunner(envDocument) {
 	const s = envDocument.createElement('script');
 	s.type = 'module';
 	s.src = `/core/runner/environments/browser-test-runner.js`;

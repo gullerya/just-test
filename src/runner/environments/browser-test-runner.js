@@ -1,5 +1,6 @@
 import { TestRunWorker, ENVIRONMENT_TYPES } from '../ipc-service/ipc-service.js';
 import { STATUS } from '../../common/constants.js';
+import { getTestId, getValidName } from '../../common/interop-utils.js';
 import { TestRun } from '../../common/models/tests/test-run.js';
 import { TestAsset } from '../om/test-asset.js';
 import { TestError } from '../../common/models/tests/test-error.js';
@@ -13,18 +14,21 @@ class TimeoutError extends AssertError { }
 //	main flow
 getTestConfig()
 	.then(testConfig => {
-		initEnvironment(testConfig);
+		return initEnvironment(testConfig);
 	})
 	.then(testConfig => {
 		loadTest(testConfig);
 	})
-	.catch();
+	.catch(e => {
+		//	report test failure due to the error
+		console.error(e);
+	});
 
 async function getTestConfig() {
 	const envTestSetup = getEnvironmentTest();
 
 	const childToParentIPC = new TestRunWorker(ENVIRONMENT_TYPES.BROWSER, globalThis);
-	const testConfig = await childToParentIPC.getTestConfig();
+	const testConfig = await childToParentIPC.getTestConfig(envTestSetup.testId);
 	testConfig.childToParentIPC = childToParentIPC;
 	return testConfig;
 }
@@ -38,14 +42,14 @@ function initEnvironment(testConfig) {
 				const tName = getValidName(testName);
 				const testId = getTestId(sName, tName);
 
-				if (this.test.id !== testId) {
+				if (testId !== testConfig.id) {
 					return;
 				}
 
-				this.resolveStarted();
-				const run = await runTest(testCode, this.test.options);
-				this.resolveEnded(run);
-				return run;
+				// this.resolveStarted();
+				const run = await runTest(testCode, testConfig);
+				// this.resolveEnded(run);
+				testConfig.childToParentIPC.sendRunResult(run);
 			}
 		}
 	}
@@ -53,7 +57,7 @@ function initEnvironment(testConfig) {
 }
 
 function loadTest(testConfig) {
-	//	TODO
+	import('/tests/' + testConfig.source);
 }
 
 async function runTest(code, meta) {
