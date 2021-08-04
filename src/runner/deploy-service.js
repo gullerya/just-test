@@ -37,14 +37,16 @@ function lookupEnv(testId) {
 }
 
 function executeInFrame(test) {
+	const encTestId = encodeURIComponent(test.id);
 	const d = globalThis.document;
 
-	let f = lookupEnv(test.id);
+	let f = lookupEnv(encTestId);
 	if (!f) {
 		f = d.createElement('iframe');
+		f.name = encTestId;
 		f.classList.add('just-test-execution-frame');
 	}
-	f.src = `about:blank?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encodeURIComponent(test.id)}`;
+	f.src = `about:blank?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
 
 	let testRunManager;
 
