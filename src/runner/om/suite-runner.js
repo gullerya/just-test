@@ -4,9 +4,6 @@ export {
 	getSuite
 }
 
-//	TODO: move all of th management objects to be installed as part of the TestRunBox (this)
-//	TODO: consider merging this with registration pass phase (see the session-service parallel)
-
 /**
  * provides an API to run a test in a context of suite
  * - `this` is implied to be a TestRunBox context object

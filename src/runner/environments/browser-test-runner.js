@@ -11,7 +11,7 @@ class AssertError extends Error { }
 
 class TimeoutError extends AssertError { }
 
-const childToParentIPC = new TestRunWorker(ENVIRONMENT_TYPES.BROWSER, globalThis.parent);
+const childToParentIPC = new TestRunWorker(ENVIRONMENT_TYPES.BROWSER, globalThis.opener ?? globalThis.parent);
 
 //	main flow
 getTest()

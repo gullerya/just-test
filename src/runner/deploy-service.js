@@ -1,7 +1,5 @@
 import { DEFAULT, INTEROP_NAMES, TESTBOX_ENVIRONMENT_KEYS } from '../common/constants.js';
 import { ENVIRONMENT_TYPES, TestRunManager } from '../runner/ipc-service/ipc-service.js';
-import { TestRunBox } from './om/test-run-box.js';
-import { getSuite } from './om/suite-runner.js';
 
 export {
 	deployTest,
@@ -38,9 +36,7 @@ function lookupEnv(testId) {
 
 function executeInFrame(test) {
 	const encTestId = encodeURIComponent(test.id);
-	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, globalThis, {
-		[test.id]: test
-	});
+	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, globalThis, test);
 
 	const d = globalThis.document;
 	let f = lookupEnv(encTestId);
@@ -56,23 +52,22 @@ function executeInFrame(test) {
 }
 
 async function executeInPage(test) {
-	const w = globalThis.open('', '_blank');
+	const encTestId = encodeURIComponent(test.id);
+	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, globalThis, test);
+
+	const w = globalThis.open();
 	const isCoverage = Boolean(w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE]);
 	if (isCoverage) {
 		await w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE](test.id);
 	}
 
-	const testRunBox = new TestRunBox(test, isCoverage);
-	const base = w.document.createElement('base');
-	base.href = globalThis.location.origin;
-	w.document.head.appendChild(base);
-	w.getSuite = getSuite.bind(testRunBox);
+	w.location = `/core/runner/environments/browser-test-runner.html?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
 
-	injectTestIntoDocument(w.document, test.source);
-	testRunBox.runEnded.then(() => {
+	testRunManager.runEnded.then(() => {
 		w.close();
 	});
-	return Promise.resolve(testRunBox);
+
+	return Promise.resolve(testRunManager);
 }
 
 async function executeInNodeJS(test) {
@@ -100,18 +95,4 @@ async function executeInNodeJS(test) {
 		runStarted: new Promise(() => { }),
 		runEnded: new Promise(() => { })
 	});
-}
-
-function injectBrowserTestRunner(envDocument) {
-	const s = envDocument.createElement('script');
-	s.type = 'module';
-	s.src = `/core/runner/environments/browser-test-runner.js`;
-	envDocument.head.appendChild(s);
-}
-
-function injectTestIntoDocument(envDocument, testSource) {
-	const s = envDocument.createElement('script');
-	s.type = 'module';
-	s.src = `/test/${testSource}`;
-	envDocument.head.appendChild(s);
 }

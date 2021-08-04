@@ -1,6 +1,6 @@
 /**
- * IPC TEP (Test Execution Protocol service)
- * - manages interoperability between the session execution process and test execution process (TestRunBox)
+ * IPC TEP (Test Execution Protocol service):
+ * - manages interoperability between the session execution process and test execution process
  * - delivers domain aware IPC
  * - provides both, parent and child functionality
  * - supports both, browser and NodeJS environments yet providing unified API
@@ -52,7 +52,7 @@ export class TestRunWorker {
 	 */
 	async getTestConfig(testId) {
 		const mid = messageId++;
-		const resultPromise = this.ipcEngine.waitMessage(this.processObject, MESSAGE_TYPES.TEST_CONFIG, mid, 1000);
+		const resultPromise = this.ipcEngine.waitMessage(globalThis, MESSAGE_TYPES.TEST_CONFIG, mid, 1000);
 		this.ipcEngine.sendMessage(this.processObject, {
 			mid: mid,
 			type: MESSAGE_TYPES.GET_TEST_CONFIG,
@@ -82,7 +82,7 @@ export class TestRunWorker {
 }
 
 export class TestRunManager {
-	constructor(envType, processObject, testConfigsMap) {
+	constructor(envType, processObject, test) {
 		if (!Object.values(ENVIRONMENT_TYPES).some(et => et === envType)) {
 			throw new Error(`invalid environment type '${envType}'`);
 		}
@@ -91,7 +91,7 @@ export class TestRunManager {
 		}
 		this.envType = envType;
 		this.processObject = processObject;
-		this.testConfigsMap = testConfigsMap;
+		this.test = test;
 		this.ipcEngine = envType === ENVIRONMENT_TYPES.BROWSER
 			? BrowserIPC
 			: envType === ENVIRONMENT_TYPES.NODE_JS
@@ -104,21 +104,27 @@ export class TestRunManager {
 			this._resolveEnded = r;
 		});
 
-		this.setupListeners(processObject)
+		this.setupListeners(processObject);
 		Object.freeze(this);
 	}
 
+	//	TODO: this is browser specific now, move some of this to implementation detail
 	setupListeners(processObject) {
 		processObject.addEventListener('message', message => {
+			//	validate data
 			if (!message || !message.data) {
+				return;
+			}
+			//	validate message is for this test
+			if (message.data.testId !== this.test.id) {
 				return;
 			}
 
 			if (message.data.type === MESSAGE_TYPES.GET_TEST_CONFIG) {
-				this.ipcEngine.sendMessage(this.processObject, {
+				this.ipcEngine.sendMessage(message.source, {
 					mid: message.data.mid,
 					type: MESSAGE_TYPES.TEST_CONFIG,
-					data: this.testConfigsMap[message.data.testId]
+					data: this.test
 				});
 			} else if (message.data.type === MESSAGE_TYPES.RUN_STARTED) {
 				this._resolveStarted(message.data.testId);
