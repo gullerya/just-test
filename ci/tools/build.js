@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 process.stdout.write('cleaning "bin"...');
-fs.rmSync('./bin', { recursive: true });
+fs.rmSync('./bin', { recursive: true, force: true });
 fs.mkdirSync('./bin', { recursive: true });
 process.stdout.write('\t\t\t\t\x1B[32mOK\x1B[0m' + os.EOL);
 
