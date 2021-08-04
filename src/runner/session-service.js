@@ -12,7 +12,7 @@ export {
 }
 
 /**
- * executes all relevant tests, according the the sync/async options
+ * executes all relevant tests, according the the sync/async config
  * - performs any needed environment related adjustments
  * 
  * @param {object} sessionMetadata - session execution metadata
@@ -31,15 +31,15 @@ async function runSession(sessionMetadata, stateService) {
 	console.info(`... session done (${(ended - started).toFixed(1)}ms)`);
 }
 
-async function runSuite(suite, metadata, stateService) {
+async function runSuite(suite, sessionMetadata, stateService) {
 	const testPromises = [];
 	let syncChain = Promise.resolve();
 	suite.tests.forEach(test => {
-		if (test.options.skip) {
+		if (test.config.skip) {
 			testPromises.push(Promise.resolve());
 		} else {
-			const runResultPromise = runTest(test, metadata, stateService);
-			if (test.options.sync) {
+			const runResultPromise = runTest(test, sessionMetadata, stateService);
+			if (test.config.sync) {
 				syncChain = syncChain.finally(() => runResultPromise);
 			} else {
 				testPromises.push(runResultPromise);
@@ -53,15 +53,18 @@ async function runSuite(suite, metadata, stateService) {
 }
 
 async function runTest(test, sessionMetadata, stateService) {
-	const [sid, tid] = parseTestId(test.id);
-	const testRunBox = await deployTest(test, sessionMetadata);
+	const testRunBox = await deployTest(
+		{ id: test.id, source: test.source, config: Object.assign({}, test.config) },
+		sessionMetadata);
 
 	return new Promise(resolve => {
-		testRunBox.runStarted.then(() => {
+		testRunBox.runStarted.then(testId => {
+			const [sid, tid] = parseTestId(testId);
 			stateService.updateRunStarted(sid, tid);
 		});
-		testRunBox.runEnded.then(async run => {
-			stateService.updateRunEnded(sid, tid, run);
+		testRunBox.runEnded.then(({ testId, runResult }) => {
+			const [sid, tid] = parseTestId(testId);
+			stateService.updateRunEnded(sid, tid, runResult);
 			resolve();
 		});
 	});

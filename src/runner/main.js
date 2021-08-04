@@ -1,4 +1,4 @@
-import { SUITE_OPTIONS_DEFAULT, TEST_OPTIONS_DEFAULT } from '../common/constants.js';
+import { SUITE_CONFIG_DEFAULT, TEST_CONFIG_DEFAULT } from '../common/constants.js';
 import { getTestId, getValidName } from '../common/interop-utils.js';
 import { perfReady } from '../common/performance-utils.js';
 import { runSession } from './session-service.js';
@@ -81,39 +81,39 @@ async function collectTests(testsResources, stateService) {
 //	TODO: this and below are registration methods
 //	TODO: move them into suite-runner.js
 //	TODO: on each failure here user should get a visual feedback
-function getSuite(suiteName, suiteOptions) {
-	const suiteMeta = validateNormalizeSuiteParams(suiteName, suiteOptions);
-	_stateService.obtainSuite(suiteMeta.name, suiteMeta.options);
+function getSuite(suiteName, suiteConfig) {
+	const suiteMeta = validateNormalizeSuiteParams(suiteName, suiteConfig);
+	_stateService.obtainSuite(suiteMeta.name, suiteMeta.config);
 
 	return {
-		test: (testName, testCode, testOptions) => {
+		test: (testName, testCode, testConfig) => {
 			try {
-				const testMeta = validateNormalizeTestParams(testName, testCode, testOptions);
+				const testMeta = validateNormalizeTestParams(testName, testCode, testConfig);
 				const testId = getTestId(suiteName, testMeta.name);
-				_stateService.addTest(suiteName, testMeta.name, testId, testMeta.code, testMeta.options);
+				_stateService.addTest(suiteName, testMeta.name, testId, testMeta.code, testMeta.config);
 			} catch (e) {
-				console.error(`failed to register test '${testName} : ${JSON.stringify(testOptions)}':`, e);
+				console.error(`failed to register test '${testName} : ${JSON.stringify(testConfig)}':`, e);
 			}
 		}
 	}
 }
 
-function validateNormalizeSuiteParams(sName, options) {
+function validateNormalizeSuiteParams(sName, config) {
 	const result = {};
 
 	//	name
 	result.name = getValidName(sName);
 
-	//	options
-	if (options !== undefined && typeof options !== 'object') {
-		throw new Error(`suite options, if/when provided, MUST be an object, got '${options}'`);
+	//	configuration
+	if (config !== undefined && typeof config !== 'object') {
+		throw new Error(`suite config, if/when provided, MUST be an object, got '${config}'`);
 	}
-	result.options = Object.freeze(Object.assign({}, SUITE_OPTIONS_DEFAULT, options));
+	result.config = Object.freeze(Object.assign({}, SUITE_CONFIG_DEFAULT, config));
 
 	return result;
 }
 
-function validateNormalizeTestParams(tName, code, options) {
+function validateNormalizeTestParams(tName, code, config) {
 	const result = {};
 
 	//	name
@@ -124,11 +124,11 @@ function validateNormalizeTestParams(tName, code, options) {
 		throw new Error(`test code MUST be a function, got '${code}'`);
 	}
 
-	//	options
-	if (options !== undefined && typeof options !== 'object') {
-		throw new Error(`test options, if/when provided, MUST be an object, got '${options}'`);
+	//	configuration
+	if (config !== undefined && typeof config !== 'object') {
+		throw new Error(`test config, if/when provided, MUST be an object, got '${config}'`);
 	}
-	result.options = Object.freeze(Object.assign({}, TEST_OPTIONS_DEFAULT, options));
+	result.config = Object.freeze(Object.assign({}, TEST_CONFIG_DEFAULT, config));
 
 	return result;
 }

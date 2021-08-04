@@ -100,7 +100,7 @@ Typical usage of the JustTest would involve two steps:<br/>
 	
 	suite = JT.createSuite();
 
-	suite.addTest(function (pass, fail) {		//	can skip the options, defaults will be used
+	suite.addTest(function (pass, fail) {		//	can skip the config, defaults will be used
 		...
 	});
 	

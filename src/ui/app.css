@@ -46,7 +46,8 @@ body {
 
 .suites-list {
 	flex: 0 0 50%;
-	max-width: 480px;
+	min-inline-size: 240px;
+	max-inline-size: 480px;
 	overflow: hidden auto;
 }
 

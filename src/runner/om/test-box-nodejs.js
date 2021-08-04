@@ -39,10 +39,10 @@ export class TestRunBoxNodeJS {
 			globalThis.getSuite = (suiteName) => {
 				console.log(`here ====, ${suiteName}`);
 				return {
-					test: (name, code, options) => {
+					test: (name, code, config) => {
 						//	TODO: do conditional execution
 						console.log(`running the test - ${name}`);
-						runTest(code, options);
+						runTest(code, config);
 					}
 				}
 			};

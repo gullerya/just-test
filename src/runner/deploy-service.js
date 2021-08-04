@@ -46,17 +46,14 @@ function executeInFrame(test) {
 	}
 	f.src = `about:blank?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encodeURIComponent(test.id)}`;
 
-	//	here consume IPC service and use it to bind this window with the frame's window
 	let testRunManager;
 
-	//	const testRunBox = new TestRunBox(test);
 	f.onload = () => {
-		// f.contentWindow.getSuite = getSuite.bind(testRunBox);
+		f.onload = null;
 		testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, f.contentWindow, {
 			[test.id]: test
 		});
-		injectBrowserTestRunner(f.contentDocument, test.source);
-		f.onload = null;
+		injectBrowserTestRunner(f.contentDocument);
 	};
 
 	d.body.appendChild(f);
@@ -84,7 +81,6 @@ async function executeInPage(test) {
 	return Promise.resolve(testRunBox);
 }
 
-//	This one should create child process
 async function executeInNodeJS(test) {
 	const fork = (await import('node:child_process')).fork;
 	const path = (await import('node:path')).default;
@@ -112,16 +108,16 @@ async function executeInNodeJS(test) {
 	});
 }
 
-function injectTestIntoDocument(envDocument, testSource) {
-	const s = envDocument.createElement('script');
-	s.type = 'module';
-	s.src = `/test/${testSource}`;
-	envDocument.head.appendChild(s);
-}
-
 function injectBrowserTestRunner(envDocument) {
 	const s = envDocument.createElement('script');
 	s.type = 'module';
 	s.src = `/core/runner/environments/browser-test-runner.js`;
+	envDocument.head.appendChild(s);
+}
+
+function injectTestIntoDocument(envDocument, testSource) {
+	const s = envDocument.createElement('script');
+	s.type = 'module';
+	s.src = `/test/${testSource}`;
 	envDocument.head.appendChild(s);
 }

@@ -20,6 +20,7 @@ const ENVIRONMENT_TYPES = Object.freeze({
 const MESSAGE_TYPES = Object.freeze({
 	GET_TEST_CONFIG: 'getTestConfig',
 	TEST_CONFIG: 'testConfig',
+	RUN_STARTED: 'runStarted',
 	RUN_RESULT: 'runResult'
 });
 
@@ -60,11 +61,21 @@ export class TestRunWorker {
 		return (await resultPromise).data;
 	}
 
-	sendRunResult(runResult) {
+	sendRunStarted(testId) {
+		const mid = messageId++;
+		this.ipcEngine.sendMessage(this.processObject, {
+			mid: mid,
+			type: MESSAGE_TYPES.RUN_STARTED,
+			testId: testId
+		});
+	}
+
+	sendRunResult(testId, runResult) {
 		const mid = messageId++;
 		this.ipcEngine.sendMessage(this.processObject, {
 			mid: mid,
 			type: MESSAGE_TYPES.RUN_RESULT,
+			testId: testId,
 			runResult: runResult
 		});
 	}
@@ -86,6 +97,12 @@ export class TestRunManager {
 			: envType === ENVIRONMENT_TYPES.NODE_JS
 				? Node_JsIPC
 				: null;
+		this.runStarted = new Promise(r => {
+			this._resolveStarted = r;
+		});
+		this.runEnded = new Promise(r => {
+			this._resolveEnded = r;
+		});
 
 		this.setupListeners(processObject)
 		Object.freeze(this);
@@ -103,8 +120,13 @@ export class TestRunManager {
 					type: MESSAGE_TYPES.TEST_CONFIG,
 					data: this.testConfigsMap[message.data.testId]
 				});
+			} else if (message.data.type === MESSAGE_TYPES.RUN_STARTED) {
+				this._resolveStarted(message.data.testId);
 			} else if (message.data.type === MESSAGE_TYPES.RUN_RESULT) {
-				console.log(message.data.runResult);
+				this._resolveEnded({
+					testId: message.data.testId,
+					runResult: message.data.runResult
+				});
 			}
 		}, false);
 	}

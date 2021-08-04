@@ -27,7 +27,7 @@ function getSuite(suiteName) {
 			}
 
 			this.resolveStarted();
-			const run = await this.runTest(testCode, this.test.options);
+			const run = await this.runTest(testCode, this.test.config);
 			this.resolveEnded(run);
 			return run;
 		}

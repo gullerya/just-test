@@ -5,9 +5,9 @@ export {
 	SESSION_ENVIRONMENT_KEYS,
 	TESTBOX_ENVIRONMENT_KEYS,
 	STATUS,
-	SUITE_OPTIONS_DEFAULT,
+	SUITE_CONFIG_DEFAULT,
 	TEST_ID_SEPARATOR,
-	TEST_OPTIONS_DEFAULT
+	TEST_CONFIG_DEFAULT
 }
 
 const TEST_ID_SEPARATOR = ' => ';
@@ -30,12 +30,12 @@ const STATUS = Object.freeze({
 	ERROR: 'error'
 });
 
-const SUITE_OPTIONS_DEFAULT = Object.freeze({
+const SUITE_CONFIG_DEFAULT = Object.freeze({
 	skip: false,
 	sync: false
 });
 
-const TEST_OPTIONS_DEFAULT = Object.freeze({
+const TEST_CONFIG_DEFAULT = Object.freeze({
 	ttl: DEFAULT.TEST_RUN_TTL,
 	skip: false,
 	sync: false,

@@ -11,29 +11,28 @@ class AssertError extends Error { }
 
 class TimeoutError extends AssertError { }
 
+const childToParentIPC = new TestRunWorker(ENVIRONMENT_TYPES.BROWSER, globalThis);
+
 //	main flow
-getTestConfig()
-	.then(testConfig => {
-		return initEnvironment(testConfig);
+getTest()
+	.then(test => {
+		return initEnvironment(test);
 	})
-	.then(testConfig => {
-		loadTest(testConfig);
+	.then(test => {
+		return import(`/tests/${test.source}`);
 	})
 	.catch(e => {
 		//	report test failure due to the error
 		console.error(e);
 	});
 
-async function getTestConfig() {
+async function getTest() {
 	const envTestSetup = getEnvironmentTest();
-
-	const childToParentIPC = new TestRunWorker(ENVIRONMENT_TYPES.BROWSER, globalThis);
-	const testConfig = await childToParentIPC.getTestConfig(envTestSetup.testId);
-	testConfig.childToParentIPC = childToParentIPC;
-	return testConfig;
+	const test = await childToParentIPC.getTestConfig(envTestSetup.testId);
+	return test;
 }
 
-function initEnvironment(testConfig) {
+function initEnvironment(test) {
 	globalThis.getSuite = function getSuite(suiteName) {
 		const sName = getValidName(suiteName);
 
@@ -42,25 +41,20 @@ function initEnvironment(testConfig) {
 				const tName = getValidName(testName);
 				const testId = getTestId(sName, tName);
 
-				if (testId !== testConfig.id) {
+				if (testId !== test.id) {
 					return;
 				}
 
-				// this.resolveStarted();
-				const run = await runTest(testCode, testConfig);
-				// this.resolveEnded(run);
-				testConfig.childToParentIPC.sendRunResult(run);
+				childToParentIPC.sendRunStarted(test.id);
+				const run = await runTest(testCode, test.config);
+				childToParentIPC.sendRunResult(test.id, run);
 			}
 		}
 	}
-	return testConfig;
+	return test;
 }
 
-function loadTest(testConfig) {
-	import(`/tests/${testConfig.source}`);
-}
-
-async function runTest(code, meta) {
+async function runTest(code, config) {
 	let runResult;
 	const run = new TestRun();
 	run.timestamp = Date.now();
@@ -72,14 +66,14 @@ async function runTest(code, meta) {
 		start = P.now();
 	try {
 		runResult = await Promise.race([
-			new Promise(resolve => setTimeout(resolve, meta.ttl, new TimeoutError(`run exceeded ${meta.ttl}ms`))),
+			new Promise(resolve => setTimeout(resolve, config.ttl, new TimeoutError(`run exceeded ${config.ttl}ms`))),
 			Promise.resolve(code(testAsset))
 		]);
 	} catch (e) {
 		runResult = e;
 	} finally {
 		run.time = Math.round((P.now() - start) * 10000) / 10000;
-		finalizeRun(meta, run, runResult, testAsset.assertions);
+		finalizeRun(config, run, runResult, testAsset.assertions);
 	}
 
 	return run;

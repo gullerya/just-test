@@ -2,7 +2,7 @@ export class Suite {
 	constructor() {
 		this.id = null;
 		this.name = 'Unspecified';
-		this.options = null;
+		this.config = null;
 		this.timestamp = null;
 		this.time = null;
 		this.tests = [];
@@ -13,7 +13,7 @@ export class Suite {
 		this.pass = 0;
 		this.fail = 0;
 		this.error = 0;
-		
+
 		Object.seal(this);
 	}
 }

@@ -26,13 +26,13 @@ export default class SimpleStateService {
 		return this.model;
 	}
 
-	obtainSuite(suiteName, options) {
+	obtainSuite(suiteName, config) {
 		let result = this.model.suites.find(s => s.name === suiteName);
 		if (!result) {
 			result = new Suite();
 			result.id = suiteName;
 			result.name = suiteName;
-			result.options = options;
+			result.config = config;
 
 			//	insert preserving alphabetical order
 			let inserted = false;
@@ -68,7 +68,7 @@ export default class SimpleStateService {
 		);
 	}
 
-	addTest(suiteName, testName, testId, testCode, testOptions) {
+	addTest(suiteName, testName, testId, _testCode, testConfig) {
 		const suite = this.obtainSuite(suiteName);
 		if (SimpleStateService.getTestInternal(suite, testName)) {
 			throw new Error(`test '${testName}' already found in suite '${suiteName}'`);
@@ -77,8 +77,8 @@ export default class SimpleStateService {
 		const test = new Test();
 		test.id = testId;
 		test.name = testName;
-		test.options = testOptions;
-		if (testOptions.skip) {
+		test.config = testConfig;
+		if (testConfig.skip) {
 			const lRun = new TestRun();
 			lRun.status = STATUS.SKIP;
 			test.lastRun = lRun;
@@ -88,14 +88,14 @@ export default class SimpleStateService {
 
 		//	update session globals
 		this.model.total++;
-		if (testOptions.skip) {
+		if (testConfig.skip) {
 			this.model.skip++;
 			this.model.done++;
 		}
 
 		//	update suite globals
 		suite.total++;
-		if (testOptions.skip) {
+		if (testConfig.skip) {
 			suite.skip++;
 			suite.done++;
 		}
@@ -171,13 +171,12 @@ export default class SimpleStateService {
 		const suitesData = this.model.suites.map(suite => {
 			return {
 				name: suite.name,
-				options: Object.assign({}, suite.options),
+				config: Object.assign({}, suite.config),
 				tests: suite.tests.map(test => {
 					return {
 						id: test.id,
-						name: test.name,
 						source: test.source,
-						options: Object.assign({}, test.options)
+						config: Object.assign({}, test.config)
 					};
 				})
 			};
