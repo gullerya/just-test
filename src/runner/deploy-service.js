@@ -38,26 +38,18 @@ function lookupEnv(testId) {
 
 function executeInFrame(test) {
 	const encTestId = encodeURIComponent(test.id);
-	const d = globalThis.document;
+	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, globalThis, {
+		[test.id]: test
+	});
 
+	const d = globalThis.document;
 	let f = lookupEnv(encTestId);
 	if (!f) {
 		f = d.createElement('iframe');
 		f.name = encTestId;
 		f.classList.add('just-test-execution-frame');
 	}
-	f.src = `about:blank?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
-
-	let testRunManager;
-
-	f.onload = () => {
-		f.onload = null;
-		testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, f.contentWindow, {
-			[test.id]: test
-		});
-		injectBrowserTestRunner(f.contentDocument);
-	};
-
+	f.src = `/core/runner/environments/browser-test-runner.html?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
 	d.body.appendChild(f);
 
 	return Promise.resolve(testRunManager);
