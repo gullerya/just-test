@@ -4,6 +4,7 @@ import { perfReady } from '../common/performance-utils.js';
 import { runSession } from './session-service.js';
 import * as serverAPI from './server-api-service.js';
 
+//	TODO: merge this with app.js
 export {
 	loadMetadata,
 	execute

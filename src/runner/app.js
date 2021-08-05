@@ -3,6 +3,7 @@ import { loadMetadata, execute } from './main.js';
 import { reportResults } from './report-service.js';
 import { getEnvironmentConfig } from './environment-config.js';
 
+//	TODO: merge this with main.js
 (async () => {
 	let sesEnvResult;
 	let envConfig;

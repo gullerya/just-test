@@ -7,8 +7,7 @@
 import { SESSION_ENVIRONMENT_KEYS, TESTBOX_ENVIRONMENT_KEYS } from '../../common/constants.js';
 
 export {
-	getEnvironmentSetup,
-	getEnvironmentTest
+	getEnvironmentSetup
 }
 
 function getEnvironmentSetup() {
@@ -21,20 +20,6 @@ function getEnvironmentSetup() {
 			result = {
 				sesId: sesId,
 				envId: envId
-			};
-		}
-	}
-	return result;
-}
-
-function getEnvironmentTest() {
-	let result = null;
-	const sp = new URL(globalThis.location.href).searchParams;
-	if (sp) {
-		const testId = decodeURIComponent(sp.get(TESTBOX_ENVIRONMENT_KEYS.TEST_ID));
-		if (testId) {
-			result = {
-				testId: testId
 			};
 		}
 	}
