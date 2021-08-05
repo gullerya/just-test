@@ -15,6 +15,7 @@ export {
 }
 
 const logger = new Logger({ context: 'JustTest CLI' });
+const SUPPORTED_ENV_KEY = [];
 
 if (process.argv[1] && process.argv[1].endsWith('cli.js')) {
 	start()
@@ -53,8 +54,13 @@ async function start() {
 }
 
 async function collectEnvs() {
-	//	TODO: resolve ENV keys to normalized config object
-	return Object.assign({}, process.env);
+	const result = {};
+	for (const [key, val] of Object.entries(process.env)) {
+		if (SUPPORTED_ENV_KEY.includes(key)) {
+			result[key] = val;
+		}
+	};
+	return result;
 }
 
 async function collectArgs() {

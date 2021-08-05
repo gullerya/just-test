@@ -5,7 +5,9 @@ export {
 
 const extensionsMap = Object.freeze({
 	html: 'text/html',
+	htm: 'text/html',
 	js: 'text/javascript',
+	mjs: 'text/javascript',
 	css: 'text/css',
 	json: 'application/json',
 	xml: 'application/xml',

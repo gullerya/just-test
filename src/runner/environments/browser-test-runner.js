@@ -1,11 +1,10 @@
 import { TestRunWorker, ENVIRONMENT_TYPES } from '../ipc-service/ipc-service.js';
-import { STATUS } from '../../common/constants.js';
+import { STATUS, TESTBOX_ENVIRONMENT_KEYS } from '../../common/constants.js';
 import { getTestId, getValidName } from '../../common/interop-utils.js';
 import { TestRun } from '../../common/models/tests/test-run.js';
 import { TestAsset } from '../om/test-asset.js';
 import { TestError } from '../../common/models/tests/test-error.js';
 import { perfReady } from '../../common/performance-utils.js';
-import { getEnvironmentTest } from './browser-entry-point.js';
 
 class AssertError extends Error { }
 
@@ -27,7 +26,7 @@ getTest()
 	});
 
 async function getTest() {
-	const envTestSetup = getEnvironmentTest();
+	const envTestSetup = getEnvTestSetup();
 	const test = await childToParentIPC.getTestConfig(envTestSetup.testId);
 	return test;
 }
@@ -52,6 +51,20 @@ function initEnvironment(test) {
 		}
 	}
 	return test;
+}
+
+function getEnvTestSetup() {
+	let result = null;
+	const sp = new URL(globalThis.location.href).searchParams;
+	if (sp) {
+		const testId = decodeURIComponent(sp.get(TESTBOX_ENVIRONMENT_KEYS.TEST_ID));
+		if (testId) {
+			result = {
+				testId: testId
+			};
+		}
+	}
+	return result;
 }
 
 async function runTest(code, config) {

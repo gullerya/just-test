@@ -7,7 +7,9 @@ const suite = globalThis.getSuite('Server utils');
 suite.test('extension map is full', test => {
 	test.assert.strictEqual(extensionsMap.css, 'text/css');
 	test.assert.strictEqual(extensionsMap.html, 'text/html');
+	test.assert.strictEqual(extensionsMap.htm, 'text/html');
 	test.assert.strictEqual(extensionsMap.js, 'text/javascript');
+	test.assert.strictEqual(extensionsMap.mjs, 'text/javascript');
 	test.assert.strictEqual(extensionsMap.json, 'application/json');
 	test.assert.strictEqual(extensionsMap.txt, 'text/plain');
 	test.assert.strictEqual(extensionsMap.xml, 'application/xml');
