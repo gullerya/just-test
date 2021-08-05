@@ -4,7 +4,7 @@
  * - sets up object model in the browser environment way
  */
 
-import { SESSION_ENVIRONMENT_KEYS, TESTBOX_ENVIRONMENT_KEYS } from '../../common/constants.js';
+import { SESSION_ENVIRONMENT_KEYS } from '../../common/constants.js';
 
 export {
 	getEnvironmentSetup

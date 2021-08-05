@@ -59,7 +59,7 @@ async function collectEnvs() {
 		if (SUPPORTED_ENV_KEY.includes(key)) {
 			result[key] = val;
 		}
-	};
+	}
 	return result;
 }
 
