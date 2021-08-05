@@ -1,16 +1,38 @@
-import { DEFAULT, STATUS } from '../../common/constants.js';
 import { TestAsset } from './test-asset.js';
+import { DEFAULT, STATUS } from '../../common/constants.js';
 import { TestRun } from '../../common/models/tests/test-run.js';
 import { TestError } from '../../common/models/tests/test-error.js';
 import { perfReady } from '../../common/performance-utils.js';
+import { getTestId, getValidName } from '../../common/interop-utils.js';
 
 export {
-	runTest
+	getSuiteFactory
 }
 
 class AssertError extends Error { }
 
 class TimeoutError extends AssertError { }
+
+function getSuiteFactory(test, childToParentIPC) {
+	return function getSuite(suiteName) {
+		const sName = getValidName(suiteName);
+
+		return {
+			test: async (testName, testCode) => {
+				const tName = getValidName(testName);
+				const testId = getTestId(sName, tName);
+
+				if (testId !== test.id) {
+					return;
+				}
+
+				childToParentIPC.sendRunStarted(test.id);
+				const run = await runTest(testCode, test.config);
+				childToParentIPC.sendRunResult(test.id, run);
+			}
+		}
+	};
+}
 
 async function runTest(code, config = { ttl: DEFAULT.TEST_RUN_TTL }) {
 	let runResult;

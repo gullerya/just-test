@@ -1,10 +1,6 @@
 import { waitInterval, waitNextTask } from '../../common/await-utils.js';
 import { getRandom } from '../../common/random-utils.js';
 
-//	This should be abstracted away, probably on be testbox environment basis
-import '/libs/chai/chai.js';
-
-const chai = globalThis.chai;
 const ASSERTIONS_KEY = Symbol('assertions');
 
 export class TestAsset {
@@ -24,11 +20,11 @@ export class TestAsset {
 
 	get assert() {
 		this[ASSERTIONS_KEY]++;
-		return chai.assert;
+		return globalThis.chai.assert;
 	}
 
 	get expect() {
 		this[ASSERTIONS_KEY]++;
-		return chai.expect;
+		return globalThis.chai.expect;
 	}
 }

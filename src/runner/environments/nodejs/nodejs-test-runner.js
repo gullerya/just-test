@@ -1,56 +1,44 @@
-/**
- * Test running component:
- * - presume running in isolated envirnoment/process
- * - obtain test from environment variables
- * - prepare box for the test run
- * - load and run test
- * - report test result
- */
-
 import process from 'node:process';
 import { resolve } from 'node:path';
-import { runTest } from '../test-runner.js';
+import { pathToFileURL } from 'node:url';
+import { getSuiteFactory } from '../test-runner.js';
+import { TestRunWorker, ENVIRONMENT_TYPES } from '../../ipc-service/ipc-service.js';
 import { TESTBOX_ENVIRONMENT_KEYS } from '../../../common/constants.js';
+import * as chai from 'chai';
 
-execute()
-	.then(() => { })
+globalThis.chai = chai;
+
+const childToParentIPC = new TestRunWorker(ENVIRONMENT_TYPES.NODE_JS, globalThis);
+
+//	main flow
+getTest()
+	.then(test => {
+		return initEnvironment(test);
+	})
+	.then(test => {
+		const rPath = pathToFileURL(resolve(test.source));
+		return import(rPath);
+	})
 	.catch(e => {
-		throw e;
+		//	report test failure due to the error
+		console.error(e);
 	});
 
-async function execute() {
-	const testRunConfig = await obtainConfiguration();
-	//	analyze/validate config
-	setupTestRunEnvironment(testRunConfig);
-	await loadTest(testRunConfig);
+async function getTest() {
+	const envTestSetup = getEnvTestSetup();
+	const test = await childToParentIPC.getTestConfig(envTestSetup.testId);
+	return test;
 }
 
-async function obtainConfiguration() {
+function initEnvironment(test) {
+	globalThis.getSuite = getSuiteFactory(test, childToParentIPC);
+	return test;
+}
+
+function getEnvTestSetup() {
 	return {
-		source: process.argv
+		testId: process.argv
 			.find(a => a.startsWith(TESTBOX_ENVIRONMENT_KEYS.TEST_URL))
 			.replace(`${TESTBOX_ENVIRONMENT_KEYS.TEST_URL}=`, '')
 	}
-}
-
-function setupTestRunEnvironment() {
-	globalThis.getSuite = () => {
-		return {
-			test: (name, code, config) => {
-				//	TODO: do conditional execution
-				console.log(`running the test - ${name}`);
-				runTest(code, config);
-			}
-		}
-	};
-}
-
-/**
- * loading test will effectively execute it, given test run environment set up
- * 
- * @param {object} testRunConfig test run configuration
- */
-async function loadTest(testRunConfig) {
-	const testScript = resolve(process.cwd(), testRunConfig.source);
-	await import(testScript);
 }

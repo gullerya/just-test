@@ -1,7 +1,7 @@
-import { runTest } from '../test-runner.js';
+import { getSuiteFactory } from '../test-runner.js';
 import { TestRunWorker, ENVIRONMENT_TYPES } from '../../ipc-service/ipc-service.js';
 import { TESTBOX_ENVIRONMENT_KEYS } from '../../../common/constants.js';
-import { getTestId, getValidName } from '../../../common/interop-utils.js';
+import '/libs/chai/chai.js';
 
 const childToParentIPC = new TestRunWorker(ENVIRONMENT_TYPES.BROWSER, globalThis.opener ?? globalThis.parent);
 
@@ -25,24 +25,7 @@ async function getTest() {
 }
 
 function initEnvironment(test) {
-	globalThis.getSuite = function getSuite(suiteName) {
-		const sName = getValidName(suiteName);
-
-		return {
-			test: async (testName, testCode) => {
-				const tName = getValidName(testName);
-				const testId = getTestId(sName, tName);
-
-				if (testId !== test.id) {
-					return;
-				}
-
-				childToParentIPC.sendRunStarted(test.id);
-				const run = await runTest(testCode, test.config);
-				childToParentIPC.sendRunResult(test.id, run);
-			}
-		}
-	}
+	globalThis.getSuite = getSuiteFactory(test, childToParentIPC);
 	return test;
 }
 
