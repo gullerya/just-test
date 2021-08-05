@@ -45,7 +45,7 @@ function executeInFrame(test) {
 		f.name = encTestId;
 		f.classList.add('just-test-execution-frame');
 	}
-	f.src = `/core/runner/environments/browser-test-runner.html?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
+	f.src = `/core/runner/environments/browser/browser-test-runner.html?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
 	d.body.appendChild(f);
 
 	return Promise.resolve(testRunManager);
@@ -61,7 +61,7 @@ async function executeInPage(test) {
 		await w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE](test.id);
 	}
 
-	w.location = `/core/runner/environments/browser-test-runner.html?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
+	w.location = `/core/runner/environments/browser/browser-test-runner.html?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
 
 	testRunManager.runEnded.then(() => {
 		w.close();
