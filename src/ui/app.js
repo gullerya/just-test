@@ -5,7 +5,7 @@ import './components/jt-details/jt-details.js';
 
 import { EVENT } from '/core/common/constants.js';
 import { parseTestId } from '/core/common/interop-utils.js';
-import { loadMetadata, execute } from '/core/runner/main.js';
+import { loadMetadata, execute } from '/core/runner/environments/browser/main.js';
 import { runTest } from '/core/runner/session-service.js';
 import { getEnvironmentConfig } from '/core/runner/environment-config.js';
 import stateService from './interactive-state-service.js';

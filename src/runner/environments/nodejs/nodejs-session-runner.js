@@ -5,10 +5,10 @@
  */
 
 //	TODO: merge this with main-nodejs.js
-import SimpleStateService from '../simple-state-service.js';
-import { loadMetadata, execute } from '../main-nodejs.js';
-import { reportResults } from '../report-service.js';
-import { getEnvironmentConfig } from '../environment-config.js';
+import { loadMetadata, execute } from './main-nodejs.js';
+import { getEnvironmentConfig } from '../../environment-config.js';
+import SimpleStateService from '../../simple-state-service.js';
+import { reportResults } from '../../report-service.js';
 
 (async () => {
 	let sesEnvResult;

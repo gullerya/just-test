@@ -75,7 +75,7 @@ async function executeInNodeJS(test) {
 	const path = (await import('node:path')).default;
 
 	const nodeEnv = fork(
-		path.resolve('bin/runner/nodejs/test-box-nodejs.js'),
+		path.resolve('bin/runner/environments/nodejs/nodejs-test-runner.js'),
 		[
 			`${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${test.id}`,
 			`${TESTBOX_ENVIRONMENT_KEYS.TEST_URL}=${test.source}`

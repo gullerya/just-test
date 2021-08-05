@@ -1,9 +1,10 @@
 import path from 'node:path';
-import { SUITE_CONFIG_DEFAULT, TEST_CONFIG_DEFAULT } from '../common/constants.js';
-import { getTestId, getValidName } from '../common/interop-utils.js';
-import { perfReady } from '../common/performance-utils.js';
-import { runSession } from './session-service.js';
-import * as serverAPI from './server-api-service.js';
+import { pathToFileURL } from 'url';
+import { SUITE_CONFIG_DEFAULT, TEST_CONFIG_DEFAULT } from '../../../common/constants.js';
+import { getTestId, getValidName } from '../../../common/interop-utils.js';
+import { perfReady } from '../../../common/performance-utils.js';
+import { runSession } from '../../session-service.js';
+import * as serverAPI from '../../server-api-service.js';
 
 //	TODO: merge this with nodejs-entry-point.js
 export {
@@ -70,7 +71,7 @@ async function collectTests(testsResources, stateService) {
 
 	for await (const tr of testsResources) {
 		try {
-			const rPath = path.resolve(tr);
+			const rPath = pathToFileURL(path.resolve(tr));
 			await import(rPath);
 			stateService.getUnSourced().forEach(t => t.source = tr);
 		} catch (e) {

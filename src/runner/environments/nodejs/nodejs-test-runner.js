@@ -9,8 +9,8 @@
 
 import process from 'node:process';
 import { resolve } from 'node:path';
-import { TESTBOX_ENVIRONMENT_KEYS } from '../../common/constants.js';
-import { runTest } from '../om/test-runner.js';
+import { runTest } from '../test-runner.js';
+import { TESTBOX_ENVIRONMENT_KEYS } from '../../../common/constants.js';
 
 execute()
 	.then(() => { })

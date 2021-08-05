@@ -49,7 +49,7 @@ class NodeEnvImpl extends EnvironmentBase {
 			outputs: [this.consoleLogger]
 		});
 
-		const entryPointRunnerPath = resolve(ownDir, '../../../runner/environments/nodejs-entry-point.js');
+		const entryPointRunnerPath = resolve(ownDir, '../../../runner/environments/nodejs/nodejs-session-runner.js');
 		const nodeEnv = fork(
 			entryPointRunnerPath,
 			[
