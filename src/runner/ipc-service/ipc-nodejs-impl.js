@@ -1,7 +1,7 @@
 export {
 	sendMessage,
 	waitMessage,
-	addMessageListener
+	addEventListener
 }
 
 function sendMessage(processObject, message) {
@@ -21,6 +21,6 @@ async function waitMessage(processObject, messageType, messageId, timeout) {
 	]);
 }
 
-function addMessageListener(processObject, handler) {
+function addEventListener(processObject, handler) {
 	processObject.on('message', handler);
 }

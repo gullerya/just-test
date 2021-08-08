@@ -1,5 +1,5 @@
 import { DEFAULT, INTEROP_NAMES, TESTBOX_ENVIRONMENT_KEYS } from '../common/constants.js';
-import { ENVIRONMENT_TYPES, TestRunManager } from '../runner/ipc-service/ipc-service.js';
+import { ENVIRONMENT_TYPES, TestRunManager } from '../runner/ipc-service/ipc-service-nodejs.js';
 
 export {
 	deployTest,
