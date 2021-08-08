@@ -18,10 +18,10 @@ export {
  */
 function deployTest(test, sessionMetadata) {
 	let deployPromise;
-	if (sessionMetadata.interactive || sessionMetadata.browser?.type === 'firefox') {
-		deployPromise = executeInFrame(test);
-	} else if (sessionMetadata.browser) {
+	if (sessionMetadata.browser && sessionMetadata.browser?.type === 'chromium') {
 		deployPromise = executeInPage(test);
+	} else if (sessionMetadata.interactive || sessionMetadata.browser) {
+		deployPromise = executeInFrame(test);
 	} else if (sessionMetadata.node === true) {
 		deployPromise = executeInNodeJS(test);
 	} else {
@@ -72,6 +72,7 @@ async function executeInPage(test) {
 	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, port1, test);
 
 	w.addEventListener('load', () => {
+		console.log('web kit web kit')
 		w.postMessage(INTEROP_NAMES.IPC_HANDSHAKE, globalThis.location.origin, [port2]);
 	}, { once: true });
 	w.location = `/core/runner/environments/browser/browser-test-runner.html?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
