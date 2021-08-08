@@ -8,7 +8,7 @@ import * as chai from 'chai';
 
 globalThis.chai = chai;
 
-const childToParentIPC = new TestRunWorker(ENVIRONMENT_TYPES.NODE_JS, globalThis);
+const childToParentIPC = new TestRunWorker(ENVIRONMENT_TYPES.NODE_JS, process);
 
 //	main flow
 getTest()

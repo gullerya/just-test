@@ -36,7 +36,6 @@ function lookupEnv(testId) {
 
 function executeInFrame(test) {
 	const encTestId = encodeURIComponent(test.id);
-	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, globalThis, test);
 
 	const d = globalThis.document;
 	let f = lookupEnv(encTestId);
@@ -46,6 +45,14 @@ function executeInFrame(test) {
 		f.classList.add('just-test-execution-frame');
 	}
 	f.src = `/core/runner/environments/browser/browser-test-runner.html?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
+
+	const { port1, port2 } = new MessageChannel();
+	port1.start();
+	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, port1, test);
+
+	f.addEventListener('load', () => {
+		f.contentWindow.postMessage(INTEROP_NAMES.IPC_HANDSHAKE, globalThis.location.origin, [port2]);
+	}, { once: true });
 	d.body.appendChild(f);
 
 	return Promise.resolve(testRunManager);
@@ -53,14 +60,20 @@ function executeInFrame(test) {
 
 async function executeInPage(test) {
 	const encTestId = encodeURIComponent(test.id);
-	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, globalThis, test);
 
-	const w = globalThis.open();
+	const w = globalThis.open(globalThis.location.origin);
 	const isCoverage = Boolean(w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE]);
-	if (isCoverage) {
-		await w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE](test.id);
-	}
+	// if (isCoverage) {
+	// 	await w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE](test.id);
+	// }
 
+	const { port1, port2 } = new MessageChannel();
+	port1.start();
+	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, port1, test);
+
+	w.addEventListener('load', () => {
+		w.postMessage(INTEROP_NAMES.IPC_HANDSHAKE, globalThis.location.origin, [port2]);
+	}, { once: true });
 	w.location = `/core/runner/environments/browser/browser-test-runner.html?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
 
 	testRunManager.runEnded.then(() => {
@@ -89,10 +102,7 @@ async function executeInNodeJS(test) {
 		console.info('closed ' + test.id);
 	});
 	nodeEnv.on('error', e => { console.error(e); });
-	//	TODO: create here TestBox that will listen to messages from process and interop with the suite runner	
+	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.NODE_JS, nodeEnv, test);
 
-	return Promise.resolve({
-		runStarted: new Promise(() => { }),
-		runEnded: new Promise(() => { })
-	});
+	return Promise.resolve(testRunManager);
 }
