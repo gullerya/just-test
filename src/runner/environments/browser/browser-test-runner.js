@@ -3,9 +3,7 @@ import { TestRunWorker, ENVIRONMENT_TYPES } from '../../ipc-service/ipc-service.
 import { INTEROP_NAMES, TESTBOX_ENVIRONMENT_KEYS } from '../../../common/constants.js';
 import '/libs/chai/chai.js';
 
-
 //	flow starts from parent's IPC handshake
-//	TODO: timeout on not being called?
 globalThis.addEventListener('message', me => {
 	if (me.data === INTEROP_NAMES.IPC_HANDSHAKE) {
 		const childToParentIPC = new TestRunWorker(ENVIRONMENT_TYPES.BROWSER, me.ports[0]);
@@ -35,7 +33,13 @@ async function getTest(ipc) {
 	return test;
 }
 
-function initEnvironment(test, ipc) {
+async function initEnvironment(test, ipc) {
+	const isCoverage = Boolean(globalThis[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE]);
+	console.log(isCoverage)
+	if (isCoverage) {
+		await globalThis[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE](test.id);
+	}
+
 	globalThis.getSuite = getSuiteFactory(test, ipc);
 	return test;
 }

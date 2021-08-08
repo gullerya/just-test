@@ -62,17 +62,12 @@ async function executeInPage(test) {
 	const encTestId = encodeURIComponent(test.id);
 
 	const w = globalThis.open(globalThis.location.origin);
-	// const isCoverage = Boolean(w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE]);
-	// if (isCoverage) {
-	// 	await w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE](test.id);
-	// }
 
 	const { port1, port2 } = new MessageChannel();
 	port1.start();
 	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, port1, test);
 
 	w.addEventListener('load', () => {
-		console.log('web kit web kit')
 		w.postMessage(INTEROP_NAMES.IPC_HANDSHAKE, globalThis.location.origin, [port2]);
 	}, { once: true });
 	w.location = `/core/runner/environments/browser/browser-test-runner.html?${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
