@@ -62,7 +62,7 @@ async function executeInPage(test) {
 	const encTestId = encodeURIComponent(test.id);
 
 	const w = globalThis.open(globalThis.location.origin);
-	const isCoverage = Boolean(w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE]);
+	// const isCoverage = Boolean(w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE]);
 	// if (isCoverage) {
 	// 	await w[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE](test.id);
 	// }
