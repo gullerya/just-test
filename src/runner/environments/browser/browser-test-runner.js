@@ -1,12 +1,12 @@
 import { getSuiteFactory } from '../test-runner.js';
-import { TestRunWorker, ENVIRONMENT_TYPES } from '../../ipc-service/ipc-service.js';
+import { TestRunWorker } from '../../ipc-service/ipc-service-browser.js';
 import { INTEROP_NAMES, TESTBOX_ENVIRONMENT_KEYS } from '../../../common/constants.js';
 import '/libs/chai/chai.js';
 
 //	flow starts from parent's IPC handshake
 globalThis.addEventListener('message', me => {
 	if (me.data === INTEROP_NAMES.IPC_HANDSHAKE) {
-		const childToParentIPC = new TestRunWorker(ENVIRONMENT_TYPES.BROWSER, me.ports[0]);
+		const childToParentIPC = new TestRunWorker(me.ports[0]);
 		me.ports[0].start();
 		doFlow(childToParentIPC);
 	}

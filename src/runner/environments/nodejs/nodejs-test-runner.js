@@ -2,13 +2,13 @@ import process from 'node:process';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { getSuiteFactory } from '../test-runner.js';
-import { TestRunWorker, ENVIRONMENT_TYPES } from '../../ipc-service/ipc-service-nodejs.js';
+import { TestRunWorker } from '../../ipc-service/ipc-service-nodejs.js';
 import { TESTBOX_ENVIRONMENT_KEYS } from '../../../common/constants.js';
 import * as chai from 'chai';
 
 globalThis.chai = chai;
 
-const childToParentIPC = new TestRunWorker(ENVIRONMENT_TYPES.NODE_JS, process);
+const childToParentIPC = new TestRunWorker(process);
 
 //	main flow
 getTest()
@@ -38,7 +38,7 @@ function initEnvironment(test) {
 function getEnvTestSetup() {
 	return {
 		testId: process.argv
-			.find(a => a.startsWith(TESTBOX_ENVIRONMENT_KEYS.TEST_URL))
-			.replace(`${TESTBOX_ENVIRONMENT_KEYS.TEST_URL}=`, '')
+			.find(a => a.startsWith(`${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=`))
+			.replace(`${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=`, '')
 	}
 }

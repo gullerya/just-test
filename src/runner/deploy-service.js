@@ -1,5 +1,6 @@
 import { DEFAULT, INTEROP_NAMES, TESTBOX_ENVIRONMENT_KEYS } from '../common/constants.js';
-import { ENVIRONMENT_TYPES, TestRunManager } from '../runner/ipc-service/ipc-service-nodejs.js';
+import * as BrowserIPC from '../runner/ipc-service/ipc-service-browser.js';
+import * as NodeIPC from '../runner/ipc-service/ipc-service-nodejs.js';
 
 export {
 	deployTest,
@@ -48,7 +49,7 @@ function executeInFrame(test) {
 
 	const { port1, port2 } = new MessageChannel();
 	port1.start();
-	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, port1, test);
+	const testRunManager = new BrowserIPC.TestRunManager(port1, test);
 
 	f.addEventListener('load', () => {
 		f.contentWindow.postMessage(INTEROP_NAMES.IPC_HANDSHAKE, globalThis.location.origin, [port2]);
@@ -65,7 +66,7 @@ async function executeInPage(test) {
 
 	const { port1, port2 } = new MessageChannel();
 	port1.start();
-	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.BROWSER, port1, test);
+	const testRunManager = new BrowserIPC.TestRunManager(port1, test);
 
 	w.addEventListener('load', () => {
 		w.postMessage(INTEROP_NAMES.IPC_HANDSHAKE, globalThis.location.origin, [port2]);
@@ -86,8 +87,7 @@ async function executeInNodeJS(test) {
 	const nodeEnv = fork(
 		path.resolve('bin/runner/environments/nodejs/nodejs-test-runner.js'),
 		[
-			`${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${test.id}`,
-			`${TESTBOX_ENVIRONMENT_KEYS.TEST_URL}=${test.source}`
+			`${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${test.id}`
 		],
 		{
 			timeout: DEFAULT.TEST_RUN_TTL
@@ -98,7 +98,7 @@ async function executeInNodeJS(test) {
 		console.info('closed ' + test.id);
 	});
 	nodeEnv.on('error', e => { console.error(e); });
-	const testRunManager = new TestRunManager(ENVIRONMENT_TYPES.NODE_JS, nodeEnv, test);
+	const testRunManager = new NodeIPC.TestRunManager(nodeEnv, test);
 
 	return Promise.resolve(testRunManager);
 }

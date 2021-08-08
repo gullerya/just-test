@@ -3,20 +3,8 @@
  * - manages interoperability between the session execution process and test execution process
  * - delivers domain aware IPC
  * - provides both, parent and child functionality
- * - platform agnostic API and implementation
+ * - browser platform implementation
  */
-import * as BrowserIPC from './ipc-browser-impl.js';
-import * as Node_JsIPC from './ipc-nodejs-impl.js';
-
-export {
-	ENVIRONMENT_TYPES
-}
-
-const ENVIRONMENT_TYPES = Object.freeze({
-	BROWSER: 'browser',
-	NODE_JS: 'node_js'
-});
-
 const MESSAGE_TYPES = Object.freeze({
 	GET_TEST_CONFIG: 'getTestConfig',
 	TEST_CONFIG: 'testConfig',
@@ -27,21 +15,11 @@ const MESSAGE_TYPES = Object.freeze({
 let messageId = 0;
 
 export class TestRunWorker {
-	constructor(envType, port) {
-		if (!Object.values(ENVIRONMENT_TYPES).some(et => et === envType)) {
-			throw new Error(`invalid environment type '${envType}'`);
-		}
+	constructor(port) {
 		if (!(port instanceof MessagePort)) {
 			throw new Error(`invalid port object '${port}'`);
 		}
-		this.envType = envType;
 		this.port = port;
-		this.ipcEngine = envType === ENVIRONMENT_TYPES.BROWSER
-			? BrowserIPC
-			: envType === ENVIRONMENT_TYPES.NODE_JS
-				? Node_JsIPC
-				: null;
-
 		Object.freeze(this);
 	}
 
@@ -52,8 +30,8 @@ export class TestRunWorker {
 	 */
 	async getTestConfig(testId) {
 		const mid = messageId++;
-		const resultPromise = this.ipcEngine.waitMessage(this.port, MESSAGE_TYPES.TEST_CONFIG, mid, 1000);
-		this.ipcEngine.sendMessage(this.port, {
+		const resultPromise = waitMessage(this.port, MESSAGE_TYPES.TEST_CONFIG, mid, 1000);
+		this.port.postMessage({
 			mid: mid,
 			type: MESSAGE_TYPES.GET_TEST_CONFIG,
 			testId: testId
@@ -62,18 +40,16 @@ export class TestRunWorker {
 	}
 
 	sendRunStarted(testId) {
-		const mid = messageId++;
-		this.ipcEngine.sendMessage(this.port, {
-			mid: mid,
+		this.port.postMessage({
+			mid: messageId++,
 			type: MESSAGE_TYPES.RUN_STARTED,
 			testId: testId
 		});
 	}
 
 	sendRunResult(testId, runResult) {
-		const mid = messageId++;
-		this.ipcEngine.sendMessage(this.port, {
-			mid: mid,
+		this.port.postMessage({
+			mid: messageId++,
 			type: MESSAGE_TYPES.RUN_RESULT,
 			testId: testId,
 			runResult: runResult
@@ -82,21 +58,12 @@ export class TestRunWorker {
 }
 
 export class TestRunManager {
-	constructor(envType, port, test) {
-		if (!Object.values(ENVIRONMENT_TYPES).some(et => et === envType)) {
-			throw new Error(`invalid environment type '${envType}'`);
-		}
+	constructor(port, test) {
 		if (!(port instanceof MessagePort)) {
 			throw new Error(`invalid port object '${port}'`);
 		}
-		this.envType = envType;
 		this.port = port;
 		this.test = test;
-		this.ipcEngine = envType === ENVIRONMENT_TYPES.BROWSER
-			? BrowserIPC
-			: envType === ENVIRONMENT_TYPES.NODE_JS
-				? Node_JsIPC
-				: null;
 		this.runStarted = new Promise(r => {
 			this._resolveStarted = r;
 		});
@@ -104,13 +71,12 @@ export class TestRunManager {
 			this._resolveEnded = r;
 		});
 
-		this.setupListeners(port);
+		this.setupListeners();
 		Object.freeze(this);
 	}
 
-	//	TODO: this is browser specific now, move some of this to implementation detail
-	setupListeners(port) {
-		this.ipcEngine.addEventListener(port, me => {
+	setupListeners() {
+		this.port.addEventListener('message', me => {
 			//	validate data
 			if (!me || !me.data) {
 				return;
@@ -121,7 +87,7 @@ export class TestRunManager {
 			}
 
 			if (me.data.type === MESSAGE_TYPES.GET_TEST_CONFIG) {
-				this.ipcEngine.sendMessage(this.port, {
+				this.port.postMessage({
 					mid: me.data.mid,
 					type: MESSAGE_TYPES.TEST_CONFIG,
 					data: this.test
@@ -136,4 +102,17 @@ export class TestRunManager {
 			}
 		}, false);
 	}
+}
+
+async function waitMessage(port, messageType, mId, timeout) {
+	return Promise.race([
+		new Promise((_, r) => setTimeout(() => r(`awaiting for message ${mId} timed out ${timeout}ms`), timeout)),
+		new Promise(r => {
+			port.addEventListener('message', message => {
+				if (message && message.data && message.data.type === messageType && message.data.mid === mId) {
+					r(message.data);
+				}
+			}, false);
+		})
+	]);
 }

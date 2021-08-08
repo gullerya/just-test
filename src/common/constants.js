@@ -54,6 +54,5 @@ const SESSION_ENVIRONMENT_KEYS = Object.freeze({
 });
 
 const TESTBOX_ENVIRONMENT_KEYS = Object.freeze({
-	TEST_ID: 'test-id',
-	TEST_URL: 'test-url'
+	TEST_ID: 'test-id'
 });

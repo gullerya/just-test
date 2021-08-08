@@ -73,8 +73,11 @@ export default class APIRequestHandler extends RequestHandlerBase {
 				let data = '';
 				req.on('error', reject);
 				req.on('data', chunk => data += chunk);
-				req.on('end', () => resolve(JSON.parse(data)));
+				req.on('end', () => {
+					resolve(JSON.parse(data))
+				});
 			} catch (error) {
+				console.log(error);
 				reject(error);
 			}
 		});

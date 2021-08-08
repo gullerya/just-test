@@ -25,6 +25,7 @@ import { reportResults } from '../../report-service.js';
 		//	TODO: the below one should probably be replaced with the error state
 		sesEnvResult = stateService.getAll();
 	} finally {
+		console.log(sesEnvResult);
 		await reportResults(envConfig.sesId, envConfig.envId, sesEnvResult);
 	}
 })();

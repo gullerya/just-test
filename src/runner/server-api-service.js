@@ -1,6 +1,7 @@
 import { getEnvironmentConfig } from './environment-config.js';
 
 export {
+	uniFetch,
 	getSessionMetadata,
 	postSessionDone
 }

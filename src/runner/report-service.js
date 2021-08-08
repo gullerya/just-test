@@ -1,10 +1,12 @@
+import { uniFetch } from './server-api-service.js';
+
 export {
 	reportResults
 }
 
 async function reportResults(sesId, envId, results) {
 	console.log(`reporting '${sesId}':'${envId}' results...`);
-	const reportSessionResponse = await fetch(`/api/v1/sessions/${sesId}/environments/${envId}/result`, {
+	const reportSessionResponse = await uniFetch(`/api/v1/sessions/${sesId}/environments/${envId}/result`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json'
