@@ -21,7 +21,7 @@ function findMimeType(filePath, fallback) {
 	if (!result && fallback) {
 		result = fallback;
 	}
-	return result || null;
+	return result || extensionsMap.txt;
 }
 
 function extractExtension(filePath) {

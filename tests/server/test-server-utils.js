@@ -15,9 +15,10 @@ suite.test('extension map is full', test => {
 	test.assert.strictEqual(extensionsMap.xml, 'application/xml');
 });
 
-suite.test('extension map is immutable', test => {
+suite.test('extension map is immutable', () => {
 	extensionsMap.js = 'something else';
-	test.assert.strictEqual(extensionsMap.js, 'text/javascript');
+}, {
+	expectError: 'Cannot assign to read only property'
 });
 
 suite.test('finding mime type', test => {

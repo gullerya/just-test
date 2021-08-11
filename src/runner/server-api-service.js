@@ -48,7 +48,7 @@ async function initFetch() {
 		const envConfig = await getEnvironmentConfig();
 		result = async (url, options) => {
 			return new Promise((resolve, reject) => {
-				http.request(envConfig.serverOrigin + url, options, res => {
+				const req = http.request(envConfig.serverOrigin + url, options, res => {
 					if (res.statusCode < 200 && res.statusCode > 299) {
 						resolve({
 							ok: false,
@@ -67,9 +67,12 @@ async function initFetch() {
 							});
 						});
 					}
-				})
-					.on('error', reject)
-					.end();
+				});
+				req.on('error', reject)
+				if (options && options.body) {
+					req.write(options.body);
+				}
+				req.end();
 			});
 		};
 	}

@@ -77,7 +77,6 @@ export default class APIRequestHandler extends RequestHandlerBase {
 					resolve(JSON.parse(data))
 				});
 			} catch (error) {
-				console.log(error);
 				reject(error);
 			}
 		});
