@@ -93,8 +93,7 @@ async function executeInNodeJS(test) {
 			timeout: DEFAULT.TEST_RUN_TTL
 		}
 	);
-	nodeEnv.on('close', (...args) => {
-		console.log(args);
+	nodeEnv.on('close', () => {
 		console.info('closed ' + test.id);
 	});
 	nodeEnv.on('error', e => { console.error(e); });
