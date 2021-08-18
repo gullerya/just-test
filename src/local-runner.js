@@ -38,14 +38,15 @@ async function go() {
 		console.info(`${os.EOL}${'='.repeat(64)}`);
 		console.info(`... local run finished${os.EOL}`);
 		if (sessionResult) {
-			console.info('TESTS SUMMARY:');
-			console.info('========');
+			console.info('TESTS SUMMARY');
+			console.info('=============');
 			console.info(`TOTAL: ${sessionResult.total}`);
 			console.info(`PASSED: ${sessionResult.pass}`);
 			console.info(`FAILED: ${sessionResult.fail}`);
 			console.info(`ERRORED: ${sessionResult.error}`);
 			console.info(`SKIPPED: ${sessionResult.skip}${os.EOL}`);
 			console.info(`SESSION SUMMARY: ${process.exitCode ? 'FAILURE' : 'SUCCESS'} (${((endTime - startTime) / 1000).toFixed(1)}s)${os.EOL}`);
+			process.exit(0);
 		} else {
 			console.info(`SESSION SUMMARY: FAILURE (${((endTime - startTime) / 1000).toFixed(1)}s)${os.EOL}`);
 			process.exit(1);

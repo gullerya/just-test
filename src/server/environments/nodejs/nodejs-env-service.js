@@ -67,7 +67,7 @@ class NodeEnvImpl extends EnvironmentBase {
 		nodeEnv.on('message', message => {
 			logger.info(message);
 		});
-		nodeEnv.on('close', (...args) => {
+		nodeEnv.on('close', () => {
 			logger.info('closed');
 			this.emit('dismissed', null);
 		});
