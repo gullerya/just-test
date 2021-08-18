@@ -28,7 +28,7 @@ jobs:
           npm run lint:server
 
   quality_pipeline_chromium:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout
@@ -52,7 +52,7 @@ jobs:
         run: bash <(curl -s https://codecov.io/bash)
 
   quality_pipeline_firefox:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout
@@ -80,7 +80,7 @@ jobs:
           path: ./reports
 
   quality_pipeline_webkit:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout
@@ -99,3 +99,24 @@ jobs:
 
       - name: Test
         run: npm run test:ci:webkit
+
+  quality_pipeline_nodejs:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup NodeJS 14
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm run test:ci:node
