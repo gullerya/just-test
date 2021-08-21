@@ -52,9 +52,9 @@
 		"chai": "^4.3.4",
 		"data-tier": "^3.5.1",
 		"data-tier-list": "^2.1.1",
-		"es-module-shims": "^0.12.2",
+		"es-module-shims": "^0.12.6",
 		"glob": "^7.1.7",
-		"playwright": "^1.13.1",
+		"playwright": "^1.14.0",
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {

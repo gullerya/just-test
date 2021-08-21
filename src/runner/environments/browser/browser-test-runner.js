@@ -35,7 +35,6 @@ async function getTest(ipc) {
 
 async function initEnvironment(test, ipc) {
 	const isCoverage = Boolean(globalThis[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE]);
-	console.log(isCoverage)
 	if (isCoverage) {
 		await globalThis[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE](test.id);
 	}

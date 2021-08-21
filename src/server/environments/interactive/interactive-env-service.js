@@ -27,7 +27,7 @@ class InteractiveEnvImpl extends EnvironmentBase {
 		logger.info(`interactive environment for session '${this.sessionId}' launched`);
 		logger.info(`open your browser and navigate to ${serverConfig.origin}` +
 			`?${SESSION_ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}` +
-			`&${SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`);
+			`&${SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id} URL`);
 		return Promise.resolve();
 	}
 
