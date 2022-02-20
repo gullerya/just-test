@@ -51,8 +51,8 @@
 	},
 	"dependencies": {
 		"chai": "^4.3.6",
-		"data-tier": "^3.5.2",
-		"data-tier-list": "^2.1.1",
+		"data-tier": "^3.6.1",
+		"data-tier-list": "^2.2.1",
 		"es-module-shims": "^1.4.6",
 		"glob": "^7.2.0",
 		"playwright": "^1.19.1",
