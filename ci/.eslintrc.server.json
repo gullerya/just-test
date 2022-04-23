@@ -7,10 +7,6 @@
 	"parserOptions": {
 		"sourceType": "module"
 	},
-	"globals": {
-		"document": true,
-		"window": true
-	},
 	"rules": {
 		"no-shadow": 2
 	}
