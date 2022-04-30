@@ -23,7 +23,7 @@ import { suite } from 'just-test';
 const suiteA = suite('Suite A', suiteOptions);
 
 suiteA.test('Test A', testOptions, testContext => {
-
+	//	actual test code goes here
 });
 
 suiteA.addEventListener('done', doneCallback);
