@@ -20,9 +20,9 @@ For the clarity and convenience we split the structure into __Suites__ and __Tes
 ```
 import { suite } from 'just-test';
 
-const suiteA = suite('Suite A', options);
+const suiteA = suite('Suite A', suiteOptions);
 
-suiteA.test('Test A', options, testContext => {
+suiteA.test('Test A', testOptions, testContext => {
 
 });
 
