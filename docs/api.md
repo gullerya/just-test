@@ -15,7 +15,7 @@ For the clarity and convenience we split the structure into __Suites__ and __Tes
 > Whereever possible `just-test` attempts to follow NodeJS [native Test API](https://nodejs.org/api/test.html), that will be visible but should not be assumed.
 
 ### Suite API
-`suite` is a top level entity (function) imported from the SDK and is a single entrypoint into the `just-test` harness.
+`suite` is a top level factory (function) imported from the SDK and is a single entrypoint into the `just-test` harness.
 
 ```
 import { suite } from 'just-test';
