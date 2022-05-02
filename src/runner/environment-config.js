@@ -1,7 +1,9 @@
 import { SESSION_ENVIRONMENT_KEYS } from '../common/constants.js';
+export { EXECUTION_MODES } from '../common/constants.js';
 
 export {
-	getEnvironmentConfig
+	getEnvironmentConfig,
+	ExecutionContext
 }
 
 let cachedEnvConfig;
@@ -19,6 +21,35 @@ class EnvConfig {
 		this.envId = envId;
 		this.serverOrigin = serverOrigin;
 		Object.freeze(this);
+	}
+}
+
+class ExecutionContext {
+	static #EXECUTION_CONTEXT_SYMBOL = Symbol.for('JUST_TEST_EXECUTION_CONTEXT');
+
+	constructor(mode) {
+		if (!(mode in EXECUTION_MODES)) {
+			throw new Error(`one of the EXECUTION_MODES expected; received: ${mode}`);
+		}
+
+		this.mode = mode;
+		Object.freeze(this);
+	}
+
+	static install(context) {
+		if (!(context instanceof ExecutionContext)) {
+			throw new Error(`context object expected; received: ${context}`);
+		}
+		globalThis[this.#EXECUTION_CONTEXT_SYMBOL] = context;
+	}
+
+	static obtain() {
+		const foundContext = globalThis[this.#EXECUTION_CONTEXT_SYMBOL];
+		//	here to do some more involved processing
+		//	returning a newly constructed one
+		return new ExecutionContext(
+			foundContext.mode
+		);
 	}
 }
 

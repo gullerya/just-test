@@ -2,6 +2,7 @@ export {
 	DEFAULT,
 	EVENT,
 	INTEROP_NAMES,
+	EXECUTION_MODES,
 	SESSION_ENVIRONMENT_KEYS,
 	TESTBOX_ENVIRONMENT_KEYS,
 	STATUS,
@@ -45,6 +46,11 @@ const TEST_CONFIG_DEFAULT = Object.freeze({
 const INTEROP_NAMES = Object.freeze({
 	REGISTER_TEST_FOR_COVERAGE: '_registerTestForCoverage',
 	IPC_HANDSHAKE: 'ipcHandshake'
+});
+
+const EXECUTION_MODES = Object.freeze({
+	SESSION: 'session',
+	TEST: 'test'
 });
 
 const SESSION_ENVIRONMENT_KEYS = Object.freeze({

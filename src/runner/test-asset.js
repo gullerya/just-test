@@ -1,5 +1,5 @@
-import { waitInterval, waitNextTask } from '../../common/await-utils.js';
-import { getRandom } from '../../common/random-utils.js';
+import { waitInterval, waitNextTask } from '../common/await-utils.js';
+import { getRandom } from '../common/random-utils.js';
 
 const ASSERTIONS_KEY = Symbol('assertions');
 
