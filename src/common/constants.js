@@ -49,8 +49,8 @@ const INTEROP_NAMES = Object.freeze({
 });
 
 const EXECUTION_MODES = Object.freeze({
-	SESSION: 'session',
-	TEST: 'test'
+	SESSION: 'SESSION',
+	TEST: 'TEST'
 });
 
 const SESSION_ENVIRONMENT_KEYS = Object.freeze({

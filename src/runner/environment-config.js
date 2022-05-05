@@ -1,9 +1,9 @@
-import { SESSION_ENVIRONMENT_KEYS } from '../common/constants.js';
-export { EXECUTION_MODES } from '../common/constants.js';
+import { EXECUTION_MODES, SESSION_ENVIRONMENT_KEYS } from '../common/constants.js';
 
 export {
 	getEnvironmentConfig,
-	ExecutionContext
+	ExecutionContext,
+	EXECUTION_MODES
 }
 
 let cachedEnvConfig;
@@ -48,7 +48,7 @@ class ExecutionContext {
 		//	here to do some more involved processing
 		//	returning a newly constructed one
 		return new ExecutionContext(
-			foundContext.mode
+			foundContext?.mode ?? EXECUTION_MODES.SESSION
 		);
 	}
 }

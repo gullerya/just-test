@@ -11,13 +11,13 @@ export {
 
 class SuiteContext {
 	#name = null;
+	#mode = null;
 	#options = null;
-	#testRunner = null;
 
-	constructor(name, options, testRunner) {
+	constructor(name, mode, options) {
 		this.#name = name;
+		this.#mode = mode;
 		this.#options = options;
-		this.#testRunner = testRunner;
 	}
 
 	get name() {
@@ -29,7 +29,39 @@ class SuiteContext {
 	}
 
 	get test() {
-		return this.#testRunner;
+		return this.#mode === EXECUTION_MODES.SESSION
+			? this.#registerTest
+			: this.#runTest;
+	}
+
+	#registerTest(testName, testOptions, testCode) {
+		if (!testName || typeof testName !== 'string') {
+			//	notify error about badly configured test
+		}
+		if (typeof testOptions === 'function') {
+			testCode = testOptions;
+			testOptions = null;
+		}
+		if (!testOptions) {
+			//	make default options
+		}
+		if (typeof testCode !== 'function') {
+			//	notify error about badly configured test
+		}
+		console.log(this);
+	}
+
+	async #runTest(testName, testOptions, testCode) {
+		const tName = getValidName(testName);
+		const testId = getTestId(sName, tName);
+
+		if (testId !== test.id) {
+			return;
+		}
+
+		//	childToParentIPC.sendRunStarted(test.id);
+		const run = await runTest(testCode, test.config);
+		//	childToParentIPC.sendRunResult(test.id, run);
 	}
 }
 
@@ -41,42 +73,13 @@ class TestContext {
 
 function getSuite(suiteName, suiteOptions) {
 	const sName = getValidName(suiteName);
-	let testRunnerImpl;
 	const execContext = ExecutionContext.obtain();
-
-	if (execContext.mode === EXECUTION_MODES.SESSION) {
-		testRunnerImpl = testRegisterer;
-	} else {
-		testRunnerImpl = testRunner;
-	}
 
 	return new SuiteContext(
 		sName,
-		suiteOptions,
-		testRunnerImpl
+		execContext.mode,
+		suiteOptions
 	);
-}
-
-async function testRegisterer(testName, testOptions, testCode) {
-	if (!testName || typeof testName !== 'string') {
-		//	notify error about badly configured test
-	}
-	if (typeof testCode !== 'function') {
-		//	notify error about badly configured test
-	}
-}
-
-async function testRunner(testName, testOptions, testCode) {
-	const tName = getValidName(testName);
-	const testId = getTestId(sName, tName);
-
-	if (testId !== test.id) {
-		return;
-	}
-
-	//	childToParentIPC.sendRunStarted(test.id);
-	const run = await runTest(testCode, test.config);
-	//	childToParentIPC.sendRunResult(test.id, run);
 }
 
 async function runTest(code, config = { ttl: DEFAULT.TEST_RUN_TTL }) {
