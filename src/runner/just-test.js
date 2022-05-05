@@ -9,6 +9,12 @@ export {
 	getSuite
 }
 
+class TestContext {
+	constructor() {
+
+	}
+}
+
 class SuiteContext {
 	#name = null;
 	#mode = null;
@@ -62,12 +68,6 @@ class SuiteContext {
 		//	childToParentIPC.sendRunStarted(test.id);
 		const run = await runTest(testCode, test.config);
 		//	childToParentIPC.sendRunResult(test.id, run);
-	}
-}
-
-class TestContext {
-	constructor() {
-
 	}
 }
 
