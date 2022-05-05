@@ -1,9 +1,10 @@
-﻿import {
+﻿import { getSuite } from '../../src/runner/just-test.js';
+import {
 	waitInterval,
 	waitNextTask
-} from '/aut/bin/common/await-utils.js';
+} from '../../src/common/await-utils.js';
 
-const suite = globalThis.getSuite('Await utils');
+const suite = getSuite('Await utils');
 
 suite.test('waitInterval', async test => {
 	const startTime = performance.now();
