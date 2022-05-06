@@ -1,9 +1,12 @@
 // this is the main just-test SDK harness entrypoint from consumer perspective
-// it is designed to run in 2 passes:
-// - when the process context is session run, it should collect the setup, not running anything
-// - when the process context is test run, it should execute the relevant test only
+// it is
+// - designed to run in 2 passes:
+// 	- when the process context is session run, it should collect the setup, not running anything
+// 	- when the process context is test run, it should execute the relevant test only
+// - should not do any assumptions as of what environment it is running in
 import { ExecutionContext, EXECUTION_MODES } from './environment-config.js';
 import { getTestId, getValidName } from '../common/interop-utils.js';
+
 
 export {
 	getSuite
@@ -66,7 +69,27 @@ class SuiteContext {
 		}
 
 		//	childToParentIPC.sendRunStarted(test.id);
-		const run = await runTest(testCode, test.config);
+		let runResult;
+		const run = new TestRun();
+		run.timestamp = Date.now();
+
+		const testAsset = new TestAsset();
+
+		const start = performance.now();
+		try {
+			runResult = await Promise.race([
+				new Promise(resolve => setTimeout(resolve, config.ttl, new TimeoutError(`run exceeded ${config.ttl}ms`))),
+				Promise.resolve(code(testAsset))
+			]);
+		} catch (e) {
+			runResult = e;
+		} finally {
+			run.time = Math.round((performance.now() - start) * 10000) / 10000;
+			finalizeRun(config, run, runResult, testAsset.assertions);
+		}
+
+		return run;
+
 		//	childToParentIPC.sendRunResult(test.id, run);
 	}
 }
@@ -82,59 +105,21 @@ function getSuite(suiteName, suiteOptions) {
 	);
 }
 
-async function runTest(code, config = { ttl: DEFAULT.TEST_RUN_TTL }) {
-	let runResult;
-	const run = new TestRun();
-	run.timestamp = Date.now();
-
-	const testAsset = new TestAsset();
-
-	const
-		P = await perfReady,
-		start = P.now();
-	try {
-		runResult = await Promise.race([
-			new Promise(resolve => setTimeout(resolve, config.ttl, new TimeoutError(`run exceeded ${config.ttl}ms`))),
-			Promise.resolve(code(testAsset))
-		]);
-	} catch (e) {
-		runResult = e;
-	} finally {
-		run.time = Math.round((P.now() - start) * 10000) / 10000;
-		finalizeRun(config, run, runResult, testAsset.assertions);
-	}
-
-	return run;
-}
-
 function finalizeRun(config, run, result, assertions) {
-	if (config.expectError) {
-		assertions++;
-	}
-
 	let runError = null;
 	if (result && typeof result.name === 'string' && typeof result.message === 'string' && result.stack) {
 		runError = processError(result);
-		if (config.expectError && (runError.type === config.expectError || runError.message.includes(config.expectError))) {
-			run.status = STATUS.PASS;
+		if ((runError.type && runError.type.toLowerCase().includes('assert')) ||
+			(runError.name && runError.name.toLowerCase().includes('assert'))) {
+			run.status = STATUS.FAIL;
 		} else {
-			if ((runError.type && runError.type.toLowerCase().includes('assert')) ||
-				(runError.name && runError.name.toLowerCase().includes('assert'))) {
-				run.status = STATUS.FAIL;
-			} else {
-				run.status = STATUS.ERROR;
-			}
+			run.status = STATUS.ERROR;
 		}
 	} else if (result === false) {
 		run.status = STATUS.FAIL;
 		assertions++;
 	} else {
-		if (config.expectError) {
-			run.status = STATUS.FAIL;
-			runError = processError(new AssertError(`expected for error "${config.expectError}" but not happened`));
-		} else {
-			run.status = STATUS.PASS;
-		}
+		run.status = STATUS.PASS;
 	}
 	run.assertions = assertions;
 	run.error = runError;

@@ -39,8 +39,7 @@ const SUITE_CONFIG_DEFAULT = Object.freeze({
 const TEST_CONFIG_DEFAULT = Object.freeze({
 	ttl: DEFAULT.TEST_RUN_TTL,
 	skip: false,
-	sync: false,
-	expectError: null
+	sync: false
 });
 
 const INTEROP_NAMES = Object.freeze({
