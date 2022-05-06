@@ -1,12 +1,10 @@
-// this is the main just-test SDK harness entrypoint from consumer perspective
-// it is
-// - designed to run in 2 passes:
-// 	- when the process context is session run, it should collect the setup, not running anything
-// 	- when the process context is test run, it should execute the relevant test only
-// - should not do any assumptions as of what environment it is running in
+//	this is the main just-test SDK harness entrypoint from consumer perspective
+//	this module can found itself running in 3 modes:
+//	- plain_run - simple test execution, no server, no interop, just debugging the tests
+//	- session - tests registration phase, tests are not being run
+//	- test - test run, only the tests required by environment will be running
 import { ExecutionContext, EXECUTION_MODES } from './environment-config.js';
 import { getTestId, getValidName } from '../common/interop-utils.js';
-
 
 export {
 	getSuite

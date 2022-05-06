@@ -48,6 +48,7 @@ const INTEROP_NAMES = Object.freeze({
 });
 
 const EXECUTION_MODES = Object.freeze({
+	PLAIN_RUN: 'PLAIN_RUN',
 	SESSION: 'SESSION',
 	TEST: 'TEST'
 });

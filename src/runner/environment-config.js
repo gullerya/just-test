@@ -26,6 +26,8 @@ class EnvConfig {
 
 class ExecutionContext {
 	static #EXECUTION_CONTEXT_SYMBOL = Symbol.for('JUST_TEST_EXECUTION_CONTEXT');
+	#mode = EXECUTION_MODES.PLAIN_RUN;
+	#test2SuiteIPC = new TestRunWorker();
 
 	constructor(mode) {
 		if (!(mode in EXECUTION_MODES)) {
