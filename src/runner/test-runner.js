@@ -1,4 +1,3 @@
-import { TestAsset } from './test-asset.js';
 import { DEFAULT, STATUS } from '../../common/constants.js';
 import { TestRun } from '../../common/models/tests/test-run.js';
 import { TestError } from '../../common/models/tests/test-error.js';
@@ -38,29 +37,23 @@ async function runTest(code, config = { ttl: DEFAULT.TEST_RUN_TTL }) {
 	const run = new TestRun();
 	run.timestamp = Date.now();
 
-	const testAsset = new TestAsset();
-
 	const start = globalThis.performance.now();
 	try {
 		runResult = await Promise.race([
 			new Promise(resolve => setTimeout(resolve, config.ttl, new TimeoutError(`run exceeded ${config.ttl}ms`))),
-			Promise.resolve(code(testAsset))
+			Promise.resolve(code({}))
 		]);
 	} catch (e) {
 		runResult = e;
 	} finally {
 		run.time = Math.round((globalThis.performance.now() - start) * 10000) / 10000;
-		finalizeRun(config, run, runResult, testAsset.assertions);
+		finalizeRun(config, run, runResult);
 	}
 
 	return run;
 }
 
-function finalizeRun(config, run, result, assertions) {
-	if (config.expectError) {
-		assertions++;
-	}
-
+function finalizeRun(config, run, result) {
 	let runError = null;
 	if (result && typeof result.name === 'string' && typeof result.message === 'string' && result.stack) {
 		runError = processError(result);
@@ -76,7 +69,6 @@ function finalizeRun(config, run, result, assertions) {
 		}
 	} else if (result === false) {
 		run.status = STATUS.FAIL;
-		assertions++;
 	} else {
 		if (config.expectError) {
 			run.status = STATUS.FAIL;
@@ -85,7 +77,6 @@ function finalizeRun(config, run, result, assertions) {
 			run.status = STATUS.PASS;
 		}
 	}
-	run.assertions = assertions;
 	run.error = runError;
 }
 

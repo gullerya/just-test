@@ -1,6 +1,6 @@
 ﻿import { assert } from 'chai';
-import { getSuite } from '../../src/runner/just-test.js';
-import { waitInterval, waitNextTask } from '../../src/common/await-utils.js';
+import { getSuite } from '@gullerya/just-test/suite';
+import { waitInterval, waitNextTask } from '@gullerya/just-test/time-utils';
 
 const suite = getSuite('Await utils');
 
