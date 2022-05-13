@@ -2,7 +2,6 @@
  * Runs a session of all suites/tests
  */
 import { parseTestId } from '../common/interop-utils.js';
-import { perfReady } from '../common/performance-utils.js';
 import { deployTest } from './deploy-service.js';
 
 export {
@@ -20,14 +19,13 @@ export {
  * @returns Promise resolved with test results when all tests done
  */
 async function runSession(sessionMetadata, stateService) {
-	const P = await perfReady;
-	const started = P.now();
+	const started = globalThis.performance.now();
 
 	const executionData = stateService.getExecutionData();
 	console.info(`starting test session (${executionData.suites.length} suites)...`);
 	const suitePromises = executionData.suites.map(suite => runSuite(suite, sessionMetadata, stateService));
 	await Promise.all(suitePromises);
-	const ended = P.now();
+	const ended = globalThis.performance.now();
 	console.info(`... session done (${(ended - started).toFixed(1)}ms)`);
 }
 

@@ -26,32 +26,37 @@ class EnvConfig {
 
 class ExecutionContext {
 	static #EXECUTION_CONTEXT_SYMBOL = Symbol.for('JUST_TEST_EXECUTION_CONTEXT');
+	static #DEFAULT_EXECUTION_CONTEXT = new ExecutionContext();
+
 	#mode = EXECUTION_MODES.PLAIN_RUN;
-	#test2SuiteIPC = new TestRunWorker();
 
 	constructor(mode) {
-		if (!(mode in EXECUTION_MODES)) {
+		if (mode && !(mode in EXECUTION_MODES)) {
 			throw new Error(`one of the EXECUTION_MODES expected; received: ${mode}`);
+		} else if (mode) {
+			this.#mode = mode;
 		}
 
-		this.mode = mode;
 		Object.freeze(this);
 	}
+
+	get mode() { return this.#mode; }
 
 	static install(context) {
 		if (!(context instanceof ExecutionContext)) {
 			throw new Error(`context object expected; received: ${context}`);
 		}
-		globalThis[this.#EXECUTION_CONTEXT_SYMBOL] = context;
+		globalThis[ExecutionContext.#EXECUTION_CONTEXT_SYMBOL] = context;
 	}
 
 	static obtain() {
-		const foundContext = globalThis[this.#EXECUTION_CONTEXT_SYMBOL];
-		//	here to do some more involved processing
-		//	returning a newly constructed one
-		return new ExecutionContext(
-			foundContext?.mode ?? EXECUTION_MODES.SESSION
-		);
+		let result = globalThis[ExecutionContext.#EXECUTION_CONTEXT_SYMBOL];
+		if (!result) {
+			result = ExecutionContext.#DEFAULT_EXECUTION_CONTEXT;
+			ExecutionContext.install(result);
+		}
+
+		return result;
 	}
 }
 

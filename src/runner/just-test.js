@@ -4,36 +4,56 @@
 //	- session - tests registration phase, tests are not being run
 //	- test - test run, only the tests required by environment will be running
 import { ExecutionContext, EXECUTION_MODES } from './environment-config.js';
-import { getTestId, getValidName } from '../common/interop-utils.js';
+import { getTestId } from '../common/interop-utils.js';
+import { STATUS } from '../common/constants.js';
 
 export {
 	getSuite
 }
 
+const DEFAULT_SUITE_OPTIONS = {
+	only: false,
+	skip: false,
+	sequental: false
+};
+
+const DEFAULT_TEST_OPTIONS = {
+	only: false,
+	skip: false,
+	ttl: 3000
+}
+
+class AssertTimeout extends Error { }
+
 class TestContext {
 	constructor() {
-
 	}
 }
 
 class SuiteContext {
 	#name = null;
 	#mode = null;
-	#options = null;
+	#only = false;
+	#skip = false;
+	#sequental = false;
 
-	constructor(name, mode, options) {
+	#testConfigs = [];
+	#executionTail;
+
+	constructor(name, mode, options = DEFAULT_SUITE_OPTIONS) {
 		this.#name = name;
 		this.#mode = mode;
-		this.#options = options;
+
+		this.#only = Boolean(options?.only);
+		this.#skip = Boolean(options?.skip);
+		this.#sequental = Boolean(options?.sequental);
 	}
 
-	get name() {
-		return this.#name;
-	}
+	get name() { return this.#name; }
 
-	get options() {
-		return this.#options;
-	}
+	get only() { return this.#only; }
+
+	get skip() { return this.#skip; }
 
 	get test() {
 		return this.#mode === EXECUTION_MODES.SESSION
@@ -41,101 +61,132 @@ class SuiteContext {
 			: this.#runTest;
 	}
 
-	#registerTest(testName, testOptions, testCode) {
-		if (!testName || typeof testName !== 'string') {
-			//	notify error about badly configured test
+	async run() {
+		console.log(`suite '${this.#name}' started...`);
+		const testPromises = [];
+		this.#executionTail = Promise.resolve();
+		for (const testConfig of this.#testConfigs) {
+			if (!testConfig.skip) {
+				const runResultPromise = this.#runTest(testConfig.tName, testConfig.tOptions, testConfig.tCode);
+				if (this.#sequental) {
+					this.#executionTail = this.#executionTail.finally(() => runResultPromise);
+				} else {
+					testPromises.push(runResultPromise);
+				}
+			}
 		}
-		if (typeof testOptions === 'function') {
-			testCode = testOptions;
-			testOptions = null;
-		}
-		if (!testOptions) {
-			//	make default options
-		}
-		if (typeof testCode !== 'function') {
-			//	notify error about badly configured test
-		}
-		console.log(this);
+		testPromises.push(this.#executionTail);
+		await Promise.all(testPromises);
+		console.log(`... suite '${this.#name}' done`);
 	}
 
-	async #runTest(testName, testOptions, testCode) {
-		const tName = getValidName(testName);
-		const testId = getTestId(sName, tName);
+	#registerTest(name, options, code) {
+		const testConfig = this.#verifyNormalize(name, options, code);
 
-		if (testId !== test.id) {
-			return;
+		this.#testConfigs.push(testConfig);
+
+		if (this.#testConfigs.length === 1) {
+			this.run();
+		}
+	}
+
+	async #runTest(name, options, code) {
+		const { tName, tOptions, tCode } = this.#verifyNormalize(name, options, code);
+
+		if (this.#sequental && this.#executionTail) {
+			await this.#executionTail;
 		}
 
-		//	childToParentIPC.sendRunStarted(test.id);
+		const testId = getTestId(this.#name, tName);
+		console.log(`'${testId}' started...`);
+
+		const run = {};
 		let runResult;
-		const run = new TestRun();
-		run.timestamp = Date.now();
-
-		const testAsset = new TestAsset();
-
-		const start = performance.now();
+		let start;
+		let timeout;
 		try {
-			runResult = await Promise.race([
-				new Promise(resolve => setTimeout(resolve, config.ttl, new TimeoutError(`run exceeded ${config.ttl}ms`))),
-				Promise.resolve(code(testAsset))
+			run.timestamp = Date.now();
+			start = globalThis.performance.now();
+			const testContext = new TestContext();
+			const runPromise = Promise.race([
+				new Promise(resolve => {
+					timeout = setTimeout(
+						resolve,
+						tOptions.ttl,
+						new AssertTimeout(`run of '${testId}' exceeded ${tOptions.ttl}ms`));
+				}),
+				Promise.resolve(tCode(testContext))
 			]);
+			if (this.#sequental) {
+				this.#executionTail = runPromise;
+			}
+			runResult = await runPromise;
 		} catch (e) {
 			runResult = e;
 		} finally {
-			run.time = Math.round((performance.now() - start) * 10000) / 10000;
-			finalizeRun(config, run, runResult, testAsset.assertions);
+			clearTimeout(timeout);
+			run.time = Math.round((globalThis.performance.now() - start) * 10000) / 10000;
+			finalizeRun(run, runResult);
+			console.log(`'${testId}' ${run.status.toUpperCase()} in ${run.time}ms`);
 		}
 
 		return run;
+	}
 
-		//	childToParentIPC.sendRunResult(test.id, run);
+	#verifyNormalize(name, options, code) {
+		if (!name || typeof name !== 'string') {
+			throw new Error(`invalid test name: '${name}'`);
+		}
+		if (typeof options === 'function' || !options) {
+			code = options;
+			options = DEFAULT_TEST_OPTIONS;
+		}
+		if (typeof code !== 'function') {
+			throw new Error(`invalid test code: '${code}'`);
+		}
+
+		return { tName: name, tOptions: options, tCode: code };
 	}
 }
 
 function getSuite(suiteName, suiteOptions) {
-	const sName = getValidName(suiteName);
+	if (!suiteName || typeof suiteName !== 'string') {
+		throw new Error(`invalid suite name '${suiteName}'`);
+	}
+
 	const execContext = ExecutionContext.obtain();
 
 	return new SuiteContext(
-		sName,
+		suiteName,
 		execContext.mode,
 		suiteOptions
 	);
 }
 
-function finalizeRun(config, run, result, assertions) {
-	let runError = null;
-	if (result && typeof result.name === 'string' && typeof result.message === 'string' && result.stack) {
-		runError = processError(result);
+function finalizeRun(run, runResult) {
+	if (runResult && typeof runResult.name === 'string' && typeof runResult.message === 'string' && runResult.stack) {
+		const runError = processError(runResult);
 		if ((runError.type && runError.type.toLowerCase().includes('assert')) ||
 			(runError.name && runError.name.toLowerCase().includes('assert'))) {
 			run.status = STATUS.FAIL;
 		} else {
 			run.status = STATUS.ERROR;
 		}
-	} else if (result === false) {
-		run.status = STATUS.FAIL;
-		assertions++;
+		run.error = runError;
 	} else {
 		run.status = STATUS.PASS;
 	}
-	run.assertions = assertions;
-	run.error = runError;
 }
 
 function processError(error) {
-	const replaceable = globalThis.location?.origin || '';
 	const stacktrace = error.stack.split(/\r\n|\r|\n/)
 		.map(l => l.trim())
-		.map(l => l.replace(replaceable, ''))
-		.map(l => l.replace(/^\s*at\s*/, ''))
 		.filter(Boolean);
-	stacktrace.shift();
 
-	return new TestError(
-		error.name,
-		error.constructor.name,
-		error.message,
+	return {
+		name: error.name,
+		type: error.constructor.name,
+		message: error.message,
 		stacktrace
-	);
+	};
 }

@@ -2,7 +2,6 @@ import { TestAsset } from './test-asset.js';
 import { DEFAULT, STATUS } from '../../common/constants.js';
 import { TestRun } from '../../common/models/tests/test-run.js';
 import { TestError } from '../../common/models/tests/test-error.js';
-import { perfReady } from '../../common/performance-utils.js';
 import { getTestId, getValidName } from '../../common/interop-utils.js';
 
 export {
@@ -41,9 +40,7 @@ async function runTest(code, config = { ttl: DEFAULT.TEST_RUN_TTL }) {
 
 	const testAsset = new TestAsset();
 
-	const
-		P = await perfReady,
-		start = P.now();
+	const start = globalThis.performance.now();
 	try {
 		runResult = await Promise.race([
 			new Promise(resolve => setTimeout(resolve, config.ttl, new TimeoutError(`run exceeded ${config.ttl}ms`))),
@@ -52,7 +49,7 @@ async function runTest(code, config = { ttl: DEFAULT.TEST_RUN_TTL }) {
 	} catch (e) {
 		runResult = e;
 	} finally {
-		run.time = Math.round((P.now() - start) * 10000) / 10000;
+		run.time = Math.round((globalThis.performance.now() - start) * 10000) / 10000;
 		finalizeRun(config, run, runResult, testAsset.assertions);
 	}
 

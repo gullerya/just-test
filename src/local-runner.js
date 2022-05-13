@@ -4,7 +4,6 @@ import util from 'util';
 import process from 'process';
 import * as http from 'http';
 import { start, stop } from './server/cli.js';
-import { perfReady } from './common/performance-utils.js';
 import { xUnitReporter } from './server/testing/testing-service.js';
 import { lcovReporter } from './server/coverage/coverage-service.js';
 
@@ -13,8 +12,7 @@ go();
 const SESSION_STATUS_POLL_INTERVAL = 1237;
 
 async function go() {
-	const P = await perfReady;
-	const startTime = P.now();
+	const startTime = globalThis.performance.now();
 	const clArguments = parseCLArgs(process.argv);
 	console.info(`Starting local run...`);
 	console.info(`${'='.repeat(64)}${os.EOL}`);
@@ -34,7 +32,7 @@ async function go() {
 			await stop();
 		}
 
-		const endTime = P.now();
+		const endTime = globalThis.performance.now();
 		console.info(`${os.EOL}${'='.repeat(64)}`);
 		console.info(`... local run finished${os.EOL}`);
 		if (sessionResult) {

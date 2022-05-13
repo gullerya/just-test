@@ -1,8 +1,7 @@
 import path from 'node:path';
-import { pathToFileURL } from 'url';
+import { pathToFileURL } from 'hode:url';
 import { SUITE_CONFIG_DEFAULT, TEST_CONFIG_DEFAULT } from '../../../common/constants.js';
 import { getTestId, getValidName } from '../../../common/interop-utils.js';
-import { perfReady } from '../../../common/performance-utils.js';
 import { runSession } from '../../session-service.js';
 import * as serverAPI from '../../server-api-service.js';
 
@@ -39,11 +38,10 @@ async function execute(metadata, stateService) {
  * fetches test session definitions
  */
 async function loadMetadata(sesId, envId) {
-	const P = await perfReady;
-	const started = P.now();
+	const started = globalThis.performance.now();
 	console.info(`fetching test session metadata...`);
 	const envConfig = await serverAPI.getSessionMetadata(sesId, envId);
-	console.info(`... metadata fetched (${(P.now() - started).toFixed(1)}ms)`);
+	console.info(`... metadata fetched (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
 	return envConfig;
 }
 
@@ -65,8 +63,7 @@ function installTestRegistrationAPIs() {
  * @param {object} stateService - state service
  */
 async function collectTests(testsResources, stateService) {
-	const P = await perfReady;
-	const started = P.now();
+	const started = globalThis.performance.now();
 	console.info(`fetching ${testsResources.length} test resource/s...`);
 
 	for await (const tr of testsResources) {
@@ -79,7 +76,7 @@ async function collectTests(testsResources, stateService) {
 		}
 	}
 
-	console.info(`... test resources fetched (${(P.now() - started).toFixed(1)}ms)`);
+	console.info(`... test resources fetched (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
 }
 
 //	TODO: this and below are registration methods
