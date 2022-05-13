@@ -1,6 +1,6 @@
 {
 	"name": "@gullerya/just-test",
-	"version": "3.0.0-snapshot",
+	"version": "3.0.0",
 	"description": "JavaScript tests runner",
 	"keywords": [
 		"javascript",
