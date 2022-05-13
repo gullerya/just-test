@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { pathToFileURL } from 'hode:url';
+import { pathToFileURL } from 'node:url';
 import { SUITE_CONFIG_DEFAULT, TEST_CONFIG_DEFAULT } from '../../../common/constants.js';
 import { getTestId, getValidName } from '../../../common/interop-utils.js';
 import { runSession } from '../../session-service.js';

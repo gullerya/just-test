@@ -1,37 +1,40 @@
+import { assert } from 'chai';
+import { getSuite } from '@gullerya/just-test/suite';
 import {
 	extensionsMap, findMimeType
 } from '../../bin/server/server-utils.js';
 
-const suite = globalThis.getSuite('Server utils');
+const suite = getSuite('Server utils');
 
-suite.test('extension map is full', test => {
-	test.assert.strictEqual(extensionsMap.css, 'text/css');
-	test.assert.strictEqual(extensionsMap.html, 'text/html');
-	test.assert.strictEqual(extensionsMap.htm, 'text/html');
-	test.assert.strictEqual(extensionsMap.js, 'text/javascript');
-	test.assert.strictEqual(extensionsMap.mjs, 'text/javascript');
-	test.assert.strictEqual(extensionsMap.json, 'application/json');
-	test.assert.strictEqual(extensionsMap.txt, 'text/plain');
-	test.assert.strictEqual(extensionsMap.xml, 'application/xml');
+suite.test('extension map is full', () => {
+	assert.strictEqual(extensionsMap.css, 'text/css');
+	assert.strictEqual(extensionsMap.html, 'text/html');
+	assert.strictEqual(extensionsMap.htm, 'text/html');
+	assert.strictEqual(extensionsMap.js, 'text/javascript');
+	assert.strictEqual(extensionsMap.mjs, 'text/javascript');
+	assert.strictEqual(extensionsMap.json, 'application/json');
+	assert.strictEqual(extensionsMap.txt, 'text/plain');
+	assert.strictEqual(extensionsMap.xml, 'application/xml');
 });
 
 suite.test('extension map is immutable', () => {
-	extensionsMap.js = 'something else';
-}, {
-	expectError: 'Cannot assign to read only property'
+	assert.throws(
+		() => { extensionsMap.js = 'something else'; },
+		'Cannot assign to read only property'
+	);
 });
 
-suite.test('finding mime type', test => {
+suite.test('finding mime type', () => {
 	const mime = findMimeType('some/path/to.file.with.js');
-	test.assert.strictEqual(mime, 'text/javascript');
+	assert.strictEqual(mime, 'text/javascript');
 });
 
-suite.test('OOTB default mime type', test => {
+suite.test('OOTB default mime type', () => {
 	const mime = findMimeType('some/path/to.file.with.some');
-	test.assert.strictEqual(mime, 'text/plain');
+	assert.strictEqual(mime, 'text/plain');
 });
 
-suite.test('provided default mime type', test => {
+suite.test('provided default mime type', () => {
 	const mime = findMimeType('some/path/to.file.with.some', 'text/plain');
-	test.assert.strictEqual(mime, 'text/plain');
+	assert.strictEqual(mime, 'text/plain');
 });
