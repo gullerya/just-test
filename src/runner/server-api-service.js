@@ -3,10 +3,10 @@ export {
 	postSessionDone
 }
 
-async function getSessionMetadata(sesId, envId) {
+async function getSessionMetadata(sesId, envId, serverOrigin) {
 	const [config, testPaths] = await Promise.all([
-		(await fetch(`http://localhost:3000/api/v1/sessions/${sesId}/environments/${envId}/config`)).json(),
-		(await fetch(`http://localhost:3000/api/v1/sessions/${sesId}/environments/${envId}/test-file-paths`)).json()
+		(await fetch(`${serverOrigin}/api/v1/sessions/${sesId}/environments/${envId}/config`)).json(),
+		(await fetch(`${serverOrigin}/api/v1/sessions/${sesId}/environments/${envId}/test-file-paths`)).json()
 	]);
 	config.testPaths = testPaths;
 	config.sessionId = sesId;

@@ -7,7 +7,6 @@
  * @param {Object} envConfig environment configuration
  * @param {string} envConfig.node in this context expected always to equal true
  */
-import { exitCode } from 'node:process';
 import { Worker } from 'node:worker_threads';
 import Logger, { FileOutput } from '../../logger/logger.js';
 import { config as serverConfig } from '../../server-service.js';
