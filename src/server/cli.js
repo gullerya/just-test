@@ -4,7 +4,7 @@
  * - prepares effective config
  * - starts the server
  */
-import fs from 'fs';
+import fs from 'node:fs';
 import Logger from './logger/logger.js';
 import buildConfig from './configuration/server-configurer.js';
 import { start as serverStart, stop } from './server-service.js';

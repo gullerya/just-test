@@ -1,8 +1,8 @@
-import os from 'os';
-import fs from 'fs';
-import util from 'util';
-import process from 'process';
-import * as http from 'http';
+import os from 'node:os';
+import fs from 'node:fs';
+import util from 'node:util';
+import process from 'node:process';
+import * as http from 'node:http';
 import { start, stop } from './server/cli.js';
 import { xUnitReporter } from './server/testing/testing-service.js';
 import { lcovReporter } from './server/coverage/coverage-service.js';

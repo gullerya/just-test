@@ -6,8 +6,8 @@
  * Collects and holds the effective configuration built by each service:
  * - responsibility of services to report effective configuration
  */
-import fs from 'fs';
-import process from 'process';
+import fs from 'node:fs';
+import process from 'node:process';
 import Logger from './server/logger/logger.js';
 
 const logger = new Logger({ context: 'configurer' });

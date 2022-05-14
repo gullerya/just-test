@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';
@@ -12,7 +12,7 @@ export default class TestResourcesRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this[CONFIG_KEY] = config;
-		logger.info(`tests request handler initialized; basePath: '${this.basePath}'`);
+		logger.info(`tests requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
 	get basePath() {

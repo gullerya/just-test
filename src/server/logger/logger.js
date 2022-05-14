@@ -1,4 +1,4 @@
-import util from 'util';
+import util from 'node:util';
 import ConsoleOutput from './outputs/console-output.js';
 import FileOutput from './outputs/file-output.js';
 

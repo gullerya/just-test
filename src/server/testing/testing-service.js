@@ -1,4 +1,3 @@
-import { performance as P } from 'perf_hooks';
 import glob from 'glob';
 import Logger from '../logger/logger.js';
 import buildConfig from './testing-configurer.js';
@@ -24,7 +23,7 @@ function verifyEnrichConfig(testingConfig, clArguments) {
 async function collectTestResources(include, exclude) {
 	logger.info('collecting test resources...');
 	const
-		started = P.now(),
+		started = globalThis.performance.now(),
 		options = { nodir: true, nosort: true, ignore: exclude },
 		promises = [];
 	for (const i of include) {
@@ -43,7 +42,7 @@ async function collectTestResources(include, exclude) {
 		a.push(...c);
 		return a;
 	}, []);
-	logger.info(`... collected ${result.length} test resources (${(P.now() - started).toFixed(1)}ms)`);
+	logger.info(`... collected ${result.length} test resources (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
 	logger.info(result);
 	return result;
 }

@@ -38,7 +38,7 @@
 // 	]
 // };
 
-import os from 'os';
+import os from 'node:os';
 import { calcRangeCoverage } from '../../../common/models/coverage/range-utils.js';
 
 export default {

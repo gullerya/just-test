@@ -24,11 +24,7 @@
 	"files": [
 		"bin"
 	],
-	"bin": {
-		"just-test": "bin/local-runner.js"
-	},
 	"type": "module",
-	"main": "bin/local-runner.js",
 	"exports": {
 		"./suite": "./bin/runner/just-test.js",
 		"./random-utils": "./bin/common/random-utils.js",

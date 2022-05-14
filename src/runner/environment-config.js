@@ -52,6 +52,7 @@ class ExecutionContext {
 	static obtain() {
 		let result = globalThis[ExecutionContext.#EXECUTION_CONTEXT_SYMBOL];
 		if (!result) {
+			console.log('falling back to default execution context');
 			result = ExecutionContext.#DEFAULT_EXECUTION_CONTEXT;
 			ExecutionContext.install(result);
 		}

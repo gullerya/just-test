@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import FileCov from '../../../common/models/coverage/file-cov.js';
 import LineCov from '../../../common/models/coverage/line-cov.js';
 import RangeCov from '../../../common/models/coverage/range-cov.js';

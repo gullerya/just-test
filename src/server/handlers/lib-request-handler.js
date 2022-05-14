@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { createRequire } from 'module';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';

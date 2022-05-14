@@ -3,8 +3,7 @@
  * - initializing the handlers and the infra configuration (port)
  * - starting the server
  */
-import * as http from 'http';
-import { performance as P } from 'perf_hooks';
+import * as http from 'node:http';
 import Logger from './logger/logger.js';
 import { dismissAll } from './environments/environments-service.js';
 
@@ -40,7 +39,7 @@ class ServerService {
 
 	async initHandlers() {
 		const
-			started = P.now(),
+			started = globalThis.performance.now(),
 			candidates = this[CONFIG_KEY].handlers,
 			handlers = {};
 		logger.info(`initializing ${candidates.length} handler/s...`);
@@ -52,7 +51,7 @@ class ServerService {
 			}
 			handlers[handler.basePath] = handler;
 		}
-		logger.info(`... initialized ${Object.keys(handlers).length} handler/s (${(P.now() - started).toFixed(1)}ms)`);
+		logger.info(`... initialized ${Object.keys(handlers).length} handler/s (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
 		return handlers;
 	}
 
@@ -91,7 +90,7 @@ class ServerService {
 		};
 
 		//	init server
-		logger.info(`\tregistered ${handlers.length} request handler/s`);
+		logger.info(`\tregistered ${Object.keys(handlers).length} handler/s`);
 		const s = http.createServer(mainRequestDispatcher);
 		this[SERVER_KEY] = s.listen(port);
 		s.on('listening', () => {

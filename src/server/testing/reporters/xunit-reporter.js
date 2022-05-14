@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import { STATUS } from '../../../common/constants.js';
 import { getDOMImplementation } from '../../../common/xml/dom-implementation.js';
 
@@ -33,13 +33,12 @@ function report(results, reportPath) {
 			const tEl = rDoc.createElement('testcase');
 			tEl.setAttribute('name', test.name);
 			tEl.setAttribute('time', Math.round(lastRun.time) / 1000);
-			tEl.setAttribute('assertions', lastRun.assertions);
 			tEl.setAttribute('status', lastRun.status);
 
 			if (lastRun.status === STATUS.FAIL) {
 				suiteFailures++;
 				const fEl = rDoc.createElement('failure');
-					console.log(lastRun.error);
+				console.log(lastRun.error);
 				if (lastRun.error) {
 					fEl.setAttribute('type', lastRun.error.type);
 					fEl.setAttribute('message', lastRun.error.message);

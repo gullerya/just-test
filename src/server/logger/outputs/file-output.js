@@ -1,5 +1,5 @@
-import fs from 'fs';
-import os from 'os';
+import fs from 'node:fs';
+import os from 'node:os';
 
 //	eslint-disable-next-line no-control-regex
 const FILE_OUTPUT_TEXT_CLEANER = /\u001B\[\d+m/g;

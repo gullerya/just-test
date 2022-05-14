@@ -12,7 +12,6 @@ suite.test('run test - normal (sync)', async test => {
 	const m = await tp;
 	test.assert.strictEqual(m.status, STATUS.PASS);
 	test.assert.isNull(m.error);
-	test.assert.strictEqual(m.assertions, 0);
 	test.assert.isNumber(m.time);
 });
 
@@ -23,7 +22,6 @@ suite.test('run test - fail by false (sync)', async test => {
 	const m = await tp;
 	test.assert.strictEqual(m.status, STATUS.FAIL);
 	test.assert.isNull(m.error);
-	test.assert.strictEqual(m.assertions, 1);
 	test.assert.isNumber(m.time);
 });
 
@@ -40,7 +38,6 @@ suite.test('run test - fail by assert (sync)', async test => {
 	test.assert.isArray(m.error.stacktrace);
 	test.assert.isAbove(m.error.stacktrace.length, 0);
 
-	test.assert.strictEqual(m.assertions, 1);
 	test.assert.isNumber(m.time);
 });
 
@@ -57,7 +54,6 @@ suite.test('run test - fail by error (sync)', async test => {
 	test.assert.isArray(m.error.stacktrace);
 	test.assert.isAbove(m.error.stacktrace.length, 0);
 
-	test.assert.strictEqual(m.assertions, 0);
 	test.assert.isNumber(m.time);
 });
 
@@ -72,7 +68,6 @@ suite.test('run test - normal (async)', async test => {
 	const m = await tp;
 	test.assert.strictEqual(m.status, STATUS.PASS);
 	test.assert.isNull(m.error);
-	test.assert.strictEqual(m.assertions, 0);
 	test.assert.isNumber(m.time);
 	test.assert.isAbove(m.time, 0);
 });
@@ -87,7 +82,6 @@ suite.test('run test - fail by false (async)', async test => {
 	const m = await tp;
 	test.assert.strictEqual(m.status, STATUS.FAIL);
 	test.assert.isNull(m.error);
-	test.assert.strictEqual(m.assertions, 1);
 	test.assert.isNumber(m.time);
 	test.assert.isAbove(m.time, 0);
 });
@@ -108,7 +102,6 @@ suite.test('run test - fail by assert (async)', async test => {
 	test.assert.isArray(m.error.stacktrace);
 	test.assert.isAbove(m.error.stacktrace.length, 0);
 
-	test.assert.strictEqual(m.assertions, 1);
 	test.assert.isNumber(m.time);
 	test.assert.isAbove(m.time, 0);
 });
@@ -129,7 +122,6 @@ suite.test('run test - fail by error (async)', async test => {
 	test.assert.isArray(m.error.stacktrace);
 	test.assert.isAbove(m.error.stacktrace.length, 0);
 
-	test.assert.strictEqual(m.assertions, 0);
 	test.assert.isNumber(m.time);
 	test.assert.isAbove(m.time, 0);
 });
@@ -152,7 +144,6 @@ suite.test('run test - fail by timeout (async)', async test => {
 	test.assert.isArray(m.error.stacktrace);
 	test.assert.isAbove(m.error.stacktrace.length, 0);
 
-	test.assert.strictEqual(m.assertions, 0);
 	test.assert.isNumber(m.time);
 	test.assert.isAbove(m.time, ttl - 1);
 });
