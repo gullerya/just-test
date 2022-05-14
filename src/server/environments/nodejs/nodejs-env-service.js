@@ -7,10 +7,8 @@
  * @param {Object} envConfig environment configuration
  * @param {string} envConfig.node in this context expected always to equal true
  */
-import { fork } from 'node:child_process';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { SESSION_ENVIRONMENT_KEYS } from '../../../common/constants.js';
+import { exitCode } from 'node:process';
+import { Worker } from 'node:worker_threads';
 import Logger, { FileOutput } from '../../logger/logger.js';
 import { config as serverConfig } from '../../server-service.js';
 import { EnvironmentBase } from '../environment-base.js';
@@ -18,9 +16,12 @@ import { EnvironmentBase } from '../environment-base.js';
 export default launch;
 
 const logger = new Logger({ context: 'NodeJS env service' });
-const ownDir = dirname(fileURLToPath(import.meta.url));
 
 class NodeEnvImpl extends EnvironmentBase {
+	#envConfig;
+	#consoleLogger;
+	#dismissPromise;
+	#timeoutHandle;
 
 	/**
 	 * construct browser environment for a specific session
@@ -31,10 +32,10 @@ class NodeEnvImpl extends EnvironmentBase {
 	constructor(sessionId, envConfig) {
 		super(sessionId);
 
-		this.envConfig = envConfig;
-		this.consoleLogger = null;
-		this.dismissPromise = null;
-		this.timeoutHandle = null;
+		this.#envConfig = envConfig;
+		this.#consoleLogger = null;
+		this.#dismissPromise = null;
+		this.#timeoutHandle = null;
 
 		Object.seal(this);
 	}
@@ -43,36 +44,32 @@ class NodeEnvImpl extends EnvironmentBase {
 		logger.info(`launching 'NodeJS' environment...`);
 
 		const versionNamed = `nodejs-${process.version.replace(/^[^0-9]+/, '')}`;
-		this.consoleLogger = new FileOutput(`./reports/logs/${versionNamed}.log`);
+		this.#consoleLogger = new FileOutput(`./reports/logs/${versionNamed}.log`);
 		const nLogger = new Logger({
 			context: versionNamed,
-			outputs: [this.consoleLogger]
+			outputs: [this.#consoleLogger]
 		});
 
-		const entryPointRunnerPath = resolve(ownDir, '../../../runner/environments/nodejs/nodejs-session-runner.js');
-		const nodeEnv = fork(
-			entryPointRunnerPath,
-			[
-				`${SESSION_ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}`,
-				`${SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`,
-				`${SESSION_ENVIRONMENT_KEYS.SERVER_ORIGIN}=${serverConfig.origin}`
-			],
+		const worker = new Worker(
+			new URL('../../../runner/environments/nodejs/nodejs-session-runner.js', import.meta.url),
 			{
-				stdio: 'pipe',
-				timeout: this.envConfig.tests.ttl
+				workerData: {
+					sesId: this.sessionId,
+					envId: this.#envConfig.id,
+					origin: serverConfig.origin
+				}
 			}
 		);
-		nodeEnv.stdout.on('data', data => nLogger.info(data.toString().trim()));
-		nodeEnv.stderr.on('data', data => nLogger.error(data.toString().trim()));
-		nodeEnv.on('message', message => {
-			logger.info(message);
+		worker.stdout.on('data', data => nLogger.info(data.toString().trim()));
+		worker.stderr.on('data', data => nLogger.error(data.toString().trim()));
+		worker.on('message', logger.info);
+		worker.on('error', error => {
+			logger.error(error);
 		});
-		nodeEnv.on('close', () => {
-			logger.info('closed');
+		worker.on('exit', exitCode => {
+			logger.info(`worker exited with code ${exitCode}`);
 			this.emit('dismissed', null);
 		});
-		nodeEnv.on('error', () => { logger.info('error'); });
-		//	TODO: check message??
 	}
 
 	async dismiss() {
@@ -80,7 +77,7 @@ class NodeEnvImpl extends EnvironmentBase {
 }
 
 /**
- * launches managed browsing environment and executes tests in it
+ * launches managed NodeJS environment and executes tests in it
  * - TODO: consider to separate auto-run
  * 
  * @param {string} sessionId 

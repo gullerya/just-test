@@ -23,12 +23,11 @@ const sessions = {};
 async function addSession(sessionConfig) {
 	const effectiveConfig = buildConfig(sessionConfig);
 
-	logger.info(effectiveConfig);
+	logger.info('session effective config', effectiveConfig);
 
 	let sessionId = getRandom(8);
-	while (sessionId in sessions) {
-		logger.error(`session ID collision (${sessionId})`);
-		sessionId = getRandom(8);
+	if (sessionId in sessions) {
+		throw new Error(`session ID collision on '${sessionId}'`);
 	}
 	sessions[sessionId] = Object.seal({
 		id: sessionId,
@@ -56,7 +55,7 @@ async function getAll() {
 async function runSession(sessionId) {
 	const session = sessions[sessionId];
 	if (!session) {
-		throw new Error(`session ID '${sessionId}' not exists`);
+		throw new Error(`session with ID '${sessionId}' not exists`);
 	}
 
 	logger.info(`starting session '${sessionId}'...`);
@@ -66,7 +65,7 @@ async function runSession(sessionId) {
 			//	TODO: handle here the abnormal session finalization
 			sesEnvs.splice(sesEnvs.indexOf(sesEnv), 1);
 			if (!sesEnvs.length) {
-				console.log('all session environments closed, finalizing session');
+				logger.info(`all session ${sessionId} environments closed, finalizing session`);
 				finalizeSession(sessionId);
 			}
 		});
@@ -103,10 +102,10 @@ async function storeResult(sesId, envId, envResult) {
 	logger.info(`environment '${envId}' reported results for session '${sesId}'`);
 }
 
-async function finalizeSession(sesId) {
-	const session = await getSession(sesId);
+async function finalizeSession(sessionId) {
+	const session = await getSession(sessionId);
 	if (!session) {
-		throw new Error(`session ID '${sesId}' not exists`);
+		throw new Error(`session with ID '${sessionId}' not exists`);
 	}
 	if (session.result) {
 		return;

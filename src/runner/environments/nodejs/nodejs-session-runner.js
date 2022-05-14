@@ -4,9 +4,8 @@
  * - sets up object model in the NodeJS environment way
  */
 
-//	TODO: merge this with main-nodejs.js
+import { workerData } from 'node:worker_threads';
 import { loadMetadata, execute } from './main-nodejs.js';
-import { getEnvironmentConfig } from '../../environment-config.js';
 import SimpleStateService from '../../simple-state-service.js';
 import { reportResults } from '../../report-service.js';
 
@@ -15,7 +14,7 @@ import { reportResults } from '../../report-service.js';
 	let envConfig;
 	const stateService = new SimpleStateService();
 	try {
-		envConfig = await getEnvironmentConfig();
+		envConfig = workerData;
 		const metadata = await loadMetadata(envConfig.sesId, envConfig.envId);
 		await execute(metadata, stateService);
 		sesEnvResult = stateService.getAll();

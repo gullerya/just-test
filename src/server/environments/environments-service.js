@@ -39,7 +39,7 @@ function verifyEnrichConfig(environmentConfig) {
  */
 async function launch(session) {
 	const envsToLaunch = Object.keys(session.config.environments).length;
-	logger.info(`launching session '${session.id}': ${envsToLaunch} environment/s...`);
+	logger.info(`launching ${envsToLaunch} environment/s for session '${session.id}'...`);
 
 	let envsLaunched = [];
 	for (const envConfig of Object.values(session.config.environments)) {

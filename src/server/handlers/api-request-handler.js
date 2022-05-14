@@ -15,27 +15,25 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		logger.info(`API requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
-	get basePath() {
-		return 'api';
-	}
+	get basePath() { return 'api'; }
 
 	async handle(handlerRelativePath, req, res) {
 		let handled = false;
 		if (/^.+\/sessions(|\/.+)$/.test(handlerRelativePath)) {
 			if (req.method === 'POST') {
 				if (handlerRelativePath.endsWith('sessions')) {
-					await this._createSession(req, res);
+					await this.#createSession(req, res);
 					handled = true;
 				} else {
-					await this._storeResult(handlerRelativePath, req, res);
+					await this.#storeResult(handlerRelativePath, req, res);
 					handled = true;
 				}
 			} else if (req.method === 'GET') {
 				if (handlerRelativePath.endsWith('sessions')) {
-					await this._getAllSessions(res);
+					await this.#getAllSessions(res);
 					handled = true;
 				} else {
-					await this._getSession(handlerRelativePath, res);
+					await this.#getSession(handlerRelativePath, res);
 					handled = true;
 				}
 			}
@@ -46,7 +44,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		}
 	}
 
-	async _createSession(req, res) {
+	async #createSession(req, res) {
 		const sessionConfig = await new Promise((resolve, reject) => {
 			try {
 				let data = '';
@@ -65,7 +63,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 			}));
 	}
 
-	async _storeResult(handlerRelativePath, req, res) {
+	async #storeResult(handlerRelativePath, req, res) {
 		/* eslint-disable no-unused-vars */
 		const [sesId, _envConst, envId] = handlerRelativePath.split('/').slice(2);
 		const sesResult = await new Promise((resolve, reject) => {
@@ -84,12 +82,12 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		res.writeHead(201).end();
 	}
 
-	async _getAllSessions(res) {
+	async #getAllSessions(res) {
 		const allSessions = await getAll();
 		res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(JSON.stringify(allSessions));
 	}
 
-	async _getSession(handlerRelativePath, res) {
+	async #getSession(handlerRelativePath, res) {
 		const [sesId, entity, entityId, ...args] = handlerRelativePath.split('/').slice(2);
 
 		if (!sesId) {
