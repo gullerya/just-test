@@ -11,6 +11,7 @@ import * as serverAPI from '../../server-api-service.js';
 import SimpleStateService from '../../simple-state-service.js';
 import { reportResults } from '../../report-service.js';
 import { runSession } from '../../session-service.js';
+import { ExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 
 (async () => {
 	let sesEnvResult;
@@ -18,8 +19,21 @@ import { runSession } from '../../session-service.js';
 	const stateService = new SimpleStateService();
 	try {
 		envConfig = workerData;
+
+		//	obtain session metadata
 		const metadata = await loadMetadata(envConfig.sesId, envConfig.envId, envConfig.origin);
-		await execute(metadata, stateService);
+		stateService.setSessionId(metadata.sessionId);
+		stateService.setEnvironmentId(metadata.id);
+
+		console.info(`collecting suites data...`);
+		const execContext = new ExecutionContext(EXECUTION_MODES.SESSION);
+		ExecutionContext.install(execContext);
+		await collectTests(metadata.testPaths, stateService);
+
+		console.info(`executing suites...`);
+		await runSession(metadata, stateService);
+
+		console.info(`collecting results...`);
 		sesEnvResult = stateService.getAll();
 	} catch (e) {
 		console.error(e);
@@ -37,24 +51,6 @@ async function loadMetadata(sesId, envId, origin) {
 	const envConfig = await serverAPI.getSessionMetadata(sesId, envId, origin);
 	console.info(`... metadata fetched (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
 	return envConfig;
-}
-
-/**
- * runs main flow
- * - sets up environment (TODO: do the env setup environment based)
- * - auto executes test session
- * - signals server upon finalization if non-interactive
- */
-async function execute(metadata, stateService) {
-	//	environment setup
-	console.info(`setting up test execution environment...`);
-	stateService.setSessionId(metadata.sessionId);
-	stateService.setEnvironmentId(metadata.id);
-	await collectTests(metadata.testPaths, stateService);
-	console.info('... all set');
-
-	//	auto session execution
-	await runSession(metadata, stateService);
 }
 
 //	TODO: on each failure here user should get a visual feedback
