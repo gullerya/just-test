@@ -21,7 +21,8 @@ import { ExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 		envConfig = workerData;
 
 		//	obtain session metadata
-		const metadata = await loadMetadata(envConfig.sesId, envConfig.envId, envConfig.origin);
+		console.info(`fetching session metadata...`);
+		const metadata = await serverAPI.getSessionMetadata(envConfig.sesId, envConfig.envId, envConfig.origin);
 		stateService.setSessionId(metadata.sessionId);
 		stateService.setEnvironmentId(metadata.id);
 
@@ -44,14 +45,6 @@ import { ExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 		await reportResults(envConfig.sesId, envConfig.envId, sesEnvResult);
 	}
 })();
-
-async function loadMetadata(sesId, envId, origin) {
-	const started = globalThis.performance.now();
-	console.info(`fetching session metadata...`);
-	const envConfig = await serverAPI.getSessionMetadata(sesId, envId, origin);
-	console.info(`... metadata fetched (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
-	return envConfig;
-}
 
 //	TODO: on each failure here user should get a visual feedback
 /**
