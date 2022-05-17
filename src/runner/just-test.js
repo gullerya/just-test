@@ -3,7 +3,7 @@
 //	- plain_run - simple test execution, no server, no interop, just debugging the tests
 //	- session - tests registration phase, tests are not being run
 //	- test - test run, only the tests required by environment will be running
-import { ExecutionContext, EXECUTION_MODES } from './environment-config.js';
+import { obtainExecutionContext, EXECUTION_MODES } from './environment-config.js';
 import { getTestId } from '../common/interop-utils.js';
 import { STATUS } from '../common/constants.js';
 
@@ -33,6 +33,8 @@ class TestContext {
 class SuiteContext {
 	#name = null;
 	#mode = null;
+	#parentPort = null;
+	#childPort = null;
 	#only = false;
 	#skip = false;
 	#sequental = false;
@@ -40,9 +42,11 @@ class SuiteContext {
 	#testConfigs = [];
 	#executionTail;
 
-	constructor(name, mode, options = DEFAULT_SUITE_OPTIONS) {
+	constructor(name, execContext, options = DEFAULT_SUITE_OPTIONS) {
 		this.#name = name;
-		this.#mode = mode;
+		this.#mode = execContext.mode;
+		this.#parentPort = execContext.parentPort;
+		this.#childPort = execContext.childPort;
 
 		this.#only = Boolean(options?.only);
 		this.#skip = Boolean(options?.skip);
@@ -85,9 +89,10 @@ class SuiteContext {
 
 		this.#testConfigs.push(testConfig);
 
-		if (this.#testConfigs.length === 1) {
-			this.run();
-		}
+		delete testConfig.tCode;
+
+		this.#childPort.postMessage(testConfig);
+		console.log(`registered test ${testConfig.tName} for suite ${this.#name}`);
 	}
 
 	async #runTest(name, options, code) {
@@ -154,11 +159,11 @@ function getSuite(suiteName, suiteOptions) {
 		throw new Error(`invalid suite name '${suiteName}'`);
 	}
 
-	const execContext = ExecutionContext.obtain();
+	const execContext = obtainExecutionContext();
 
 	return new SuiteContext(
 		suiteName,
-		execContext.mode,
+		execContext,
 		suiteOptions
 	);
 }

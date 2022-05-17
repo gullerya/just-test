@@ -1,8 +1,9 @@
 import { EXECUTION_MODES, SESSION_ENVIRONMENT_KEYS } from '../common/constants.js';
 
 export {
+	installExecutionContext,
+	obtainExecutionContext,
 	getEnvironmentConfig,
-	ExecutionContext,
 	EXECUTION_MODES
 }
 
@@ -25,16 +26,24 @@ class EnvConfig {
 }
 
 class ExecutionContext {
-	static #EXECUTION_CONTEXT_SYMBOL = Symbol.for('JUST_TEST_EXECUTION_CONTEXT');
-	static #DEFAULT_EXECUTION_CONTEXT = new ExecutionContext();
-
 	#mode = EXECUTION_MODES.PLAIN_RUN;
+	#parentPort = null;
+	#childPort = null;
 
-	constructor(mode) {
+	constructor(mode, parentPort, childPort) {
 		if (mode && !(mode in EXECUTION_MODES)) {
 			throw new Error(`one of the EXECUTION_MODES expected; received: ${mode}`);
 		} else if (mode) {
 			this.#mode = mode;
+		}
+		if (!parentPort && !childPort) {
+			console.debug(`no ports supplied, creating own channel`);
+			const mc = new MessageChannel();
+			this.#parentPort = mc.port1;
+			this.#childPort = mc.port2;
+		} else {
+			this.#parentPort = this.#lookForParentPort(parentPort);
+			this.#childPort = childPort;
 		}
 
 		Object.freeze(this);
@@ -42,23 +51,35 @@ class ExecutionContext {
 
 	get mode() { return this.#mode; }
 
-	static install(context) {
-		if (!(context instanceof ExecutionContext)) {
-			throw new Error(`context object expected; received: ${context}`);
-		}
-		globalThis[ExecutionContext.#EXECUTION_CONTEXT_SYMBOL] = context;
-	}
+	get parentPort() { return this.#parentPort; }
 
-	static obtain() {
-		let result = globalThis[ExecutionContext.#EXECUTION_CONTEXT_SYMBOL];
-		if (!result) {
-			console.log('falling back to default execution context');
-			result = ExecutionContext.#DEFAULT_EXECUTION_CONTEXT;
-			ExecutionContext.install(result);
-		}
+	get childPort() { return this.#childPort; }
 
+	#lookForParentPort(defaulFallback) {
+		let result = defaulFallback;
+		// TODO: do some environmental lookup here
 		return result;
 	}
+}
+
+const EXECUTION_CONTEXT_SYMBOL = Symbol.for('JUST_TEST_EXECUTION_CONTEXT');
+
+function installExecutionContext(mode, parentPort = null, childPort = null) {
+	const context = new ExecutionContext(mode, parentPort, childPort);
+	globalThis[EXECUTION_CONTEXT_SYMBOL] = context;
+	console.info(`execution context installed, mode: ${context.mode}`);
+	return context;
+}
+
+function obtainExecutionContext() {
+	let result = globalThis[EXECUTION_CONTEXT_SYMBOL];
+	if (!result) {
+		console.log('installing default execution context...');
+		installExecutionContext(EXECUTION_MODES.PLAIN_RUN);
+		result = obtainExecutionContext();
+	}
+
+	return result;
 }
 
 async function getEnvironmentConfig() {

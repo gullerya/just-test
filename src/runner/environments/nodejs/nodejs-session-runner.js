@@ -4,14 +4,13 @@
  * - sets up object model in the NodeJS environment way
  */
 
-import path from 'node:path';
-import { pathToFileURL } from 'node:url';
-import { workerData } from 'node:worker_threads';
+import url from 'node:url';
+import { workerData, Worker } from 'node:worker_threads';
 import * as serverAPI from '../../server-api-service.js';
 import SimpleStateService from '../../simple-state-service.js';
 import { reportResults } from '../../report-service.js';
 import { runSession } from '../../session-service.js';
-import { ExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
+import { installExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 
 (async () => {
 	let sesEnvResult;
@@ -26,12 +25,11 @@ import { ExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 		stateService.setSessionId(metadata.sessionId);
 		stateService.setEnvironmentId(metadata.id);
 
-		console.info(`collecting suites data...`);
-		const execContext = new ExecutionContext(EXECUTION_MODES.SESSION);
-		ExecutionContext.install(execContext);
-		await collectTests(metadata.testPaths, stateService);
+		console.info(`register session contents (suites/tests)...`);
+		const execContext = installExecutionContext(EXECUTION_MODES.SESSION);
+		await registerSessionContent(metadata.testPaths, stateService, execContext.parentPort);
 
-		console.info(`executing suites...`);
+		console.info(`executing session...`);
 		await runSession(metadata, stateService);
 
 		console.info(`collecting results...`);
@@ -46,7 +44,6 @@ import { ExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 	}
 })();
 
-//	TODO: on each failure here user should get a visual feedback
 /**
  * imports suites/tests metadata
  * - has a side effect of collecting suites/tests metadata in the state service
@@ -54,21 +51,30 @@ import { ExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
  * @param {string[]} testsResources - array of paths
  * @param {object} stateService - state service
  */
-async function collectTests(testsResources, stateService) {
+async function registerSessionContent(testsResources, stateService, ownPort) {
 	const started = globalThis.performance.now();
 	console.info(`fetching ${testsResources.length} test resource/s...`);
 
-	for await (const tr of testsResources) {
+	ownPort.on('message', message => {
+		console.log(message);
+	});
+
+	const testResourcePromises = [];
+	for (const tr of testsResources) {
 		try {
-			const rPath = pathToFileURL(path.resolve(tr));
-			await import(rPath);
+			await import(url.pathToFileURL(tr));
+			//	the suite execution context should be sending the registration stugg
+			//	the equivalent of below should happen during the import time of the test, via just-test import
+			// _stateService.addTest(suiteName, testMeta.name, testId, testMeta.code, testMeta.config);
 			stateService.getUnSourced().forEach(t => t.source = tr);
 		} catch (e) {
 			console.error(`failed to import '${tr}':`, e);
 		}
 	}
+	await Promise.all(testResourcePromises);
 
-	console.info(`... test resources fetched (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
+	console.info(`... ${testsResources.length} test resource/s fetched (registration phase) ` +
+		`in ${(globalThis.performance.now() - started).toFixed(1)}ms`);
 }
 
 //	TODO: this and below are registration methods
