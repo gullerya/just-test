@@ -33,8 +33,7 @@ class TestContext {
 class SuiteContext {
 	#name = null;
 	#mode = null;
-	#parentPort = null;
-	#childPort = null;
+	#port = null;
 	#only = false;
 	#skip = false;
 	#sequental = false;
@@ -45,8 +44,7 @@ class SuiteContext {
 	constructor(name, execContext, options = DEFAULT_SUITE_OPTIONS) {
 		this.#name = name;
 		this.#mode = execContext.mode;
-		this.#parentPort = execContext.parentPort;
-		this.#childPort = execContext.childPort;
+		this.#port = execContext.childPort;
 
 		this.#only = Boolean(options?.only);
 		this.#skip = Boolean(options?.skip);
@@ -91,8 +89,7 @@ class SuiteContext {
 
 		delete testConfig.tCode;
 
-		this.#childPort.postMessage(testConfig);
-		console.log(`registered test ${testConfig.tName} for suite ${this.#name}`);
+		this.#port.postMessage(testConfig);
 	}
 
 	async #runTest(name, options, code) {

@@ -54,12 +54,12 @@
 		"chai": "^4.3.6",
 		"data-tier": "^3.6.1",
 		"data-tier-list": "^2.2.1",
-		"es-module-shims": "^1.5.4",
-		"glob": "^8.0.1",
-		"playwright": "^1.21.1",
+		"es-module-shims": "^1.5.5",
+		"glob": "^8.0.3",
+		"playwright": "^1.22.1",
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
-		"eslint": "^8.14.0"
+		"eslint": "^8.15.0"
 	}
 }

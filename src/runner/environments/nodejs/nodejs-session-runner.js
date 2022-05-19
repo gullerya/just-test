@@ -5,7 +5,7 @@
  */
 
 import url from 'node:url';
-import { workerData, Worker } from 'node:worker_threads';
+import { workerData } from 'node:worker_threads';
 import * as serverAPI from '../../server-api-service.js';
 import SimpleStateService from '../../simple-state-service.js';
 import { reportResults } from '../../report-service.js';
