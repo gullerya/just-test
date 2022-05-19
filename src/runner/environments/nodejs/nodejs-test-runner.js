@@ -1,7 +1,7 @@
 import process from 'node:process';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { getSuiteFactory } from '../test-runner.js';
+import { getSuiteFactory } from '../../test-runner.js';
 import { TestRunWorker } from '../../ipc-service/ipc-service-nodejs.js';
 import { TESTBOX_ENVIRONMENT_KEYS } from '../../../common/constants.js';
 import * as chai from 'chai';

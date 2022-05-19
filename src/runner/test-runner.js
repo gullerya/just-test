@@ -1,7 +1,7 @@
-import { DEFAULT, STATUS } from '../../common/constants.js';
-import { TestRun } from '../../common/models/tests/test-run.js';
-import { TestError } from '../../common/models/tests/test-error.js';
-import { getTestId, getValidName } from '../../common/interop-utils.js';
+import { DEFAULT, STATUS } from '../common/constants.js';
+import { TestRun } from '../common/models/tests/test-run.js';
+import { TestError } from '../common/models/tests/test-error.js';
+import { getTestId, getValidName } from '../common/interop-utils.js';
 
 export {
 	getSuiteFactory

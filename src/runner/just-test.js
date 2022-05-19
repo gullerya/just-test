@@ -21,9 +21,21 @@ const DEFAULT_TEST_OPTIONS = {
 	only: false,
 	skip: false,
 	ttl: 3000
-}
+};
+
+const DEFAULT_CONFIGS_SUBMISSION_DELAY = 100;
 
 class AssertTimeout extends Error { }
+
+class TestConfig {
+	constructor(suiteName, testName, config, code) {
+		this.id = getTestId(suiteName, testName);
+		this.suiteName = suiteName;
+		this.testName = testName;
+		this.config = config;
+		this.code = code;
+	}
+}
 
 class TestContext {
 	constructor() {
@@ -39,6 +51,7 @@ class SuiteContext {
 	#sequental = false;
 
 	#testConfigs = [];
+	#testConfigsSubmitter = null;
 	#executionTail;
 
 	constructor(name, execContext, options = DEFAULT_SUITE_OPTIONS) {
@@ -64,7 +77,7 @@ class SuiteContext {
 	}
 
 	async run() {
-		console.log(`suite '${this.#name}' started...`);
+		console.info(`suite '${this.#name}' started...`);
 		const testPromises = [];
 		this.#executionTail = Promise.resolve();
 		for (const testConfig of this.#testConfigs) {
@@ -79,28 +92,31 @@ class SuiteContext {
 		}
 		testPromises.push(this.#executionTail);
 		await Promise.all(testPromises);
-		console.log(`... suite '${this.#name}' done`);
+		console.info(`... suite '${this.#name}' done`);
 	}
 
 	#registerTest(name, options, code) {
+		if (!this.#testConfigsSubmitter) {
+			this.#testConfigsSubmitter = globalThis.setTimeout(() => {
+				console.info(`reporting ${this.#testConfigs.length} test registration/s...`);
+				this.#port.postMessage(this.#testConfigs);
+				console.info(`... reported`);
+			}, DEFAULT_CONFIGS_SUBMISSION_DELAY);
+		}
+
 		const testConfig = this.#verifyNormalize(name, options, code);
-
+		delete testConfig.code;
 		this.#testConfigs.push(testConfig);
-
-		delete testConfig.tCode;
-
-		this.#port.postMessage(testConfig);
 	}
 
 	async #runTest(name, options, code) {
-		const { tName, tOptions, tCode } = this.#verifyNormalize(name, options, code);
+		const testConfig = this.#verifyNormalize(name, options, code);
 
 		if (this.#sequental && this.#executionTail) {
 			await this.#executionTail;
 		}
 
-		const testId = getTestId(this.#name, tName);
-		console.log(`'${testId}' started...`);
+		console.info(`'${testConfig.id}' started...`);
 
 		const run = {};
 		let runResult;
@@ -114,10 +130,10 @@ class SuiteContext {
 				new Promise(resolve => {
 					timeout = setTimeout(
 						resolve,
-						tOptions.ttl,
-						new AssertTimeout(`run of '${testId}' exceeded ${tOptions.ttl}ms`));
+						testConfig.config.ttl,
+						new AssertTimeout(`run of '${testConfig.id}' exceeded ${testConfig.config.ttl}ms`));
 				}),
-				Promise.resolve(tCode(testContext))
+				Promise.resolve(testConfig.code(testContext))
 			]);
 			if (this.#sequental) {
 				this.#executionTail = runPromise;
@@ -129,7 +145,7 @@ class SuiteContext {
 			clearTimeout(timeout);
 			run.time = Math.round((globalThis.performance.now() - start) * 10000) / 10000;
 			finalizeRun(run, runResult);
-			console.log(`'${testId}' ${run.status.toUpperCase()} in ${run.time}ms`);
+			console.info(`'${testConfig.id}' ${run.status.toUpperCase()} in ${run.time}ms`);
 		}
 
 		return run;
@@ -147,7 +163,7 @@ class SuiteContext {
 			throw new Error(`invalid test code: '${code}'`);
 		}
 
-		return { tName: name, tOptions: options, tCode: code };
+		return new TestConfig(this.#name, name, options, code);
 	}
 }
 

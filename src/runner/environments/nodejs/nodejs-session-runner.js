@@ -27,7 +27,7 @@ import { installExecutionContext, EXECUTION_MODES } from '../../environment-conf
 
 		console.info(`register session contents (suites/tests)...`);
 		const execContext = installExecutionContext(EXECUTION_MODES.SESSION);
-		await registerSessionContent(metadata.testPaths, stateService, execContext.parentPort);
+		await registerSession(metadata.testPaths, stateService, execContext.parentPort);
 
 		console.info(`executing session...`);
 		await runSession(metadata, stateService);
@@ -51,48 +51,47 @@ import { installExecutionContext, EXECUTION_MODES } from '../../environment-conf
  * @param {string[]} testsResources - array of paths
  * @param {object} stateService - state service
  */
-async function registerSessionContent(testsResources, stateService, ownPort) {
+async function registerSession(testsResources, stateService, ownPort) {
 	const started = globalThis.performance.now();
 	console.info(`fetching ${testsResources.length} test resource/s...`);
+	let reported = 0;
 
-	ownPort.on('message', message => {
-		console.log(message);
+	const registrationPromise = new Promise(resolve => {
+		ownPort.on('message', testConfigs => {
+			console.info(`received ${testConfigs.length} test configs`);
+			for (const tc of testConfigs) {
+				stateService.addTest(tc.suiteName, tc.testName, tc.id, null, tc.config);
+			}
+			reported++;
+
+			if (reported === testsResources.length) {
+				resolve();
+			}
+		});
 	});
 
-	const testResourcePromises = [];
 	for (const tr of testsResources) {
 		try {
-			await import(url.pathToFileURL(tr));
-			//	the suite execution context should be sending the registration stugg
-			//	the equivalent of below should happen during the import time of the test, via just-test import
-			// _stateService.addTest(suiteName, testMeta.name, testId, testMeta.code, testMeta.config);
+			import(url.pathToFileURL(tr));
 			stateService.getUnSourced().forEach(t => t.source = tr);
 		} catch (e) {
 			console.error(`failed to import '${tr}':`, e);
 		}
 	}
-	await Promise.all(testResourcePromises);
 
 	console.info(`... ${testsResources.length} test resource/s fetched (registration phase) ` +
 		`in ${(globalThis.performance.now() - started).toFixed(1)}ms`);
+
+	return registrationPromise;
 }
 
-//	TODO: this and below are registration methods
-//	TODO: move them into suite-runner.js
-//	TODO: on each failure here user should get a visual feedback
-// function getSuite(suiteName, suiteConfig) {
-// 	const suiteMeta = validateNormalizeSuiteParams(suiteName, suiteConfig);
-// 	_stateService.obtainSuite(suiteMeta.name, suiteMeta.config);
-
-// 	return {
-// 		test: (testName, testCode, testConfig) => {
-// 			try {
-// 				const testMeta = validateNormalizeTestParams(testName, testCode, testConfig);
-// 				const testId = getTestId(suiteName, testMeta.name);
-// 				_stateService.addTest(suiteName, testMeta.name, testId, testMeta.code, testMeta.config);
-// 			} catch (e) {
-// 				console.error(`failed to register test '${testName} : ${JSON.stringify(testConfig)}':`, e);
-// 			}
-// 		}
-// 	}
-// }
+async function runSessionA() {
+	//	get the test config collection / suites
+	//	for each suite check the only/skip
+	//	each suite that can be run:
+	//	-	for each test check only/skip
+	//	-	each test that can be run:
+	//		- create new worker, import the source with the relevant test id and config
+	//	wait for all of the tests to report results
+	//	report to server API
+}
