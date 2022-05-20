@@ -42,7 +42,7 @@ async function collectTestResources(include, exclude) {
 		a.push(...c);
 		return a;
 	}, []);
-	logger.info(`... collected ${result.length} test resources (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
+	logger.info(`... collected ${result.length} test resource/s (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
 	logger.info(result);
 	return result;
 }

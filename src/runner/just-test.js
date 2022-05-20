@@ -6,6 +6,7 @@
 import { obtainExecutionContext, EXECUTION_MODES } from './environment-config.js';
 import { getTestId } from '../common/interop-utils.js';
 import { STATUS } from '../common/constants.js';
+import { Test } from '../common/models/tests/test.js';
 
 export {
 	getSuite
@@ -23,24 +24,9 @@ const DEFAULT_TEST_OPTIONS = {
 	ttl: 3000
 };
 
-const DEFAULT_CONFIGS_SUBMISSION_DELAY = 100;
+const DEFAULT_CONFIGS_SUBMISSION_DELAY = 92;
 
 class AssertTimeout extends Error { }
-
-class TestConfig {
-	constructor(suiteName, testName, config, code) {
-		this.id = getTestId(suiteName, testName);
-		this.suiteName = suiteName;
-		this.testName = testName;
-		this.config = config;
-		this.code = code;
-	}
-}
-
-class TestContext {
-	constructor() {
-	}
-}
 
 class SuiteContext {
 	#name = null;
@@ -98,19 +84,21 @@ class SuiteContext {
 	#registerTest(name, options, code) {
 		if (!this.#testConfigsSubmitter) {
 			this.#testConfigsSubmitter = globalThis.setTimeout(() => {
-				console.info(`reporting ${this.#testConfigs.length} test registration/s...`);
+				console.info(`reporting ${this.#testConfigs.length} test config/s...`);
 				this.#port.postMessage(this.#testConfigs);
 				console.info(`... reported`);
 			}, DEFAULT_CONFIGS_SUBMISSION_DELAY);
 		}
 
 		const testConfig = this.#verifyNormalize(name, options, code);
-		delete testConfig.code;
 		this.#testConfigs.push(testConfig);
 	}
 
 	async #runTest(name, options, code) {
 		const testConfig = this.#verifyNormalize(name, options, code);
+		if (typeof options === 'function') {
+			code = options;
+		}
 
 		if (this.#sequental && this.#executionTail) {
 			await this.#executionTail;
@@ -125,7 +113,6 @@ class SuiteContext {
 		try {
 			run.timestamp = Date.now();
 			start = globalThis.performance.now();
-			const testContext = new TestContext();
 			const runPromise = Promise.race([
 				new Promise(resolve => {
 					timeout = setTimeout(
@@ -133,7 +120,7 @@ class SuiteContext {
 						testConfig.config.ttl,
 						new AssertTimeout(`run of '${testConfig.id}' exceeded ${testConfig.config.ttl}ms`));
 				}),
-				Promise.resolve(testConfig.code(testContext))
+				Promise.resolve(code())
 			]);
 			if (this.#sequental) {
 				this.#executionTail = runPromise;
@@ -163,7 +150,13 @@ class SuiteContext {
 			throw new Error(`invalid test code: '${code}'`);
 		}
 
-		return new TestConfig(this.#name, name, options, code);
+		const result = new Test(
+			getTestId(this.#name, name),
+			name,
+			this.#name,
+			options
+		);
+		return result;
 	}
 }
 

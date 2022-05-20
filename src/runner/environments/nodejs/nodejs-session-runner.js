@@ -19,17 +19,14 @@ import { installExecutionContext, EXECUTION_MODES } from '../../environment-conf
 	try {
 		envConfig = workerData;
 
-		//	obtain session metadata
 		console.info(`fetching session metadata...`);
 		const metadata = await serverAPI.getSessionMetadata(envConfig.sesId, envConfig.envId, envConfig.origin);
 		stateService.setSessionId(metadata.sessionId);
 		stateService.setEnvironmentId(metadata.id);
 
-		console.info(`register session contents (suites/tests)...`);
-		const execContext = installExecutionContext(EXECUTION_MODES.SESSION);
-		await registerSession(metadata.testPaths, stateService, execContext.parentPort);
+		console.info(`registering session contents (suites/tests)...`);
+		await registerSession(metadata.testPaths, stateService);
 
-		console.info(`executing session...`);
 		await runSession(metadata, stateService);
 
 		console.info(`collecting results...`);
@@ -44,54 +41,29 @@ import { installExecutionContext, EXECUTION_MODES } from '../../environment-conf
 	}
 })();
 
-/**
- * imports suites/tests metadata
- * - has a side effect of collecting suites/tests metadata in the state service
- * 
- * @param {string[]} testsResources - array of paths
- * @param {object} stateService - state service
- */
-async function registerSession(testsResources, stateService, ownPort) {
+async function registerSession(testsResources, stateService) {
 	const started = globalThis.performance.now();
 	console.info(`fetching ${testsResources.length} test resource/s...`);
-	let reported = 0;
 
-	const registrationPromise = new Promise(resolve => {
-		ownPort.on('message', testConfigs => {
-			console.info(`received ${testConfigs.length} test configs`);
-			for (const tc of testConfigs) {
-				stateService.addTest(tc.suiteName, tc.testName, tc.id, null, tc.config);
-			}
-			reported++;
-
-			if (reported === testsResources.length) {
+	for (const tr of testsResources) {
+		await new Promise(resolve => {
+			try {
+				const execContext = installExecutionContext(EXECUTION_MODES.SESSION);
+				execContext.parentPort.on('message', testConfigs => {
+					for (const tc of testConfigs) {
+						tc.source = tr;
+						stateService.addTest(tc);
+					}
+					resolve();
+				});
+				import(url.pathToFileURL(tr));
+			} catch (e) {
+				console.error(`failed to process '${tr}': `, e);
 				resolve();
 			}
 		});
-	});
-
-	for (const tr of testsResources) {
-		try {
-			import(url.pathToFileURL(tr));
-			stateService.getUnSourced().forEach(t => t.source = tr);
-		} catch (e) {
-			console.error(`failed to import '${tr}':`, e);
-		}
 	}
 
-	console.info(`... ${testsResources.length} test resource/s fetched (registration phase) ` +
-		`in ${(globalThis.performance.now() - started).toFixed(1)}ms`);
-
-	return registrationPromise;
-}
-
-async function runSessionA() {
-	//	get the test config collection / suites
-	//	for each suite check the only/skip
-	//	each suite that can be run:
-	//	-	for each test check only/skip
-	//	-	each test that can be run:
-	//		- create new worker, import the source with the relevant test id and config
-	//	wait for all of the tests to report results
-	//	report to server API
+	const ended = globalThis.performance.now();
+	console.info(`... ${testsResources.length} test resource/s fetched (registration phase) in ${(ended - started).toFixed(1)}ms`);
 }

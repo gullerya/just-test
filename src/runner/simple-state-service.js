@@ -5,7 +5,6 @@
 import { STATUS } from '../common/constants.js';
 import { Session } from '../common/models/tests/session.js';
 import { Suite } from '../common/models/tests/suite.js';
-import { Test } from '../common/models/tests/test.js';
 import { TestRun } from '../common/models/tests/test-run.js';
 
 export default class SimpleStateService {
@@ -55,30 +54,13 @@ export default class SimpleStateService {
 		return SimpleStateService.getTestInternal(suite, testName);
 	}
 
-	/**
-	 * extracts all tests from all suites that has no source set
-	 * 
-	 * @returns {array} - flattened array of tests, that are missing source
-	 */
-	getUnSourced() {
-		return this.model.suites.flatMap(s =>
-			s.tests.filter(t =>
-				t.source === null
-			)
-		);
-	}
-
-	addTest(suiteName, testName, testId, _testCode, testConfig) {
-		const suite = this.obtainSuite(suiteName);
-		if (SimpleStateService.getTestInternal(suite, testName)) {
-			throw new Error(`test '${testName}' already found in suite '${suiteName}'`);
+	addTest(test) {
+		const suite = this.obtainSuite(test.suiteName);
+		if (SimpleStateService.getTestInternal(suite, test.name)) {
+			throw new Error(`test '${test.name}' already found in suite '${suite.name}'`);
 		}
 
-		const test = new Test();
-		test.id = testId;
-		test.name = testName;
-		test.config = testConfig;
-		if (testConfig.skip) {
+		if (test.config.skip) {
 			const lRun = new TestRun();
 			lRun.status = STATUS.SKIP;
 			test.lastRun = lRun;
@@ -88,14 +70,14 @@ export default class SimpleStateService {
 
 		//	update session globals
 		this.model.total++;
-		if (testConfig.skip) {
+		if (test.config.skip) {
 			this.model.skip++;
 			this.model.done++;
 		}
 
 		//	update suite globals
 		suite.total++;
-		if (testConfig.skip) {
+		if (test.config.skip) {
 			suite.skip++;
 			suite.done++;
 		}
