@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import { getSuite } from '@gullerya/just-test/suite';
 import {
 	extensionsMap, findMimeType
-} from '../../bin/server/server-utils.js';
+} from '../../src/server/server-utils.js';
 
 const suite = getSuite('Server utils');
 

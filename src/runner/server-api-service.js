@@ -18,7 +18,7 @@ async function getSessionMetadata(sesId, envId, serverOrigin) {
 }
 
 async function reportSessionResult(sesId, envId, serverOrigin, result) {
-	console.info(`reporting '${sesId}':'${envId}' result...`);
+	console.info(`reporting '${sesId}':'${envId}' results...`);
 	const postSessionResultUrl = `${serverOrigin}/api/v1/sessions/${sesId}/environments/${envId}/result`;
 	const reportSessionResponse = await fetch(postSessionResultUrl, {
 		method: 'POST',

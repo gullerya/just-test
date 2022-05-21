@@ -99,11 +99,10 @@ class SuiteContext {
 	}
 
 	async #runTest(name, options, code) {
-		if (this.#mode === EXECUTION_MODES.TEST && this.#testId !== getTestId(this.#name, name)) {
+		const testConfig = this.#verifyNormalize(name, options, code);
+		if (this.#mode === EXECUTION_MODES.TEST && this.#testId !== testConfig.id) {
 			return;
 		}
-
-		const testConfig = this.#verifyNormalize(name, options, code);
 		if (typeof options === 'function') {
 			code = options;
 		}
@@ -116,8 +115,8 @@ class SuiteContext {
 		if (this.#mode === EXECUTION_MODES.TEST) {
 			this.#port.postMessage({
 				type: EVENT.RUN_STARTED,
-				testName: name,
-				suiteName: this.#name
+				suiteName: this.#name,
+				testName: name
 			});
 		}
 
@@ -150,8 +149,8 @@ class SuiteContext {
 			if (this.#mode === EXECUTION_MODES.TEST) {
 				this.#port.postMessage({
 					type: EVENT.RUN_ENDED,
-					testName: name,
 					suiteName: this.#name,
+					testName: name,
 					run
 				});
 			}

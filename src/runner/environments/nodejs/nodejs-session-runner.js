@@ -36,7 +36,6 @@ import { EVENT } from '../../../common/constants.js';
 		//	TODO: the below one should probably be replaced with the error state
 		sesEnvResult = stateService.getAll();
 	} finally {
-		console.log(sesEnvResult.suites[0]);
 		await serverAPI.reportSessionResult(envConfig.sesId, envConfig.envId, envConfig.origin, sesEnvResult);
 	}
 })();
@@ -85,9 +84,14 @@ async function executeInNodeJS(test, stateService) {
 			stateService.updateRunEnded(message.suiteName, message.testName, message.run);
 		}
 	});
-	worker.on('exit', exitCode => {
-		console.info(`worker exited with code ${exitCode}`);
+	worker.on('error', error => {
+		console.error(`worker for test '${test.id}' errored: ${error}`);
 	});
 
-	return Promise.resolve(worker);
+	return new Promise(resolve => {
+		worker.on('exit', exitCode => {
+			console.info(`worker for test '${test.id}' exited with code ${exitCode}`);
+			resolve();
+		});
+	});
 }

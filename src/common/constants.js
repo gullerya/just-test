@@ -21,7 +21,7 @@ const EVENT = Object.freeze({
 	TEST_SELECT: 'TEST_SELECT',
 	TEST_RERUN: 'TEST_RERUN',
 	RUN_STARTED: 'RUN_STARTED',
-	RUN_ENDED: 'RUN_DONE'
+	RUN_ENDED: 'RUN_ENDED'
 });
 
 const STATUS = Object.freeze({
