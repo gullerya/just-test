@@ -27,15 +27,17 @@ class EnvConfig {
 
 class ExecutionContext {
 	#mode = EXECUTION_MODES.PLAIN_RUN;
+	#testId = null;
 	#parentPort = null;
 	#childPort = null;
 
-	constructor(mode, parentPort, childPort) {
+	constructor(mode, parentPort, childPort, testId) {
 		if (mode && !(mode in EXECUTION_MODES)) {
 			throw new Error(`one of the EXECUTION_MODES expected; received: ${mode}`);
 		} else if (mode) {
 			this.#mode = mode;
 		}
+		this.#testId = testId;
 		if (!parentPort && !childPort) {
 			console.debug(`no ports supplied, creating own channel`);
 			const mc = new MessageChannel();
@@ -51,6 +53,8 @@ class ExecutionContext {
 
 	get mode() { return this.#mode; }
 
+	get testId() { return this.#testId; }
+
 	get parentPort() { return this.#parentPort; }
 
 	get childPort() { return this.#childPort; }
@@ -64,8 +68,8 @@ class ExecutionContext {
 
 const EXECUTION_CONTEXT_SYMBOL = Symbol.for('JUST_TEST_EXECUTION_CONTEXT');
 
-function installExecutionContext(mode, parentPort = null, childPort = null) {
-	const context = new ExecutionContext(mode, parentPort, childPort);
+function installExecutionContext(mode, parentPort = null, childPort = null, testId = null) {
+	const context = new ExecutionContext(mode, parentPort, childPort, testId);
 	globalThis[EXECUTION_CONTEXT_SYMBOL] = context;
 	console.info(`execution context installed, mode: ${context.mode}`);
 	return context;

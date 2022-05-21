@@ -5,7 +5,7 @@
 //	- test - test run, only the tests required by environment will be running
 import { obtainExecutionContext, EXECUTION_MODES } from './environment-config.js';
 import { getTestId } from '../common/interop-utils.js';
-import { STATUS } from '../common/constants.js';
+import { EVENT, STATUS } from '../common/constants.js';
 import { Test } from '../common/models/tests/test.js';
 
 export {
@@ -31,6 +31,8 @@ class AssertTimeout extends Error { }
 class SuiteContext {
 	#name = null;
 	#mode = null;
+	#testId = null;
+
 	#port = null;
 	#only = false;
 	#skip = false;
@@ -43,6 +45,8 @@ class SuiteContext {
 	constructor(name, execContext, options = DEFAULT_SUITE_OPTIONS) {
 		this.#name = name;
 		this.#mode = execContext.mode;
+		this.#testId = execContext.testId;
+
 		this.#port = execContext.childPort;
 
 		this.#only = Boolean(options?.only);
@@ -95,6 +99,10 @@ class SuiteContext {
 	}
 
 	async #runTest(name, options, code) {
+		if (this.#mode === EXECUTION_MODES.TEST && this.#testId !== getTestId(this.#name, name)) {
+			return;
+		}
+
 		const testConfig = this.#verifyNormalize(name, options, code);
 		if (typeof options === 'function') {
 			code = options;
@@ -105,6 +113,13 @@ class SuiteContext {
 		}
 
 		console.info(`'${testConfig.id}' started...`);
+		if (this.#mode === EXECUTION_MODES.TEST) {
+			this.#port.postMessage({
+				type: EVENT.RUN_STARTED,
+				testName: name,
+				suiteName: this.#name
+			});
+		}
 
 		const run = {};
 		let runResult;
@@ -132,6 +147,14 @@ class SuiteContext {
 			clearTimeout(timeout);
 			run.time = Math.round((globalThis.performance.now() - start) * 10000) / 10000;
 			finalizeRun(run, runResult);
+			if (this.#mode === EXECUTION_MODES.TEST) {
+				this.#port.postMessage({
+					type: EVENT.RUN_ENDED,
+					testName: name,
+					suiteName: this.#name,
+					run
+				});
+			}
 			console.info(`'${testConfig.id}' ${run.status.toUpperCase()} in ${run.time}ms`);
 		}
 

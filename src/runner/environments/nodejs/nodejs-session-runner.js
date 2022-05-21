@@ -5,12 +5,12 @@
  */
 
 import url from 'node:url';
-import { workerData } from 'node:worker_threads';
+import { workerData, Worker } from 'node:worker_threads';
 import * as serverAPI from '../../server-api-service.js';
 import SimpleStateService from '../../simple-state-service.js';
-import { reportResults } from '../../report-service.js';
 import { runSession } from '../../session-service.js';
 import { installExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
+import { EVENT } from '../../../common/constants.js';
 
 (async () => {
 	let sesEnvResult;
@@ -19,7 +19,6 @@ import { installExecutionContext, EXECUTION_MODES } from '../../environment-conf
 	try {
 		envConfig = workerData;
 
-		console.info(`fetching session metadata...`);
 		const metadata = await serverAPI.getSessionMetadata(envConfig.sesId, envConfig.envId, envConfig.origin);
 		stateService.setSessionId(metadata.sessionId);
 		stateService.setEnvironmentId(metadata.id);
@@ -27,7 +26,7 @@ import { installExecutionContext, EXECUTION_MODES } from '../../environment-conf
 		console.info(`registering session contents (suites/tests)...`);
 		await registerSession(metadata.testPaths, stateService);
 
-		await runSession(metadata, stateService);
+		await runSession(stateService, executeInNodeJS);
 
 		console.info(`collecting results...`);
 		sesEnvResult = stateService.getAll();
@@ -37,7 +36,8 @@ import { installExecutionContext, EXECUTION_MODES } from '../../environment-conf
 		//	TODO: the below one should probably be replaced with the error state
 		sesEnvResult = stateService.getAll();
 	} finally {
-		await reportResults(envConfig.sesId, envConfig.envId, sesEnvResult);
+		console.log(sesEnvResult.suites[0]);
+		await serverAPI.reportSessionResult(envConfig.sesId, envConfig.envId, envConfig.origin, sesEnvResult);
 	}
 })();
 
@@ -66,4 +66,28 @@ async function registerSession(testsResources, stateService) {
 
 	const ended = globalThis.performance.now();
 	console.info(`... ${testsResources.length} test resource/s fetched (registration phase) in ${(ended - started).toFixed(1)}ms`);
+}
+
+async function executeInNodeJS(test, stateService) {
+	const worker = new Worker(
+		new URL('./nodejs-test-runner.js', import.meta.url),
+		{
+			workerData: {
+				testId: test.id,
+				testSource: test.source
+			}
+		}
+	);
+	worker.on('message', message => {
+		if (message.type === EVENT.RUN_STARTED) {
+			stateService.updateRunStarted(message.suiteName, message.testName);
+		} else if (message.type === EVENT.RUN_ENDED) {
+			stateService.updateRunEnded(message.suiteName, message.testName, message.run);
+		}
+	});
+	worker.on('exit', exitCode => {
+		console.info(`worker exited with code ${exitCode}`);
+	});
+
+	return Promise.resolve(worker);
 }

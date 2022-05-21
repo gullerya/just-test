@@ -18,8 +18,10 @@ const DEFAULT = Object.freeze({
 });
 
 const EVENT = Object.freeze({
-	TEST_SELECT: 'test:select',
-	TEST_RERUN: 'test:rerun'
+	TEST_SELECT: 'TEST_SELECT',
+	TEST_RERUN: 'TEST_RERUN',
+	RUN_STARTED: 'RUN_STARTED',
+	RUN_ENDED: 'RUN_DONE'
 });
 
 const STATUS = Object.freeze({

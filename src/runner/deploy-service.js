@@ -1,6 +1,5 @@
-import { DEFAULT, INTEROP_NAMES, TESTBOX_ENVIRONMENT_KEYS } from '../common/constants.js';
+import { INTEROP_NAMES, TESTBOX_ENVIRONMENT_KEYS } from '../common/constants.js';
 import * as BrowserIPC from '../runner/ipc-service/ipc-service-browser.js';
-import * as NodeIPC from '../runner/ipc-service/ipc-service-nodejs.js';
 
 export {
 	deployTest,
@@ -81,23 +80,20 @@ async function executeInPage(test) {
 }
 
 async function executeInNodeJS(test) {
-	const fork = (await import('node:child_process')).fork;
-	const path = (await import('node:path')).default;
+	const { Worker } = (await import('node:worker_threads'));
 
-	const nodeEnv = fork(
-		path.resolve('bin/runner/environments/nodejs/nodejs-test-runner.js'),
-		[
-			`${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=${test.id}`
-		],
+	const worker = new Worker(
+		new URL('./environments/nodejs/nodejs-test-runner.js', import.meta.url),
 		{
-			timeout: DEFAULT.TEST_RUN_TTL
+			workerData: {
+				testId: test.id,
+				testSource: test.source
+			}
 		}
 	);
-	nodeEnv.on('close', () => {
-		console.info('closed ' + test.id);
+	worker.on('exit', exitCode => {
+		console.info(`worker exited with code ${exitCode}`);
 	});
-	nodeEnv.on('error', e => { console.error(e); });
-	const testRunManager = new NodeIPC.TestRunManager(nodeEnv, test);
 
-	return Promise.resolve(testRunManager);
+	return Promise.resolve(worker);
 }

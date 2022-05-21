@@ -1,44 +1,15 @@
-import process from 'node:process';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
-import { getSuiteFactory } from '../../test-runner.js';
-import { TestRunWorker } from '../../ipc-service/ipc-service-nodejs.js';
-import { TESTBOX_ENVIRONMENT_KEYS } from '../../../common/constants.js';
-import * as chai from 'chai';
+import url from 'node:url';
+import { workerData, parentPort } from 'node:worker_threads';
+import { EXECUTION_MODES, installExecutionContext } from '../../environment-config.js';
 
-globalThis.chai = chai;
+let envConfig;
+try {
+	envConfig = workerData;
 
-const childToParentIPC = new TestRunWorker(process);
+	const execContext = installExecutionContext(EXECUTION_MODES.TEST, null, parentPort, envConfig.testId);
 
-//	main flow
-getTest()
-	.then(test => {
-		return initEnvironment(test);
-	})
-	.then(test => {
-		const rPath = pathToFileURL(resolve(test.source));
-		return import(rPath);
-	})
-	.catch(e => {
-		//	report test failure due to the error
-		console.error(e);
-	});
-
-async function getTest() {
-	const envTestSetup = getEnvTestSetup();
-	const test = await childToParentIPC.getTestConfig(envTestSetup.testId);
-	return test;
-}
-
-function initEnvironment(test) {
-	globalThis.getSuite = getSuiteFactory(test, childToParentIPC);
-	return test;
-}
-
-function getEnvTestSetup() {
-	return {
-		testId: process.argv
-			.find(a => a.startsWith(`${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=`))
-			.replace(`${TESTBOX_ENVIRONMENT_KEYS.TEST_ID}=`, '')
-	}
+	import(url.pathToFileURL(envConfig.testSource));
+} catch (e) {
+	console.error(e);
+} finally {
 }
