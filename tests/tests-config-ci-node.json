@@ -12,7 +12,7 @@
 			},
 			"coverage": {
 				"include": [
-					"./bin/**/*.{js,css}"
+					"./src/**/*.js"
 				]
 			}
 		}

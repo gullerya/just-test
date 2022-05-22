@@ -26,7 +26,8 @@ import { EVENT } from '../../../common/constants.js';
 		console.info(`registering session contents (suites/tests)...`);
 		await registerSession(metadata.testPaths, stateService);
 
-		await runSession(stateService, executeInNodeJS);
+		const testExecutor = createNodeJSExecutor(metadata, stateService);
+		await runSession(stateService, testExecutor);
 
 		console.info(`collecting results...`);
 		sesEnvResult = stateService.getAll();
@@ -67,31 +68,33 @@ async function registerSession(testsResources, stateService) {
 	console.info(`... ${testsResources.length} test resource/s fetched (registration phase) in ${(ended - started).toFixed(1)}ms`);
 }
 
-async function executeInNodeJS(test, stateService) {
-	const worker = new Worker(
-		new URL('./nodejs-test-runner.js', import.meta.url),
-		{
+function createNodeJSExecutor(sessionMetadata, stateService) {
+	const workerUrl = new URL('./nodejs-test-runner.js', import.meta.url);
+
+	return (test) => {
+		const worker = new Worker(workerUrl, {
 			workerData: {
 				testId: test.id,
-				testSource: test.source
+				testSource: test.source,
+				coverage: sessionMetadata.coverage
 			}
-		}
-	);
-	worker.on('message', message => {
-		if (message.type === EVENT.RUN_STARTED) {
-			stateService.updateRunStarted(message.suiteName, message.testName);
-		} else if (message.type === EVENT.RUN_ENDED) {
-			stateService.updateRunEnded(message.suiteName, message.testName, message.run);
-		}
-	});
-	worker.on('error', error => {
-		console.error(`worker for test '${test.id}' errored: ${error}`);
-	});
-
-	return new Promise(resolve => {
-		worker.on('exit', exitCode => {
-			console.info(`worker for test '${test.id}' exited with code ${exitCode}`);
-			resolve();
 		});
-	});
+		worker.on('message', message => {
+			if (message.type === EVENT.RUN_STARTED) {
+				stateService.updateRunStarted(message.suiteName, message.testName);
+			} else if (message.type === EVENT.RUN_ENDED) {
+				stateService.updateRunEnded(message.suiteName, message.testName, message.run);
+			}
+		});
+		worker.on('error', error => {
+			console.error(`worker for test '${test.id}' errored: ${error}, stack: ${error.stack}`);
+		});
+
+		return new Promise(resolve => {
+			worker.on('exit', exitCode => {
+				console.info(`worker for test '${test.id}' exited with code ${exitCode}`);
+				resolve();
+			});
+		});
+	};
 }

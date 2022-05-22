@@ -1,40 +1,49 @@
 import fs from 'node:fs';
 import inspector from 'node:inspector';
-import process from 'node:process';
+import { cwd } from 'node:process';
 import url from 'node:url';
+import { promisify } from 'node:util';
 import { workerData, parentPort } from 'node:worker_threads';
 import { EXECUTION_MODES, installExecutionContext } from '../../environment-config.js';
+import minimatch from 'minimatch';
 
 const envConfig = workerData;
+const isCoverage = Boolean(workerData.coverage);
+const currentBase = cwd();
+let sessionPostProm;
 
-const session = new inspector.Session();
-session.connect();
-session.post('Profiler.enable', (err1) => {
-	if (err1) {
-		console.error(err1);
-	}
+if (isCoverage) {
+	const session = new inspector.Session();
+	session.connect();
+	sessionPostProm = promisify(session.post).bind(session);
 
-	session.post('Profiler.startPreciseCoverage', { callCount: true, detailed: true }, (err2) => {
-		if (err2) {
-			console.error(err2);
-		}
+	await sessionPostProm('Profiler.enable')
+	await sessionPostProm('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
+	globalThis.process.once('beforeExit', async () => {
+		const rawCov = await sessionPostProm('Profiler.takePreciseCoverage');
+		const fineCov = rawCov.result.filter(entry => {
+			let result = false;
 
-		process.once('beforeExit', () => {
-			session.post('Profiler.takePreciseCoverage', (err3, coverage) => {
-				if (err3) {
-					console.error(err3);
-				}
+			entry.url = '.' + entry.url.substring(entry.url.indexOf(currentBase) + currentBase.length);
 
-				const cov = coverage.result.filter(entry => {
-					return !entry.url.startsWith('node') &&
-						!entry.url.includes('node_modules');
+			for (const ig of workerData.coverage.include) {
+				const m = minimatch(entry.url, ig, {
+					ignore: workerData.coverage.exclude
 				});
-				fs.writeFileSync('./reports/cov.json', JSON.stringify(cov));
-			});
+
+				result = result || m;
+			}
+
+			return result;
 		});
 
-		installExecutionContext(EXECUTION_MODES.TEST, null, parentPort, envConfig.testId);
-		import(url.pathToFileURL(envConfig.testSource));
-
+		//	TODO: this one we'd like to actually post as part of test results
+		fs.writeFileSync(
+			`./reports/${envConfig.testId.replaceAll(/\s/g, '_')}.coverage.json`,
+			JSON.stringify(fineCov)
+		);
 	});
-});
+}
+
+installExecutionContext(EXECUTION_MODES.TEST, null, parentPort, envConfig.testId);
+import(url.pathToFileURL(envConfig.testSource));

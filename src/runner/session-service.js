@@ -12,13 +12,13 @@ async function runSession(stateService, testExecutor) {
 
 	const executionData = stateService.getExecutionData();
 	console.info(`starting test session (${executionData.suites.length} suites)...`);
-	const suitePromises = executionData.suites.map(suite => runSuite(suite, stateService, testExecutor));
+	const suitePromises = executionData.suites.map(suite => runSuite(suite, testExecutor));
 	await Promise.all(suitePromises);
 	const ended = globalThis.performance.now();
 	console.info(`... session done (${(ended - started).toFixed(1)}ms)`);
 }
 
-async function runSuite(suite, stateService, testExecutor) {
+async function runSuite(suite, testExecutor) {
 	const testPromises = [];
 	console.log(`suite '${suite.name}' started...`);
 
@@ -27,7 +27,7 @@ async function runSuite(suite, stateService, testExecutor) {
 		if (test.config.skip) {
 			testPromises.push(Promise.resolve());
 		} else {
-			const runResultPromise = testExecutor(test, stateService);
+			const runResultPromise = testExecutor(test);
 			if (suite.config.sync) {
 				syncChain = syncChain.finally(() => runResultPromise);
 			} else {

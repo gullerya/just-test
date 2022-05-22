@@ -28,5 +28,6 @@ export default sessionConfig => {
 		result.environments[tmp.id] = tmp;
 	}
 
+
 	return Object.freeze(result);
 };
