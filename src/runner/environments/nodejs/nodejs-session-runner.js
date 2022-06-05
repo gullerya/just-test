@@ -69,7 +69,7 @@ async function registerSession(testsResources, stateService) {
 }
 
 function createNodeJSExecutor(sessionMetadata, stateService) {
-	const workerUrl = new URL('./nodejs-test-runner.js', import.meta.url);
+	const workerUrl = new URL('./nodejs-test-box.js', import.meta.url);
 
 	return (test) => {
 		const worker = new Worker(workerUrl, {
@@ -80,6 +80,7 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 			}
 		});
 		worker.on('message', message => {
+			console.log(message);
 			if (message.type === EVENT.RUN_STARTED) {
 				stateService.updateRunStarted(message.suiteName, message.testName);
 			} else if (message.type === EVENT.RUN_ENDED) {

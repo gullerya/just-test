@@ -9,7 +9,8 @@ import { EVENT, STATUS } from '../common/constants.js';
 import { Test } from '../common/models/tests/test.js';
 
 export {
-	getSuite
+	getSuite,
+	MessageBus
 }
 
 const DEFAULT_SUITE_OPTIONS = {
@@ -27,6 +28,8 @@ const DEFAULT_TEST_OPTIONS = {
 const DEFAULT_CONFIGS_SUBMISSION_DELAY = 92;
 
 class AssertTimeout extends Error { }
+
+const MessageBus = new MessageChannel();
 
 class SuiteContext {
 	#name = null;
@@ -113,11 +116,12 @@ class SuiteContext {
 
 		console.info(`'${testConfig.id}' started...`);
 		if (this.#mode === EXECUTION_MODES.TEST) {
-			this.#port.postMessage({
+			const runStartMessage = {
 				type: EVENT.RUN_STARTED,
 				suiteName: this.#name,
 				testName: name
-			});
+			};
+			this.#port.postMessage(runStartMessage);
 		}
 
 		const run = {};
@@ -147,12 +151,13 @@ class SuiteContext {
 			run.time = Math.round((globalThis.performance.now() - start) * 10000) / 10000;
 			finalizeRun(run, runResult);
 			if (this.#mode === EXECUTION_MODES.TEST) {
-				this.#port.postMessage({
+				const runEndedMessage = {
 					type: EVENT.RUN_ENDED,
 					suiteName: this.#name,
 					testName: name,
 					run
-				});
+				};
+				this.#port.postMessage(runEndedMessage);
 			}
 			console.info(`'${testConfig.id}' ${run.status.toUpperCase()} in ${run.time}ms`);
 		}

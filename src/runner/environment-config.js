@@ -31,20 +31,19 @@ class ExecutionContext {
 	#parentPort = null;
 	#childPort = null;
 
-	constructor(mode, parentPort, childPort, testId) {
+	constructor(mode, childPort, testId) {
 		if (mode && !(mode in EXECUTION_MODES)) {
 			throw new Error(`one of the EXECUTION_MODES expected; received: ${mode}`);
 		} else if (mode) {
 			this.#mode = mode;
 		}
 		this.#testId = testId;
-		if (!parentPort && !childPort) {
-			console.debug(`no ports supplied, creating own channel`);
+		if (!childPort) {
+			console.debug(`no port supplied, creating own channel`);
 			const mc = new MessageChannel();
 			this.#parentPort = mc.port1;
 			this.#childPort = mc.port2;
 		} else {
-			this.#parentPort = this.#lookForParentPort(parentPort);
 			this.#childPort = childPort;
 		}
 
@@ -58,18 +57,12 @@ class ExecutionContext {
 	get parentPort() { return this.#parentPort; }
 
 	get childPort() { return this.#childPort; }
-
-	#lookForParentPort(defaulFallback) {
-		let result = defaulFallback;
-		// TODO: do some environmental lookup here
-		return result;
-	}
 }
 
 const EXECUTION_CONTEXT_SYMBOL = Symbol.for('JUST_TEST_EXECUTION_CONTEXT');
 
-function installExecutionContext(mode, parentPort = null, childPort = null, testId = null) {
-	const context = new ExecutionContext(mode, parentPort, childPort, testId);
+function installExecutionContext(mode, childPort = null, testId = null) {
+	const context = new ExecutionContext(mode, childPort, testId);
 	globalThis[EXECUTION_CONTEXT_SYMBOL] = context;
 	console.info(`execution context installed, mode: ${context.mode}`);
 	return context;

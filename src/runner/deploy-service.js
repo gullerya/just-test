@@ -79,21 +79,6 @@ async function executeInPage(test) {
 	return Promise.resolve(testRunManager);
 }
 
-async function executeInNodeJS(test) {
-	const { Worker } = (await import('node:worker_threads'));
-
-	const worker = new Worker(
-		new URL('./environments/nodejs/nodejs-test-runner.js', import.meta.url),
-		{
-			workerData: {
-				testId: test.id,
-				testSource: test.source
-			}
-		}
-	);
-	worker.on('exit', exitCode => {
-		console.info(`worker exited with code ${exitCode}`);
-	});
-
-	return Promise.resolve(worker);
+async function executeInNodeJS() {
+	throw new Error('moved to the other place');
 }
