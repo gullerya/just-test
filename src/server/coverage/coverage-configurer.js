@@ -1,6 +1,6 @@
 const
 	COVERAGE_SUPPORTING_BROWSERS = ['chromium'],
-	COVERAGE_FORMATS = ['lcov'],
+	COVERAGE_FORMATS = ['lcov', 'html'],
 	DEFAULT_CONFIG = Object.freeze({
 		include: [],
 		exclude: [
@@ -47,7 +47,7 @@ function validate(config) {
 			throw new Error(`coverage report path MUST be a non-empty string; got ${report.path}`);
 		}
 		if (!COVERAGE_FORMATS.includes(report.format)) {
-			throw new Error(`coverage report format MUST be a one of ${COVERAGE_FORMATS}; got ${report.format}`);
+			throw new Error(`coverage report format MUST be a one of [${COVERAGE_FORMATS}]; got ${report.format}`);
 		}
 	});
 

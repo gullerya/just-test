@@ -5,7 +5,6 @@
  * - providing session data upon demand
  */
 import Logger from '../logger/logger.js';
-import { parseTestId } from '../../common/interop-utils.js';
 import { getRandom } from '../../common/random-utils.js';
 import buildConfig from './sessions-configurer.js';
 import { launch, dismiss } from '../environments/environments-service.js';
@@ -79,21 +78,23 @@ async function storeResult(sesId, envId, envResult) {
 		throw new Error(`session ID '${sesId}' not exists`);
 	}
 
-	//	enrich with artifacts
-	const artifacts = await dismiss(envId);
-	if (artifacts) {
-		if (artifacts.coverage) {
-			for (const [testId, coverage] of Object.entries(artifacts.coverage)) {
-				const [sid] = parseTestId(testId);
-				const suite = envResult.suites.find(s => s.id === sid);
-				const test = suite.tests.find(t => t.id === testId);
-				test.lastRun.coverage = coverage;
-			}
-		}
-		if (artifacts.logs) {
-			//	TBD
-		}
-	}
+	await dismiss(envId);
+
+	// if (artifacts) {
+	// 	if (artifacts.coverage) {
+	// 		for (const [testId, coverage] of Object.entries(artifacts.coverage)) {
+	// 			const [sid] = parseTestId(testId);
+	// 			const suite = envResult.suites.find(s => s.id === sid);
+	// 			const test = suite.tests.find(t => t.id === testId);
+	// 			test.lastRun.coverage = coverage;
+
+	// 			logger.info(coverage);
+	// 		}
+	// 	}
+	// 	if (artifacts.logs) {
+	// 		//	TBD
+	// 	}
+	// }
 
 	//	TODO: when multi environmental run will be supported
 	//	TODO: store result per environment and only then the session as a whole
@@ -107,10 +108,11 @@ async function finalizeSession(sessionId) {
 	if (!session) {
 		throw new Error(`session with ID '${sessionId}' not exists`);
 	}
-	if (session.result) {
-		return;
-	}
 
 	//	TODO: calculate session status/result from the envs, or error
-	session.result = 'failure';
+	if (session.result) {
+		return;
+	} else {
+		session.result = 'failure';
+	}
 }

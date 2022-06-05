@@ -1,11 +1,12 @@
-import inspector from 'node:inspector';
+import { Session } from 'node:inspector';
 import { cwd } from 'node:process';
-import url from 'node:url';
+import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
-import { workerData, parentPort } from 'node:worker_threads';
-import { EXECUTION_MODES, installExecutionContext } from '../../environment-config.js';
 import minimatch from 'minimatch';
+import { workerData, parentPort as sessionRunnerPort } from 'node:worker_threads';
+import { EXECUTION_MODES, installExecutionContext } from '../../environment-config.js';
 import { EVENT } from '../../../common/constants.js';
+import { convertJSCoverage } from '../../../server/coverage/coverage-service.js';
 
 const envConfig = workerData;
 const isCoverage = Boolean(workerData.coverage);
@@ -23,23 +24,21 @@ eventBus.port1.on('messageerror', processMessageError);
 eventBus.port1.unref();
 
 installExecutionContext(EXECUTION_MODES.TEST, eventBus.port2, envConfig.testId);
-import(url.pathToFileURL(envConfig.testSource));
+import(pathToFileURL(envConfig.testSource));
 
 //
 // internal methods
 //
 async function processRunnerMessage(message) {
 	if (message.type === EVENT.RUN_STARTED) {
-		//	proxy to the session box
-		parentPort.postMessage(message);
+		sessionRunnerPort.postMessage(message);
 	} else if (message.type === EVENT.RUN_ENDED) {
-		//	post test work (coverage, performance etc)
-		//	proxy to the session box
 		if (isCoverage) {
 			const coverage = await collectCoverage();
-			message.run.coverage = coverage;
+			const jtCoverage = convertJSCoverage(coverage);
+			message.run.coverage = jtCoverage;
 		}
-		parentPort.postMessage(message);
+		sessionRunnerPort.postMessage(message);
 	}
 }
 
@@ -49,7 +48,7 @@ function processMessageError(messageError) {
 
 //	TODO: consider to move to coverage service
 async function setupCoverage() {
-	const session = new inspector.Session();
+	const session = new Session();
 	session.connect();
 	const sessionPostProm = promisify(session.post).bind(session);
 

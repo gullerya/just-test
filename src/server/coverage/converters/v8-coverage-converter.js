@@ -3,9 +3,22 @@ import FileCov from '../../../common/models/coverage/file-cov.js';
 import LineCov from '../../../common/models/coverage/line-cov.js';
 import RangeCov from '../../../common/models/coverage/range-cov.js';
 
-export default convert;
+export {
+	convertJSCoverage,
+	convertScriptCoverage
+};
 
-function convert(scriptCoverage) {
+function convertJSCoverage(coverageSet) {
+	const result = [];
+	for (const scriptCoverage of coverageSet) {
+		const trSCov = { ...scriptCoverage };
+
+		result.push(convertScriptCoverage(trSCov));
+	}
+	return result;
+}
+
+function convertScriptCoverage(scriptCoverage) {
 	if (!scriptCoverage ||
 		!Array.isArray(scriptCoverage.functions) ||
 		!scriptCoverage.url || typeof scriptCoverage.url !== 'string') {
@@ -40,6 +53,7 @@ function buildBaseSet(fileCov) {
 	let comment = false,
 		indexPos = 0,
 		linePos = 1;
+
 	//	all lines but last
 	for (const eolPos of eolPoses) {
 		const lineText = text.substring(indexPos, eolPos.index);
@@ -48,7 +62,7 @@ function buildBaseSet(fileCov) {
 			loc = false;		//	empty line
 		}
 		if (lineText.match(/\s*\/\//)) {
-			loc = false;		//	comment staring with `//`
+			loc = false;		//	comment starting with `//`
 		}
 		if (lineText.match(/\/\*\*/)) {
 			comment = true;
@@ -63,6 +77,7 @@ function buildBaseSet(fileCov) {
 		indexPos = eolPos.index + eolPos[0].length;
 		linePos++;
 	}
+
 	//	last line
 	if (text.length > indexPos) {
 		fileCov.lines.push(new LineCov(linePos, indexPos, text.length));

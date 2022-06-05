@@ -21,6 +21,7 @@ class NodeEnvImpl extends EnvironmentBase {
 	#consoleLogger;
 	#dismissPromise;
 	#timeoutHandle;
+	#worker;
 
 	/**
 	 * construct browser environment for a specific session
@@ -49,8 +50,8 @@ class NodeEnvImpl extends EnvironmentBase {
 			outputs: [this.#consoleLogger]
 		});
 
-		const worker = new Worker(
-			new URL('../../../runner/environments/nodejs/nodejs-session-runner.js', import.meta.url),
+		this.#worker = new Worker(
+			new URL('../../../runner/environments/nodejs/nodejs-session-box.js', import.meta.url),
 			{
 				workerData: {
 					sesId: this.sessionId,
@@ -59,19 +60,20 @@ class NodeEnvImpl extends EnvironmentBase {
 				}
 			}
 		);
-		worker.stdout.on('data', data => nLogger.info(data.toString().trim()));
-		worker.stderr.on('data', data => nLogger.error(data.toString().trim()));
-		worker.on('message', logger.info);
-		worker.on('error', error => {
+		this.#worker.stdout.on('data', data => nLogger.info(data.toString().trim()));
+		this.#worker.stderr.on('data', data => nLogger.error(data.toString().trim()));
+		this.#worker.on('message', logger.info);
+		this.#worker.on('error', error => {
 			logger.error(error);
 		});
-		worker.on('exit', exitCode => {
+		this.#worker.on('exit', exitCode => {
 			logger.info(`worker exited with code ${exitCode}`);
 			this.emit('dismissed', null);
 		});
 	}
 
 	async dismiss() {
+		//await this.#worker.terminate();
 	}
 }
 

@@ -1,6 +1,6 @@
 import Logger from '../logger/logger.js';
 import buildConfig from './coverage-configurer.js';
-import processV8ScriptCoverage from './converters/v8-coverage-converter.js';
+import { convertJSCoverage, convertScriptCoverage } from './converters/v8-coverage-converter.js';
 import lcovReporter from './reporters/lcov-reporter.js';
 import glob from 'glob';
 
@@ -8,7 +8,8 @@ export {
 	collectTargetSources,
 	lcovReporter,
 	verifyEnrichConfig,
-	processV8ScriptCoverage
+	convertJSCoverage,
+	convertScriptCoverage as processV8ScriptCoverage
 }
 
 const logger = new Logger({ context: 'coverage' });

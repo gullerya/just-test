@@ -54,6 +54,7 @@ async function registerSession(testsResources, stateService) {
 						tc.source = tr;
 						stateService.addTest(tc);
 					}
+					execContext.parentPort.close();
 					resolve();
 				});
 				import(url.pathToFileURL(tr));
@@ -80,7 +81,6 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 			}
 		});
 		worker.on('message', message => {
-			console.log(message);
 			if (message.type === EVENT.RUN_STARTED) {
 				stateService.updateRunStarted(message.suiteName, message.testName);
 			} else if (message.type === EVENT.RUN_ENDED) {
