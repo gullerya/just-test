@@ -9,7 +9,6 @@ on:
 jobs:
   quality_pipeline_static_analysis:
     runs-on: ubuntu-20.04
-    if: "false"
 
     steps:
       - name: Checkout
@@ -82,6 +81,7 @@ jobs:
 
   quality_pipeline_webkit:
     runs-on: ubuntu-20.04
+    if: "false"
 
     steps:
       - name: Checkout
