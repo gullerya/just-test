@@ -1,6 +1,6 @@
 ﻿import { assert } from 'chai';
 import { getSuite } from '@gullerya/just-test/suite';
-import { CHAR_SOURCES, getRandom } from '@gullerya/just-test/random-utils';
+import { CHAR_SOURCES, getRandom } from '../../src/common/random-utils.js';
 
 const suite = getSuite('Random utils');
 

@@ -5,7 +5,7 @@ import {
 	getTestId,
 	parseTestId,
 	getValidName
-} from '../../bin/common/interop-utils.js';
+} from '../../src/common/interop-utils.js';
 
 const suite = getSuite('Interop utils');
 

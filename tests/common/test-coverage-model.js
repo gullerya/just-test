@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { getSuite } from '@gullerya/just-test/suite';
-import RangeCov from '../..//bin/common/models/coverage/range-cov.js';
-import { merge } from '../../bin/common/models/coverage/range-utils.js';
+import RangeCov from '../../src/common/models/coverage/range-cov.js';
+import { merge } from '../../src/common/models/coverage/range-utils.js';
 
 const suite = getSuite('Coverage model');
 
