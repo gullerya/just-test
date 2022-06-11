@@ -2,14 +2,13 @@ import os from 'node:os';
 import fs from 'node:fs';
 import util from 'node:util';
 import process from 'node:process';
-import * as http from 'node:http';
 import { start, stop } from './server/cli.js';
 import { xUnitReporter } from './server/testing/testing-service.js';
 import { lcovReporter } from './server/coverage/coverage-service.js';
 
 go();
 
-const SESSION_STATUS_POLL_INTERVAL = 1237;
+const SESSION_STATUS_POLL_INTERVAL = 137;
 
 async function go() {
 	const startTime = globalThis.performance.now();
@@ -72,17 +71,24 @@ async function executeSession(serverBaseUrl, clArguments) {
 	const config = await readConfigAndMergeWithCLArguments(clArguments);
 	const sessionDetails = await sendAddSession(serverBaseUrl, config);
 	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
+
+	//	test report
 	xUnitReporter.report(sessionResult, 'reports/results.xml');
-	fs.writeFileSync('reports/coverage.lcov',
-		lcovReporter.convert(
-			sessionResult.suites.flatMap(s => s.tests).map(t => {
-				return {
-					id: t.id,
-					coverage: t.lastRun.coverage
-				};
-			})
-		)
+
+	//	coverage report
+	const covContent = lcovReporter.convert(
+		sessionResult.suites.flatMap(s => s.tests).map(t => {
+			return {
+				id: t.id,
+				coverage: t.lastRun.coverage
+			};
+		})
 	);
+	if (covContent) {
+		fs.writeFileSync('reports/coverage.lcov', covContent, { encoding: 'utf-8' });
+	} else {
+		fs.rmSync('reports/coverage.lcov', { force: true });
+	}
 
 	//	analysis
 	//	TODO: this should be externalized
@@ -117,93 +123,33 @@ async function sendAddSession(serverBaseUrl, config) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json'
-		}
+		},
+		body: JSON.stringify(config)
 	};
-	const body = JSON.stringify(config);
 
-	return new Promise((resolve, reject) => {
-		http
-			.request(addSessionUrl, options, res => {
-				if (res.statusCode !== 201) {
-					reject(new Error(`failed to create session; status: ${res.statusCode}, message: ${res.statusMessage}`));
-				} else {
-					let data = '';
-					res.setEncoding('utf-8');
-					res.on('error', reject);
-					res.on('data', chunk => data += chunk);
-					res.on('end', () => resolve(JSON.parse(data)));
-				}
-			})
-			.on('error', reject)
-			.end(body);
-	});
+	const response = await fetch(addSessionUrl, options);
+	if (response.status !== 201) {
+		throw new Error(`failed to create session; status: ${response.status}, message: ${response.statusText}`);
+	} else {
+		return await response.json();
+	}
 }
 
 async function waitSessionEnd(serverBaseUrl, sessionDetails) {
 	const sessionResultUrl = `${serverBaseUrl}/api/v1/sessions/${sessionDetails.sessionId}/result`;
-	const options = {
-		method: 'GET',
-		headers: {
-			'Accept': 'application/json'
-		}
-	};
 
 	//	TODO: add global timeout
-	return new Promise((resolve, reject) => {
-		const p = () => {
-			http
-				.request(sessionResultUrl, options, res => {
-					let done = false;
-					if (res.statusCode !== 200) {
-						console.error(os.EOL);
-						console.error(`unexpected session result response; status: ${res.statusCode}, message: ${res.statusMessage}`);
-						console.error(os.EOL);
-					} else {
-						let data = '';
-						res.setEncoding('utf-8');
-						res.on('data', chunk => data += chunk);
-						res.on('end', () => {
-							if (data) {
-								done = true;
-								resolve(JSON.parse(data));
-							}
-						});
-					}
-					if (!done) {
-						setTimeout(p, SESSION_STATUS_POLL_INTERVAL);
-					}
-				})
-				.on('error', reject)
-				.end();
+	return new Promise(resolve => {
+		const p = async () => {
+			const response = await fetch(sessionResultUrl);
+			if (response.status === 200) {
+				resolve(await response.json());
+			} else if (response.status === 204) {
+				setTimeout(p, SESSION_STATUS_POLL_INTERVAL);
+			} else {
+				throw new Error(`failed to obtain session status; status: ${response.status}, message: ${response.statusText}`);
+			}
 		};
 		p();
 	});
 }
-
-	//	coverage
-	// let coverager;
-	// logger.info();
-	// if (!conf.coverage.skip) {
-	// 	coverager = new Coverager(page);
-	// 	if (coverager.isCoverageSupported()) {
-	// 		await coverager.start();
-	// 	}
-	// }
-
-	//	navigate to tests - this is where the tests are starting to run
-	// logger.info();
-	// logger.info('navigating to tests (AUT) URL...');
-	// const pageResult = await page.goto(testsUrl);
-	// if (pageResult.status() !== 200) {
-	// 	throw new Error(`tests (AUT) page gave invalid status ${pageResult.status()}; expected 200`);
-	// }
-	// logger.info('... tests (AUT) page opened');
-
-	// //	process test results, create report
-	// result = await testService.report(page, conf.tests, path.resolve(conf.reports.folder, conf.tests.reportFilename));
-
-	// //	process coverage, create report
-	// if (coverageService && coverageService.isCoverageSupported()) {
-	// 	await coverageService.stop();
-	// 	await coverageService.report(conf.coverage, path.resolve(conf.reports.folder, conf.coverage.reportFilename));
-	// }

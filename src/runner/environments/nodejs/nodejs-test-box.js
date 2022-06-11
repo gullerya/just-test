@@ -11,7 +11,7 @@ import { convertJSCoverage } from '../../../server/coverage/coverage-service.js'
 const envConfig = workerData;
 const isCoverage = Boolean(workerData.coverage);
 const eventBus = new MessageChannel();
-const currentBase = cwd();
+const currentBase = pathToFileURL(cwd()).href;
 
 let sessionPost;
 
@@ -34,9 +34,13 @@ async function processRunnerMessage(message) {
 		sessionRunnerPort.postMessage(message);
 	} else if (message.type === EVENT.RUN_ENDED) {
 		if (isCoverage) {
-			const coverage = await collectCoverage();
-			const jtCoverage = convertJSCoverage(coverage);
-			message.run.coverage = jtCoverage;
+			try {
+				const coverage = await collectCoverage();
+				const jtCoverage = convertJSCoverage(coverage);
+				message.run.coverage = jtCoverage;
+			} catch (e) {
+				console.error(`failed to collect coverage: ${e}`);
+			}
 		}
 		sessionRunnerPort.postMessage(message);
 	}
@@ -61,21 +65,33 @@ async function setupCoverage() {
 //	TODO: consider to move to coverage service
 async function collectCoverage() {
 	const rawCov = await sessionPost('Profiler.takePreciseCoverage');
-	const fineCov = rawCov.result.filter(entry => {
-		let result = false;
+	const fineCov = rawCov.result
+		.map(entry => {
+			let currentBaseIndex = entry.url.indexOf(currentBase);
+			const entryUrl = currentBaseIndex < 0
+				? ''
+				: `.${entry.url.substring(currentBaseIndex + currentBase.length)}`;
+			return {
+				url: entryUrl,
+				functions: entry.functions
+			};
+		})
+		.filter(entry => {
+			let result = false;
+			if (!entry.url) {
+				return result;
+			}
 
-		entry.url = '.' + entry.url.substring(entry.url.indexOf(currentBase) + currentBase.length);
+			for (const ig of workerData.coverage.include) {
+				const m = minimatch(entry.url, ig, {
+					ignore: workerData.coverage.exclude
+				});
 
-		for (const ig of workerData.coverage.include) {
-			const m = minimatch(entry.url, ig, {
-				ignore: workerData.coverage.exclude
-			});
+				result = result || m;
+			}
 
-			result = result || m;
-		}
-
-		return result;
-	});
+			return result;
+		});
 
 	return fineCov;
 }

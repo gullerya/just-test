@@ -132,7 +132,11 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		}
 
 		if (found) {
-			res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(result ? JSON.stringify(result) : '');
+			if (result) {
+				res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(JSON.stringify(result));
+			} else {
+				res.writeHead(204).end();
+			}
 		} else {
 			res.writeHead(404).end(`'${entity}' for session '${sesId}' not found`);
 		}
