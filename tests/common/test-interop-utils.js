@@ -39,15 +39,11 @@ suite.test('getValidName - negative (number)', () => {
 });
 
 suite.test('getValidName - negative (empty string)', () => {
-	getValidName('');
-}, {
-	expectError: 'name MUST NOT be empty'
+	assert.throws(() => getValidName(''), 'name MUST NOT be empty');
 });
 
 suite.test('getValidName - negative (emptish string)', () => {
-	getValidName('  \t ');
-}, {
-	expectError: 'name MUST NOT be empty'
+	assert.throws(() => getValidName('  \t '), 'name MUST NOT be empty');
 });
 
 suite.test('getValidName - negative (invalide sequence within)', () => {
