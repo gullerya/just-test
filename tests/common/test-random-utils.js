@@ -1,8 +1,10 @@
-﻿import { CHAR_SOURCES, getRandom } from '/aut/bin/common/random-utils.js';
+﻿import { assert } from 'chai';
+import { getSuite } from '@gullerya/just-test/suite';
+import { CHAR_SOURCES, getRandom } from '@gullerya/just-test/random-utils';
 
-const suite = globalThis.getSuite('Random utils');
+const suite = getSuite('Random utils');
 
-suite.test('random all', test => {
+suite.test('random all', () => {
 	const it = 100;
 	const rl = 8;
 	const sm = new Set();
@@ -10,13 +12,13 @@ suite.test('random all', test => {
 		sm.add(getRandom(rl));
 	}
 
-	test.assert.strictEqual(it, sm.size);
+	assert.strictEqual(it, sm.size);
 	for (const k of sm) {
-		test.assert.strictEqual(rl, k.length);
+		assert.strictEqual(rl, k.length);
 	}
 });
 
-suite.test('random numeric', test => {
+suite.test('random numeric', () => {
 	const it = 100;
 	const rl = 10;
 	const sm = new Set();
@@ -24,14 +26,14 @@ suite.test('random numeric', test => {
 		sm.add(getRandom(rl, CHAR_SOURCES.numeric))
 	}
 
-	test.assert.strictEqual(it, sm.size);
+	assert.strictEqual(it, sm.size);
 	for (const k of sm) {
-		test.assert.strictEqual(rl, k.length);
-		test.assert.isTrue(/[0-9]+/.test(k));
+		assert.strictEqual(rl, k.length);
+		assert.isTrue(/[0-9]+/.test(k));
 	}
 });
 
-suite.test('random alpha lower', test => {
+suite.test('random alpha lower', () => {
 	const it = 100;
 	const rl = 12;
 	const sm = new Set();
@@ -39,14 +41,14 @@ suite.test('random alpha lower', test => {
 		sm.add(getRandom(rl, CHAR_SOURCES.alphaLower));
 	}
 
-	test.assert.strictEqual(it, sm.size);
+	assert.strictEqual(it, sm.size);
 	for (const k of sm) {
-		test.assert.strictEqual(rl, k.length);
-		test.assert.isTrue(/[a-z]+/.test(k));
+		assert.strictEqual(rl, k.length);
+		assert.isTrue(/[a-z]+/.test(k));
 	}
 });
 
-suite.test('random alpha upper', test => {
+suite.test('random alpha upper', () => {
 	const it = 100;
 	const rl = 14;
 	const sm = new Set();
@@ -54,14 +56,14 @@ suite.test('random alpha upper', test => {
 		sm.add(getRandom(rl, CHAR_SOURCES.alphaUpper));
 	}
 
-	test.assert.strictEqual(it, sm.size);
+	assert.strictEqual(it, sm.size);
 	for (const k of sm) {
-		test.assert.strictEqual(rl, k.length);
-		test.assert.isTrue(/[A-Z]+/.test(k));
+		assert.strictEqual(rl, k.length);
+		assert.isTrue(/[A-Z]+/.test(k));
 	}
 });
 
-suite.test('random alpha all', test => {
+suite.test('random alpha all', () => {
 	const it = 100;
 	const rl = 16;
 	const sm = new Set();
@@ -69,27 +71,21 @@ suite.test('random alpha all', test => {
 		sm.add(getRandom(rl, CHAR_SOURCES.alphaLower + CHAR_SOURCES.alphaUpper));
 	}
 
-	test.assert.strictEqual(it, sm.size);
+	assert.strictEqual(it, sm.size);
 	for (const k of sm) {
-		test.assert.strictEqual(rl, k.length);
-		test.assert.isTrue(/[a-zA-Z]+/.test(k));
+		assert.strictEqual(rl, k.length);
+		assert.isTrue(/[a-zA-Z]+/.test(k));
 	}
 });
 
 suite.test('negative - length null', () => {
-	getRandom(null);
-}, {
-	expectError: 'MUST be a number'
+	assert.throws(() => getRandom(null), 'MUST be a number');
 });
 
 suite.test('negative - length less then 1', () => {
-	getRandom(0);
-}, {
-	expectError: 'MUST be a number'
+	assert.throws(() => getRandom(0), 'MUST be a number');
 });
 
 suite.test('negative - length above the 128', () => {
-	getRandom(0);
-}, {
-	expectError: 'MUST be a number'
+	assert.throws(() => getRandom(200), 'MUST be a number');
 });

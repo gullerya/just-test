@@ -57,7 +57,12 @@ async function registerSession(testsResources, stateService) {
 					execContext.parentPort.close();
 					resolve();
 				});
-				import(url.pathToFileURL(tr));
+
+				import(url.pathToFileURL(tr))
+					.catch(e => {
+						console.error(`failed to process '${tr}': `, e);
+						resolve();
+					});
 			} catch (e) {
 				console.error(`failed to process '${tr}': `, e);
 				resolve();

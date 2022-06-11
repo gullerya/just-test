@@ -1,45 +1,41 @@
-﻿import {
+﻿import { assert } from 'chai';
+import { getSuite } from '@gullerya/just-test/suite';
+import {
 	TEST_ID_SEPARATOR,
 	getTestId,
 	parseTestId,
 	getValidName
-} from '/aut/bin/common/interop-utils.js';
+} from '../../bin/common/interop-utils.js';
 
-const suite = globalThis.getSuite('Interop utils');
+const suite = getSuite('Interop utils');
 
-suite.test('getTestId - 2 parts', test => {
+suite.test('getTestId - 2 parts', () => {
 	const tid = getTestId('some', 'thing');
-	test.assert.strictEqual(`some${TEST_ID_SEPARATOR}thing`, tid);
+	assert.strictEqual(`some${TEST_ID_SEPARATOR}thing`, tid);
 });
 
-suite.test('getTestId - 3 parts', test => {
+suite.test('getTestId - 3 parts', () => {
 	const tid = getTestId('some', 'thing', 'more');
-	test.assert.strictEqual(`some${TEST_ID_SEPARATOR}thing${TEST_ID_SEPARATOR}more`, tid);
+	assert.strictEqual(`some${TEST_ID_SEPARATOR}thing${TEST_ID_SEPARATOR}more`, tid);
 });
 
-suite.test('parseTestId - 2 parts', test => {
+suite.test('parseTestId - 2 parts', () => {
 	const base = getTestId('some', 'thing');
 	const [p1, p2] = parseTestId(base);
-	test.assert.strictEqual('some', p1);
-	test.assert.strictEqual('thing', p2);
+	assert.strictEqual('some', p1);
+	assert.strictEqual('thing', p2);
 });
 
 suite.test('getValidName - negative (undefined)', () => {
-	getValidName();
-}, {
-	expectError: 'name MUST be a string'
+	assert.throw(() => getValidName(), 'name MUST be a string');
 });
 
 suite.test('getValidName - negative (null)', () => {
-	getValidName(null);
-}, {
-	expectError: 'name MUST be a string'
+	assert.throws(() => getValidName(null), 'name MUST be a string');
 });
 
 suite.test('getValidName - negative (number)', () => {
-	getValidName(5);
-}, {
-	expectError: 'name MUST be a string'
+	assert.throws(() => getValidName(5), 'name MUST be a string');
 });
 
 suite.test('getValidName - negative (empty string)', () => {
@@ -55,12 +51,10 @@ suite.test('getValidName - negative (emptish string)', () => {
 });
 
 suite.test('getValidName - negative (invalide sequence within)', () => {
-	getValidName(`Some${TEST_ID_SEPARATOR}thing`);
-}, {
-	expectError: 'name MUST NOT include'
+	assert.throws(() => getValidName(`Some${TEST_ID_SEPARATOR}thing`), 'name MUST NOT include');
 });
 
-suite.test('getValidName', test => {
+suite.test('getValidName', () => {
 	const n = getValidName('  test ');
-	test.assert.strictEqual('test', n);
+	assert.strictEqual('test', n);
 });

@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { getSuite } from '@gullerya/just-test/suite';
-import RangeCov from '/aut/bin/common/models/coverage/range-cov.js';
-import { merge } from '/aut/bin/common/models/coverage/range-utils.js';
+import RangeCov from '../..//bin/common/models/coverage/range-cov.js';
+import { merge } from '../../bin/common/models/coverage/range-utils.js';
 
 const suite = getSuite('Coverage model');
 
@@ -10,27 +10,19 @@ suite.test('RangeCov - negative (beg not a number)', () => {
 });
 
 suite.test('RangeCov - negative (beg is negative)', () => {
-	new RangeCov(-1);
-}, {
-	expectError: 'beg MUST be a non-negative number'
+	assert.throws(() => new RangeCov(-1), 'beg MUST be a non-negative number');
 });
 
 suite.test('RangeCov - negative (end not a number)', () => {
-	new RangeCov(0, 'some');
-}, {
-	expectError: 'end MUST be a non-negative number'
+	assert.throws(() => new RangeCov(0, 'some'), 'end MUST be a non-negative number');
 });
 
 suite.test('RangeCov - negative (end negative)', () => {
-	new RangeCov(0, -1);
-}, {
-	expectError: 'end MUST be a non-negative number'
+	assert.throws(() => new RangeCov(0, -1), 'end MUST be a non-negative number');
 });
 
 suite.test('RangeCov - negative (beg lesser than end)', () => {
-	new RangeCov(3, 1);
-}, {
-	expectError: 'beg MUST preceed end'
+	assert.throws(() => new RangeCov(3, 1), 'beg MUST preceed end');
 });
 
 suite.test('range - isAfterNonAdjacent / isBeforeNonAdjacent', () => {
