@@ -34,7 +34,12 @@ suite.test('OOTB default mime type', () => {
 	assert.strictEqual(mime, 'text/plain');
 });
 
-suite.test('provided default mime type', () => {
+suite.test('provided default mime type - unknown extension', () => {
 	const mime = findMimeType('some/path/to.file.with.some', 'text/plain');
+	assert.strictEqual(mime, 'text/plain');
+});
+
+suite.test('provided default mime type - no extension', () => {
+	const mime = findMimeType('some/path/to-file-with-some', 'text/plain');
 	assert.strictEqual(mime, 'text/plain');
 });
