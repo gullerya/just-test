@@ -118,3 +118,6 @@ jobs:
 
       - name: Test
         run: npm run test:ci:node
+
+      - name: Report coverage
+        run: bash <(curl -s https://codecov.io/bash)
