@@ -51,7 +51,6 @@
 		"test:ci:node": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-node.json"
 	},
 	"dependencies": {
-		"chai": "^4.3.6",
 		"data-tier": "^3.6.1",
 		"data-tier-list": "^2.2.1",
 		"es-module-shims": "^1.5.6",
@@ -60,6 +59,7 @@
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
-		"eslint": "^8.17.0"
+		"chai": "^4.3.6",
+		"eslint": "^8.18.0"
 	}
 }
