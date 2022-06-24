@@ -46,7 +46,7 @@ async function registerSession(testsResources, stateService) {
 	console.info(`fetching ${testsResources.length} test resource/s...`);
 
 	for (const tr of testsResources) {
-		await new Promise(resolve => {
+		await new Promise((resolve, reject) => {
 			try {
 				const execContext = installExecutionContext(EXECUTION_MODES.SESSION);
 				execContext.parentPort.on('message', testConfigs => {
@@ -61,11 +61,11 @@ async function registerSession(testsResources, stateService) {
 				import(url.pathToFileURL(tr))
 					.catch(e => {
 						console.error(`failed to process '${tr}': `, e);
-						resolve();
+						reject(e);
 					});
 			} catch (e) {
 				console.error(`failed to process '${tr}': `, e);
-				resolve();
+				reject(e);
 			}
 		});
 	}
