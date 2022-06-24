@@ -1,6 +1,5 @@
 import os from 'node:os';
-import fs from 'node:fs';
-import util from 'node:util';
+import { promises as fs } from 'node:fs';
 import process from 'node:process';
 import { start, stop } from './server/cli.js';
 import { xUnitReporter } from './testing/testing-service.js';
@@ -24,6 +23,7 @@ async function go() {
 		//	TODO: spawn out the server in a separate process
 		server = await start();
 		sessionResult = await executeSession(server.baseUrl, clArguments);
+		endedWithFailure = !sessionResult.summary.success;
 	} catch (error) {
 		console.error(os.EOL);
 		console.error(error);
@@ -47,9 +47,9 @@ async function go() {
 			console.info(`ERRORED: ${sessionResult.error}`);
 			console.info(`SKIPPED: ${sessionResult.skip}${os.EOL}`);
 			console.info(`SESSION SUMMARY: ${endedWithFailure ? 'FAILURE' : 'SUCCESS'} (${duration}s)${os.EOL}`);
-			process.exit(0);
+			process.exit(endedWithFailure ? 1 : 0);
 		} else {
-			console.info(`SESSION SUMMARY: FAILURE (${duration}s)${os.EOL}`);
+			console.info(`SESSION SUMMARY: FAILURE (${duration}s), see errors in the log above${os.EOL}`);
 			process.exit(1);
 		}
 	}
@@ -92,21 +92,24 @@ async function executeSession(serverBaseUrl, clArguments) {
 	const fileCoverages = await Promise.all(targetSources.map(ts => buildJTFileCov(ts)));
 	const covContent = lcovReporter.convert({ testCoverages, fileCoverages });
 	if (covContent) {
-		fs.writeFileSync('reports/coverage.lcov', covContent, { encoding: 'utf-8' });
+		await fs.writeFile('reports/coverage.lcov', covContent, { encoding: 'utf-8' });
 	} else {
-		fs.rmSync('reports/coverage.lcov', { force: true });
+		await fs.rm('reports/coverage.lcov', { force: true });
 	}
 
 	//	analysis
-	//	TODO: this should be externalized
+	sessionResult.summary = {
+		success: true,
+		failReason: null
+	};
 	const maxFail = config.environments[0].tests.maxFail;
 	const maxSkip = config.environments[0].tests.maxSkip;
 	if ((sessionResult.fail + sessionResult.error) > maxFail) {
-		console.error(`failing due to too many failures/errors; max allowed: ${maxFail}, found: ${sessionResult.fail + sessionResult.error}`);
-		process.exitCode = 1;
+		sessionResult.summary.success = false;
+		sessionResult.summary.failReason = `failing due to too many failures/errors; max allowed: ${maxFail}, found: ${sessionResult.fail + sessionResult.error}`;
 	} else if (sessionResult.skip > maxSkip) {
-		console.error(`failing due to too many skipped; max allowed: ${maxSkip}, found: ${sessionResult.skip}`);
-		process.exitCode = 1;
+		sessionResult.summary.success = false;
+		sessionResult.summary.failReason = `failing due to too many skipped; max allowed: ${maxSkip}, found: ${sessionResult.skip}`;
 	}
 
 	return sessionResult;
@@ -117,7 +120,7 @@ async function readConfigAndMergeWithCLArguments(clArguments) {
 		throw new Error(`invalid config_file argument (${clArguments?.config_file})`);
 	}
 
-	const configText = await util.promisify(fs.readFile)(clArguments.config_file, { encoding: 'utf-8' });
+	const configText = await fs.readFile(clArguments.config_file, { encoding: 'utf-8' });
 	const result = JSON.parse(configText);
 	//	merge with command line arguments
 
