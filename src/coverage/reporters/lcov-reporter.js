@@ -38,8 +38,9 @@
 // 	]
 // };
 
+//	TODO: remove direct dependency on NodeJS, do it async and optional
 import os from 'node:os';
-import { calcRangeCoverage } from '../../../common/models/coverage/range-utils.js';
+import { calcRangeCoverage } from '../model/range-utils.js';
 
 export default {
 	convert
@@ -47,22 +48,29 @@ export default {
 
 /**
  * receives a set of coverage data and coverts it to the lcov text
+ * - expects to receive the full and self-contained set of data
  * 
- * @param {object} coverageData coverage data in `just-test` format
+ * @param {Array} testCoverages coverage data in `just-test` format
  */
-function convert(coverageData) {
-	const testReports = [];
+function convert({ testCoverages, fileCoverages }) {
+	const testsReport = convertTestCoverages(testCoverages);
+	const filesReport = convertFileCoverages(fileCoverages);
 
-	for (const test of coverageData) {
-		if (!test.coverage || !Array.isArray(test.coverage) || !test.coverage.length) {
+	return [testsReport, filesReport].join(os.EOL);
+}
+
+function convertTestCoverages(testCoverages) {
+	const result = [];
+	for (const testCoverage of testCoverages) {
+		if (!testCoverage.coverage || !Array.isArray(testCoverage.coverage) || !testCoverage.coverage.length) {
 			continue;
 		}
 
 		//	test name
-		let testReport = `TN:${test.id}${os.EOL}`;
+		let testReport = `TN:${testCoverage.testId}${os.EOL}`;
 
 		//	files
-		for (const fileCov of test.coverage) {
+		for (const fileCov of testCoverage.coverage) {
 			//	file name
 			testReport += `SF:${fileCov.url}${os.EOL}`;
 
@@ -80,8 +88,31 @@ function convert(coverageData) {
 		}
 
 		//	end of record
-		testReports.push(testReport);
+		result.push(testReport);
 	}
+	return result.join(os.EOL);
+}
 
-	return testReports.join(os.EOL);
+function convertFileCoverages(fileCoverages) {
+	const result = [];
+	for (const fileCoverage of fileCoverages) {
+		//	file name
+		let fileReport = `SF:${fileCoverage.url}${os.EOL}`;
+
+		//	lines
+		let allLinesHit = 0;
+		for (const lineCov of fileCoverage.lines) {
+			const lineHitsMax = calcRangeCoverage(lineCov, fileCoverage.ranges).max;
+			fileReport += `DA:${lineCov.number},${lineHitsMax}${os.EOL}`;
+			allLinesHit += lineHitsMax > 0 ? 1 : 0;
+		}
+
+		fileReport += `LF:${fileCoverage.lines.length}${os.EOL}`;
+		fileReport += `LH:${allLinesHit}${os.EOL}`;
+		fileReport += `end_of_record${os.EOL}${os.EOL}`;
+
+		//	end of record
+		result.push(fileReport);
+	}
+	return result.join(os.EOL);
 }

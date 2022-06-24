@@ -53,7 +53,7 @@
 	"dependencies": {
 		"data-tier": "^3.6.1",
 		"data-tier-list": "^2.2.1",
-		"es-module-shims": "^1.5.6",
+		"es-module-shims": "^1.5.8",
 		"glob": "^8.0.3",
 		"playwright": "^1.22.2",
 		"rich-component": "^1.8.0"

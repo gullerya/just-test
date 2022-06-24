@@ -3,9 +3,9 @@
  * - module is stateless, providing only the c~tor to create the service instance
  */
 import { STATUS } from '../common/constants.js';
-import { Session } from '../common/models/tests/session.js';
-import { Suite } from '../common/models/tests/suite.js';
-import { TestRun } from '../common/models/tests/test-run.js';
+import { Session } from '../testing/model/session.js';
+import { Suite } from '../testing/model/suite.js';
+import { TestRun } from '../testing/model/test-run.js';
 
 export default class SimpleStateService {
 	constructor(initState) {

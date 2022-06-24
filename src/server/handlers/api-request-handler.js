@@ -2,7 +2,7 @@ import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { extensionsMap } from '../server-utils.js';
 import { addSession, storeResult, getAll, getSession } from '../sessions/sessions-service.js';
-import { collectTestResources } from '../testing/testing-service.js';
+import { collectTestResources } from '../../testing/testing-service.js';
 
 const
 	logger = new Logger({ context: 'handler API' }),

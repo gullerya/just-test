@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { getSuite } from '@gullerya/just-test/suite';
-import RangeCov from '../../src/common/models/coverage/range-cov.js';
-import { merge } from '../../src/common/models/coverage/range-utils.js';
+import RangeCov from '../../src/coverage/model/range-cov.js';
+import { merge } from '../../src/coverage/model/range-utils.js';
 
 const suite = getSuite('Coverage model');
 
@@ -22,7 +22,7 @@ suite.test('RangeCov - negative (end negative)', () => {
 });
 
 suite.test('RangeCov - negative (beg lesser than end)', () => {
-	assert.throws(() => new RangeCov(3, 1), 'beg MUST preceed end');
+	assert.throws(() => new RangeCov(3, 1), 'beg MUST precede end');
 });
 
 suite.test('range - isAfterNonAdjacent / isBeforeNonAdjacent', () => {

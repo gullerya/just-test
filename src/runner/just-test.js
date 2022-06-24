@@ -6,7 +6,7 @@
 import { obtainExecutionContext, EXECUTION_MODES } from './environment-config.js';
 import { getTestId } from '../common/interop-utils.js';
 import { EVENT, STATUS } from '../common/constants.js';
-import { Test } from '../common/models/tests/test.js';
+import { Test } from '../testing/model/test.js';
 
 export {
 	getSuite,

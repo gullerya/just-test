@@ -1,4 +1,9 @@
+//	TODO: refactor the methods outside, to the utils file
+
 export default class BaseRange {
+	beg = -1;
+	end = -1;
+
 	constructor(beg, end) {
 		if (typeof beg !== 'number' || beg < 0) {
 			throw new Error(`beg MUST be a non-negative number; got '${beg}'`);
@@ -7,7 +12,7 @@ export default class BaseRange {
 			throw new Error(`end MUST be a non-negative number; got '${end}'`);
 		}
 		if (beg >= end) {
-			throw new Error(`beg MUST preceed end; got beg = ${beg}, end = ${end}`);
+			throw new Error(`beg MUST precede end; got beg: ${beg}, end: ${end}`);
 		}
 
 		this.beg = beg;

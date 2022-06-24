@@ -7,8 +7,9 @@
 				"maxFail": 0,
 				"maxSkip": 0,
 				"include": [
-					"./tests/server/**/*.js",
-					"./tests/common/**/*.js"
+					"./tests/common/**/*.js",
+					"./tests/coverage/**/*.js",
+					"./tests/server/**/*.js"
 				]
 			},
 			"coverage": {

@@ -1,16 +1,26 @@
+//	TODO: refactor the logic to other file
+
 import { merge } from './range-utils.js';
 
 export default class FileCov {
+	url = null;
+	lines = [];
+	ranges = [];
+	functions = [];
+
 	constructor(url) {
 		this.url = url;
-		this.lines = [];
-		this.ranges = [];
-		this.functions = [];
+
+		if (!url || typeof url !== 'string') {
+			throw new Error(`url MUST be a non-empty string; got: '${url}'`);
+		}
+
 		Object.freeze(this);
 	}
 
-	addLineCov() {
-
+	addLineCov(lineCov) {
+		this.lines.push(lineCov);
+		return this;
 	}
 
 	addRangeCov(rangeCov) {
@@ -28,9 +38,11 @@ export default class FileCov {
 		if (!added) {
 			this.ranges.push(rangeCov);
 		}
+		return this;
 	}
 
-	addFunctionCov() {
-
+	addFunctionCov(functionCov) {
+		this.functions.push(functionCov);
+		return this;
 	}
 }

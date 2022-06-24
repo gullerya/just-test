@@ -12,7 +12,7 @@ import Logger, { FileOutput } from '../../logger/logger.js';
 import { INTEROP_NAMES, SESSION_ENVIRONMENT_KEYS } from '../../../common/constants.js';
 import { waitInterval } from '../../../common/time-utils.js';
 import { config as serverConfig } from '../../server-service.js';
-import { collectTargetSources, processV8ScriptCoverage } from '../../coverage/coverage-service.js';
+import { collectTargetSources } from '../../../coverage/coverage-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 import playwright from 'playwright';
 
@@ -178,7 +178,8 @@ class BrowserEnvImpl extends EnvironmentBase {
 			trSCov.url = trPath;
 
 			result[testId] = result[testId] || [];
-			result[testId].push(processV8ScriptCoverage(trSCov));
+			throw new Error('replace the single cov process with the new methods');
+			//result[testId].push(processV8ScriptCoverage(trSCov));
 		}
 		return result;
 	}

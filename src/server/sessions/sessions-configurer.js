@@ -1,8 +1,8 @@
 import Logger from '../logger/logger.js';
 import { getRandom } from '../../common/random-utils.js';
 import { verifyEnrichConfig } from '../environments/environments-service.js';
-import { verifyEnrichConfig as verifyEnrichTestsConfig } from '../testing/testing-service.js';
-import { verifyEnrichConfig as verifyEnrichCoverageConfig } from '../coverage/coverage-service.js';
+import { verifyEnrichConfig as verifyEnrichTestsConfig } from '../../testing/testing-service.js';
+import { verifyEnrichConfig as verifyEnrichCoverageConfig } from '../../coverage/coverage-service.js';
 
 const
 	logger = new Logger({ context: 'session configurer' });

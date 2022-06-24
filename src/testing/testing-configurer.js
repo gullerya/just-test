@@ -1,4 +1,4 @@
-import Logger from '../logger/logger.js';
+import Logger from '../server/logger/logger.js';
 
 //	TOOD: do reporters as a separate module, each with it's own registration routine + extensibility
 

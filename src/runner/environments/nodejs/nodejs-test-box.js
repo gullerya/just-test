@@ -6,7 +6,7 @@ import minimatch from 'minimatch';
 import { workerData, parentPort as sessionRunnerPort } from 'node:worker_threads';
 import { EXECUTION_MODES, installExecutionContext } from '../../environment-config.js';
 import { EVENT } from '../../../common/constants.js';
-import { convertJSCoverage } from '../../../server/coverage/coverage-service.js';
+import { v8toJustTest } from '../../../coverage/coverage-service.js';
 
 const envConfig = workerData;
 const isCoverage = Boolean(workerData.coverage);
@@ -36,7 +36,7 @@ async function processRunnerMessage(message) {
 		if (isCoverage) {
 			try {
 				const coverage = await collectCoverage();
-				const jtCoverage = convertJSCoverage(coverage);
+				const jtCoverage = await v8toJustTest(coverage);
 				message.run.coverage = jtCoverage;
 			} catch (e) {
 				console.error(`failed to collect coverage: ${e}`);

@@ -3,8 +3,9 @@ import fs from 'node:fs';
 import util from 'node:util';
 import process from 'node:process';
 import { start, stop } from './server/cli.js';
-import { xUnitReporter } from './server/testing/testing-service.js';
-import { lcovReporter } from './server/coverage/coverage-service.js';
+import { xUnitReporter } from './testing/testing-service.js';
+import { collectTargetSources, lcovReporter } from './coverage/coverage-service.js';
+import { buildJTFileCov } from './coverage/model/model-utils.js';
 
 go();
 
@@ -18,20 +19,23 @@ async function go() {
 
 	let server;
 	let sessionResult;
+	let endedWithFailure = false;
 	try {
+		//	TODO: spawn out the server in a separate process
 		server = await start();
 		sessionResult = await executeSession(server.baseUrl, clArguments);
 	} catch (error) {
 		console.error(os.EOL);
 		console.error(error);
 		console.error(os.EOL);
-		process.exitCode = 1;
+		endedWithFailure = true;
 	} finally {
 		if (server && server.isRunning) {
 			await stop();
 		}
 
-		const endTime = globalThis.performance.now();
+		const duration = ((globalThis.performance.now() - startTime) / 1000).toFixed(1);
+
 		console.info(`${os.EOL}${'='.repeat(64)}`);
 		console.info(`... local run finished${os.EOL}`);
 		if (sessionResult) {
@@ -42,10 +46,10 @@ async function go() {
 			console.info(`FAILED: ${sessionResult.fail}`);
 			console.info(`ERRORED: ${sessionResult.error}`);
 			console.info(`SKIPPED: ${sessionResult.skip}${os.EOL}`);
-			console.info(`SESSION SUMMARY: ${process.exitCode ? 'FAILURE' : 'SUCCESS'} (${((endTime - startTime) / 1000).toFixed(1)}s)${os.EOL}`);
+			console.info(`SESSION SUMMARY: ${endedWithFailure ? 'FAILURE' : 'SUCCESS'} (${duration}s)${os.EOL}`);
 			process.exit(0);
 		} else {
-			console.info(`SESSION SUMMARY: FAILURE (${((endTime - startTime) / 1000).toFixed(1)}s)${os.EOL}`);
+			console.info(`SESSION SUMMARY: FAILURE (${duration}s)${os.EOL}`);
 			process.exit(1);
 		}
 	}
@@ -76,14 +80,17 @@ async function executeSession(serverBaseUrl, clArguments) {
 	xUnitReporter.report(sessionResult, 'reports/results.xml');
 
 	//	coverage report
-	const covContent = lcovReporter.convert(
-		sessionResult.suites.flatMap(s => s.tests).map(t => {
+	const testCoverages = sessionResult.suites
+		.flatMap(s => s.tests)
+		.map(t => {
 			return {
-				id: t.id,
+				testId: t.id,
 				coverage: t.lastRun.coverage
 			};
-		})
-	);
+		});
+	const targetSources = await collectTargetSources(config.environments[0].coverage);
+	const fileCoverages = await Promise.all(targetSources.map(ts => buildJTFileCov(ts)));
+	const covContent = lcovReporter.convert({ testCoverages, fileCoverages });
 	if (covContent) {
 		fs.writeFileSync('reports/coverage.lcov', covContent, { encoding: 'utf-8' });
 	} else {

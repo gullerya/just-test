@@ -1,5 +1,5 @@
 import glob from 'glob';
-import Logger from '../logger/logger.js';
+import Logger from '../server/logger/logger.js';
 import buildConfig from './testing-configurer.js';
 import xUnitReporter from './reporters/xunit-reporter.js';
 
