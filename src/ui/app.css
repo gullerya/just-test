@@ -1,0 +1,67 @@
+:root {
+	--jt-color-primary: #fff;
+	--jt-color-on-primary: #000;
+	--jt-color-surface: #eee;
+
+	--jt-color-success: #0b0;
+	--jt-color-error: #c00;
+	--jt-color-skip: #777;
+
+	/* typography */
+	--jt-font-base: normal 400 16px / 1.5 Tahoma, Verdana, sans-serif;
+	--jt-font-h6: normal 400 20px / 1.5 Tahoma, Verdana, sans-serif;
+	--jt-font-h5: normal 400 24px / 1.5 Tahoma, Verdana, sans-serif;
+	--jt-font-h4: normal 400 32px / 1.5 Tahoma, Verdana, sans-serif;
+	--jt-font-mono: normal 400 16px / 1.5 'Courier New', Courier, monospace;
+}
+
+html,
+body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	font: var(--jt-font-base);
+	color: var(--jt-color-on-primary);
+	background-color: var(--jt-color-primary);
+}
+
+.header {
+	flex: 0 0 56px;
+	background-color: var(--jt-color-surface);
+}
+
+.content {
+	flex: 1;
+	overflow: hidden;
+	display: flex;
+	flex-direction: row;
+}
+
+.suites-list {
+	flex: 0 0 50%;
+	min-inline-size: 240px;
+	max-inline-size: 480px;
+	overflow: hidden auto;
+}
+
+.splitter {
+	flex: 0 0 8px;
+	background-color: var(--jt-color-surface);
+	cursor: col-resize;
+}
+
+.just-test-details {
+	flex: 1;
+}
+
+.just-test-execution-frame {
+	position: absolute;
+	visibility: hidden;
+}

@@ -1,0 +1,28 @@
+<style>
+	:host {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.output {
+		flex: 1;
+	}
+
+	.output>.just-test-execution-frame {
+		border: none;
+		width: 100%;
+		height: 100%;
+	}
+</style>
+
+<div class="content">
+	<jt-error data-tie="justTestModel:selectedTest.lastRun.error => data"></jt-error>
+	<div class="output"></div>
+</div>

@@ -1,0 +1,15 @@
+{
+	"environments": [
+		{
+			"interactive": true,
+			"tests": {
+				"maxFail": 0,
+				"maxSkip": 0,
+				"include": [
+					"./tests/runner/**/*.js",
+					"./tests/common/**/*.js"
+				]
+			}
+		}
+	]
+}

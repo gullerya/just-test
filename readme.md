@@ -24,7 +24,7 @@ The main point is to provide a shortest path for a developer to execute newly wr
 - running tests in __browser__, no server needed, import/link your code (static files) and just test, literally __TDD__ oriented
 - __re-running__ any test in browser ad-hoc - convenient for debugging and developing on the fly
 - friendly __UI__ on top of the page of the tests, allows immediatelly observe the behavior of the code and the test
-- running tests from __NodeJS__ via headless browser (currently: Chromium) to run in __CI/CD automation__
+- running tests from __NodeJS__ via headless browser (chromium, firefox, webkit) to run in __CI/CD automation__
 - generating __test results__ report (format: __xUnit__)
 - collecting __coverage__ and generating report (formats: __lcov__)
 - flexible yet simple ability to run tests in __sync__ as well as __async__ (default) manner
@@ -38,7 +38,7 @@ The main point is to provide a shortest path for a developer to execute newly wr
 * start from writing a first lines of your next component or framework
 * create a test file, `test.js` for example
 * import into it the [`just-test` APIs](docs/api.md) and get the suite object by the __`getSuite`__ API
-* import the stuff your are working on and write some testing code using suite's __`runTest`__ API
+* import the stuff your are working on and write some testing code using suite's __`test`__ API
 * create an empty `html` file, `test.html` for example
 * import `test.js` into it and open it in browser
 
@@ -100,7 +100,7 @@ Typical usage of the JustTest would involve two steps:<br/>
 	
 	suite = JT.createSuite();
 
-	suite.addTest(function (pass, fail) {		//	can skip the options, defaults will be used
+	suite.addTest(function (pass, fail) {		//	can skip the config, defaults will be used
 		...
 	});
 	

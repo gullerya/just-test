@@ -1,7 +1,7 @@
 {
 	"name": "just-test",
-	"version": "2.3.13",
-	"description": "Client side JavaScript tests runner",
+	"version": "3.0.0",
+	"description": "JavaScript tests runner",
 	"keywords": [
 		"javascript",
 		"testing",
@@ -22,10 +22,14 @@
 	},
 	"license": "MIT",
 	"files": [
-		"dist"
+		"bin"
 	],
 	"type": "module",
-	"browser": "../dist/just-test.js",
+	"exports": {
+		"./suite": "./bin/runner/just-test.js",
+		"./random-utils": "./bin/common/random-utils.js",
+		"./time-utils": "./bin/common/time-utils.js"
+	},
 	"author": {
 		"name": "Guller Yuri",
 		"email": "gullerya@gmail.com"
@@ -36,24 +40,26 @@
 		"url": "https://github.com/gullerya/just-test"
 	},
 	"scripts": {
-		"build": "node ./build/tools/build-dist.mjs",
-		"lint": "node ./node_modules/eslint/bin/eslint -c ./build/.eslintrc.json --ignore-path ./build/.eslintignore ./src/**/*.js",
-		"test": "node ./dist/tests-runner/run-tests.js --config=./tests/tests-config.json"
+		"build": "node ./ci/tools/build.js",
+		"lint": "npm run lint:runner && npm run lint:server",
+		"lint:runner": "eslint -c ./ci/.eslintrc.runner.json \"./src/runner/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/runner/**/*.js\"",
+		"lint:server": "eslint -c ./ci/.eslintrc.server.json \"./src/common/**/*.js\" \"./src/server/**/*.js\" \"./src/*.js\" \"./ci/**/*.js\" \"./tests/server/**/*.js\"",
+		"test:dev": "node ./src/local-runner.js config_file=./tests/tests-config-dev.json",
+		"test:ci": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-chromium.json",
+		"test:ci:firefox": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-firefox.json",
+		"test:ci:webkit": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-webkit.json",
+		"test:ci:node": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-node.json"
 	},
 	"dependencies": {
-		"data-tier": "^2.9.0",
-		"data-tier-list": "^0.5.0",
-		"rich-component": "^1.4.0",
-		"playwright": "^1.1.1",
-		"chai": "^4.2.0"
+		"data-tier": "^3.6.1",
+		"data-tier-list": "^2.2.1",
+		"es-module-shims": "^1.5.8",
+		"glob": "^8.0.3",
+		"playwright": "^1.22.2",
+		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
-		"eslint": "^7.2.0",
-		"eslint-config-standard": "^14.1.1",
-		"eslint-plugin-standard": "^4.0.1",
-		"eslint-plugin-promise": "^4.2.1",
-		"eslint-plugin-import": "^2.21.2",
-		"eslint-plugin-node": "^11.1.0",
-		"fs-extra": "^9.0.1"
+		"chai": "^4.3.6",
+		"eslint": "^8.18.0"
 	}
 }

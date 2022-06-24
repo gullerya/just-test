@@ -1,0 +1,32 @@
+{
+	"environments": [
+		{
+			"node": true,
+			"tests": {
+				"ttl": 300000,
+				"maxFail": 0,
+				"maxSkip": 0,
+				"include": [
+					"./tests/common/**/*.js",
+					"./tests/coverage/**/*.js",
+					"./tests/server/**/*.js"
+				]
+			},
+			"coverage": {
+				"include": [
+					"./src/**/*.js"
+				],
+				"reports": [
+					{
+						"format": "lcov",
+						"path": "./reports/coverage.lcov"
+					},
+					{
+						"format": "html",
+						"path": "./reports/coverage-html"
+					}
+				]
+			}
+		}
+	]
+}

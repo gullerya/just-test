@@ -4,4 +4,4 @@ parsers:
   v1:
     include_full_missed_files: true
   javascript:
-    enable_partials: yes
+    enable_partials: true

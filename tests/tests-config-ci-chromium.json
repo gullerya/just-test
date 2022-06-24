@@ -1,0 +1,23 @@
+{
+	"environments": [
+		{
+			"browser": {
+				"type": "chromium"
+			},
+			"tests": {
+				"ttl": 300000,
+				"maxFail": 0,
+				"maxSkip": 0,
+				"include": [
+					"./tests/runner/**/*.js",
+					"./tests/common/**/*.js"
+				]
+			},
+			"coverage": {
+				"include": [
+					"./bin/**/*.{js,css}"
+				]
+			}
+		}
+	]
+}

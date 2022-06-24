@@ -1,0 +1,49 @@
+<style>
+	:host {
+		display: flex;
+		flex-direction: column;
+	}
+
+	h6 {
+		font: var(--jt-font-h6);
+	}
+
+	.header {
+		flex-basis: 48px;
+		padding: 0 8px;
+		overflow: hidden;
+		display: flex;
+		align-items: center;
+	}
+
+	.header .expander {
+		flex: 0 0 24px;
+	}
+
+	.tests {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.test {
+		flex-basis: 32px;
+	}
+
+	.test:hover {
+		background-color: var(--jt-color-surface);
+	}
+</style>
+
+<div class="header">
+	<span class="expander"></span>
+	<h6 class="name" data-tie="scope:name"></h6>
+	<span class="duration" data-tie="scope:duration"></span>
+	<span class="counter pass" data-tie="scope:passed"></span>
+	<span class="counter fail" data-tie="scope:failed"></span>
+	<span class="counter skip" data-tie="scope:skipped"></span>
+</div>
+<div class="tests expanded">
+	<data-tier-list data-tie="scope:tests => items">
+		<jt-test class="test" data-tie="item => test"></jt-test>
+	</data-tier-list>
+</div>
