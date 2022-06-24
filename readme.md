@@ -4,9 +4,6 @@
 ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/gullerya/just-test/Publish/main?label=main)
 [![Codecov](https://img.shields.io/codecov/c/github/gullerya/just-test/main.svg?label=main%20coverage)](https://codecov.io/gh/gullerya/just-test/branch/main)
 
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/gullerya/just-test/Build/develop?label=develop)
-[![Codecov](https://img.shields.io/codecov/c/github/gullerya/just-test/develop.svg?label=develop%20coverage)](https://codecov.io/gh/gullerya/just-test/branch/develop)
-
 [![Codacy](https://img.shields.io/codacy/grade/9aa34b1cf3c248fea0164e71137dce1c.svg?logo=codacy)](https://www.codacy.com/app/gullerya/just-test)
 
 # Summary
