@@ -16,9 +16,6 @@ async function v8toJustTest(v8CoverageSet, sourceFetcher) {
 	if (!Array.isArray(v8CoverageSet)) {
 		throw new Error(`expected to get an array of V8 coverage objects, got: ${v8CoverageSet}`);
 	}
-	if (typeof sourceFetcher !== 'function') {
-		throw new Error(`source fetcher MUST be a function, got: ${sourceFetcher}`);
-	}
 
 	const resultPromises = [];
 	for (const v8Coverage of v8CoverageSet) {

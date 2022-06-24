@@ -7,11 +7,18 @@ export {
 }
 
 async function buildJTFileCov(sourceUrl, sourceFetcher = defaultSourceFetcher) {
+	if (!sourceUrl || typeof sourceUrl !== 'string') {
+		throw new Error(`soure URL MUST be a non-empty string, got: '${sourceUrl}'`);
+	}
+	if (typeof sourceFetcher !== 'function') {
+		throw new Error(`source fetcher MUST be a function, got: '${sourceFetcher}'`);
+	}
+
 	const result = new FileCov(sourceUrl);
 
 	//	get the source text
 	const text = await sourceFetcher(sourceUrl);
-	result.addRangeCov(new RangeCov(0, text.length, 1));
+	result.addRangeCov(new RangeCov(0, text.length, 0));
 
 	//	setup lines from source
 	const eolPoses = text.matchAll(/[\r\n]{1,2}/gm);
