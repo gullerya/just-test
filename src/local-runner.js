@@ -89,7 +89,15 @@ async function executeSession(serverBaseUrl, clArguments) {
 			};
 		});
 	const targetSources = await collectTargetSources(config.environments[0].coverage);
-	const fileCoverages = await Promise.all(targetSources.map(ts => buildJTFileCov(ts)));
+	const fileCoverages = await Promise.all(
+		targetSources
+			.filter(ts => {
+				return !testCoverages
+					.flatMap(tc => tc.coverage)
+					.some(fc => fc.url === ts)
+			})
+			.map(ts => buildJTFileCov(ts, false))
+	);
 	const covContent = lcovReporter.convert({ testCoverages, fileCoverages });
 	if (covContent) {
 		await fs.writeFile('reports/coverage.lcov', covContent, { encoding: 'utf-8' });

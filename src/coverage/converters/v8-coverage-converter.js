@@ -32,7 +32,7 @@ async function convertV8CoverageObject(v8Coverage, sourceFetcher) {
 		throw new Error(`invalid V8 coverage object: ${v8Coverage}`);
 	}
 
-	const result = await buildJTFileCov(v8Coverage.url, sourceFetcher);
+	const result = await buildJTFileCov(v8Coverage.url, true, sourceFetcher);
 
 	for (const fCov of v8Coverage.functions) {
 		//	add up to functions coverage

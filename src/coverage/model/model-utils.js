@@ -6,9 +6,12 @@ export {
 	buildJTFileCov
 }
 
-async function buildJTFileCov(sourceUrl, sourceFetcher = defaultSourceFetcher) {
+async function buildJTFileCov(sourceUrl, everImported, sourceFetcher = defaultSourceFetcher) {
 	if (!sourceUrl || typeof sourceUrl !== 'string') {
 		throw new Error(`soure URL MUST be a non-empty string, got: '${sourceUrl}'`);
+	}
+	if (typeof everImported !== 'boolean') {
+		throw new Error(`even imported MUST be a boolean, got: '${everImported}'`);
 	}
 	if (typeof sourceFetcher !== 'function') {
 		throw new Error(`source fetcher MUST be a function, got: '${sourceFetcher}'`);
@@ -18,7 +21,7 @@ async function buildJTFileCov(sourceUrl, sourceFetcher = defaultSourceFetcher) {
 
 	//	get the source text
 	const text = await sourceFetcher(sourceUrl);
-	result.addRangeCov(new RangeCov(0, text.length, 0));
+	result.addRangeCov(new RangeCov(0, text.length, everImported ? 1 : 0));
 
 	//	setup lines from source
 	const eolPoses = text.matchAll(/[\r\n]{1,2}/gm);
