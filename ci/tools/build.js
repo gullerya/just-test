@@ -1,28 +1,28 @@
-﻿import os from 'os';
-import fs from 'fs';
-import path from 'path';
+﻿import os from 'node:os';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 
 process.stdout.write('cleaning "bin"...');
-fs.rmSync('./bin', { recursive: true, force: true });
-fs.mkdirSync('./bin', { recursive: true });
+await fs.rm('./bin', { recursive: true, force: true });
+await fs.mkdir('./bin', { recursive: true });
 process.stdout.write('\t\t\t\t\x1B[32mOK\x1B[0m' + os.EOL);
 
 process.stdout.write('copying "src" to "bin"...');
-copyDirSync('./src', './bin');
+await copyDir('./src', './bin');
 process.stdout.write('\t\t\t\x1B[32mOK\x1B[0m' + os.EOL);
 
 process.stdout.write('\x1B[32mBUILD DONE\x1B[0m' + os.EOL + os.EOL);
 
-function copyDirSync(src, dst) {
-	const entries = fs.readdirSync(src);
+async function copyDir(src, dst) {
+	const entries = await fs.readdir(src);
 	for (const entry of entries) {
 		const srcPath = path.join(src, entry);
 		const dstPath = path.join(dst, entry);
-		if (fs.lstatSync(srcPath).isDirectory()) {
-			fs.mkdirSync(dstPath);
-			copyDirSync(srcPath, dstPath);
+		if ((await fs.lstat(srcPath)).isDirectory()) {
+			await fs.mkdir(dstPath);
+			await copyDir(srcPath, dstPath);
 		} else {
-			fs.copyFileSync(srcPath, dstPath);
+			await fs.copyFile(srcPath, dstPath);
 		}
 	}
 }

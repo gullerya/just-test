@@ -72,13 +72,6 @@ jobs:
       - name: Test
         run: npm run test:ci:firefox
 
-      - name: Upload artifacts
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: artifacts-firefox
-          path: ./reports
-
   quality_pipeline_webkit:
     runs-on: ubuntu-20.04
     if: "false"

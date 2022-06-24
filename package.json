@@ -1,5 +1,5 @@
 {
-	"name": "@gullerya/just-test",
+	"name": "just-test",
 	"version": "3.0.0",
 	"description": "JavaScript tests runner",
 	"keywords": [
