@@ -1,8 +1,8 @@
 [![npm version](https://img.shields.io/npm/v/just-test.svg?label=npm)](https://www.npmjs.com/package/just-test)
 [![License GitHub](https://img.shields.io/github/license/gullerya/just-test.svg)](https://opensource.org/licenses/MIT)
 
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/gullerya/just-test/Publish/master?label=master)
-[![Codecov](https://img.shields.io/codecov/c/github/gullerya/just-test/master.svg?label=master%20coverage)](https://codecov.io/gh/gullerya/just-test/branch/master)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/gullerya/just-test/Publish/main?label=main)
+[![Codecov](https://img.shields.io/codecov/c/github/gullerya/just-test/main.svg?label=main%20coverage)](https://codecov.io/gh/gullerya/just-test/branch/main)
 
 ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/gullerya/just-test/Build/develop?label=develop)
 [![Codecov](https://img.shields.io/codecov/c/github/gullerya/just-test/develop.svg?label=develop%20coverage)](https://codecov.io/gh/gullerya/just-test/branch/develop)
