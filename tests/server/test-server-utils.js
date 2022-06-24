@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { getSuite } from '@gullerya/just-test/suite';
+import { getSuite } from 'just-test/suite';
 import {
 	extensionsMap, findMimeType
 } from '../../src/server/server-utils.js';
