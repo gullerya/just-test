@@ -4,8 +4,6 @@
 [![Quality pipeline](https://github.com/gullerya/just-test/actions/workflows/quality.yml/badge.svg?branch=main)](https://github.com/gullerya/just-test/actions/workflows/quality.yml)
 [![Codecov](https://codecov.io/gh/gullerya/just-test/branch/main/graph/badge.svg?token=gq1k48NawB)](https://codecov.io/gh/gullerya/just-test)
 
-[![Codecov](https://img.shields.io/codecov/c/github/gullerya/just-test/main.svg?label=main%20coverage)](https://codecov.io/gh/gullerya/just-test/branch/main)
-
 [![Codacy](https://img.shields.io/codacy/grade/9aa34b1cf3c248fea0164e71137dce1c.svg?logo=codacy)](https://www.codacy.com/app/gullerya/just-test)
 
 # Summary
