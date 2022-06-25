@@ -6,9 +6,14 @@ export {
 	buildJTFileCov
 }
 
+const EMPTY_TEXT_REGEX = /^\s*$/;
+const ONE_LINE_REMARK_REGEX = /^\s*\/\//;
+const MUL_LINE_REMARK_OPEN_REGEX = /(?<prec>.*)\/\*/;
+const MUL_LINE_REMARK_CLOSE_REGEX = /\*\/(?<post>.*)/;
+
 async function buildJTFileCov(sourceUrl, everImported, sourceFetcher = defaultSourceFetcher) {
 	if (!sourceUrl || typeof sourceUrl !== 'string') {
-		throw new Error(`soure URL MUST be a non-empty string, got: '${sourceUrl}'`);
+		throw new Error(`source URL MUST be a non-empty string, got: '${sourceUrl}'`);
 	}
 	if (typeof everImported !== 'boolean') {
 		throw new Error(`even imported MUST be a boolean, got: '${everImported}'`);
@@ -23,40 +28,46 @@ async function buildJTFileCov(sourceUrl, everImported, sourceFetcher = defaultSo
 	const text = await sourceFetcher(sourceUrl);
 	result.addRangeCov(new RangeCov(0, text.length, everImported ? 1 : 0));
 
-	//	setup lines from source
-	const eolPoses = text.matchAll(/[\r\n]{1,2}/gm);
-	let comment = false,
-		indexPos = 0,
-		linePos = 1;
+	//	get lines from source
+	const lines = text.split(/(\r\n|\n)/);
 
-	//	all lines but last
-	for (const eolPos of eolPoses) {
-		const lineText = text.substring(indexPos, eolPos.index);
-		let loc = true;
-		if (eolPos.index === indexPos) {
-			loc = false;		//	empty line
-		}
-		if (lineText.match(/\s*\/\//)) {
-			loc = false;		//	comment starting with `//`
-		}
-		if (lineText.match(/\/\*\*/)) {
-			comment = true;
-		}
-		if (lineText.match(/\*\//)) {
-			comment = false;
-			loc = false;
-		}
-		if (loc && !comment) {
-			result.addLineCov(new LineCov(linePos, indexPos, eolPos.index));
-		}
-		indexPos = eolPos.index + eolPos[0].length;
+	let comment = false;
+	let stillTakeThisLine = false;
+	let indexPos = 0;
+	let linePos = 0;
+	for (let i = 0, l = lines.length; i < l; i++) {
+		const line = lines[i];
 		linePos++;
-	}
+		indexPos += line.length;
+		if (!line || EMPTY_TEXT_REGEX.test(line)) {
+			if (line === '\n' || line === '\r\n') {
+				linePos--;
+			}
+			continue;
+		}
+		if (ONE_LINE_REMARK_REGEX.test(line)) {
+			continue;
+		}
 
-	//	last line
-	if (text.length > indexPos) {
-		result.addL
-		result.addLineCov(new LineCov(linePos, indexPos, text.length));
+		const matchOpenRemark = line.match(MUL_LINE_REMARK_OPEN_REGEX);
+		if (matchOpenRemark) {
+			comment = true;
+			if (!EMPTY_TEXT_REGEX.test(matchOpenRemark.groups.prec)) {
+				stillTakeThisLine = true;
+			}
+		}
+
+		const matchCloseRemark = line.match(MUL_LINE_REMARK_CLOSE_REGEX);
+		if (matchCloseRemark) {
+			comment = false;
+			if (EMPTY_TEXT_REGEX.test(matchCloseRemark.groups.post) && !stillTakeThisLine) {
+				continue;
+			}
+		}
+
+		if (!comment || stillTakeThisLine) {
+			result.addLineCov(new LineCov(linePos, indexPos - line.length, indexPos));
+		}
 	}
 
 	return result;

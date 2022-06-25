@@ -145,6 +145,7 @@ class SuiteContext {
 			}
 			runResult = await runPromise;
 		} catch (e) {
+			console.error(e);
 			runResult = e;
 		} finally {
 			clearTimeout(timeout);
