@@ -8,7 +8,7 @@ export {
 
 async function buildJTFileCov(sourceUrl, everImported, sourceFetcher = defaultSourceFetcher) {
 	if (!sourceUrl || typeof sourceUrl !== 'string') {
-		throw new Error(`soure URL MUST be a non-empty string, got: '${sourceUrl}'`);
+		throw new Error(`source URL MUST be a non-empty string, got: '${sourceUrl}'`);
 	}
 	if (typeof everImported !== 'boolean') {
 		throw new Error(`even imported MUST be a boolean, got: '${everImported}'`);

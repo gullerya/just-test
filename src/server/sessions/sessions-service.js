@@ -64,7 +64,7 @@ async function runSession(sessionId) {
 			//	TODO: handle here the abnormal session finalization
 			sesEnvs.splice(sesEnvs.indexOf(sesEnv), 1);
 			if (!sesEnvs.length) {
-				logger.info(`all session ${sessionId} environments closed, finalizing session`);
+				logger.info(`all environments of session ${sessionId} are closed, finalizing session`);
 				finalizeSession(sessionId);
 			}
 		});
