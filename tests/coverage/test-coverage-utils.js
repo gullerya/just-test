@@ -123,7 +123,6 @@ suite.test('build model - remark, multi line (spit around)', async () => {
 		... end remark here */ line 3
 		line 4
 	`));
-	console.log(fileCov);
 	assert.deepStrictEqual(fileCov, {
 		url: 'url',
 		lines: [
