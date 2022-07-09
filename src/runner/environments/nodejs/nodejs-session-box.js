@@ -98,7 +98,7 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 
 		return new Promise(resolve => {
 			worker.on('exit', exitCode => {
-				console.info(`worker for test '${test.id}' exited with code ${exitCode}`);
+				// console.debug(`worker for test '${test.id}' exited with code ${exitCode}`);
 				resolve();
 			});
 		});

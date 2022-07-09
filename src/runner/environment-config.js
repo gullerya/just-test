@@ -39,7 +39,6 @@ class ExecutionContext {
 		}
 		this.#testId = testId;
 		if (!childPort) {
-			console.debug(`no port supplied, creating own channel`);
 			const mc = new MessageChannel();
 			this.#parentPort = mc.port1;
 			this.#childPort = mc.port2;
@@ -64,14 +63,12 @@ const EXECUTION_CONTEXT_SYMBOL = Symbol.for('JUST_TEST_EXECUTION_CONTEXT');
 function installExecutionContext(mode, childPort = null, testId = null) {
 	const context = new ExecutionContext(mode, childPort, testId);
 	globalThis[EXECUTION_CONTEXT_SYMBOL] = context;
-	console.info(`execution context installed, mode: ${context.mode}`);
 	return context;
 }
 
 function obtainExecutionContext() {
 	let result = globalThis[EXECUTION_CONTEXT_SYMBOL];
 	if (!result) {
-		console.log('installing default execution context...');
 		installExecutionContext(EXECUTION_MODES.PLAIN_RUN);
 		result = obtainExecutionContext();
 	}

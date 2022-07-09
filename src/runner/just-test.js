@@ -91,9 +91,7 @@ class SuiteContext {
 	#registerTest(name, options, code) {
 		if (!this.#testConfigsSubmitter) {
 			this.#testConfigsSubmitter = globalThis.setTimeout(() => {
-				console.info(`reporting ${this.#testConfigs.length} test config/s...`);
 				this.#port.postMessage(this.#testConfigs);
-				console.info(`... reported`);
 			}, DEFAULT_CONFIGS_SUBMISSION_DELAY);
 		}
 
