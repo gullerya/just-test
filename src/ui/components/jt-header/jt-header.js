@@ -1,6 +1,6 @@
 import { initComponent, ComponentBase } from 'rich-component';
 import stateService from '../../interactive-state-service.js';
-import { reportResults } from '/core/runner/report-service.js';
+import * as serverAPI from '/core/runner/server-api-service.js';
 
 const TEMPLATE = document.createElement('template');
 TEMPLATE.innerHTML = `
@@ -36,7 +36,7 @@ initComponent('jt-header', class extends ComponentBase {
 		this.shadowRoot.querySelector('.close').addEventListener('click', async () => {
 			console.log('finalize session');
 			const state = stateService.getAll();
-			await reportResults(state.sessionId, state.environmentId, state);
+			await serverAPI.reportSessionResult(state.sessionId, state.environmentId, location.origin, state);
 			setTimeout(() => window.location.reload(), 4000);
 		});
 	}

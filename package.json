@@ -15,29 +15,29 @@
 		"results",
 		"xUnit"
 	],
-	"homepage": "https://github.com/gullerya/just-test",
-	"bugs": {
-		"url": "https://github.com/gullerya/just-test/issues",
-		"email": "gullerya@gmail.com"
-	},
 	"license": "MIT",
-	"files": [
-		"bin"
-	],
-	"type": "module",
-	"exports": {
-		"./suite": "./bin/runner/just-test.js",
-		"./random-utils": "./bin/common/random-utils.js",
-		"./time-utils": "./bin/common/time-utils.js"
-	},
 	"author": {
 		"name": "Guller Yuri",
 		"email": "gullerya@gmail.com"
 	},
+	"homepage": "https://github.com/gullerya/just-test",
 	"funding": "https://paypal.me/gullerya?locale.x=en_US",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/gullerya/just-test"
+	},
+	"bugs": {
+		"url": "https://github.com/gullerya/just-test/issues",
+		"email": "gullerya@gmail.com"
+	},
+	"type": "module",
+	"files": [
+		"bin"
+	],
+	"exports": {
+		"./suite": "./bin/runner/just-test.js",
+		"./random-utils": "./bin/common/random-utils.js",
+		"./time-utils": "./bin/common/time-utils.js"
 	},
 	"scripts": {
 		"build": "node ./ci/tools/build.js",
@@ -53,13 +53,13 @@
 	"dependencies": {
 		"data-tier": "^3.6.1",
 		"data-tier-list": "^2.2.1",
-		"es-module-shims": "^1.5.8",
+		"es-module-shims": "^1.5.17",
 		"glob": "^8.0.3",
-		"playwright": "^1.23.1",
+		"playwright": "^1.25.1",
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
 		"chai": "^4.3.6",
-		"eslint": "^8.19.0"
+		"eslint": "^8.23.0"
 	}
 }
