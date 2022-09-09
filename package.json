@@ -55,7 +55,7 @@
 		"data-tier-list": "^2.2.1",
 		"es-module-shims": "^1.5.17",
 		"glob": "^8.0.3",
-		"playwright": "^1.25.1",
+		"playwright": "^1.25.2",
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
