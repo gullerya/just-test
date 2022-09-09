@@ -35,7 +35,7 @@
 		"bin"
 	],
 	"exports": {
-		"./suite": "./bin/runner/just-test.js",
+		"./runner": "./bin/runner/main.js",
 		"./random-utils": "./bin/common/random-utils.js",
 		"./time-utils": "./bin/common/time-utils.js"
 	},
@@ -44,7 +44,7 @@
 		"lint": "npm run lint:runner && npm run lint:server",
 		"lint:runner": "eslint -c ./ci/.eslintrc.runner.json \"./src/runner/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/runner/**/*.js\"",
 		"lint:server": "eslint -c ./ci/.eslintrc.server.json \"./src/common/**/*.js\" \"./src/server/**/*.js\" \"./src/*.js\" \"./ci/**/*.js\" \"./tests/server/**/*.js\"",
-		"test:dev": "node ./src/local-runner.js config_file=./tests/tests-config-dev.json",
+		"test:dev": "npm run build && node ./bin/local-runner.js config_file=./tests/tests-config-dev.json",
 		"test:ci": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-chromium.json",
 		"test:ci:firefox": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-firefox.json",
 		"test:ci:webkit": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-webkit.json",

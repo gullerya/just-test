@@ -1,6 +1,6 @@
 ﻿import { assert } from 'chai';
-import { getSuite } from 'just-test/suite';
-import { CHAR_SOURCES, getRandom } from '../../src/common/random-utils.js';
+import { getSuite } from 'just-test/runner';
+import { CHAR_SOURCES, getRandom } from 'just-test/random-utils';
 
 const suite = getSuite('Random utils');
 

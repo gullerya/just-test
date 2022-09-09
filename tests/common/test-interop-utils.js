@@ -1,5 +1,5 @@
 ﻿import { assert } from 'chai';
-import { getSuite } from 'just-test/suite';
+import { getSuite } from 'just-test/runner';
 import {
 	TEST_ID_SEPARATOR,
 	getTestId,

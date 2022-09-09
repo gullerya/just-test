@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { getSuite } from 'just-test/suite';
+import { getSuite } from 'just-test/runner';
 import RangeCov from '../../src/coverage/model/range-cov.js';
 import { merge } from '../../src/coverage/model/range-utils.js';
 
