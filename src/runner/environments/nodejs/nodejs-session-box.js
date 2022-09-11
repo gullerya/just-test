@@ -1,7 +1,8 @@
 /**
  * NodeJS specific session runner
- * - obtains the environment configuration
- * - sets up object model in the NodeJS environment way
+ * - runs in its own worker (indifferent to it anyway)
+ * - interacts with the JustTest server over the standard REST APIs
+ * - manages tests execution: worker, lifecycle reporting
  */
 
 import url from 'node:url';
@@ -98,7 +99,7 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 
 		return new Promise(resolve => {
 			worker.on('exit', exitCode => {
-				// console.debug(`worker for test '${test.id}' exited with code ${exitCode}`);
+				console.debug(`worker for test '${test.id}' exited with code ${exitCode}`);
 				resolve();
 			});
 		});
