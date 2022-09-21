@@ -1,5 +1,5 @@
 /**
- * NodeJS specific session runner
+ * NodeJS specific SESSION runner
  * - runs in its own worker (indifferent to it anyway)
  * - interacts with the JustTest server over the standard REST APIs
  * - manages tests execution: worker, lifecycle reporting
@@ -86,6 +86,7 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 				coverage: sessionMetadata.coverage
 			}
 		});
+		//	TODO: the basic messaging interaction shoule be done via BroadcastChannel
 		worker.on('message', message => {
 			if (message.type === EVENT.RUN_STARTED) {
 				stateService.updateRunStarted(message.suiteName, message.testName);

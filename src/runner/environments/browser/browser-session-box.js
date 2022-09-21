@@ -1,7 +1,16 @@
-import { runSession } from '../../session-service.js';
+/**
+ * Browser specific SESSION runner
+ * - runs as part of automation or interactive
+ * - interacts with the JustTest server over the standard REST APIs
+ * - manages tests execution: frames/workers, lifecycle reporting
+ */
+
 import * as serverAPI from '../../server-api-service.js';
 import SimpleStateService from '../../simple-state-service.js';
+import { runSession } from '../../session-service.js';
 import { getEnvironmentConfig } from '../../environment-config.js';
+import { getValidName } from '../../../common/interop-utils.js';
+import { SUITE_CONFIG_DEFAULT } from '../../../common/constants.js';
 
 (async () => {
 	let sesEnvResult;
