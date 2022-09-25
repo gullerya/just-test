@@ -48,7 +48,7 @@ jobs:
         run: npm run test:ci
 
       - name: Report coverage
-      - uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v3
 
   quality_pipeline_firefox:
     runs-on: ubuntu-20.04
@@ -116,4 +116,4 @@ jobs:
         run: npm run test:ci:node
 
       - name: Report coverage
-      - uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v3
