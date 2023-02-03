@@ -53,13 +53,13 @@
 	"dependencies": {
 		"data-tier": "^3.6.1",
 		"data-tier-list": "^2.2.1",
-		"es-module-shims": "^1.5.18",
-		"glob": "^8.0.3",
-		"playwright": "^1.25.2",
+		"es-module-shims": "^1.6.3",
+		"glob": "^8.1.0",
+		"playwright": "^1.30.0",
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
-		"chai": "^4.3.6",
-		"eslint": "^8.23.1"
+		"chai": "^4.3.7",
+		"eslint": "^8.33.0"
 	}
 }
