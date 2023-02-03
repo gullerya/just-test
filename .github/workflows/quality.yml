@@ -17,7 +17,7 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
 
       - name: Install
         run: npm ci
@@ -36,7 +36,7 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
 
       - name: Install
         run: npm ci
@@ -61,7 +61,7 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
 
       - name: Install
         run: npm ci
@@ -83,7 +83,7 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
 
       - name: Install
         run: npm ci && npx playwright install-deps
@@ -104,7 +104,7 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
 
       - name: Install
         run: npm ci
