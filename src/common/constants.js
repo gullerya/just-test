@@ -3,8 +3,7 @@ export {
 	EVENT,
 	INTEROP_NAMES,
 	EXECUTION_MODES,
-	SESSION_ENVIRONMENT_KEYS,
-	TESTBOX_ENVIRONMENT_KEYS,
+	ENVIRONMENT_KEYS,
 	STATUS,
 	SUITE_CONFIG_DEFAULT,
 	TEST_ID_SEPARATOR,
@@ -51,16 +50,13 @@ const INTEROP_NAMES = Object.freeze({
 
 const EXECUTION_MODES = Object.freeze({
 	PLAIN_RUN: 'PLAIN_RUN',
-	SESSION: 'SESSION',
+	PLAN: 'PLAN',
 	TEST: 'TEST'
 });
 
-const SESSION_ENVIRONMENT_KEYS = Object.freeze({
+const ENVIRONMENT_KEYS = Object.freeze({
+	TEST_ID: 'test-id',
 	SESSION_ID: 'ses-id',
 	ENVIRONMENT_ID: 'env-id',
 	SERVER_ORIGIN: 'server-origin'
-});
-
-const TESTBOX_ENVIRONMENT_KEYS = Object.freeze({
-	TEST_ID: 'test-id'
 });

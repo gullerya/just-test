@@ -1,7 +1,7 @@
 //	this is the main just-test SDK harness entrypoint from consumer perspective
 //	this module can found itself running in 3 modes:
 //	- plain_run - simple test execution, no server, no interop, just debugging the tests
-//	- session - tests registration phase, tests are not being run
+//	- plan - tests registration phase, tests are not being run
 //	- test - test run, only the tests required by environment will be running
 import { obtainExecutionContext, EXECUTION_MODES } from './environment-config.js';
 import { getTestId } from '../common/interop-utils.js';
@@ -64,7 +64,7 @@ class SuiteContext {
 	get skip() { return this.#skip; }
 
 	get test() {
-		return this.#mode === EXECUTION_MODES.SESSION
+		return this.#mode === EXECUTION_MODES.PLAN
 			? this.#registerTest
 			: this.#runTest;
 	}

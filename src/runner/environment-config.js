@@ -1,4 +1,4 @@
-import { EXECUTION_MODES, SESSION_ENVIRONMENT_KEYS } from '../common/constants.js';
+import { EXECUTION_MODES, ENVIRONMENT_KEYS } from '../common/constants.js';
 
 export {
 	installExecutionContext,
@@ -104,8 +104,8 @@ async function getEnvironmentConfig() {
  */
 async function getBrowserEnvConfig() {
 	const sp = new URL(globalThis.location.href).searchParams;
-	const sesId = sp.get(SESSION_ENVIRONMENT_KEYS.SESSION_ID);
-	const envId = sp.get(SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID);
+	const sesId = sp.get(ENVIRONMENT_KEYS.SESSION_ID);
+	const envId = sp.get(ENVIRONMENT_KEYS.ENVIRONMENT_ID);
 	const serverOrigin = '';
 	return new EnvConfig(sesId, envId, serverOrigin);
 }
@@ -118,11 +118,11 @@ async function getBrowserEnvConfig() {
 async function getNodejsEnvConfig() {
 	let sesId, envId, serverOrigin;
 	for (const arg of globalThis.process.argv) {
-		if (arg.startsWith(SESSION_ENVIRONMENT_KEYS.SESSION_ID + '=')) {
+		if (arg.startsWith(ENVIRONMENT_KEYS.SESSION_ID + '=')) {
 			sesId = arg.split('=').pop();
-		} else if (arg.startsWith(SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID + '=')) {
+		} else if (arg.startsWith(ENVIRONMENT_KEYS.ENVIRONMENT_ID + '=')) {
 			envId = arg.split('=').pop();
-		} else if (arg.startsWith(SESSION_ENVIRONMENT_KEYS.SERVER_ORIGIN + '=')) {
+		} else if (arg.startsWith(ENVIRONMENT_KEYS.SERVER_ORIGIN + '=')) {
 			serverOrigin = arg.split('=').pop();
 		}
 	}
