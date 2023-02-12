@@ -35,7 +35,7 @@
 		"bin"
 	],
 	"exports": {
-		"./runner": "./bin/runner/main.js",
+		".": "./bin/runner/just-test.js",
 		"./random-utils": "./bin/common/random-utils.js",
 		"./time-utils": "./bin/common/time-utils.js"
 	},

@@ -1,18 +1,20 @@
-﻿import { getSuite as getSuiteUT } from 'just-test/runner';
+﻿import { assert } from 'chai';
+import { getSuite } from 'just-test/runner';
+import { getRandom } from 'just-test/random-utils';
 
 const
-	suite = globalThis.getSuite('Suite APIs');
+	suite = getSuite('Suite APIs');
 
 suite.test('suite - base API', test => {
-	const sn = test.getRandom();
-	const s = getSuiteUT(sn);
+	const sn = getRandom();
+	const s = getSuite(sn);
 
 	test.assert.isObject(s);
 	test.assert.isFunction(s.test);
 });
 
 suite.test('suite - invalid name', () => {
-	getSuiteUT('');
-}, {
-	expectError: 'name MUST NOT be empty'
+	assert.throws(() => {
+		getSuite('');
+	}, `invalid suite name ''`);
 });

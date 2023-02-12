@@ -2,8 +2,6 @@ export {
 	DEFAULT,
 	EVENT,
 	INTEROP_NAMES,
-	EXECUTION_MODES,
-	ENVIRONMENT_KEYS,
 	STATUS,
 	SUITE_CONFIG_DEFAULT,
 	TEST_ID_SEPARATOR,
@@ -17,10 +15,9 @@ const DEFAULT = Object.freeze({
 });
 
 const EVENT = Object.freeze({
-	TEST_SELECT: 'TEST_SELECT',
-	TEST_RERUN: 'TEST_RERUN',
-	RUN_STARTED: 'RUN_STARTED',
-	RUN_ENDED: 'RUN_ENDED'
+	TEST_PLAN: 'TEST_PLAN',
+	RUN_START: 'RUN_START',
+	RUN_END: 'RUN_END'
 });
 
 const STATUS = Object.freeze({
@@ -46,17 +43,4 @@ const TEST_CONFIG_DEFAULT = Object.freeze({
 const INTEROP_NAMES = Object.freeze({
 	REGISTER_TEST_FOR_COVERAGE: '_registerTestForCoverage',
 	IPC_HANDSHAKE: 'ipcHandshake'
-});
-
-const EXECUTION_MODES = Object.freeze({
-	PLAIN_RUN: 'PLAIN_RUN',
-	PLAN: 'PLAN',
-	TEST: 'TEST'
-});
-
-const ENVIRONMENT_KEYS = Object.freeze({
-	TEST_ID: 'test-id',
-	SESSION_ID: 'ses-id',
-	ENVIRONMENT_ID: 'env-id',
-	SERVER_ORIGIN: 'server-origin'
 });

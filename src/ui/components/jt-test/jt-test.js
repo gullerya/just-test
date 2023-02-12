@@ -22,7 +22,7 @@ initComponent('jt-test', class extends ComponentBase {
 		const detail = {
 			testId: this[TEST_KEY].id
 		};
-		const selectEvent = new CustomEvent(EVENT.TEST_SELECT, {
+		const selectEvent = new CustomEvent('TEST_SELECT', {
 			bubbles: true,
 			composed: true,
 			detail: detail
