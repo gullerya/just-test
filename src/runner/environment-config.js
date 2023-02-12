@@ -1,6 +1,6 @@
 export {
-	installExecutionContext,
-	obtainExecutionContext,
+	setExecutionContext,
+	getExecutionContext,
 	ENVIRONMENT_KEYS,
 	EXECUTION_MODES
 }
@@ -69,19 +69,13 @@ class ExecutionContext {
 	get parentPort() { return this.#parentPort; }
 }
 
-function installExecutionContext(key = EXECUTION_CONTEXT_SYMBOL, mode, childPort = null, testId = null) {
+function setExecutionContext(key = EXECUTION_CONTEXT_SYMBOL, mode, childPort = null, testId = null) {
 	const context = new ExecutionContext(mode, testId, childPort);
 	globalThis[key] = context;
 }
 
-function obtainExecutionContext(key = EXECUTION_CONTEXT_SYMBOL) {
-	let result = globalThis[EXECUTION_CONTEXT_SYMBOL];
-	if (!result) {
-		console.log('no execution context found, creating PLAIN run one...');
-		installExecutionContext(key, EXECUTION_MODES.PLAIN_RUN);
-		result = obtainExecutionContext(key);
-	}
-	return result;
+function getExecutionContext(key = EXECUTION_CONTEXT_SYMBOL) {
+	return globalThis[key];
 }
 
 // async function getEnvironmentConfig() {

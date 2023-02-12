@@ -10,7 +10,7 @@ import { workerData, Worker } from 'node:worker_threads';
 import * as serverAPI from '../../server-api-service.js';
 import SimpleStateService from '../../simple-state-service.js';
 import { runSession } from '../../session-service.js';
-import { installExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
+import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 import { EVENT } from '../../../common/constants.js';
 
 (async () => {
@@ -49,7 +49,7 @@ async function registerSession(testsResources, stateService) {
 	for (const tr of testsResources) {
 		await new Promise((resolve, reject) => {
 			try {
-				const execContext = installExecutionContext(EXECUTION_MODES.SESSION);
+				const execContext = setExecutionContext(EXECUTION_MODES.SESSION);
 				execContext.parentPort.on('message', testConfigs => {
 					for (const tc of testConfigs) {
 						tc.source = tr;

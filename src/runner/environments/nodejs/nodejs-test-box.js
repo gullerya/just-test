@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import minimatch from 'minimatch';
 import { workerData, parentPort as sessionRunnerPort } from 'node:worker_threads';
-import { EXECUTION_MODES, installExecutionContext } from '../../environment-config.js';
+import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
 import { EVENT } from '../../../common/constants.js';
 import { v8toJustTest } from '../../../coverage/coverage-service.js';
 
@@ -23,7 +23,7 @@ eventBus.port1.on('message', processRunnerMessage);
 eventBus.port1.on('messageerror', processMessageError);
 eventBus.port1.unref();
 
-installExecutionContext(EXECUTION_MODES.TEST, eventBus.port2, envConfig.testId);
+setExecutionContext(EXECUTION_MODES.TEST, eventBus.port2, envConfig.testId);
 import(pathToFileURL(envConfig.testSource));
 
 //
