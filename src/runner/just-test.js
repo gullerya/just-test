@@ -154,7 +154,15 @@ function obtainExecutionContext() {
 	let result = getExecutionContext();
 	if (!result) {
 		console.log('no execution context found, creating PLAIN run one...');
-		setExecutionContext(undefined, EXECUTION_MODES.PLAIN_RUN);
+		const mc = new MessageChannel();
+		const ownPort = mc.port1;
+		setExecutionContext(undefined, EXECUTION_MODES.PLAIN_RUN, mc.port2);
+		ownPort.onmessage(ev => {
+
+		});
+		ownPort.onmessageerror(ev => {
+			console.error(`error in message handling: ${ev}`);
+		});
 		result = getExecutionContext();
 	}
 	return result;
