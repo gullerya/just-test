@@ -71,7 +71,7 @@ async function test(name, opts, code) {
 
 function validate(name, opts, code) {
 	if (!name || typeof name !== 'string') {
-		throw new Error(`test name MUST be a non-empty string, got: ${name}`);
+		throw new Error(`test name MUST be a non-empty string, got: '${name}'`);
 	}
 	if (typeof opts === 'function') {
 		if (code) {

@@ -47,7 +47,6 @@ test('run test - fail by error (sync)', async () => {
 });
 
 test('run test - skip', async () => {
-	/* eslint-disable no-undef */
 	const tp = test('name', { skip: true }, () => { });
 
 	assert.instanceOf(tp, Promise);
@@ -55,6 +54,16 @@ test('run test - skip', async () => {
 	assert.strictEqual(m.status, STATUS.SKIP);
 	assert.isUndefined(m.error);
 	assert.isUndefined(m.time);
+});
+
+test('setup test - error on bad name', { skip: true }, () => {
+	assert.throws(() => test('', () => { }), `test name MUST be a non-empty string`);
+});
+
+test('setup test - error on bad options', { skip: true }, () => {
+	assert.throws(() => {
+		test('name', { skip: true, only: true }, () => { });
+	}, `can't opt in 'only' and 'skip' at the same time`);
 });
 
 //	async
