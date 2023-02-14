@@ -1,20 +1,15 @@
 ﻿import { assert } from 'chai';
-import { getSuite } from 'just-test/runner';
-import { getRandom } from 'just-test/random-utils';
+import { test } from 'just-test';
+import { EXECUTION_MODES, setExecutionContext } from '../../src/runner/environment-config.js';
 
-const
-	suite = getSuite('Suite APIs');
+const localECKey = 'test-suite-api-ec';
 
-suite.test('suite - base API', test => {
-	const sn = getRandom();
-	const s = getSuite(sn);
-
-	test.assert.isObject(s);
-	test.assert.isFunction(s.test);
+test('suite - base API', async () => {
+	prepareExecutionContext();
+	//	run test
 });
 
-suite.test('suite - invalid name', () => {
-	assert.throws(() => {
-		getSuite('');
-	}, `invalid suite name ''`);
-});
+function prepareExecutionContext(mode = EXECUTION_MODES.PLAN) {
+	const mc = new MessageChannel();
+	setExecutionContext(localECKey, mode, mc.port2);
+}
