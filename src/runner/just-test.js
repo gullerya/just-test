@@ -3,7 +3,7 @@
 //	- plain_run - simple test execution, no server, no interop, just debugging the tests
 //	- plan - tests registration phase, tests are not being run
 //	- test - test run, only the tests required by environment will be running
-import { getExecutionContext, setExecutionContext, EXECUTION_MODES } from './environment-config.js';
+import { getExecutionContext, EXECUTION_MODES } from './environment-config.js';
 import { EVENT, STATUS } from '../common/constants.js';
 
 export { suite, test }
@@ -34,27 +34,38 @@ const suite = Object.freeze({
 	}
 });
 
-function test(name, opts, code) {
-	const ec = obtainExecutionContext();
-	switch (ec.mode) {
-		case EXECUTION_MODES.TEST: {
-			return executeRun(name, opts, code, ec.childPort);
+async function test(name, opts, code) {
+	const ec = getExecutionContext();
+	if (ec) {
+		switch (ec.mode) {
+			case EXECUTION_MODES.TEST: {
+				ec.childPort.postMessage({
+					type: EVENT.RUN_START,
+					testName: name
+				});
+				const run = await executeRun(name, opts, code);
+				ec.childPort.postMessage({
+					type: EVENT.RUN_END,
+					testName: name,
+					run
+				});
+				return run;
+			}
+			case EXECUTION_MODES.PLAN: {
+				const { name: nameF, opts: optsF } = validate(name, opts, code);
+				ec.childPort.postMessage({
+					type: EVENT.TEST_PLAN,
+					testName: nameF,
+					testOpts: optsF
+				});
+				break;
+			}
+			default:
+				throw new Error(`unexpected execution mode: ${ec.mode}`);
 		}
-		case EXECUTION_MODES.PLAN: {
-			const { name: nameF, opts: optsF } = validate(name, opts, code);
-			ec.childPort.postMessage({
-				type: EVENT.TEST_PLAN,
-				testName: nameF,
-				testOpts: optsF
-			});
-			break;
-		}
-		case EXECUTION_MODES.PLAIN_RUN: {
-			const { name: nameF, opts: optsF, code: codeF } = validate(name, opts, code);
-			return executeRun(nameF, optsF, codeF, ec.childPort);
-		}
-		default:
-			throw new Error(`unexpected execution mode: ${ec.mode}`);
+	} else {
+		const { name: nameF, opts: optsF, code: codeF } = validate(name, opts, code);
+		return await executeRun(nameF, optsF, codeF);
 	}
 }
 
@@ -77,16 +88,20 @@ function validate(name, opts, code) {
 		}
 		opts = Object.assign({}, DEFAULT_TEST_OPTIONS, opts);
 	}
+	if (opts.only && opts.skip) {
+		throw new Error(`can't opt in 'only' and 'skip' at the same time, found in test: ${name}`);
+	}
 	return { name, opts, code };
 }
 
-async function executeRun(name, opts, code, messageBus) {
-	console.info(`'${name}' started...`);
-	messageBus.postMessage({
-		type: EVENT.RUN_STARTED,
-		testName: name
-	});
+async function executeRun(name, opts, code) {
+	if (opts.skip) {
+		return {
+			status: STATUS.SKIP
+		};
+	}
 
+	console.info(`'${name}' started...`);
 	const run = {};
 	const timeoutError = new Error(`timeout assertion: run of '${name}' exceeded ${opts.timeout}ms`);
 	let runError;
@@ -107,13 +122,8 @@ async function executeRun(name, opts, code, messageBus) {
 		clearTimeout(timeout);
 		run.time = Math.round((globalThis.performance.now() - start) * 10000) / 10000;
 		finalizeRun(run, runError);
-		messageBus.postMessage({
-			type: EVENT.RUN_ENDED,
-			testName: name,
-			run
-		});
-		console.info(`'${name}' ${run.status.toUpperCase()} in ${run.time}ms`);
 	}
+	console.info(`'${name}' ${run.status.toUpperCase()} in ${run.time}ms`);
 
 	return run;
 }
@@ -148,22 +158,4 @@ function processError(error) {
 		cause,
 		stacktrace
 	};
-}
-
-function obtainExecutionContext() {
-	let result = getExecutionContext();
-	if (!result) {
-		console.log('no execution context found, creating PLAIN run one...');
-		const mc = new MessageChannel();
-		const ownPort = mc.port1;
-		setExecutionContext(undefined, EXECUTION_MODES.PLAIN_RUN, mc.port2);
-		ownPort.onmessage(ev => {
-
-		});
-		ownPort.onmessageerror(ev => {
-			console.error(`error in message handling: ${ev}`);
-		});
-		result = getExecutionContext();
-	}
-	return result;
 }

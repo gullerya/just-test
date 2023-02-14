@@ -28,7 +28,6 @@ test('run test - fail by assert (sync)', async () => {
 	assert.strictEqual(m.error.message, 'reason');
 	assert.isArray(m.error.stacktrace);
 	assert.isAbove(m.error.stacktrace.length, 0);
-
 	assert.isNumber(m.time);
 });
 
@@ -44,8 +43,18 @@ test('run test - fail by error (sync)', async () => {
 	assert.strictEqual(m.error.name, 'ReferenceError');
 	assert.isArray(m.error.stacktrace);
 	assert.isAbove(m.error.stacktrace.length, 0);
-
 	assert.isNumber(m.time);
+});
+
+test('run test - skip', async () => {
+	/* eslint-disable no-undef */
+	const tp = test('name', { skip: true }, () => { });
+
+	assert.instanceOf(tp, Promise);
+	const m = await tp;
+	assert.strictEqual(m.status, STATUS.SKIP);
+	assert.isUndefined(m.error);
+	assert.isUndefined(m.time);
 });
 
 //	async
@@ -78,7 +87,6 @@ test('run test - fail by assert (async)', async () => {
 	assert.strictEqual(m.error.message, 'reason');
 	assert.isArray(m.error.stacktrace);
 	assert.isAbove(m.error.stacktrace.length, 0);
-
 	assert.isNumber(m.time);
 	assert.isAbove(m.time, 0);
 });
@@ -98,7 +106,6 @@ test('run test - fail by error (async)', async () => {
 	assert.strictEqual(m.error.name, 'ReferenceError');
 	assert.isArray(m.error.stacktrace);
 	assert.isAbove(m.error.stacktrace.length, 0);
-
 	assert.isNumber(m.time);
 	assert.isAbove(m.time, 0);
 });
@@ -118,7 +125,6 @@ test('run test - fail by timeout (async)', async () => {
 	assert.include(m.error.message, `exceeded ${timeout}ms`);
 	assert.isArray(m.error.stacktrace);
 	assert.isAbove(m.error.stacktrace.length, 0);
-
 	assert.isNumber(m.time);
 	assert.isAbove(m.time, timeout - 1);
 });
