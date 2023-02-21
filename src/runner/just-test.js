@@ -35,7 +35,9 @@ const suite = Object.freeze({
 });
 
 async function test(name, opts, code) {
-	const ec = getExecutionContext(opts.ecKey ?? undefined);
+	const ecKey = opts.ecKey || undefined;
+	delete opts.ecKey;
+	const ec = getExecutionContext(ecKey);
 	if (ec) {
 		switch (ec.mode) {
 			case EXECUTION_MODES.TEST: {
