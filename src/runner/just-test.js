@@ -6,7 +6,7 @@
 import { getExecutionContext, EXECUTION_MODES } from './environment-config.js';
 import { STATUS } from '../common/constants.js';
 
-export { suite, test, TestDto }
+export { suite, test, TestDto };
 
 const DEFAULT_SUITE_OPTIONS = {
 	only: false,

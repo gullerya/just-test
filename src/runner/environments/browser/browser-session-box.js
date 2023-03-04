@@ -71,7 +71,7 @@ function getSuite(suiteName, suiteConfig) {
 				console.error(`failed to register test '${testName} : ${JSON.stringify(testConfig)}':`, e);
 			}
 		}
-	}
+	};
 }
 
 async function collectTests(testsResources, stateService) {
