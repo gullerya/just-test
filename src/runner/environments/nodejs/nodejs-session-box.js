@@ -13,12 +13,10 @@ import { runSession } from '../../session-service.js';
 import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 import { EVENT } from '../../../common/constants.js';
 
-let envConfig;
+const { sesId, envId, origin } = workerData;
 try {
-	envConfig = workerData;
-
 	const stateService = new SimpleStateService();
-	const metadata = await serverAPI.getSessionMetadata(envConfig.sesId, envConfig.envId, envConfig.origin);
+	const metadata = await serverAPI.getSessionMetadata(sesId, envId, origin);
 	stateService.setSessionId(metadata.sessionId);
 	stateService.setEnvironmentId(metadata.id);
 
@@ -29,11 +27,11 @@ try {
 	await runSession(stateService, testExecutor);
 
 	const sesEnvResult = stateService.getAll();
-	await serverAPI.reportSessionResult(envConfig.sesId, envConfig.envId, envConfig.origin, sesEnvResult);
+	await serverAPI.reportSessionResult(sesId, envId, origin, sesEnvResult);
 } catch (e) {
 	console.error(e);
 	console.error('session execution failed due to the previous error/s');
-	await serverAPI.reportSessionResult(envConfig.sesId, envConfig.envId, envConfig.origin, {
+	await serverAPI.reportSessionResult(sesId, envId, origin, {
 		error: e
 	});
 }

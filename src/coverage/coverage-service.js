@@ -27,26 +27,11 @@ async function collectTargetSources(config) {
 	}
 
 	logger.info('collecting coverage targets...');
-	const
-		started = globalThis.performance.now(),
-		options = { nodir: true, nosort: true, ignore: config.exclude },
-		promises = [];
-	for (const i of config.include) {
-		promises.push(new Promise(resolve => {
-			glob(i, options, (err, matches) => {
-				if (err) {
-					logger.error(`failed to collect coverage targets from '${i}': ${err}`);
-					resolve([]);
-				} else {
-					resolve(matches);
-				}
-			})
-		}));
-	}
-	const result = (await Promise.all(promises)).reduce((a, c) => {
-		a.push(...c);
-		return a;
-	}, []);
+	const started = globalThis.performance.now();
+	const result = await glob(config.include, {
+		ignore: config.exclude,
+		nodir: true
+	});
 	logger.info(`... collected ${result.length} coverage targets (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
 	return result;
 }

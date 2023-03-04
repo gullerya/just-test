@@ -22,26 +22,11 @@ function verifyEnrichConfig(testingConfig, clArguments) {
 
 async function collectTestResources(include, exclude) {
 	logger.info('collecting test resources...');
-	const
-		started = globalThis.performance.now(),
-		options = { nodir: true, nosort: true, ignore: exclude },
-		promises = [];
-	for (const i of include) {
-		promises.push(new Promise(resolve => {
-			glob(i, options, (err, matches) => {
-				if (err) {
-					logger.error(`failed to collect test resources from '${i}': ${err}`);
-					resolve([]);
-				} else {
-					resolve(matches);
-				}
-			})
-		}));
-	}
-	const result = (await Promise.all(promises)).reduce((a, c) => {
-		a.push(...c);
-		return a;
-	}, []);
+	const started = globalThis.performance.now();
+	const result = await glob(include, {
+		ignore: exclude,
+		nodir: true
+	});
 	logger.info(`... collected ${result.length} test resource/s (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
 	logger.info(result);
 	return result;
