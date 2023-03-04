@@ -13,7 +13,6 @@ import { runSession } from '../../session-service.js';
 import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 import { EVENT } from '../../../common/constants.js';
 
-let sesEnvResult;
 let envConfig;
 const stateService = new SimpleStateService();
 try {
@@ -29,14 +28,13 @@ try {
 	const testExecutor = createNodeJSExecutor(metadata, stateService);
 	await runSession(stateService, testExecutor);
 
-	console.info(`collecting results...`);
-	sesEnvResult = stateService.getAll();
+	const sesEnvResult = stateService.getAll();
+	await serverAPI.reportSessionResult(envConfig.sesId, envConfig.envId, envConfig.origin, sesEnvResult);
 } catch (e) {
 	console.error(e);
 	console.error('session execution failed due to the previous error/s');
 	//	TODO: the below one should probably be replaced with the error state
-	sesEnvResult = stateService.getAll();
-} finally {
+	const sesEnvResult = stateService.getAll();
 	await serverAPI.reportSessionResult(envConfig.sesId, envConfig.envId, envConfig.origin, sesEnvResult);
 }
 

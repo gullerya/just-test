@@ -23,6 +23,7 @@ test('suite PLAN - base API FAIL', async () => {
 	const rp = new Promise(r => {
 		ec.listenToChild(r);
 	});
+	await rp;
 
 	assert.throws(async () => await test('name', { ecKey: localECKey, only: true, skip: true }, () => { }), 'at the same time');
 });

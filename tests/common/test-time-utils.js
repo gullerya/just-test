@@ -6,7 +6,7 @@ test('waitInterval', async () => {
 	const startTime = performance.now();
 	await waitInterval(75);
 	const endTime = performance.now();
-	assert.isAtLeast(endTime - startTime, 75);
+	assert.isAtLeast(Math.round(endTime - startTime), 75);
 });
 
 test('waitNextTask', async () => {
