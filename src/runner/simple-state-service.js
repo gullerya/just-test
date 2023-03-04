@@ -10,7 +10,6 @@ import { TestRun } from '../testing/model/test-run.js';
 export default class SimpleStateService {
 	constructor(initState) {
 		this.model = initState || new Session();
-		console.info(`state service ${this.constructor.name} initialized`);
 	}
 
 	setSessionId(sessionId) {
@@ -156,7 +155,7 @@ export default class SimpleStateService {
 				config: Object.assign({}, suite.config),
 				tests: suite.tests.map(test => {
 					return {
-						id: test.id,
+						name: test.name,
 						source: test.source,
 						config: Object.assign({}, test.config)
 					};

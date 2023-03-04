@@ -1,10 +1,8 @@
 ﻿import { assert } from 'chai';
-import { getSuite } from 'just-test/runner';
-import { CHAR_SOURCES, getRandom } from 'just-test/random-utils';
+import { test } from '@gullerya/just-test';
+import { CHAR_SOURCES, getRandom } from '../../src/common/random-utils.js';
 
-const suite = getSuite('Random utils');
-
-suite.test('random all', () => {
+test('random all', () => {
 	const it = 100;
 	const rl = 8;
 	const sm = new Set();
@@ -18,7 +16,7 @@ suite.test('random all', () => {
 	}
 });
 
-suite.test('random numeric', () => {
+test('random numeric', () => {
 	const it = 100;
 	const rl = 10;
 	const sm = new Set();
@@ -33,7 +31,7 @@ suite.test('random numeric', () => {
 	}
 });
 
-suite.test('random alpha lower', () => {
+test('random alpha lower', () => {
 	const it = 100;
 	const rl = 12;
 	const sm = new Set();
@@ -48,7 +46,7 @@ suite.test('random alpha lower', () => {
 	}
 });
 
-suite.test('random alpha upper', () => {
+test('random alpha upper', () => {
 	const it = 100;
 	const rl = 14;
 	const sm = new Set();
@@ -63,7 +61,7 @@ suite.test('random alpha upper', () => {
 	}
 });
 
-suite.test('random alpha all', () => {
+test('random alpha all', () => {
 	const it = 100;
 	const rl = 16;
 	const sm = new Set();
@@ -78,14 +76,14 @@ suite.test('random alpha all', () => {
 	}
 });
 
-suite.test('negative - length null', () => {
+test('negative - length null', () => {
 	assert.throws(() => getRandom(null), 'MUST be a number');
 });
 
-suite.test('negative - length less then 1', () => {
+test('negative - length less then 1', () => {
 	assert.throws(() => getRandom(0), 'MUST be a number');
 });
 
-suite.test('negative - length above the 128', () => {
+test('negative - length above the 128', () => {
 	assert.throws(() => getRandom(200), 'MUST be a number');
 });

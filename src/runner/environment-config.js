@@ -5,8 +5,6 @@ export {
 	EXECUTION_MODES
 }
 
-// let cachedEnvConfig;
-
 const EXECUTION_CONTEXT_SYMBOL = Symbol.for('JUST_TEST_EXECUTION_CONTEXT');
 const ENVIRONMENT_KEYS = Object.freeze({
 	TEST_ID: 'test-id',
@@ -20,58 +18,68 @@ const EXECUTION_MODES = Object.freeze({
 	TEST: 'TEST'
 });
 
-// class EnvConfig {
-// 	constructor(sesId, envId, serverOrigin) {
-// 		if (!sesId) {
-// 			throw new Error(`invalid config parameter (ses ID): ${sesId}`);
-// 		}
-// 		if (!envId) {
-// 			throw new Error(`invalid config parameter (env ID): ${envId}`);
-// 		}
-// 		if (!serverOrigin) {
-// 			throw new Error(`invalid config parameter (server origin): ${serverOrigin}`);
-// 		}
-
-// 		this.sesId = sesId;
-// 		this.envId = envId;
-// 		this.serverOrigin = serverOrigin;
-// 		Object.freeze(this);
-// 	}
-// }
-
-class ExecutionContext {
+class BaseExecutionContext {
 	#mode;
 	#testId;
-	#parentPort = null;
-	#childPort = null;
 
-	constructor(mode, testId, childPort) {
-		if (!mode || !(mode in EXECUTION_MODES)) {
-			throw new Error(`one of the [${EXECUTION_MODES}] expected, received: ${mode}`);
-		}
-
+	constructor(mode, testId) {
 		this.#mode = mode;
 		this.#testId = testId;
-		if (!childPort) {
-			const mc = new MessageChannel();
-			this.#parentPort = mc.port1;
-			this.#childPort = mc.port2;
-		} else {
-			this.#childPort = childPort;
-		}
-
-		Object.freeze(this);
 	}
 
 	get mode() { return this.#mode; }
 	get testId() { return this.#testId; }
-	get childPort() { return this.#childPort; }
-	get parentPort() { return this.#parentPort; }
 }
 
-function setExecutionContext(key = EXECUTION_CONTEXT_SYMBOL, mode, childPort = null, testId = null) {
-	const context = new ExecutionContext(mode, testId, childPort);
-	globalThis[key] = context;
+class PlanningExecutionContext extends BaseExecutionContext {
+	#suiteName;
+	#testConfigs = [];
+
+	constructor() {
+		super(EXECUTION_MODES.PLAN);
+		Object.freeze(this);
+	}
+
+	addTestConfig(testConfig) {
+		this.#testConfigs.push(testConfig);
+	}
+
+	get testConfigs() { return this.#testConfigs; }
+	get suiteName() { return this.#suiteName; }
+	set suiteName(value) { this.#suiteName = value; }
+}
+
+class TestingExecutionContext extends BaseExecutionContext {
+	#startHandler;
+	#endHandler;
+
+	constructor(testId, startHandler, endHandler) {
+		super(EXECUTION_MODES.TEST, testId);
+		this.#startHandler = startHandler;
+		this.#endHandler = endHandler;
+		Object.freeze(this);
+	}
+
+	get startHandler() { return this.#startHandler; }
+	get endHandler() { return this.#endHandler; }
+}
+
+function setExecutionContext(mode, testId = null, startHandler, endHandler, key = EXECUTION_CONTEXT_SYMBOL) {
+	let result;
+	switch (mode) {
+		case EXECUTION_MODES.PLAN: {
+			result = new PlanningExecutionContext();
+			break;
+		}
+		case EXECUTION_MODES.TEST: {
+			result = new TestingExecutionContext(testId, startHandler, endHandler);
+			break;
+		}
+		default:
+			throw new Error(`unexpected execution mode '${mode}'`);
+	}
+	globalThis[key] = result;
+	return result;
 }
 
 function getExecutionContext(key = EXECUTION_CONTEXT_SYMBOL) {

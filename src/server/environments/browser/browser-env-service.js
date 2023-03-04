@@ -9,7 +9,7 @@
  * @param {string} envConfig.browser in this context expected always to equal true
  */
 import Logger, { FileOutput } from '../../logger/logger.js';
-import { INTEROP_NAMES, SESSION_ENVIRONMENT_KEYS } from '../../../common/constants.js';
+import { INTEROP_NAMES } from '../../../common/constants.js';
 import { waitInterval } from '../../../common/time-utils.js';
 import { config as serverConfig } from '../../server-service.js';
 import { collectTargetSources } from '../../../coverage/coverage-service.js';

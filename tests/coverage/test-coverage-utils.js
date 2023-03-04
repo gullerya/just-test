@@ -1,10 +1,8 @@
 import { assert } from 'chai';
-import { getSuite } from 'just-test/runner';
+import { test } from '@gullerya/just-test';
 import { buildJTFileCov } from '../../src/coverage/model/model-utils.js';
 
-const suite = getSuite('Coverage utils');
-
-suite.test('build model - negative (bad source URL, not a string)', async () => {
+test('build model - negative (bad source URL, not a string)', async () => {
 	await buildJTFileCov(5)
 		.then(
 			() => assert.fail('should not get here'),
@@ -12,7 +10,7 @@ suite.test('build model - negative (bad source URL, not a string)', async () => 
 		);
 });
 
-suite.test('build model - negative (bad source URL, empty string)', async () => {
+test('build model - negative (bad source URL, empty string)', async () => {
 	await buildJTFileCov('')
 		.then(
 			() => assert.fail('should not get here'),
@@ -20,7 +18,7 @@ suite.test('build model - negative (bad source URL, empty string)', async () => 
 		);
 });
 
-suite.test('build model - negative (bad everImported, not a boolean)', async () => {
+test('build model - negative (bad everImported, not a boolean)', async () => {
 	await buildJTFileCov('url', 6)
 		.then(
 			() => assert.fail('should not get here'),
@@ -28,7 +26,7 @@ suite.test('build model - negative (bad everImported, not a boolean)', async () 
 		);
 });
 
-suite.test('build model - negative (bad sourceFetcher, not a function)', async () => {
+test('build model - negative (bad sourceFetcher, not a function)', async () => {
 	await buildJTFileCov('url', false, 'string')
 		.then(
 			() => assert.fail('should not get here'),
@@ -36,7 +34,7 @@ suite.test('build model - negative (bad sourceFetcher, not a function)', async (
 		);
 });
 
-suite.test('build model - Windows line separator', async () => {
+test('build model - Windows line separator', async () => {
 	const fileCov = await buildJTFileCov('url', true, () => Promise.resolve(`line 1\r\nline 2\r\n\r\nline 4`));
 	assert.deepStrictEqual(fileCov, {
 		url: 'url',
@@ -50,7 +48,7 @@ suite.test('build model - Windows line separator', async () => {
 	});
 });
 
-suite.test('build model - Unix line separator', async () => {
+test('build model - Unix line separator', async () => {
 	const fileCov = await buildJTFileCov('url', false, () => Promise.resolve(`line 1\nline 2\n\nline 4`));
 	assert.deepStrictEqual(fileCov, {
 		url: 'url',
@@ -64,7 +62,7 @@ suite.test('build model - Unix line separator', async () => {
 	});
 });
 
-suite.test('build model - remark, single line', async () => {
+test('build model - remark, single line', async () => {
 	const fileCov = await buildJTFileCov('url', true, () => Promise.resolve(`
 		line 2
 		line 3
@@ -84,7 +82,7 @@ suite.test('build model - remark, single line', async () => {
 	});
 });
 
-suite.test('build model - remark, multi line', async () => {
+test('build model - remark, multi line', async () => {
 	const fileCov = await buildJTFileCov('url', true, () => Promise.resolve(`
 		/* rem
 		   rem
@@ -101,7 +99,7 @@ suite.test('build model - remark, multi line', async () => {
 	});
 });
 
-suite.test('build model - remark, multi line (all in)', async () => {
+test('build model - remark, multi line (all in)', async () => {
 	const fileCov = await buildJTFileCov('url', false, () => Promise.resolve(`
 		line 2 /* rem */
 		line 3
@@ -117,7 +115,7 @@ suite.test('build model - remark, multi line (all in)', async () => {
 	});
 });
 
-suite.test('build model - remark, multi line (spit around)', async () => {
+test('build model - remark, multi line (spit around)', async () => {
 	const fileCov = await buildJTFileCov('url', false, () => Promise.resolve(`
 		line 2 /* start remark here...
 		... end remark here */ line 3

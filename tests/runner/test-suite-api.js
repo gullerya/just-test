@@ -19,14 +19,14 @@ test('suite PLAN - base API', async () => {
 });
 
 test('suite PLAN - base API FAIL', async () => {
-	const pp = prepareExecutionContext();
-	const rp = new Promise(r => { pp.onmessage = r; pp.unref(); });
+	const ec = prepareExecutionContext();
+	const rp = new Promise(r => {
+		ec.listenToChild(r);
+	});
 
 	assert.throws(async () => await test('name', { ecKey: localECKey, only: true, skip: true }, () => { }), 'at the same time');
 });
 
 function prepareExecutionContext(mode = EXECUTION_MODES.PLAN) {
-	const mc = new MessageChannel();
-	setExecutionContext(localECKey, mode, mc.port2);
-	return mc.port1;
+	return setExecutionContext(mode, null, localECKey);
 }

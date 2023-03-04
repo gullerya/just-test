@@ -1,28 +1,25 @@
 ﻿import os from 'node:os';
 import { promises as fs } from 'node:fs';
-import path from 'node:path';
 
-process.stdout.write('cleaning "bin"...');
-await fs.rm('./bin', { recursive: true, force: true });
-await fs.mkdir('./bin', { recursive: true });
-process.stdout.write('\t\t\t\t\x1B[32mOK\x1B[0m' + os.EOL);
+try {
+	writeGreen('Starting build...');
 
-process.stdout.write('copying "src" to "bin"...');
-await copyDir('./src', './bin');
-process.stdout.write('\t\t\t\x1B[32mOK\x1B[0m' + os.EOL);
+	write('\tcleaning "bin"...');
+	await fs.rm('./bin', { recursive: true, force: true });
+	await fs.mkdir('./bin', { recursive: true });
 
-process.stdout.write('\x1B[32mBUILD DONE\x1B[0m' + os.EOL + os.EOL);
+	write('\tcopying "src" to "bin"...');
+	await fs.cp('./src', './bin', { recursive: true });
 
-async function copyDir(src, dst) {
-	const entries = await fs.readdir(src);
-	for (const entry of entries) {
-		const srcPath = path.join(src, entry);
-		const dstPath = path.join(dst, entry);
-		if ((await fs.lstat(srcPath)).isDirectory()) {
-			await fs.mkdir(dstPath);
-			await copyDir(srcPath, dstPath);
-		} else {
-			await fs.copyFile(srcPath, dstPath);
-		}
-	}
+	writeGreen(`Done${os.EOL}`);
+} catch (e) {
+	write(`Failed with error: ${e}`);
+}
+
+// helpers
+function write(text, newLine = true) {
+	process.stdout.write(`${text}${newLine ? os.EOL : ''}`);
+}
+function writeGreen(text, newLine = true) {
+	write(`\x1B[32m${text}\x1B[0m`, newLine);
 }

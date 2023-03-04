@@ -5,7 +5,6 @@ export {
 }
 
 async function getSessionMetadata(sesId, envId, serverOrigin) {
-	console.info(`fetching session metadata...`);
 	const getSessionConfigUrl = `${serverOrigin}/api/v1/sessions/${sesId}/environments/${envId}/config`;
 	const getSessionTestUrls = `${serverOrigin}/api/v1/sessions/${sesId}/environments/${envId}/test-file-paths`;
 	const [config, testPaths] = await Promise.all([

@@ -7,7 +7,6 @@
  * @param {boolean} envConfig.interactive in this context expected always to equal true
  */
 import Logger from '../../logger/logger.js';
-import { SESSION_ENVIRONMENT_KEYS } from '../../../common/constants.js';
 import { config as serverConfig } from '../../server-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 

@@ -74,8 +74,6 @@ Typical usage of the JustTest would involve two steps:<br/>
 
 	var JT = window.Utils.JustTest, suite;
 
-	suite = JT.createSuite({ name: 'Suite object APIs' });
-
 	suite.addTest({						//	options list described in API section below
 		name: 'JustTest namespace created okay'
 	}, function (pass, fail) {

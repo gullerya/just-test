@@ -5,53 +5,49 @@ import { promisify } from 'node:util';
 import minimatch from 'minimatch';
 import { workerData, parentPort as sessionRunnerPort } from 'node:worker_threads';
 import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
-import { EVENT } from '../../../common/constants.js';
 import { v8toJustTest } from '../../../coverage/coverage-service.js';
+import { EVENT } from '../../../common/constants.js';
 
-const envConfig = workerData;
-const isCoverage = Boolean(workerData.coverage);
-const eventBus = new MessageChannel();
+const { testName, suiteName, testSource, coverage } = workerData;
 const currentBase = pathToFileURL(cwd()).href;
 
 let sessionPost;
 
-if (isCoverage) {
-	sessionPost = await setupCoverage();
+if (coverage) {
+	sessionPost = await initCoverage();
 }
 
-eventBus.port1.on('message', processRunnerMessage);
-eventBus.port1.on('messageerror', processMessageError);
-eventBus.port1.unref();
+setExecutionContext(EXECUTION_MODES.TEST, testName, runStartHandler, runEndHandler);
 
-setExecutionContext(EXECUTION_MODES.TEST, eventBus.port2, envConfig.testId);
-import(pathToFileURL(envConfig.testSource));
+await import(pathToFileURL(testSource));
 
 //
 // internal methods
 //
-async function processRunnerMessage(message) {
-	if (message.type === EVENT.RUN_STARTED) {
-		sessionRunnerPort.postMessage(message);
-	} else if (message.type === EVENT.RUN_ENDED) {
-		if (isCoverage) {
-			try {
-				const coverage = await collectCoverage();
-				const jtCoverage = await v8toJustTest(coverage);
-				message.run.coverage = jtCoverage;
-			} catch (e) {
-				console.error(`failed to collect coverage: ${e}`);
-			}
-		}
-		sessionRunnerPort.postMessage(message);
+async function runStartHandler(tName) {
+	if (tName !== testName) {
+		throw new Error(`expected to get result of test '${testName}', but received of '${tName}'`);
 	}
+	sessionRunnerPort.postMessage({ type: EVENT.RUN_START, suiteName, testName });
 }
 
-function processMessageError(messageError) {
-	console.log(`messaging error: ${messageError}`);
+async function runEndHandler(tName, run) {
+	if (tName !== testName) {
+		throw new Error(`expected to get result of test '${testName}', but received of '${tName}'`);
+	}
+	if (coverage) {
+		try {
+			const coverage = await collectCoverage();
+			run.coverage = await v8toJustTest(coverage);
+		} catch (e) {
+			console.error(`failed to collect coverage of '${testName}': ${e}`);
+		}
+	}
+	sessionRunnerPort.postMessage({ type: EVENT.RUN_END, suiteName, testName, run });
 }
 
 //	TODO: consider to move to coverage service
-async function setupCoverage() {
+async function initCoverage() {
 	const session = new Session();
 	session.connect();
 	const sessionPostProm = promisify(session.post).bind(session);

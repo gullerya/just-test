@@ -1,11 +1,12 @@
 {
-	"name": "just-test",
+	"name": "@gullerya/just-test",
 	"version": "3.0.4",
-	"description": "JavaScript tests runner",
+	"description": "JavaScript multiplatform tests runner",
 	"keywords": [
 		"javascript",
 		"testing",
 		"framework",
+		"multiplatform",
 		"test",
 		"tests",
 		"coverage",
@@ -51,15 +52,18 @@
 		"test:ci:node": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-node.json"
 	},
 	"dependencies": {
-		"data-tier": "^3.6.1",
+		"data-tier": "^3.6.6",
 		"data-tier-list": "^2.2.1",
-		"es-module-shims": "^1.6.3",
-		"glob": "^8.1.0",
-		"playwright": "^1.30.0",
+		"es-module-shims": "^1.7.0",
+		"glob": "^9.2.1",
+		"playwright": "^1.31.2",
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
 		"chai": "^4.3.7",
-		"eslint": "^8.33.0"
+		"eslint": "^8.35.0"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }

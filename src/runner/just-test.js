@@ -1,12 +1,12 @@
 //	this is the main just-test SDK harness entrypoint from consumer perspective
 //	this module can found itself running in 3 modes:
 //	- plain_run - simple test execution, no server, no interop, just debugging the tests
-//	- plan - tests registration phase, tests are not being run
+//	- plan - tests planning phase, tests are not being run
 //	- test - test run, only the tests required by environment will be running
 import { getExecutionContext, EXECUTION_MODES } from './environment-config.js';
-import { EVENT, STATUS } from '../common/constants.js';
+import { STATUS } from '../common/constants.js';
 
-export { suite, test }
+export { suite, test, TestDto }
 
 const DEFAULT_SUITE_OPTIONS = {
 	only: false,
@@ -19,6 +19,13 @@ const DEFAULT_TEST_OPTIONS = {
 	skip: false,
 	timeout: 3000
 };
+
+class TestDto {
+	constructor(name, config) {
+		this.name = name;
+		this.config = config;
+	}
+}
 
 const suite = Object.freeze({
 	configure: (name, opts) => {
@@ -35,38 +42,30 @@ const suite = Object.freeze({
 });
 
 async function test(name, opts, code) {
+	const { name: nameF, opts: optsF, code: codeF } = validate(name, opts, code);
+
 	const ecKey = opts.ecKey || undefined;
 	delete opts.ecKey;
 	const ec = getExecutionContext(ecKey);
 	if (ec) {
 		switch (ec.mode) {
-			case EXECUTION_MODES.TEST: {
-				ec.childPort.postMessage({
-					type: EVENT.RUN_START,
-					testName: name
-				});
-				const run = await executeRun(name, opts, code);
-				ec.childPort.postMessage({
-					type: EVENT.RUN_END,
-					testName: name,
-					run
-				});
-				return run;
-			}
 			case EXECUTION_MODES.PLAN: {
-				const { name: nameF, opts: optsF } = validate(name, opts, code);
-				ec.childPort.postMessage({
-					type: EVENT.TEST_PLAN,
-					testName: nameF,
-					testOpts: optsF
-				});
+				ec.addTestConfig({ name: nameF, config: optsF });
 				break;
+			}
+			case EXECUTION_MODES.TEST: {
+				if (ec.testId !== name) {
+					return null;
+				}
+				await ec.startHandler(name);
+				const run = await executeRun(nameF, optsF, codeF);
+				await ec.endHandler(name, run);
+				return run;
 			}
 			default:
 				throw new Error(`unexpected execution mode: ${ec.mode}`);
 		}
 	} else {
-		const { name: nameF, opts: optsF, code: codeF } = validate(name, opts, code);
 		return await executeRun(nameF, optsF, codeF);
 	}
 }
@@ -103,7 +102,6 @@ async function executeRun(name, opts, code) {
 		};
 	}
 
-	console.info(`'${name}' started...`);
 	const run = {};
 	const timeoutError = new Error(`timeout assertion: run of '${name}' exceeded ${opts.timeout}ms`);
 	let runError;
@@ -125,7 +123,6 @@ async function executeRun(name, opts, code) {
 		run.time = Math.round((globalThis.performance.now() - start) * 10000) / 10000;
 		finalizeRun(run, runError);
 	}
-	console.info(`'${name}' ${run.status.toUpperCase()} in ${run.time}ms`);
 
 	return run;
 }
