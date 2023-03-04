@@ -14,10 +14,10 @@ import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.j
 import { EVENT } from '../../../common/constants.js';
 
 let envConfig;
-const stateService = new SimpleStateService();
 try {
 	envConfig = workerData;
 
+	const stateService = new SimpleStateService();
 	const metadata = await serverAPI.getSessionMetadata(envConfig.sesId, envConfig.envId, envConfig.origin);
 	stateService.setSessionId(metadata.sessionId);
 	stateService.setEnvironmentId(metadata.id);
@@ -33,9 +33,9 @@ try {
 } catch (e) {
 	console.error(e);
 	console.error('session execution failed due to the previous error/s');
-	//	TODO: the below one should probably be replaced with the error state
-	const sesEnvResult = stateService.getAll();
-	await serverAPI.reportSessionResult(envConfig.sesId, envConfig.envId, envConfig.origin, sesEnvResult);
+	await serverAPI.reportSessionResult(envConfig.sesId, envConfig.envId, envConfig.origin, {
+		error: e
+	});
 }
 
 // internals
@@ -74,14 +74,13 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 		const worker = new Worker(workerUrl, {
 			workerData: {
 				testName: test.name,
-				suiteName: suiteName,
 				testSource: test.source,
 				coverage: sessionMetadata.coverage
 			}
 		});
 		//	TODO: the basic messaging interaction shoule be done via BroadcastChannel
 		worker.on('message', message => {
-			const { type, suiteName, testName, run } = message;
+			const { type, testName, run } = message;
 			if (type === EVENT.RUN_START) {
 				stateService.updateRunStarted(suiteName, testName);
 			} else if (type === EVENT.RUN_END) {

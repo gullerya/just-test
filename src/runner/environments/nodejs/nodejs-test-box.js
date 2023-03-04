@@ -8,12 +8,12 @@ import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.j
 import { v8toJustTest } from '../../../coverage/coverage-service.js';
 import { EVENT } from '../../../common/constants.js';
 
-const { testName, suiteName, testSource, coverage } = workerData;
+const { testName, testSource, coverage: coverageConfig } = workerData;
 const currentBase = pathToFileURL(cwd()).href;
 
 let sessionPost;
 
-if (coverage) {
+if (coverageConfig) {
 	sessionPost = await initCoverage();
 }
 
@@ -28,14 +28,14 @@ async function runStartHandler(tName) {
 	if (tName !== testName) {
 		throw new Error(`expected to get result of test '${testName}', but received of '${tName}'`);
 	}
-	sessionRunnerPort.postMessage({ type: EVENT.RUN_START, suiteName, testName });
+	sessionRunnerPort.postMessage({ type: EVENT.RUN_START, testName });
 }
 
 async function runEndHandler(tName, run) {
 	if (tName !== testName) {
 		throw new Error(`expected to get result of test '${testName}', but received of '${tName}'`);
 	}
-	if (coverage) {
+	if (coverageConfig) {
 		try {
 			const coverage = await collectCoverage();
 			run.coverage = await v8toJustTest(coverage);
@@ -43,7 +43,7 @@ async function runEndHandler(tName, run) {
 			console.error(`failed to collect coverage of '${testName}': ${e}`);
 		}
 	}
-	sessionRunnerPort.postMessage({ type: EVENT.RUN_END, suiteName, testName, run });
+	sessionRunnerPort.postMessage({ type: EVENT.RUN_END, testName, run });
 }
 
 //	TODO: consider to move to coverage service
