@@ -1,10 +1,11 @@
 name: Quality pipeline
 
 on:
-  push:
-    branches: ["*"]
+  pull_request:
+    branches:
+      - main
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 */12 * * *"
 
 jobs:
   quality_pipeline_static_analysis:
@@ -27,7 +28,6 @@ jobs:
 
   quality_pipeline_chromium:
     runs-on: ubuntu-20.04
-    if: "false"
 
     steps:
       - name: Checkout
@@ -45,7 +45,7 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm run test:ci
+        run: npm run test:ci:chromium
 
       - name: Report coverage
         uses: codecov/codecov-action@v3

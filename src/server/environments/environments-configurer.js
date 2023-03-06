@@ -35,11 +35,7 @@ export default environment => {
 
 function processBrowser(b) {
 	validateBrowser(b);
-	const result = { type: b.type };
-	if (b.scheme) {
-		result.scheme = b.scheme;
-	}
-	return result;
+	return b;
 }
 
 function processInteractive(i) {

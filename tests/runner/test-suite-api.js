@@ -1,5 +1,5 @@
 ﻿import { assert } from 'chai';
-import { test } from 'just-test';
+import { test } from '../../src/runner/just-test.js';
 import { EXECUTION_MODES, setExecutionContext } from '../../src/runner/environment-config.js';
 
 const localECKey = 'test-suite-api-ec';

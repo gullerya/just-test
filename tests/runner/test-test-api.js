@@ -1,6 +1,6 @@
-﻿import { test } from 'just-test';
-import { assert } from 'chai';
-import { waitInterval } from 'just-test/time-utils';
+﻿import { assert } from 'chai';
+import { test } from '@gullerya/just-test';
+import { waitInterval } from '@gullerya/just-test/time-utils';
 import { STATUS } from '../../src/common/constants.js';
 
 //	sync

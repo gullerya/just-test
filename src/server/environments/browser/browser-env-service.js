@@ -15,6 +15,7 @@ import { config as serverConfig } from '../../server-service.js';
 import { collectTargetSources } from '../../../coverage/coverage-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 import playwright from 'playwright';
+import { ENVIRONMENT_KEYS } from '../../../runner/environment-config.js';
 
 export default launch;
 
@@ -84,8 +85,8 @@ class BrowserEnvImpl extends EnvironmentBase {
 		browser.once('disconnected', () => this.onDisconnected());
 
 		const envEntryUrl = `${serverConfig.origin}/core/runner/environments/browser/browser-session-box.html` +
-			`?${SESSION_ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}` +
-			`&${SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`;
+			`?${ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}` +
+			`&${ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`;
 		logger.info(`navigating testing environment to '${envEntryUrl}'...`);
 		await mainPage.goto(envEntryUrl);
 

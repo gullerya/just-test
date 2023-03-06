@@ -46,7 +46,7 @@
 		"lint:runner": "eslint -c ./ci/.eslintrc.runner.json \"./src/runner/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/runner/**/*.js\"",
 		"lint:server": "eslint -c ./ci/.eslintrc.server.json \"./src/common/**/*.js\" \"./src/server/**/*.js\" \"./src/*.js\" \"./ci/**/*.js\" \"./tests/server/**/*.js\"",
 		"test:dev": "npm run build && node ./bin/local-runner.js config_file=./tests/tests-config-dev.json",
-		"test:ci": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-chromium.json",
+		"test:ci:chromium": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-chromium.json",
 		"test:ci:firefox": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-firefox.json",
 		"test:ci:webkit": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-webkit.json",
 		"test:ci:node": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-node.json"
@@ -60,8 +60,11 @@
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
-		"chai": "^4.3.7",
-		"eslint": "^8.35.0"
+		"eslint": "^8.35.0",
+		"chai": "^5.0.0-alpha.0",
+		"assertion-error": "^2.0.0",
+		"get-func-name": "^2.0.0",
+		"type-detect": "^4.0.8"
 	},
 	"publishConfig": {
 		"access": "public"

@@ -23,9 +23,11 @@ try {
 	console.info(`planning session contents (suites/tests)...`);
 	await planSession(metadata.testPaths, stateService);
 
+	console.info(`running session ...`);
 	const testExecutor = createNodeJSExecutor(metadata, stateService);
 	await runSession(stateService, testExecutor);
 
+	console.info(`reporting session ...`);
 	const sesEnvResult = stateService.getAll();
 	await serverAPI.reportSessionResult(sesId, envId, origin, sesEnvResult);
 } catch (e) {
