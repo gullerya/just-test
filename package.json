@@ -37,6 +37,7 @@
 	],
 	"exports": {
 		".": "./bin/runner/just-test.js",
+		"./assert": "./bin/common/assert-utils.js",
 		"./random-utils": "./bin/common/random-utils.js",
 		"./time-utils": "./bin/common/time-utils.js"
 	},
@@ -60,11 +61,7 @@
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
-		"eslint": "^8.35.0",
-		"chai": "^5.0.0-alpha.0",
-		"assertion-error": "^2.0.0",
-		"get-func-name": "^2.0.0",
-		"type-detect": "^4.0.8"
+		"eslint": "^8.35.0"
 	},
 	"publishConfig": {
 		"access": "public"

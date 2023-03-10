@@ -1,5 +1,5 @@
-﻿import { assert } from 'chai';
-import { test } from '@gullerya/just-test';
+﻿import { assert } from '../../src/common/assert-utils.js';
+import { test } from '../../src/runner/just-test.js';
 import {
 	TEST_ID_SEPARATOR,
 	getTestId,

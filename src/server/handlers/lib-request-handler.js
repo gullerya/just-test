@@ -37,7 +37,7 @@ export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 			}).end(content);
 		} catch (error) {
 			if (error.code === 'ENOENT') {
-				logger.warn(`sending 404 for '${handlerRelativePath}'`);
+				this.#logger.warn(`sending 404 for '${handlerRelativePath}'`);
 				res.writeHead(404).end();
 			} else {
 				throw error;
