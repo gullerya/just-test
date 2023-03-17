@@ -6,7 +6,7 @@ test('waitInterval', async () => {
 	const startTime = performance.now();
 	await waitInterval(75);
 	const endTime = performance.now();
-	assert.ok(Math.round(endTime - startTime) >= 75);
+	assert.isTrue(Math.round(endTime - startTime) >= 75);
 });
 
 test('waitNextTask', async () => {
@@ -15,7 +15,7 @@ test('waitNextTask', async () => {
 	ordered.push('a');
 	await waitNextTask();
 	ordered.push('c');
-	assert.ok(ordered.indexOf('a') === 0);
-	assert.ok(ordered.indexOf('b') === 1);
-	assert.ok(ordered.indexOf('c') === 2);
+	assert.isTrue(ordered.indexOf('a') === 0);
+	assert.isTrue(ordered.indexOf('b') === 1);
+	assert.isTrue(ordered.indexOf('c') === 2);
 });

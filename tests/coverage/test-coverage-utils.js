@@ -3,35 +3,31 @@ import { test } from '../../src/runner/just-test.js';
 import { buildJTFileCov } from '../../src/coverage/model/model-utils.js';
 
 test('build model - negative (bad source URL, not a string)', async () => {
-	await buildJTFileCov(5)
-		.then(
-			() => assert.fail('should not get here'),
-			e => assert.include(e.message, 'source URL MUST be a non-empty string')
-		);
+	await assert.rejects(
+		async () => await buildJTFileCov(5),
+		'source URL MUST be a non-empty string'
+	);
 });
 
 test('build model - negative (bad source URL, empty string)', async () => {
-	await buildJTFileCov('')
-		.then(
-			() => assert.fail('should not get here'),
-			e => assert.include(e.message, 'source URL MUST be a non-empty string')
-		);
+	await assert.rejects(
+		async () => await buildJTFileCov(''),
+		'source URL MUST be a non-empty string'
+	);
 });
 
 test('build model - negative (bad everImported, not a boolean)', async () => {
-	await buildJTFileCov('url', 6)
-		.then(
-			() => assert.fail('should not get here'),
-			e => assert.include(e.message, 'even imported MUST be a boolean')
-		);
+	await assert.rejects(
+		async () => await buildJTFileCov('url', 6),
+		'even imported MUST be a boolean'
+	);
 });
 
 test('build model - negative (bad sourceFetcher, not a function)', async () => {
-	await buildJTFileCov('url', false, 'string')
-		.then(
-			() => assert.fail('should not get here'),
-			e => assert.include(e.message, 'source fetcher MUST be a function')
-		);
+	await assert.rejects(
+		async () => await buildJTFileCov('url', false, 'string'),
+		'source fetcher MUST be a function'
+	);
 });
 
 test('build model - Windows line separator', async () => {

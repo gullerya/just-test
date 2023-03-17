@@ -57,7 +57,7 @@ class Assert {
 		if (expected == null && actual == null) {
 			return true;
 		}
-		for (const key of expected) {
+		for (const key in expected) {
 			if (typeof expected[key] === 'object') {
 				this.deepEqual(actual[key], expected[key], message);
 			} else if (actual[key] != expected[key]) {
@@ -85,7 +85,7 @@ class Assert {
 		if (expected === undefined && actual === undefined) {
 			return true;
 		}
-		for (const key of expected) {
+		for (const key in expected) {
 			if (typeof expected[key] === 'object') {
 				this.deepStrictEqual(actual[key], expected[key], message);
 			} else if (actual[key] !== expected[key]) {
@@ -105,21 +105,23 @@ class Assert {
 				}
 			});
 	}
-	rejects(asyncFn, error = Error, message) {
-		let handled = false;
-		return asyncFn()
-			.catch(e => {
-				if (e instanceof error || e.message?.indexOf(error) >= 0) {
-					handled = true;
+	async rejects(asyncFn, error = Error, message) {
+		try {
+			await asyncFn()
+		} catch (e) {
+			if (typeof error === 'object' || typeof error === 'function') {
+				if (!(e instanceof error)) {
+					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
+				}
+			} else if (typeof error === 'string' || error instanceof RegExp) {
+				if (!e.message?.match(error)) {
+					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
 				} else {
-					throw new AssertionError({ message, actual: e, expected: error, operator: 'rejects' });
+					return;
 				}
-			})
-			.finally(() => {
-				if (!handled) {
-					throw new AssertionError({ message, actual: undefined, expected: error, operator: 'rejects' });
-				}
-			});
+			}
+		}
+		throw new AssertionError({ message, actual: undefined, expected: error, operator: 'throws' });
 	}
 
 	doesNotThrow(fn, error = Error, message) {
@@ -139,9 +141,11 @@ class Assert {
 				if (!(e instanceof error)) {
 					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
 				}
-			} else {
-				if (e.message?.indexOf(error) < 0) {
+			} else if (typeof error === 'string' || error instanceof RegExp) {
+				if (!e.message?.match(error)) {
 					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
+				} else {
+					return;
 				}
 			}
 		}

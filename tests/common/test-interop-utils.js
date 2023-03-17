@@ -25,7 +25,7 @@ test('parseTestId - 2 parts', () => {
 });
 
 test('getValidName - negative (undefined)', () => {
-	assert.throw(() => getValidName(), 'name MUST be a string');
+	assert.throws(() => getValidName(), 'name MUST be a string');
 });
 
 test('getValidName - negative (null)', () => {
