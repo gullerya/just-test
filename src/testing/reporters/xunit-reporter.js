@@ -22,7 +22,7 @@ function report(results) {
 		eEl.setAttribute('type', error.type);
 		eEl.setAttribute('message', error.message);
 		eEl.textContent = error.stacktrace;
-		rDoc.documentElement.appendChild(sEl);
+		rDoc.documentElement.appendChild(eEl);
 
 		sessionErrors++;
 	});
@@ -41,33 +41,37 @@ function report(results) {
 			const lastRun = test.lastRun;
 			const tEl = rDoc.createElement('testcase');
 			tEl.setAttribute('name', test.name);
-			tEl.setAttribute('time', Math.round(lastRun.time) / 1000);
-			tEl.setAttribute('status', lastRun.status);
 
-			if (lastRun.status === STATUS.FAIL) {
-				suiteFailures++;
-				const fEl = rDoc.createElement('failure');
-				console.log(lastRun.error);
-				if (lastRun.error) {
-					fEl.setAttribute('type', lastRun.error.type);
-					fEl.setAttribute('message', lastRun.error.message);
-					fEl.textContent = lastRun.error.stacktrace;
+			if (lastRun) {
+				tEl.setAttribute('time', Math.round(lastRun.time) / 1000);
+				tEl.setAttribute('status', lastRun.status);
+
+				if (lastRun.status === STATUS.FAIL) {
+					suiteFailures++;
+					const fEl = rDoc.createElement('failure');
+					console.log(lastRun.error);
+					if (lastRun.error) {
+						fEl.setAttribute('type', lastRun.error.type);
+						fEl.setAttribute('message', lastRun.error.message);
+						fEl.textContent = lastRun.error.stacktrace;
+					}
+					tEl.appendChild(fEl);
+				} else if (lastRun.status === STATUS.ERROR) {
+					suiteErrors++;
+					const eEl = rDoc.createElement('error');
+					if (lastRun.error) {
+						eEl.setAttribute('type', lastRun.error.type);
+						eEl.setAttribute('message', lastRun.error.message);
+						eEl.textContent = lastRun.error.stacktrace;
+					}
+					tEl.appendChild(eEl);
+				} else if (lastRun.status === STATUS.SKIP) {
+					suiteSkips++;
+					const eEl = rDoc.createElement('skipped');
+					tEl.appendChild(eEl);
 				}
-				tEl.appendChild(fEl);
-			} else if (lastRun.status === STATUS.ERROR) {
-				suiteErrors++;
-				const eEl = rDoc.createElement('error');
-				if (lastRun.error) {
-					eEl.setAttribute('type', lastRun.error.type);
-					eEl.setAttribute('message', lastRun.error.message);
-					eEl.textContent = lastRun.error.stacktrace;
-				}
-				tEl.appendChild(eEl);
-			} else if (lastRun.status === STATUS.SKIP) {
-				suiteSkips++;
-				const eEl = rDoc.createElement('skipped');
-				tEl.appendChild(eEl);
 			}
+
 
 			sEl.appendChild(tEl);
 		});

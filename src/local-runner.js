@@ -84,11 +84,14 @@ async function executeSession(serverBaseUrl, clArguments) {
 	const testCoverages = sessionResult.suites
 		.flatMap(s => s.tests)
 		.map(t => {
-			return {
-				testId: t.id,
-				coverage: t.lastRun.coverage
-			};
-		});
+			return t && t.lastRun
+				? {
+					testId: t.id,
+					coverage: t.lastRun.coverage
+				}
+				: null;
+		})
+		.filter(Boolean);
 	const targetSources = await collectTargetSources(config.environments[0].coverage);
 	const fileCoverages = await Promise.all(
 		targetSources

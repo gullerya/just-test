@@ -92,7 +92,6 @@ export default class SimpleStateService {
 			name: error.name,
 			type: error.constructor.name,
 			message: error.message,
-			cause,
 			stacktrace
 		});
 		this.#model.error++;
