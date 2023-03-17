@@ -1,5 +1,5 @@
 import os from 'node:os';
-import { promises as fs } from 'node:fs';
+import fs from 'node:fs/promises';
 import process from 'node:process';
 import { start, stop } from './server/cli.js';
 import { xUnitReporter } from './testing/testing-service.js';
@@ -77,7 +77,8 @@ async function executeSession(serverBaseUrl, clArguments) {
 	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
 
 	//	test report
-	xUnitReporter.report(sessionResult, 'reports/results.xml');
+	const reportText = xUnitReporter.report(sessionResult);
+	await fs.writeFile('reports/results.xml', reportText, { encoding: 'utf-8' });
 
 	//	coverage report
 	const testCoverages = sessionResult.suites

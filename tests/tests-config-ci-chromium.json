@@ -4,16 +4,7 @@
 			"browser": {
 				"type": "chromium",
 				"importmap": {
-					"imports": {
-						"assertion-error": "/libs/assertion-error/dist/mod.js",
-						"chai": "/libs/chai/index.mjs",
-						"check-error": "/libs/check-error/index.js",
-						"deep-eql": "/libs/deep-eql/index.js",
-						"get-func-name": "/libs/get-func-name/index.js",
-						"loupe": "/libs/loupe/index.js",
-						"pathval": "/libs/pathval/index.js",
-						"type-detect": "/libs/type-detect/index.js"
-					}
+					"imports": {}
 				}
 			},
 			"tests": {

@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import { STATUS } from '../../common/constants.js';
 import { getDOMImplementation } from '../../common/xml/dom-implementation.js';
 
@@ -7,7 +6,7 @@ export default Object.freeze({
 	report: report
 });
 
-function report(results, reportPath) {
+function report(results) {
 	const DOMImplementation = getDOMImplementation();
 
 	const rDoc = DOMImplementation.instance.createDocument(null, 'testsuites');
@@ -17,6 +16,16 @@ function report(results, reportPath) {
 	let sessionFailures = 0;
 	let sessionErrors = 0;
 	let sessionSkips = 0;
+
+	results.errors.forEach(error => {
+		const eEl = rDoc.createElement('error');
+		eEl.setAttribute('type', error.type);
+		eEl.setAttribute('message', error.message);
+		eEl.textContent = error.stacktrace;
+		rDoc.documentElement.appendChild(sEl);
+
+		sessionErrors++;
+	});
 
 	results.suites.forEach(suite => {
 		const sEl = rDoc.createElement('testsuite');
@@ -80,6 +89,5 @@ function report(results, reportPath) {
 	rDoc.documentElement.setAttribute('errors', sessionErrors);
 	rDoc.documentElement.setAttribute('skipped', sessionSkips);
 
-	const reportText = new DOMImplementation.XMLSerializer().serializeToString(rDoc);
-	fs.writeFileSync(reportPath, reportText, { encoding: 'utf-8' });
+	return new DOMImplementation.XMLSerializer().serializeToString(rDoc);
 }

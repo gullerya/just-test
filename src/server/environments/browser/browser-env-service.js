@@ -22,6 +22,9 @@ export default launch;
 const logger = new Logger({ context: 'browser env service' });
 
 class BrowserEnvImpl extends EnvironmentBase {
+	#envConfig;
+	#browser;
+	#browsingContext;
 
 	/**
 	 * construct browser environment for a specific session
@@ -32,8 +35,10 @@ class BrowserEnvImpl extends EnvironmentBase {
 	constructor(sessionId, envConfig) {
 		super(sessionId);
 
-		this.envConfig = envConfig;
-		this.browser = null;
+		this.#envConfig = envConfig;
+		this.#browser = null;
+		this.#browsingContext = null;
+
 		this.consoleLogger = null;
 		this.coverageSession = null;
 		this.scriptsCoverageMap = null;
@@ -44,21 +49,21 @@ class BrowserEnvImpl extends EnvironmentBase {
 	}
 
 	async launch() {
-		const browserType = this.envConfig.browser.type;
+		const browserType = this.#envConfig.browser.type;
 		logger.info(`launching '${browserType}' environment...`);
-		const browser = await playwright[browserType].launch();
+		this.#browser = await playwright[browserType].launch();
 
-		this.consoleLogger = new FileOutput(`./reports/logs/${browserType}-${browser.version()}.log`);
+		this.consoleLogger = new FileOutput(`./reports/logs/${browserType}-${this.#browser.version()}.log`);
 		const bLogger = new Logger({
-			context: `${browserType}-${browser.version()}`,
+			context: `${browserType}-${this.#browser.version()}`,
 			outputs: [this.consoleLogger]
 		});
 
-		const browsingContext = await browser.newContext();
-		const mainPage = await browsingContext.newPage();
+		this.#browsingContext = await this.#browser.newContext();
+		const mainPage = await this.#browsingContext.newPage();
 
-		if (this.envConfig.coverage) {
-			await this.installCoverageCollector(this.envConfig.coverage, browsingContext, mainPage);
+		if (this.#envConfig.coverage) {
+			await this.installCoverageCollector(this.#envConfig.coverage, this.#browsingContext, mainPage);
 		}
 		mainPage.on('console', async msg => {
 			const type = msg.type();
@@ -77,20 +82,18 @@ class BrowserEnvImpl extends EnvironmentBase {
 			this.dismiss();
 		});
 
-		logger.info(`setting timeout for the whole tests execution to ${this.envConfig.tests.ttl}ms as per configuration`);
+		logger.info(`setting timeout for the whole tests execution to ${this.#envConfig.tests.ttl}ms as per configuration`);
 		this.timeoutHandle = setTimeout(() => {
 			logger.error('tests execution timed out, dismissing the environment...');
 			this.dismiss();
-		}, this.envConfig.tests.ttl);
-		browser.once('disconnected', () => this.onDisconnected());
+		}, this.#envConfig.tests.ttl);
+		this.#browser.once('disconnected', () => this.onDisconnected());
 
 		const envEntryUrl = `${serverConfig.origin}/core/runner/environments/browser/browser-session-box.html` +
 			`?${ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}` +
-			`&${ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`;
+			`&${ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.#envConfig.id}`;
 		logger.info(`navigating testing environment to '${envEntryUrl}'...`);
 		await mainPage.goto(envEntryUrl);
-
-		this.browser = browser;
 	}
 
 	async installCoverageCollector(coverageConfig, browsingContext, _mainPage) {
@@ -135,13 +138,20 @@ class BrowserEnvImpl extends EnvironmentBase {
 
 	async dismiss() {
 		if (!this.dismissPromise) {
-			logger.info(`dismissing environment '${this.envConfig.id}'...`);
 			this.dismissPromise = waitInterval(999)
 				.then(async () => {
 					await this.consoleLogger.close();
 					const artifacts = await this.collectArtifacts();
-					await BrowserEnvImpl.closeBrowser(this.browser);
-					logger.info(`... environment '${this.envConfig.id}' dismissed`);
+
+					logger.info('closing browsing context...');
+					await this.#browsingContext.close();
+					logger.info('... closed');
+
+
+					logger.info('closing browser...');
+					await this.#browser.close();
+					logger.info('... closed');
+
 					return artifacts;
 				});
 		}
@@ -150,7 +160,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 
 	onDisconnected() {
 		clearTimeout(this.timeoutHandle);
-		logger.info(`browser environment '${this.envConfig.id}' disconnected`);
+		logger.info(`browser environment '${this.#envConfig.id}' disconnected`);
 	}
 
 	async collectArtifacts() {
@@ -188,12 +198,6 @@ class BrowserEnvImpl extends EnvironmentBase {
 	async collectLogs() {
 		//	TODO
 		return null;
-	}
-
-	static async closeBrowser(browser) {
-		logger.info('closing browser...');
-		await browser.close();
-		logger.info('... browser closed');
 	}
 }
 

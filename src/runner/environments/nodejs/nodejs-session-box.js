@@ -14,28 +14,26 @@ import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.j
 import { EVENT } from '../../../common/constants.js';
 
 const { sesId, envId, origin } = workerData;
+const stateService = new SimpleStateService();
 try {
-	const stateService = new SimpleStateService();
 	const metadata = await serverAPI.getSessionMetadata(sesId, envId, origin);
 	stateService.setSessionId(metadata.sessionId);
 	stateService.setEnvironmentId(metadata.id);
 
-	console.info(`planning session contents (suites/tests)...`);
+	console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
 	await planSession(metadata.testPaths, stateService);
 
-	console.info(`running session ...`);
 	const testExecutor = createNodeJSExecutor(metadata, stateService);
 	await runSession(stateService, testExecutor);
-
-	console.info(`reporting session ...`);
-	const sesEnvResult = stateService.getAll();
-	await serverAPI.reportSessionResult(sesId, envId, origin, sesEnvResult);
 } catch (e) {
+	stateService.reportError(e);
 	console.error(e);
 	console.error('session execution failed due to the previous error/s');
-	await serverAPI.reportSessionResult(sesId, envId, origin, {
-		error: e
-	});
+} finally {
+	console.info(`reporting '${envId}':'${sesId}' results...`);
+	const sessionResult = stateService.getResult();
+	await serverAPI.reportSessionResult(sesId, envId, origin, sessionResult);
+	console.info(`session '${envId}':'${sesId}' finalized`);
 }
 
 // internals

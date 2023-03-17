@@ -11,27 +11,26 @@ import { runSession } from '../../session-service.js';
 import { ENVIRONMENT_KEYS, EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
 
 const { sesId, envId, serverOrigin } = await getEnvironmentConfig();
+const stateService = new SimpleStateService();
 try {
-	const stateService = new SimpleStateService();
 	const metadata = await serverAPI.getSessionMetadata(sesId, envId, serverOrigin);
 	stateService.setSessionId(metadata.sessionId);
 	stateService.setEnvironmentId(metadata.id);
 
-	console.info(`planning session contents (suites/tests)...`);
+	console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
 	await planSession(metadata.testPaths, stateService);
 
-	console.info(`running session ...`);
+	console.info(`running ${stateService.getExecutionData().suites.length} suite/s ...`);
 	await runSession(metadata, stateService);
-
-	console.info(`reporting session ...`);
-	const sesEnvResult = stateService.getAll();
-	await serverAPI.reportSessionResult(sesId, envId, serverOrigin, sesEnvResult);
 } catch (e) {
+	stateService.reportError(e);
 	console.error(e);
 	console.error('session execution failed due to the previous error/s');
-	await serverAPI.reportSessionResult(sesId, envId, serverOrigin, {
-		error: e
-	});
+} finally {
+	console.info(`reporting '${envId}':'${sesId}' results...`);
+	const sessionResult = stateService.getResult();
+	await serverAPI.reportSessionResult(sesId, envId, serverOrigin, sessionResult);
+	console.info(`session '${envId}':'${sesId}' finalized`);
 }
 
 // internals
