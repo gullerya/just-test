@@ -1,7 +1,6 @@
 import { getSuiteFactory } from '../test-runner.js';
 import { TestRunWorker } from '../../ipc-service/ipc-service-browser.js';
 import { INTEROP_NAMES, TESTBOX_ENVIRONMENT_KEYS } from '../../../common/constants.js';
-import '/libs/chai/chai.js';
 
 //	flow starts from parent's IPC handshake
 globalThis.addEventListener('message', me => {

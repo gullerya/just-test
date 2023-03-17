@@ -8,6 +8,7 @@
  * @param {string} envConfig.node in this context expected always to equal true
  */
 import { Worker } from 'node:worker_threads';
+import { waitInterval } from '../../../common/time-utils.js';
 import Logger, { FileOutput } from '../../logger/logger.js';
 import { config as serverConfig } from '../../server-service.js';
 import { EnvironmentBase } from '../environment-base.js';
@@ -19,8 +20,6 @@ const logger = new Logger({ context: 'NodeJS env service' });
 class NodeEnvImpl extends EnvironmentBase {
 	#envConfig;
 	#consoleLogger;
-	#dismissPromise;
-	#timeoutHandle;
 	#worker;
 
 	/**
@@ -34,8 +33,6 @@ class NodeEnvImpl extends EnvironmentBase {
 
 		this.#envConfig = envConfig;
 		this.#consoleLogger = null;
-		this.#dismissPromise = null;
-		this.#timeoutHandle = null;
 
 		Object.seal(this);
 	}
@@ -53,6 +50,8 @@ class NodeEnvImpl extends EnvironmentBase {
 		this.#worker = new Worker(
 			new URL('../../../runner/environments/nodejs/nodejs-session-box.js', import.meta.url),
 			{
+				stdout: true,
+				stderr: this,
 				workerData: {
 					sesId: this.sessionId,
 					envId: this.#envConfig.id,
@@ -62,7 +61,7 @@ class NodeEnvImpl extends EnvironmentBase {
 		);
 		this.#worker.stdout.on('data', data => nLogger.info(data.toString().trim()));
 		this.#worker.stderr.on('data', data => nLogger.error(data.toString().trim()));
-		this.#worker.on('message', logger.info);
+
 		this.#worker.on('error', error => {
 			logger.error(error);
 		});
@@ -73,7 +72,8 @@ class NodeEnvImpl extends EnvironmentBase {
 	}
 
 	async dismiss() {
-		//await this.#worker.terminate();
+		await waitInterval(100);
+		await this.#worker.terminate();
 	}
 }
 
