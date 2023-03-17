@@ -72,7 +72,7 @@ async function planSession(testsResources, stateService) {
 	console.info(`... ${testsResources.length} test resource/s fetched (planning phase) in ${(ended - started).toFixed(1)}ms`);
 }
 
-function createIFrameExecutor(metadata, stateService) {
+function createIFrameExecutor(metadata, _stateService) {
 	return (test, suiteName) => {
 		const encTestId = encodeURIComponent(test.id);
 		const d = globalThis.document;
@@ -91,11 +91,11 @@ function createIFrameExecutor(metadata, stateService) {
 	};
 }
 
-function createPageExecutor(metadata, stateService) {
+function createPageExecutor(metadata, _stateService) {
 	return (test, suiteName) => { };
 }
 
-function createWebWorkerExecutor(metadata, stateService) {
+function createWebWorkerExecutor(metadata, _stateService) {
 	const workerUrl = new URL('./nodejs-test-box.js', import.meta.url);
 
 	return (test, suiteName) => {
@@ -111,9 +111,9 @@ function createWebWorkerExecutor(metadata, stateService) {
 		worker.on('message', message => {
 			const { type, testName, run } = message;
 			if (type === EVENT.RUN_START) {
-				stateService.updateRunStarted(suiteName, testName);
+				_stateService.updateRunStarted(suiteName, testName);
 			} else if (type === EVENT.RUN_END) {
-				stateService.updateRunEnded(suiteName, testName, run);
+				_stateService.updateRunEnded(suiteName, testName, run);
 			}
 		});
 		worker.on('error', error => {

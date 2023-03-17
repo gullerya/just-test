@@ -38,7 +38,7 @@ try {
 
 // internals
 //
-async function planSession(testsResources, stateService) {
+async function planSession(testsResources, _stateService) {
 	const started = globalThis.performance.now();
 
 	console.info(`fetching ${testsResources.length} test resource/s...`);
@@ -48,7 +48,7 @@ async function planSession(testsResources, stateService) {
 			execContext.suiteName = tr;
 			await import(url.pathToFileURL(tr));
 			for (const { name, config } of execContext.testConfigs) {
-				stateService.addTest({
+				_stateService.addTest({
 					name,
 					config,
 					source: tr,
@@ -65,7 +65,7 @@ async function planSession(testsResources, stateService) {
 	console.info(`... ${testsResources.length} test resource/s fetched (planning phase) in ${(ended - started).toFixed(1)}ms`);
 }
 
-function createNodeJSExecutor(sessionMetadata, stateService) {
+function createNodeJSExecutor(sessionMetadata, _stateService) {
 	const workerUrl = new URL('./nodejs-test-box.js', import.meta.url);
 
 	return (test, suiteName) => {
@@ -81,9 +81,9 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 		worker.on('message', message => {
 			const { type, testName, run } = message;
 			if (type === EVENT.RUN_START) {
-				stateService.updateRunStarted(suiteName, testName);
+				_stateService.updateRunStarted(suiteName, testName);
 			} else if (type === EVENT.RUN_END) {
-				stateService.updateRunEnded(suiteName, testName, run);
+				_stateService.updateRunEnded(suiteName, testName, run);
 			}
 		});
 		worker.on('error', error => {
