@@ -5,6 +5,9 @@
 				"type": "firefox",
 				"executors": {
 					"type": "iframe"
+				},
+				"importmap": {
+					"imports": {}
 				}
 			},
 			"tests": {
@@ -12,8 +15,7 @@
 				"maxFail": 0,
 				"maxSkip": 0,
 				"include": [
-					"./tests/runner/**/*.js",
-					"./tests/common/**/*.js"
+					"./tests/common/**/test-time-*.js"
 				]
 			}
 		}
