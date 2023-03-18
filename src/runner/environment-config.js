@@ -8,6 +8,7 @@ export {
 const EXECUTION_CONTEXT_SYMBOL = Symbol.for('JUST_TEST_EXECUTION_CONTEXT');
 const ENVIRONMENT_KEYS = Object.freeze({
 	TEST_ID: 'test-id',
+	TEST_SOURCE: 'test-source',
 	SESSION_ID: 'ses-id',
 	ENVIRONMENT_ID: 'env-id',
 	SERVER_ORIGIN: 'server-origin'

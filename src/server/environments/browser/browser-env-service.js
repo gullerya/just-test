@@ -25,6 +25,8 @@ class BrowserEnvImpl extends EnvironmentBase {
 	#envConfig;
 	#browser;
 	#browsingContext;
+	#coverageSession;
+	#scriptsCoverageMap;
 
 	/**
 	 * construct browser environment for a specific session
@@ -36,12 +38,8 @@ class BrowserEnvImpl extends EnvironmentBase {
 		super(sessionId);
 
 		this.#envConfig = envConfig;
-		this.#browser = null;
-		this.#browsingContext = null;
 
 		this.consoleLogger = null;
-		this.coverageSession = null;
-		this.scriptsCoverageMap = null;
 		this.dismissPromise = null;
 		this.timeoutHandle = null;
 
@@ -62,9 +60,6 @@ class BrowserEnvImpl extends EnvironmentBase {
 		this.#browsingContext = await this.#browser.newContext();
 		const mainPage = await this.#browsingContext.newPage();
 
-		if (this.#envConfig.coverage) {
-			await this.installCoverageCollector(this.#envConfig.coverage, this.#browsingContext, mainPage);
-		}
 		mainPage.on('console', async msg => {
 			const type = msg.type();
 			for (const msgArg of msg.args()) {
@@ -81,6 +76,14 @@ class BrowserEnvImpl extends EnvironmentBase {
 			bLogger.info('dismissing the environment due to previous error/s...');
 			this.dismiss();
 		});
+		this.#browsingContext.on('page', async page => {
+			if (this.#envConfig.coverage) {
+				await this.installCoverageCollector(this.#envConfig.coverage, this.#browsingContext, page);
+			}
+		});
+		if (this.#envConfig.coverage) {
+			await this.installCoverageCollector(this.#envConfig.coverage, this.#browsingContext, mainPage);
+		}
 
 		logger.info(`setting timeout for the whole tests execution to ${this.#envConfig.tests.ttl}ms as per configuration`);
 		this.timeoutHandle = setTimeout(() => {
@@ -89,11 +92,11 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}, this.#envConfig.tests.ttl);
 		this.#browser.once('disconnected', () => this.onDisconnected());
 
-		const envEntryUrl = `${serverConfig.origin}/core/runner/environments/browser/browser-session-box.html` +
-			`?${ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}` +
-			`&${ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.#envConfig.id}`;
+		const envEntryUrl = new URL(`${serverConfig.origin}/core/runner/environments/browser/browser-session-box.html`);
+		envEntryUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, this.sessionId);
+		envEntryUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, this.#envConfig.id);
 		logger.info(`navigating testing environment to '${envEntryUrl}'...`);
-		await mainPage.goto(envEntryUrl);
+		await mainPage.goto(envEntryUrl.toString());
 	}
 
 	async installCoverageCollector(coverageConfig, browsingContext, _mainPage) {
@@ -104,19 +107,19 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}
 
 		//	install coverage session
-		this.coverageSession = await browsingContext.newCDPSession(_mainPage);
+		this.#coverageSession = await browsingContext.newCDPSession(_mainPage);
 		await Promise.all([
-			this.coverageSession.send('Profiler.enable'),
-			this.coverageSession.send('Debugger.enable'),
+			this.#coverageSession.send('Profiler.enable'),
+			this.#coverageSession.send('Debugger.enable'),
 		]);
 		await Promise.all([
-			this.coverageSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true }),
-			this.coverageSession.send('Debugger.setSkipAllPauses', { skip: true })
+			this.#coverageSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true }),
+			this.#coverageSession.send('Debugger.setSkipAllPauses', { skip: true })
 		]);
 
 		//	install test registrar and scripts listener
-		this.scriptsCoverageMap = {};
-		browsingContext.exposeBinding(INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE, async ({ page }, testId) => {
+		this.#scriptsCoverageMap = {};
+		browsingContext.exposeBinding(INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE, async ({ page }, testName) => {
 			const session = await browsingContext.newCDPSession(page);
 
 			await Promise.all([
@@ -126,8 +129,8 @@ class BrowserEnvImpl extends EnvironmentBase {
 
 			session.on('Debugger.scriptParsed', e => {
 				if (e.url.startsWith(`${serverConfig.origin}/aut/`)) {
-					if (!this.scriptsCoverageMap[e.scriptId]) {
-						this.scriptsCoverageMap[e.scriptId] = testId;
+					if (!this.#scriptsCoverageMap[e.scriptId]) {
+						this.#scriptsCoverageMap[e.scriptId] = testName;
 					} else {
 						console.error(`unexpected duplication of script ${e.scriptId} [${e.url}]`);
 					}
@@ -172,14 +175,14 @@ class BrowserEnvImpl extends EnvironmentBase {
 	}
 
 	async collectCoverage() {
-		if (!this.coverageSession) {
+		if (!this.#coverageSession) {
 			return null;
 		}
 
 		const result = {};
-		const jsCoverage = (await this.coverageSession.send('Profiler.takePreciseCoverage')).result;
+		const jsCoverage = (await this.#coverageSession.send('Profiler.takePreciseCoverage')).result;
 		for (const scriptCoverage of jsCoverage) {
-			const testId = this.scriptsCoverageMap[scriptCoverage.scriptId];
+			const testId = this.#scriptsCoverageMap[scriptCoverage.scriptId];
 			if (!testId) {
 				continue;
 			}

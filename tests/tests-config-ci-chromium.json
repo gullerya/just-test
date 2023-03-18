@@ -3,6 +3,9 @@
 		{
 			"browser": {
 				"type": "chromium",
+				"executors": {
+					"type": "worker"
+				},
 				"importmap": {
 					"imports": {}
 				}

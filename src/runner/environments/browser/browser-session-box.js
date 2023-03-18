@@ -9,29 +9,34 @@ import * as serverAPI from '../../server-api-service.js';
 import SimpleStateService from '../../simple-state-service.js';
 import { runSession } from '../../session-service.js';
 import { ENVIRONMENT_KEYS, EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
+import { EVENT, STATUS } from '../../../common/constants.js';
 
-const { sesId, envId, serverOrigin } = await getEnvironmentConfig();
-const stateService = new SimpleStateService();
-try {
-	const metadata = await serverAPI.getSessionMetadata(sesId, envId, serverOrigin);
-	stateService.setSessionId(metadata.sessionId);
-	stateService.setEnvironmentId(metadata.id);
+(async () => {
+	const { sesId, envId, serverOrigin } = await getEnvironmentConfig();
+	const stateService = new SimpleStateService();
+	try {
+		const metadata = await serverAPI.getSessionMetadata(sesId, envId, serverOrigin);
+		stateService.setSessionId(metadata.sessionId);
+		stateService.setEnvironmentId(metadata.id);
 
-	console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
-	await planSession(metadata.testPaths, stateService);
+		console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
+		await planSession(metadata.testPaths, stateService);
 
-	const testExecutor = createIFrameExecutor(metadata, stateService);
-	await runSession(stateService, testExecutor);
-} catch (e) {
-	stateService.reportError(e);
-	console.error(e);
-	console.error('session execution failed due to the previous error/s');
-} finally {
-	console.info(`reporting '${envId}':'${sesId}' results...`);
-	const sessionResult = stateService.getResult();
-	await serverAPI.reportSessionResult(sesId, envId, serverOrigin, sessionResult);
-	console.info(`session '${envId}':'${sesId}' finalized`);
-}
+		const testExecutor = metadata.browser.executors?.type === 'iframe'
+			? getIFrameExecutorFactory(metadata, stateService)
+			: getWorkerExecutorFactory(metadata, stateService);
+		await runSession(stateService, testExecutor);
+	} catch (e) {
+		stateService.reportError(e);
+		console.error(e);
+		console.error('session execution failed due to the previous error/s');
+	} finally {
+		console.info(`reporting '${envId}':'${sesId}' results...`);
+		const sessionResult = stateService.getResult();
+		await serverAPI.reportSessionResult(sesId, envId, serverOrigin, sessionResult);
+		console.info(`session '${envId}':'${sesId}' finalized`);
+	}
+})();
 
 // internals
 //
@@ -72,58 +77,80 @@ async function planSession(testsResources, stateService) {
 	console.info(`... ${testsResources.length} test resource/s fetched (planning phase) in ${(ended - started).toFixed(1)}ms`);
 }
 
-function createIFrameExecutor(metadata, _stateService) {
+function getIFrameExecutorFactory(metadata, stateService) {
+	const iframeUrl = new URL('./browser-test-box.html', import.meta.url);
+	iframeUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, metadata.sessionId);
+	iframeUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, metadata.id);
+
 	return (test, suiteName) => {
-		const encTestId = encodeURIComponent(test.id);
+		//	TODO: this should be reasource pooled
 		const d = globalThis.document;
 		const f = d.createElement('iframe');
-		f.name = encTestId;
+		f.name = test.name;
 		f.classList.add('just-test-execution-frame');
-		f.src = `/core/runner/environments/browser/browser-test-runner.html?${ENVIRONMENT_KEYS.TEST_ID}=${encTestId}`;
-
-		// inject context and let is start running the code
-		// get info and upon report of test resolve and exit
+		f.src = iframeUrl;
+		d.body.appendChild(f);
 
 		return new Promise(resolve => {
-			//	resolve on done
-			resolve();
+			f.addEventListener('load', () => {
+				f.contentWindow.addEventListener('message', message => {
+					const { type, testName, run } = message.data;
+					if (type === EVENT.RUN_INIT_REQUEST) {
+						f.contentWindow.postMessage({
+							type: EVENT.RUN_INIT_RESPONSE,
+							testName: test.name,
+							testSource: test.source,
+							coverage: metadata.coverage
+						});
+					} else if (type === EVENT.RUN_START) {
+						stateService.updateRunStarted(suiteName, testName);
+					} else if (type === EVENT.RUN_END) {
+						stateService.updateRunEnded(suiteName, testName, run);
+						resolve();
+					}
+				});
+				f.contentWindow.addEventListener('error', ee => {
+					console.error(`worker for test '${test.name}' errored: ${ee}`);
+					stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
+					resolve();
+				});
+			}, { once: true });
 		});
 	};
 }
 
-function createPageExecutor(metadata, _stateService) {
-	return (test, suiteName) => { };
-}
+// function createPageExecutor(metadata, stateService) {
+// 	return (test, suiteName) => { };
+// }
 
-function createWebWorkerExecutor(metadata, _stateService) {
-	const workerUrl = new URL('./nodejs-test-box.js', import.meta.url);
+function getWorkerExecutorFactory(_metadata, stateService) {
+	const workerUrl = new URL('./browser-test-box.js', import.meta.url);
 
 	return (test, suiteName) => {
 		//	TODO: this should be reasource pooled
-		const worker = new Worker(workerUrl, {
-			workerData: {
-				testName: test.name,
-				testSource: test.source,
-				coverage: sessionMetadata.coverage
-			}
-		});
-		//	TODO: the basic messaging interaction shoule be done via BroadcastChannel
-		worker.on('message', message => {
-			const { type, testName, run } = message;
-			if (type === EVENT.RUN_START) {
-				_stateService.updateRunStarted(suiteName, testName);
-			} else if (type === EVENT.RUN_END) {
-				_stateService.updateRunEnded(suiteName, testName, run);
-			}
-		});
-		worker.on('error', error => {
-			console.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
-		});
+		const worker = new Worker(workerUrl, { type: 'module' });
 
 		return new Promise(resolve => {
-			worker.on('exit', exitCode => {
-				// console.debug(`worker for test '${test.name}' exited with code ${exitCode}`);
-				resolve(exitCode);
+			worker.addEventListener('message', message => {
+				const { type, testName, run } = message.data;
+				if (type === EVENT.RUN_INIT_REQUEST) {
+					worker.postMessage({
+						type: EVENT.RUN_INIT_RESPONSE,
+						testName: test.name,
+						testSource: test.source,
+						coverage: null
+					});
+				} else if (type === EVENT.RUN_START) {
+					stateService.updateRunStarted(suiteName, testName);
+				} else if (type === EVENT.RUN_END) {
+					stateService.updateRunEnded(suiteName, testName, run);
+					resolve();
+				}
+			});
+			worker.addEventListener('error', ee => {
+				console.error(`worker for test '${test.name}' errored: ${ee}`);
+				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
+				resolve();
 			});
 		});
 	};

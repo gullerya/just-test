@@ -41,13 +41,15 @@ export default class RunnerCoreRequestHandler extends RequestHandlerBase {
 				const sp = new URL(req.url, 'http://localhost').searchParams;
 				const sesId = sp.get(ENVIRONMENT_KEYS.SESSION_ID);
 				const envId = sp.get(ENVIRONMENT_KEYS.ENVIRONMENT_ID);
-				const session = await getSession(sesId);
-				const importMap = session.config.environments[envId].browser.importmap;
-				if (importMap) {
-					result = result.replace(
-						'<!--IMPORT_MAP_PLACEHOLDER-->',
-						`<script type="importmap">${JSON.stringify(importMap)}</script>`
-					);
+				if (sesId && envId) {
+					const session = await getSession(sesId);
+					const importMap = session.config.environments[envId].browser.importmap;
+					if (importMap) {
+						result = result.replace(
+							'<!--IMPORT_MAP_PLACEHOLDER-->',
+							`<script type="importmap">${JSON.stringify(importMap)}</script>`
+						);
+					}
 				}
 			}
 

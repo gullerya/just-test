@@ -139,8 +139,13 @@ export default class SimpleStateService {
 	 */
 	updateRunEnded(suiteName, testName, run) {
 		const test = this.getTest(suiteName, testName);
-		Object.assign(test.runs[test.runs.length - 1], run);
-		Object.assign(test.lastRun, run);
+		if (!test.runs.length) {
+			test.lastRun = run;
+			test.runs.push(test.lastRun);
+		} else {
+			Object.assign(test.runs[test.runs.length - 1], run);
+			Object.assign(test.lastRun, run);
+		}
 
 		//	update session globals
 		this.#model[run.status]++;
