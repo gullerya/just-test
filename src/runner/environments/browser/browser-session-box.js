@@ -89,7 +89,6 @@ function getIFrameExecutorFactory(metadata, stateService) {
 		const d = globalThis.document;
 		const f = d.createElement('iframe');
 		f.name = test.name;
-		f.classList.add('just-test-execution-frame');
 		f.src = iframeUrl;
 		d.body.appendChild(f);
 
