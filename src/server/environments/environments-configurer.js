@@ -62,7 +62,7 @@ function validateEnvironment(e) {
 		if (e[pe]) { principalCounter++; }
 	}
 	if (principalCounter !== 1) {
-		throw new Error(`enviroment MUST have one and only one of those [${PRINCIPAL_ENTRIES.join(',')}]`)
+		throw new Error(`enviroment MUST have one and only one of those [${PRINCIPAL_ENTRIES.join(',')}]`);
 	}
 }
 

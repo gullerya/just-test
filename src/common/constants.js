@@ -6,7 +6,7 @@ export {
 	SUITE_CONFIG_DEFAULT,
 	TEST_ID_SEPARATOR,
 	TEST_CONFIG_DEFAULT
-}
+};
 
 const TEST_ID_SEPARATOR = ' => ';
 

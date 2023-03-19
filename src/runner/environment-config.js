@@ -3,7 +3,7 @@ export {
 	getExecutionContext,
 	ENVIRONMENT_KEYS,
 	EXECUTION_MODES
-}
+};
 
 const EXECUTION_CONTEXT_SYMBOL = Symbol.for('JUST_TEST_EXECUTION_CONTEXT');
 const ENVIRONMENT_KEYS = Object.freeze({

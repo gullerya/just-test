@@ -18,7 +18,7 @@ await new Promise(r => {
 export {
 	CHAR_SOURCES,
 	getRandom
-}
+};
 
 function getRandom(len = DEFAULT_RANDOM_LENGTH, charSource = DEFAULT_CHAR_SOURCE) {
 	if (!len || typeof len !== 'number' || isNaN(len) || len > 128 || len < 1) {

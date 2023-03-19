@@ -14,7 +14,7 @@ export {
 	storeResult,
 	getAll,
 	getSession
-}
+};
 
 const logger = new Logger({ context: 'sessions' });
 const sessions = {};

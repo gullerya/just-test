@@ -11,7 +11,7 @@ export {
 	config,
 	start,
 	stop
-}
+};
 
 const
 	logger = new Logger({ context: 'server' }),

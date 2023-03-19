@@ -107,7 +107,7 @@ class Assert {
 	}
 	async rejects(asyncFn, error = Error, message) {
 		try {
-			await asyncFn()
+			await asyncFn();
 		} catch (e) {
 			if (typeof error === 'object' || typeof error === 'function') {
 				if (!(e instanceof error)) {

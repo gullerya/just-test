@@ -52,7 +52,7 @@ async function initCoverage() {
 	session.connect();
 	const sessionPostProm = promisify(session.post).bind(session);
 
-	await sessionPostProm('Profiler.enable')
+	await sessionPostProm('Profiler.enable');
 	await sessionPostProm('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
 
 	return sessionPostProm;

@@ -8,6 +8,12 @@
 		"sourceType": "module"
 	},
 	"rules": {
-		"no-shadow": 2
+		"no-shadow": [
+			"error"
+		],
+		"semi": [
+			"error",
+			"always"
+		]
 	}
 }

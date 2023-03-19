@@ -5,7 +5,7 @@
 export {
 	runSession,
 	runSuite,
-}
+};
 
 async function runSession(stateService, testExecutor) {
 	const started = globalThis.performance.now();

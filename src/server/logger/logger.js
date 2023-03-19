@@ -6,7 +6,7 @@ export {
 	ConsoleOutput,
 	FileOutput,
 	LOG_LEVELS
-}
+};
 
 const LOG_LEVELS = Object.freeze({
 	ERROR: 40,

@@ -1,7 +1,7 @@
 export {
 	getSessionMetadata,
 	reportSessionResult
-}
+};
 
 async function getSessionMetadata(sesId, envId, serverOrigin) {
 	const getSessionConfigUrl = `${serverOrigin}/api/v1/sessions/${sesId}/environments/${envId}/config`;

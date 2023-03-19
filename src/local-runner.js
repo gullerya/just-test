@@ -101,7 +101,7 @@ async function executeSession(serverBaseUrl, clArguments) {
 			.filter(ts => {
 				return !testCoverages
 					.flatMap(tc => tc.coverage)
-					.some(fc => fc.url === ts)
+					.some(fc => fc.url === ts);
 			})
 			.map(ts => buildJTFileCov(ts, false))
 	);

@@ -19,7 +19,7 @@ export {
 	launch,
 	dismiss,
 	dismissAll
-}
+};
 
 const logger = new Logger({ context: 'environments' });
 const environments = {};
