@@ -5,7 +5,7 @@
 export {
 	runSession,
 	runSuite,
-}
+};
 
 async function runSession(stateService, testExecutor) {
 	const started = globalThis.performance.now();
@@ -27,7 +27,7 @@ async function runSuite(suite, testExecutor) {
 		if (test.config.skip) {
 			testPromises.push(Promise.resolve());
 		} else {
-			const runResultPromise = testExecutor(test);
+			const runResultPromise = testExecutor(test, suite.name);
 			if (suite.config.sync) {
 				syncChain = syncChain.finally(() => runResultPromise);
 			} else {

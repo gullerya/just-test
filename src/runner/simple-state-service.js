@@ -8,25 +8,26 @@ import { Suite } from '../testing/model/suite.js';
 import { TestRun } from '../testing/model/test-run.js';
 
 export default class SimpleStateService {
+	#model;
+
 	constructor(initState) {
-		this.model = initState || new Session();
-		console.info(`state service ${this.constructor.name} initialized`);
+		this.#model = initState || new Session();
 	}
 
 	setSessionId(sessionId) {
-		this.model.sessionId = sessionId;
+		this.#model.sessionId = sessionId;
 	}
 
 	setEnvironmentId(environmentId) {
-		this.model.environmentId = environmentId;
+		this.#model.environmentId = environmentId;
 	}
 
-	getAll() {
-		return this.model;
+	getResult() {
+		return this.#model;
 	}
 
 	obtainSuite(suiteName, config) {
-		let result = this.model.suites.find(s => s.name === suiteName);
+		let result = this.#model.suites.find(s => s.name === suiteName);
 		if (!result) {
 			result = new Suite();
 			result.id = suiteName;
@@ -35,15 +36,15 @@ export default class SimpleStateService {
 
 			//	insert preserving alphabetical order
 			let inserted = false;
-			for (let i = 0; i < this.model.suites.length; i++) {
-				if (result.name < this.model.suites[i].name) {
-					this.model.suites.splice(i, 0, result);
+			for (let i = 0; i < this.#model.suites.length; i++) {
+				if (result.name < this.#model.suites[i].name) {
+					this.#model.suites.splice(i, 0, result);
 					inserted = true;
 					break;
 				}
 			}
 			if (!inserted) {
-				this.model.suites.push(result);
+				this.#model.suites.push(result);
 			}
 		}
 		return result;
@@ -51,12 +52,12 @@ export default class SimpleStateService {
 
 	getTest(suiteName, testName) {
 		const suite = this.obtainSuite(suiteName);
-		return SimpleStateService.getTestInternal(suite, testName);
+		return SimpleStateService.#getTestInternal(suite, testName);
 	}
 
 	addTest(test) {
 		const suite = this.obtainSuite(test.suiteName);
-		if (SimpleStateService.getTestInternal(suite, test.name)) {
+		if (SimpleStateService.#getTestInternal(suite, test.name)) {
 			throw new Error(`test '${test.name}' already found in suite '${suite.name}'`);
 		}
 
@@ -69,10 +70,10 @@ export default class SimpleStateService {
 		suite.tests.push(test);
 
 		//	update session globals
-		this.model.total++;
+		this.#model.total++;
 		if (test.config.skip) {
-			this.model.skip++;
-			this.model.done++;
+			this.#model.skip++;
+			this.#model.done++;
 		}
 
 		//	update suite globals
@@ -81,6 +82,19 @@ export default class SimpleStateService {
 			suite.skip++;
 			suite.done++;
 		}
+	}
+
+	reportError(error) {
+		const stacktrace = error.stack.split(/\r\n|\r|\n/)
+			.map(l => l.trim())
+			.filter(Boolean);
+		this.#model.errors.push({
+			name: error.name,
+			type: error.constructor.name,
+			message: error.message,
+			stacktrace
+		});
+		this.#model.error++;
 	}
 
 	/**
@@ -100,13 +114,13 @@ export default class SimpleStateService {
 		test.lastRun = lRun;
 		test.runs.push(lRun);
 		if (pRun) {
-			this.model[pRun.status]--;
-			this.model.done--;
+			this.#model[pRun.status]--;
+			this.#model.done--;
 		}
 
 		//	update session globals
-		if (!this.model.done && !this.model.timestamp) {
-			this.model.timestamp = Date.now();
+		if (!this.#model.done && !this.#model.timestamp) {
+			this.#model.timestamp = Date.now();
 		}
 
 		//	update suite globals
@@ -125,14 +139,19 @@ export default class SimpleStateService {
 	 */
 	updateRunEnded(suiteName, testName, run) {
 		const test = this.getTest(suiteName, testName);
-		Object.assign(test.runs[test.runs.length - 1], run);
-		Object.assign(test.lastRun, run);
+		if (!test.runs.length) {
+			test.lastRun = run;
+			test.runs.push(test.lastRun);
+		} else {
+			Object.assign(test.runs[test.runs.length - 1], run);
+			Object.assign(test.lastRun, run);
+		}
 
 		//	update session globals
-		this.model[run.status]++;
-		this.model.done++;
-		if (this.model.done === this.model.total) {
-			this.model.time = Date.now() - this.model.timestamp;
+		this.#model[run.status]++;
+		this.#model.done++;
+		if (this.#model.done === this.#model.total) {
+			this.#model.time = Date.now() - this.#model.timestamp;
 		}
 
 		//	update suite globals
@@ -150,13 +169,13 @@ export default class SimpleStateService {
 	 * @returns Array - suites/tests definitions
 	 */
 	getExecutionData() {
-		const suitesData = this.model.suites.map(suite => {
+		const suitesData = this.#model.suites.map(suite => {
 			return {
 				name: suite.name,
 				config: Object.assign({}, suite.config),
 				tests: suite.tests.map(test => {
 					return {
-						id: test.id,
+						name: test.name,
 						source: test.source,
 						config: Object.assign({}, test.config)
 					};
@@ -168,7 +187,7 @@ export default class SimpleStateService {
 		});
 	}
 
-	static getTestInternal(suite, testName) {
+	static #getTestInternal(suite, testName) {
 		return suite.tests.find(t => t.name === testName);
 	}
 }

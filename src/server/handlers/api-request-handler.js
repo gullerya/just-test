@@ -72,7 +72,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 				req.on('error', reject);
 				req.on('data', chunk => data += chunk);
 				req.on('end', () => {
-					resolve(JSON.parse(data))
+					resolve(JSON.parse(data));
 				});
 			} catch (error) {
 				reject(error);
@@ -184,7 +184,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 			result.browser = {
 				name: 'custom',
 				version: null
-			}
+			};
 		}
 
 		return result;

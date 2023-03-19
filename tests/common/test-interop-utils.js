@@ -1,5 +1,5 @@
-﻿import { assert } from 'chai';
-import { getSuite } from 'just-test/suite';
+﻿import { assert } from '../../src/common/assert-utils.js';
+import { test } from '../../src/runner/just-test.js';
 import {
 	TEST_ID_SEPARATOR,
 	getTestId,
@@ -7,50 +7,48 @@ import {
 	getValidName
 } from '../../src/common/interop-utils.js';
 
-const suite = getSuite('Interop utils');
-
-suite.test('getTestId - 2 parts', () => {
+test('getTestId - 2 parts', () => {
 	const tid = getTestId('some', 'thing');
 	assert.strictEqual(`some${TEST_ID_SEPARATOR}thing`, tid);
 });
 
-suite.test('getTestId - 3 parts', () => {
+test('getTestId - 3 parts', () => {
 	const tid = getTestId('some', 'thing', 'more');
 	assert.strictEqual(`some${TEST_ID_SEPARATOR}thing${TEST_ID_SEPARATOR}more`, tid);
 });
 
-suite.test('parseTestId - 2 parts', () => {
+test('parseTestId - 2 parts', () => {
 	const base = getTestId('some', 'thing');
 	const [p1, p2] = parseTestId(base);
 	assert.strictEqual('some', p1);
 	assert.strictEqual('thing', p2);
 });
 
-suite.test('getValidName - negative (undefined)', () => {
-	assert.throw(() => getValidName(), 'name MUST be a string');
+test('getValidName - negative (undefined)', () => {
+	assert.throws(() => getValidName(), 'name MUST be a string');
 });
 
-suite.test('getValidName - negative (null)', () => {
+test('getValidName - negative (null)', () => {
 	assert.throws(() => getValidName(null), 'name MUST be a string');
 });
 
-suite.test('getValidName - negative (number)', () => {
+test('getValidName - negative (number)', () => {
 	assert.throws(() => getValidName(5), 'name MUST be a string');
 });
 
-suite.test('getValidName - negative (empty string)', () => {
+test('getValidName - negative (empty string)', () => {
 	assert.throws(() => getValidName(''), 'name MUST NOT be empty');
 });
 
-suite.test('getValidName - negative (emptish string)', () => {
+test('getValidName - negative (emptish string)', () => {
 	assert.throws(() => getValidName('  \t '), 'name MUST NOT be empty');
 });
 
-suite.test('getValidName - negative (invalide sequence within)', () => {
+test('getValidName - negative (invalide sequence within)', () => {
 	assert.throws(() => getValidName(`Some${TEST_ID_SEPARATOR}thing`), 'name MUST NOT include');
 });
 
-suite.test('getValidName', () => {
+test('getValidName', () => {
 	const n = getValidName('  test ');
 	assert.strictEqual('test', n);
 });

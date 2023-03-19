@@ -1,8 +1,9 @@
 name: Quality pipeline
 
 on:
-  push:
-    branches: ["*"]
+  pull_request:
+    branches:
+      - main
   schedule:
     - cron: "0 */12 * * *"
 
@@ -13,12 +14,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
 
       - name: Install
         run: npm ci
@@ -29,16 +30,15 @@ jobs:
   quality_pipeline_chromium:
     runs-on: ubuntu-20.04
     timeout-minutes: 10
-    if: "false"
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
 
       - name: Install
         run: npm ci
@@ -47,10 +47,10 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm run test:ci
+        run: npm run test:ci:chromium
 
       - name: Report coverage
-        run: bash <(curl -s https://codecov.io/bash)
+        uses: codecov/codecov-action@v3
 
   quality_pipeline_firefox:
     runs-on: ubuntu-20.04
@@ -59,12 +59,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
 
       - name: Install
         run: npm ci
@@ -78,16 +78,15 @@ jobs:
   quality_pipeline_webkit:
     runs-on: ubuntu-20.04
     timeout-minutes: 10
-    if: "false"
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
 
       - name: Install
         run: npm ci && npx playwright install-deps
@@ -104,12 +103,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
 
       - name: Install
         run: npm ci
@@ -121,4 +120,4 @@ jobs:
         run: npm run test:ci:node
 
       - name: Report coverage
-        run: bash <(curl -s https://codecov.io/bash)
+        uses: codecov/codecov-action@v3

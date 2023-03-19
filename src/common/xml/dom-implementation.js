@@ -3,7 +3,7 @@ import XMLSerializerImpl from './xml-serializer.js';
 
 export {
 	getDOMImplementation
-}
+};
 
 /**
  * Surrogate and partial implementation of [DOMImplementation]{@link https://developer.mozilla.org/en-US/docs/Web/API/DOMImplementation}

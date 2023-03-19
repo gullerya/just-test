@@ -6,7 +6,7 @@ import ElementImpl from './element.js';
 */
 export default class DocumentImpl extends NodeImpl {
 	constructor(namespaceURI, qualifiedNameStr = null, documentType = null) {
-		super('#document', NodeImpl.DOCUMENT_NODE, null)
+		super('#document', NodeImpl.DOCUMENT_NODE, null);
 		this._namespaceURI = namespaceURI;
 
 		Object.defineProperty(this, 'doctype', { value: documentType });

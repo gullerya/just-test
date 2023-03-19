@@ -12,7 +12,7 @@ import { start as serverStart, stop } from './server-service.js';
 export {
 	start,
 	stop
-}
+};
 
 const logger = new Logger({ context: 'JustTest CLI' });
 const SUPPORTED_ENV_KEY = [];

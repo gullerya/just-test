@@ -14,7 +14,7 @@ export {
 	storeResult,
 	getAll,
 	getSession
-}
+};
 
 const logger = new Logger({ context: 'sessions' });
 const sessions = {};
@@ -61,7 +61,6 @@ async function runSession(sessionId) {
 	const sesEnvs = await launch(session);
 	for (const sesEnv of sesEnvs) {
 		sesEnv.on('dismissed', () => {
-			//	TODO: handle here the abnormal session finalization
 			sesEnvs.splice(sesEnvs.indexOf(sesEnv), 1);
 			if (!sesEnvs.length) {
 				logger.info(`all environments of session ${sessionId} are closed, finalizing session`);
@@ -78,7 +77,8 @@ async function storeResult(sesId, envId, envResult) {
 		throw new Error(`session ID '${sesId}' not exists`);
 	}
 
-	await dismiss(envId);
+	session.result = envResult;
+	logger.info(`environment '${envId}' reported results for session '${sesId}'`);
 
 	// if (artifacts) {
 	// 	if (artifacts.coverage) {
@@ -96,11 +96,8 @@ async function storeResult(sesId, envId, envResult) {
 	// 	}
 	// }
 
-	//	TODO: when multi environmental run will be supported
-	//	TODO: store result per environment and only then the session as a whole
-	//	TODO: or merge the results into one
-	session.result = envResult;
-	logger.info(`environment '${envId}' reported results for session '${sesId}'`);
+	//	we'll not wait for dismissal
+	dismiss(envId);
 }
 
 async function finalizeSession(sessionId) {

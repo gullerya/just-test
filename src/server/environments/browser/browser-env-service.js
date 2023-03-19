@@ -9,18 +9,24 @@
  * @param {string} envConfig.browser in this context expected always to equal true
  */
 import Logger, { FileOutput } from '../../logger/logger.js';
-import { INTEROP_NAMES, SESSION_ENVIRONMENT_KEYS } from '../../../common/constants.js';
+import { INTEROP_NAMES } from '../../../common/constants.js';
 import { waitInterval } from '../../../common/time-utils.js';
 import { config as serverConfig } from '../../server-service.js';
 import { collectTargetSources } from '../../../coverage/coverage-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 import playwright from 'playwright';
+import { ENVIRONMENT_KEYS } from '../../../runner/environment-config.js';
 
 export default launch;
 
 const logger = new Logger({ context: 'browser env service' });
 
 class BrowserEnvImpl extends EnvironmentBase {
+	#envConfig;
+	#browser;
+	#browsingContext;
+	#coverageSession;
+	#scriptsCoverageMap;
 
 	/**
 	 * construct browser environment for a specific session
@@ -31,11 +37,9 @@ class BrowserEnvImpl extends EnvironmentBase {
 	constructor(sessionId, envConfig) {
 		super(sessionId);
 
-		this.envConfig = envConfig;
-		this.browser = null;
+		this.#envConfig = envConfig;
+
 		this.consoleLogger = null;
-		this.coverageSession = null;
-		this.scriptsCoverageMap = null;
 		this.dismissPromise = null;
 		this.timeoutHandle = null;
 
@@ -43,22 +47,19 @@ class BrowserEnvImpl extends EnvironmentBase {
 	}
 
 	async launch() {
-		const browserType = this.envConfig.browser.type;
+		const browserType = this.#envConfig.browser.type;
 		logger.info(`launching '${browserType}' environment...`);
-		const browser = await playwright[browserType].launch();
+		this.#browser = await playwright[browserType].launch();
 
-		this.consoleLogger = new FileOutput(`./reports/logs/${browserType}-${browser.version()}.log`);
+		this.consoleLogger = new FileOutput(`./reports/logs/${browserType}-${this.#browser.version()}.log`);
 		const bLogger = new Logger({
-			context: `${browserType}-${browser.version()}`,
+			context: `${browserType}-${this.#browser.version()}`,
 			outputs: [this.consoleLogger]
 		});
 
-		const browsingContext = await browser.newContext();
-		const mainPage = await browsingContext.newPage();
+		this.#browsingContext = await this.#browser.newContext();
+		const mainPage = await this.#browsingContext.newPage();
 
-		if (this.envConfig.coverage) {
-			await this.installCoverageCollector(this.envConfig.coverage, browsingContext, mainPage);
-		}
 		mainPage.on('console', async msg => {
 			const type = msg.type();
 			for (const msgArg of msg.args()) {
@@ -75,21 +76,27 @@ class BrowserEnvImpl extends EnvironmentBase {
 			bLogger.info('dismissing the environment due to previous error/s...');
 			this.dismiss();
 		});
+		this.#browsingContext.on('page', async page => {
+			if (this.#envConfig.coverage) {
+				await this.installCoverageCollector(this.#envConfig.coverage, this.#browsingContext, page);
+			}
+		});
+		if (this.#envConfig.coverage) {
+			await this.installCoverageCollector(this.#envConfig.coverage, this.#browsingContext, mainPage);
+		}
 
-		logger.info(`setting timeout for the whole tests execution to ${this.envConfig.tests.ttl}ms as per configuration`);
+		logger.info(`setting timeout for the whole tests execution to ${this.#envConfig.tests.ttl}ms as per configuration`);
 		this.timeoutHandle = setTimeout(() => {
 			logger.error('tests execution timed out, dismissing the environment...');
 			this.dismiss();
-		}, this.envConfig.tests.ttl);
-		browser.once('disconnected', () => this.onDisconnected());
+		}, this.#envConfig.tests.ttl);
+		this.#browser.once('disconnected', () => this.onDisconnected());
 
-		const envEntryUrl = `${serverConfig.origin}/core/runner/environments/browser/browser-session-runner.html` +
-			`?${SESSION_ENVIRONMENT_KEYS.SESSION_ID}=${this.sessionId}` +
-			`&${SESSION_ENVIRONMENT_KEYS.ENVIRONMENT_ID}=${this.envConfig.id}`;
+		const envEntryUrl = new URL(`${serverConfig.origin}/core/runner/environments/browser/browser-session-box.html`);
+		envEntryUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, this.sessionId);
+		envEntryUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, this.#envConfig.id);
 		logger.info(`navigating testing environment to '${envEntryUrl}'...`);
-		await mainPage.goto(envEntryUrl);
-
-		this.browser = browser;
+		await mainPage.goto(envEntryUrl.toString());
 	}
 
 	async installCoverageCollector(coverageConfig, browsingContext, _mainPage) {
@@ -100,19 +107,19 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}
 
 		//	install coverage session
-		this.coverageSession = await browsingContext.newCDPSession(_mainPage);
+		this.#coverageSession = await browsingContext.newCDPSession(_mainPage);
 		await Promise.all([
-			this.coverageSession.send('Profiler.enable'),
-			this.coverageSession.send('Debugger.enable'),
+			this.#coverageSession.send('Profiler.enable'),
+			this.#coverageSession.send('Debugger.enable'),
 		]);
 		await Promise.all([
-			this.coverageSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true }),
-			this.coverageSession.send('Debugger.setSkipAllPauses', { skip: true })
+			this.#coverageSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true }),
+			this.#coverageSession.send('Debugger.setSkipAllPauses', { skip: true })
 		]);
 
 		//	install test registrar and scripts listener
-		this.scriptsCoverageMap = {};
-		browsingContext.exposeBinding(INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE, async ({ page }, testId) => {
+		this.#scriptsCoverageMap = {};
+		browsingContext.exposeBinding(INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE, async ({ page }, testName) => {
 			const session = await browsingContext.newCDPSession(page);
 
 			await Promise.all([
@@ -122,8 +129,8 @@ class BrowserEnvImpl extends EnvironmentBase {
 
 			session.on('Debugger.scriptParsed', e => {
 				if (e.url.startsWith(`${serverConfig.origin}/aut/`)) {
-					if (!this.scriptsCoverageMap[e.scriptId]) {
-						this.scriptsCoverageMap[e.scriptId] = testId;
+					if (!this.#scriptsCoverageMap[e.scriptId]) {
+						this.#scriptsCoverageMap[e.scriptId] = testName;
 					} else {
 						console.error(`unexpected duplication of script ${e.scriptId} [${e.url}]`);
 					}
@@ -134,13 +141,20 @@ class BrowserEnvImpl extends EnvironmentBase {
 
 	async dismiss() {
 		if (!this.dismissPromise) {
-			logger.info(`dismissing environment '${this.envConfig.id}'...`);
 			this.dismissPromise = waitInterval(999)
 				.then(async () => {
 					await this.consoleLogger.close();
 					const artifacts = await this.collectArtifacts();
-					await BrowserEnvImpl.closeBrowser(this.browser);
-					logger.info(`... environment '${this.envConfig.id}' dismissed`);
+
+					logger.info('closing browsing context...');
+					await this.#browsingContext.close();
+					logger.info('... closed');
+
+
+					logger.info('closing browser...');
+					await this.#browser.close();
+					logger.info('... closed');
+
 					return artifacts;
 				});
 		}
@@ -149,7 +163,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 
 	onDisconnected() {
 		clearTimeout(this.timeoutHandle);
-		logger.info(`browser environment '${this.envConfig.id}' disconnected`);
+		logger.info(`browser environment '${this.#envConfig.id}' disconnected`);
 	}
 
 	async collectArtifacts() {
@@ -161,14 +175,14 @@ class BrowserEnvImpl extends EnvironmentBase {
 	}
 
 	async collectCoverage() {
-		if (!this.coverageSession) {
+		if (!this.#coverageSession) {
 			return null;
 		}
 
 		const result = {};
-		const jsCoverage = (await this.coverageSession.send('Profiler.takePreciseCoverage')).result;
+		const jsCoverage = (await this.#coverageSession.send('Profiler.takePreciseCoverage')).result;
 		for (const scriptCoverage of jsCoverage) {
-			const testId = this.scriptsCoverageMap[scriptCoverage.scriptId];
+			const testId = this.#scriptsCoverageMap[scriptCoverage.scriptId];
 			if (!testId) {
 				continue;
 			}
@@ -187,12 +201,6 @@ class BrowserEnvImpl extends EnvironmentBase {
 	async collectLogs() {
 		//	TODO
 		return null;
-	}
-
-	static async closeBrowser(browser) {
-		logger.info('closing browser...');
-		await browser.close();
-		logger.info('... browser closed');
 	}
 }
 

@@ -5,7 +5,7 @@ export {
 	getTestId,
 	parseTestId,
 	getValidName
-}
+};
 
 function getTestId(...names) {
 	return names.join(TEST_ID_SEPARATOR);

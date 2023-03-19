@@ -1,17 +1,12 @@
 //	this is the main just-test SDK harness entrypoint from consumer perspective
 //	this module can found itself running in 3 modes:
 //	- plain_run - simple test execution, no server, no interop, just debugging the tests
-//	- session - tests registration phase, tests are not being run
+//	- plan - tests planning phase, tests are not being run
 //	- test - test run, only the tests required by environment will be running
-import { obtainExecutionContext, EXECUTION_MODES } from './environment-config.js';
-import { getTestId } from '../common/interop-utils.js';
-import { EVENT, STATUS } from '../common/constants.js';
-import { Test } from '../testing/model/test.js';
+import { getExecutionContext, EXECUTION_MODES } from './environment-config.js';
+import { STATUS } from '../common/constants.js';
 
-export {
-	getSuite,
-	MessageBus
-}
+export { suite, test, TestDto };
 
 const DEFAULT_SUITE_OPTIONS = {
 	only: false,
@@ -22,191 +17,123 @@ const DEFAULT_SUITE_OPTIONS = {
 const DEFAULT_TEST_OPTIONS = {
 	only: false,
 	skip: false,
-	ttl: 3000
+	timeout: 3000
 };
 
-const DEFAULT_CONFIGS_SUBMISSION_DELAY = 92;
-
-class AssertTimeout extends Error { }
-
-const MessageBus = new MessageChannel();
-
-class SuiteContext {
-	#name = null;
-	#mode = null;
-	#testId = null;
-
-	#port = null;
-	#only = false;
-	#skip = false;
-	#sequental = false;
-
-	#testConfigs = [];
-	#testConfigsSubmitter = null;
-	#executionTail;
-
-	constructor(name, execContext, options = DEFAULT_SUITE_OPTIONS) {
-		this.#name = name;
-		this.#mode = execContext.mode;
-		this.#testId = execContext.testId;
-
-		this.#port = execContext.childPort;
-
-		this.#only = Boolean(options?.only);
-		this.#skip = Boolean(options?.skip);
-		this.#sequental = Boolean(options?.sequental);
+class TestDto {
+	constructor(name, config) {
+		this.name = name;
+		this.config = config;
 	}
+}
 
-	get name() { return this.#name; }
-
-	get only() { return this.#only; }
-
-	get skip() { return this.#skip; }
-
-	get test() {
-		return this.#mode === EXECUTION_MODES.SESSION
-			? this.#registerTest
-			: this.#runTest;
+const suite = Object.freeze({
+	configure: (name, opts) => {
+		if (typeof name === 'object') {
+			if (opts) {
+				throw new Error(`when no name provided only single 'opts' object parameter expected, got second param: ${opts}`);
+			}
+			opts = name;
+			name = undefined;
+		}
+		opts = Object.assign({}, DEFAULT_SUITE_OPTIONS, opts);
+		//	setup the suite's name and options
 	}
+});
 
-	async run() {
-		console.info(`suite '${this.#name}' started...`);
-		const testPromises = [];
-		this.#executionTail = Promise.resolve();
-		for (const testConfig of this.#testConfigs) {
-			if (!testConfig.skip) {
-				const runResultPromise = this.#runTest(testConfig.tName, testConfig.tOptions, testConfig.tCode);
-				if (this.#sequental) {
-					this.#executionTail = this.#executionTail.finally(() => runResultPromise);
-				} else {
-					testPromises.push(runResultPromise);
+async function test(name, opts, code) {
+	const { name: nameF, opts: optsF, code: codeF } = validate(name, opts, code);
+
+	const ecKey = opts.ecKey || undefined;
+	delete opts.ecKey;
+	const ec = getExecutionContext(ecKey);
+	if (ec) {
+		switch (ec.mode) {
+			case EXECUTION_MODES.PLAN: {
+				ec.addTestConfig({ name: nameF, config: optsF });
+				break;
+			}
+			case EXECUTION_MODES.TEST: {
+				if (ec.testId !== name) {
+					return null;
 				}
+				await ec.startHandler(name);
+				const run = await executeRun(nameF, optsF, codeF);
+				await ec.endHandler(name, run);
+				return run;
 			}
+			default:
+				throw new Error(`unexpected execution mode: ${ec.mode}`);
 		}
-		testPromises.push(this.#executionTail);
-		await Promise.all(testPromises);
-		console.info(`... suite '${this.#name}' done`);
-	}
-
-	#registerTest(name, options, code) {
-		if (!this.#testConfigsSubmitter) {
-			this.#testConfigsSubmitter = globalThis.setTimeout(() => {
-				console.info(`reporting ${this.#testConfigs.length} test config/s...`);
-				this.#port.postMessage(this.#testConfigs);
-				console.info(`... reported`);
-			}, DEFAULT_CONFIGS_SUBMISSION_DELAY);
-		}
-
-		const testConfig = this.#verifyNormalize(name, options, code);
-		this.#testConfigs.push(testConfig);
-	}
-
-	async #runTest(name, options, code) {
-		const testConfig = this.#verifyNormalize(name, options, code);
-		if (this.#mode === EXECUTION_MODES.TEST && this.#testId !== testConfig.id) {
-			return;
-		}
-		if (typeof options === 'function') {
-			code = options;
-		}
-
-		if (this.#sequental && this.#executionTail) {
-			await this.#executionTail;
-		}
-
-		console.info(`'${testConfig.id}' started...`);
-		if (this.#mode === EXECUTION_MODES.TEST) {
-			const runStartMessage = {
-				type: EVENT.RUN_STARTED,
-				suiteName: this.#name,
-				testName: name
-			};
-			this.#port.postMessage(runStartMessage);
-		}
-
-		const run = {};
-		let runResult;
-		let start;
-		let timeout;
-		try {
-			run.timestamp = Date.now();
-			start = globalThis.performance.now();
-			const runPromise = Promise.race([
-				new Promise(resolve => {
-					timeout = setTimeout(
-						resolve,
-						testConfig.config.ttl,
-						new AssertTimeout(`run of '${testConfig.id}' exceeded ${testConfig.config.ttl}ms`));
-				}),
-				Promise.resolve(code())
-			]);
-			if (this.#sequental) {
-				this.#executionTail = runPromise;
-			}
-			runResult = await runPromise;
-		} catch (e) {
-			console.error(e);
-			runResult = e;
-		} finally {
-			clearTimeout(timeout);
-			run.time = Math.round((globalThis.performance.now() - start) * 10000) / 10000;
-			finalizeRun(run, runResult);
-			if (this.#mode === EXECUTION_MODES.TEST) {
-				const runEndedMessage = {
-					type: EVENT.RUN_ENDED,
-					suiteName: this.#name,
-					testName: name,
-					run
-				};
-				this.#port.postMessage(runEndedMessage);
-			}
-			console.info(`'${testConfig.id}' ${run.status.toUpperCase()} in ${run.time}ms`);
-		}
-
-		return run;
-	}
-
-	#verifyNormalize(name, options, code) {
-		if (!name || typeof name !== 'string') {
-			throw new Error(`invalid test name: '${name}'`);
-		}
-		if (typeof options === 'function' || !options) {
-			code = options;
-			options = DEFAULT_TEST_OPTIONS;
-		}
-		if (typeof code !== 'function') {
-			throw new Error(`invalid test code: '${code}'`);
-		}
-
-		const result = new Test(
-			getTestId(this.#name, name),
-			name,
-			this.#name,
-			options
-		);
-		return result;
+	} else {
+		return await executeRun(nameF, optsF, codeF);
 	}
 }
 
-function getSuite(suiteName, suiteOptions) {
-	if (!suiteName || typeof suiteName !== 'string') {
-		throw new Error(`invalid suite name '${suiteName}'`);
+function validate(name, opts, code) {
+	if (!name || typeof name !== 'string') {
+		throw new Error(`test name MUST be a non-empty string, got: '${name}'`);
 	}
-
-	const execContext = obtainExecutionContext();
-
-	return new SuiteContext(
-		suiteName,
-		execContext,
-		suiteOptions
-	);
+	if (typeof opts === 'function') {
+		if (code) {
+			throw new Error(`when second parameter is a test's code no further parameter expected, got (in 3rd place): ${code}`);
+		}
+		code = opts;
+		opts = DEFAULT_TEST_OPTIONS;
+	} else {
+		if (!opts || typeof opts !== 'object') {
+			throw new Error(`options, when provided, expected to be an object, got: ${JSON.stringify(opts)}`);
+		}
+		if (!code || typeof code !== 'function') {
+			throw new Error(`test code expected, got: ${JSON.stringify(code)}`);
+		}
+		opts = Object.assign({}, DEFAULT_TEST_OPTIONS, opts);
+	}
+	if (opts.only && opts.skip) {
+		throw new Error(`can't opt in 'only' and 'skip' at the same time, found in test: ${name}`);
+	}
+	return { name, opts, code };
 }
 
-function finalizeRun(run, runResult) {
-	if (runResult && typeof runResult.name === 'string' && typeof runResult.message === 'string' && runResult.stack) {
-		const runError = processError(runResult);
+async function executeRun(name, opts, code) {
+	if (opts.skip) {
+		return {
+			status: STATUS.SKIP
+		};
+	}
+
+	const run = {};
+	const timeoutError = new Error(`timeout assertion: run of '${name}' exceeded ${opts.timeout}ms`);
+	let runError;
+	let start;
+	let timeout;
+	try {
+		run.timestamp = Date.now();
+		start = globalThis.performance.now();
+		const runPromise = Promise.race([
+			new Promise(resolve => { timeout = setTimeout(resolve, opts.timeout, timeoutError); }),
+			Promise.resolve(code())
+		]);
+		runError = await runPromise;
+	} catch (e) {
+		console.error(e);
+		runError = e;
+	} finally {
+		clearTimeout(timeout);
+		run.time = Math.round((globalThis.performance.now() - start) * 10000) / 10000;
+		finalizeRun(run, runError);
+	}
+
+	return run;
+}
+
+function finalizeRun(run, runError) {
+	if (runError && typeof runError.name === 'string' && typeof runError.message === 'string' && runError.stack) {
+		runError = processError(runError);
 		if ((runError.type && runError.type.toLowerCase().includes('assert')) ||
-			(runError.name && runError.name.toLowerCase().includes('assert'))) {
+			(runError.name && runError.name.toLowerCase().includes('assert')) ||
+			(runError.message && runError.message.toLowerCase().includes('assert'))
+		) {
 			run.status = STATUS.FAIL;
 		} else {
 			run.status = STATUS.ERROR;
@@ -218,6 +145,7 @@ function finalizeRun(run, runResult) {
 }
 
 function processError(error) {
+	const cause = error.cause ? processError(error.cause) : undefined;
 	const stacktrace = error.stack.split(/\r\n|\r|\n/)
 		.map(l => l.trim())
 		.filter(Boolean);
@@ -226,6 +154,7 @@ function processError(error) {
 		name: error.name,
 		type: error.constructor.name,
 		message: error.message,
+		cause,
 		stacktrace
 	};
 }

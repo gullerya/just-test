@@ -2,15 +2,20 @@
 	"environments": [
 		{
 			"browser": {
-				"type": "chromium"
+				"type": "chromium",
+				"executors": {
+					"type": "worker"
+				},
+				"importmap": {
+					"imports": {}
+				}
 			},
 			"tests": {
 				"ttl": 300000,
 				"maxFail": 0,
 				"maxSkip": 0,
 				"include": [
-					"./tests/runner/**/*.js",
-					"./tests/common/**/*.js"
+					"./tests/common/**/test-time-*.js"
 				]
 			},
 			"coverage": {

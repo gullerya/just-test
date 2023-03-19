@@ -1,5 +1,5 @@
 import os from 'node:os';
-import { promises as fs } from 'node:fs';
+import fs from 'node:fs/promises';
 import process from 'node:process';
 import { start, stop } from './server/cli.js';
 import { xUnitReporter } from './testing/testing-service.js';
@@ -77,24 +77,29 @@ async function executeSession(serverBaseUrl, clArguments) {
 	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
 
 	//	test report
-	xUnitReporter.report(sessionResult, 'reports/results.xml');
+	const reportText = xUnitReporter.report(sessionResult);
+	await fs.writeFile('reports/results.xml', reportText, { encoding: 'utf-8' });
 
 	//	coverage report
 	const testCoverages = sessionResult.suites
 		.flatMap(s => s.tests)
 		.map(t => {
-			return {
-				testId: t.id,
-				coverage: t.lastRun.coverage
-			};
-		});
+			return t && t.lastRun && t.lastRun.coverage
+				? {
+					testId: t.name,
+					coverage: t.lastRun.coverage
+				}
+				: null;
+		})
+		.filter(Boolean);
+
 	const targetSources = await collectTargetSources(config.environments[0].coverage);
 	const fileCoverages = await Promise.all(
 		targetSources
 			.filter(ts => {
 				return !testCoverages
 					.flatMap(tc => tc.coverage)
-					.some(fc => fc.url === ts)
+					.some(fc => fc.url === ts);
 			})
 			.map(ts => buildJTFileCov(ts, false))
 	);

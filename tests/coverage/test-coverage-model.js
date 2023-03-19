@@ -1,31 +1,29 @@
-import { assert } from 'chai';
-import { getSuite } from 'just-test/suite';
+import { assert } from '../../src/common/assert-utils.js';
+import { test } from '../../src/runner/just-test.js';
 import RangeCov from '../../src/coverage/model/range-cov.js';
 import { merge } from '../../src/coverage/model/range-utils.js';
 
-const suite = getSuite('Coverage model');
-
-suite.test('RangeCov - negative (beg not a number)', () => {
+test('RangeCov - negative (beg not a number)', () => {
 	assert.throws(() => new RangeCov('some'), 'beg MUST be a non-negative number');
 });
 
-suite.test('RangeCov - negative (beg is negative)', () => {
+test('RangeCov - negative (beg is negative)', () => {
 	assert.throws(() => new RangeCov(-1), 'beg MUST be a non-negative number');
 });
 
-suite.test('RangeCov - negative (end not a number)', () => {
+test('RangeCov - negative (end not a number)', () => {
 	assert.throws(() => new RangeCov(0, 'some'), 'end MUST be a non-negative number');
 });
 
-suite.test('RangeCov - negative (end negative)', () => {
+test('RangeCov - negative (end negative)', () => {
 	assert.throws(() => new RangeCov(0, -1), 'end MUST be a non-negative number');
 });
 
-suite.test('RangeCov - negative (beg lesser than end)', () => {
+test('RangeCov - negative (beg lesser than end)', () => {
 	assert.throws(() => new RangeCov(3, 1), 'beg MUST precede end');
 });
 
-suite.test('range - isAfterNonAdjacent / isBeforeNonAdjacent', () => {
+test('range - isAfterNonAdjacent / isBeforeNonAdjacent', () => {
 	const a1 = new RangeCov(0, 3, 1);
 	const b1 = new RangeCov(4, 7, 1);
 
@@ -39,7 +37,7 @@ suite.test('range - isAfterNonAdjacent / isBeforeNonAdjacent', () => {
 	assert.isFalse(b2.isAfterNonAdjacent(a2));
 });
 
-suite.test('range - isWithin / contains', () => {
+test('range - isWithin / contains', () => {
 	const a1 = new RangeCov(0, 7, 1);
 	const b1 = new RangeCov(4, 7, 1);
 
@@ -55,35 +53,35 @@ suite.test('range - isWithin / contains', () => {
 	assert.isFalse(b2.contains(a2));
 });
 
-suite.test('merge distant ranges', () => {
+test('merge distant ranges', () => {
 	const a = new RangeCov(0, 3, 1);
 	const b = new RangeCov(4, 7, 1);
 	const m = merge(b, a);
 	assert.deepEqual(m, [a, b]);
 });
 
-suite.test('merge adjacent ranges, same hits', () => {
+test('merge adjacent ranges, same hits', () => {
 	const a = new RangeCov(0, 3, 1);
 	const b = new RangeCov(3, 7, 1);
 	const m = merge(b, a);
 	assert.deepEqual(m, [{ beg: 0, end: 7, hits: 1 }]);
 });
 
-suite.test('merge adjacent ranges, different hits', () => {
+test('merge adjacent ranges, different hits', () => {
 	const a = new RangeCov(0, 3, 1);
 	const b = new RangeCov(3, 7, 2);
 	const m = merge(b, a);
 	assert.deepEqual(m, [a, b]);
 });
 
-suite.test('merge nested ranges, same hits', () => {
+test('merge nested ranges, same hits', () => {
 	const a = new RangeCov(0, 7, 1);
 	const b = new RangeCov(3, 7, 1);
 	const m = merge(b, a);
 	assert.deepEqual(m, [{ beg: 0, end: 7, hits: 1 }]);
 });
 
-suite.test('merge nested ranges, different hits', () => {
+test('merge nested ranges, different hits', () => {
 	const a = new RangeCov(0, 7, 1);
 	const b = new RangeCov(3, 6, 2);
 	const m = merge(b, a);

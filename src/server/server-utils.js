@@ -1,7 +1,7 @@
 export {
 	extensionsMap,
 	findMimeType
-}
+};
 
 const extensionsMap = Object.freeze({
 	html: 'text/html',

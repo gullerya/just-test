@@ -61,7 +61,7 @@ export default class FileOutput {
 					} else {
 						setTimeout(probe, 24);
 					}
-				}
+				};
 				probe();
 			})
 		]);

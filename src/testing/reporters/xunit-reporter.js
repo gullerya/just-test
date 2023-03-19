@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import { STATUS } from '../../common/constants.js';
 import { getDOMImplementation } from '../../common/xml/dom-implementation.js';
 
@@ -7,7 +6,7 @@ export default Object.freeze({
 	report: report
 });
 
-function report(results, reportPath) {
+function report(results) {
 	const DOMImplementation = getDOMImplementation();
 
 	const rDoc = DOMImplementation.instance.createDocument(null, 'testsuites');
@@ -17,6 +16,16 @@ function report(results, reportPath) {
 	let sessionFailures = 0;
 	let sessionErrors = 0;
 	let sessionSkips = 0;
+
+	results.errors.forEach(error => {
+		const eEl = rDoc.createElement('error');
+		eEl.setAttribute('type', error.type);
+		eEl.setAttribute('message', error.message);
+		eEl.textContent = error.stacktrace;
+		rDoc.documentElement.appendChild(eEl);
+
+		sessionErrors++;
+	});
 
 	results.suites.forEach(suite => {
 		const sEl = rDoc.createElement('testsuite');
@@ -32,33 +41,37 @@ function report(results, reportPath) {
 			const lastRun = test.lastRun;
 			const tEl = rDoc.createElement('testcase');
 			tEl.setAttribute('name', test.name);
-			tEl.setAttribute('time', Math.round(lastRun.time) / 1000);
-			tEl.setAttribute('status', lastRun.status);
 
-			if (lastRun.status === STATUS.FAIL) {
-				suiteFailures++;
-				const fEl = rDoc.createElement('failure');
-				console.log(lastRun.error);
-				if (lastRun.error) {
-					fEl.setAttribute('type', lastRun.error.type);
-					fEl.setAttribute('message', lastRun.error.message);
-					fEl.textContent = lastRun.error.stacktrace;
+			if (lastRun) {
+				tEl.setAttribute('time', Math.round(lastRun.time) / 1000);
+				tEl.setAttribute('status', lastRun.status);
+
+				if (lastRun.status === STATUS.FAIL) {
+					suiteFailures++;
+					const fEl = rDoc.createElement('failure');
+					console.log(lastRun.error);
+					if (lastRun.error) {
+						fEl.setAttribute('type', lastRun.error.type);
+						fEl.setAttribute('message', lastRun.error.message);
+						fEl.textContent = lastRun.error.stacktrace;
+					}
+					tEl.appendChild(fEl);
+				} else if (lastRun.status === STATUS.ERROR) {
+					suiteErrors++;
+					const eEl = rDoc.createElement('error');
+					if (lastRun.error) {
+						eEl.setAttribute('type', lastRun.error.type);
+						eEl.setAttribute('message', lastRun.error.message);
+						eEl.textContent = lastRun.error.stacktrace;
+					}
+					tEl.appendChild(eEl);
+				} else if (lastRun.status === STATUS.SKIP) {
+					suiteSkips++;
+					const eEl = rDoc.createElement('skipped');
+					tEl.appendChild(eEl);
 				}
-				tEl.appendChild(fEl);
-			} else if (lastRun.status === STATUS.ERROR) {
-				suiteErrors++;
-				const eEl = rDoc.createElement('error');
-				if (lastRun.error) {
-					eEl.setAttribute('type', lastRun.error.type);
-					eEl.setAttribute('message', lastRun.error.message);
-					eEl.textContent = lastRun.error.stacktrace;
-				}
-				tEl.appendChild(eEl);
-			} else if (lastRun.status === STATUS.SKIP) {
-				suiteSkips++;
-				const eEl = rDoc.createElement('skipped');
-				tEl.appendChild(eEl);
 			}
+
 
 			sEl.appendChild(tEl);
 		});
@@ -80,6 +93,5 @@ function report(results, reportPath) {
 	rDoc.documentElement.setAttribute('errors', sessionErrors);
 	rDoc.documentElement.setAttribute('skipped', sessionSkips);
 
-	const reportText = new DOMImplementation.XMLSerializer().serializeToString(rDoc);
-	fs.writeFileSync(reportPath, reportText, { encoding: 'utf-8' });
+	return new DOMImplementation.XMLSerializer().serializeToString(rDoc);
 }
