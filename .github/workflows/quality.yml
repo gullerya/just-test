@@ -78,7 +78,6 @@ jobs:
   quality_pipeline_webkit:
     runs-on: ubuntu-20.04
     timeout-minutes: 10
-    if: "false"
 
     steps:
       - name: Checkout

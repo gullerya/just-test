@@ -78,6 +78,8 @@ async function planSession(testsResources, stateService) {
 }
 
 function getIFrameExecutorFactory(metadata, stateService) {
+	console.info('preparing IFrame executors factory');
+
 	const iframeUrl = new URL('./browser-test-box.html', import.meta.url);
 	iframeUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, metadata.sessionId);
 	iframeUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, metadata.id);
@@ -124,6 +126,8 @@ function getIFrameExecutorFactory(metadata, stateService) {
 // }
 
 function getWorkerExecutorFactory(_metadata, stateService) {
+	console.info('preparing WebWorker executors factory');
+
 	const workerUrl = new URL('./browser-test-box.js', import.meta.url);
 
 	return (test, suiteName) => {

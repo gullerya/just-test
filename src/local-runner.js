@@ -93,8 +93,6 @@ async function executeSession(serverBaseUrl, clArguments) {
 		})
 		.filter(Boolean);
 
-	console.log(testCoverages);
-
 	const targetSources = await collectTargetSources(config.environments[0].coverage);
 	const fileCoverages = await Promise.all(
 		targetSources

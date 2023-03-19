@@ -5,9 +5,6 @@
 				"type": "firefox",
 				"executors": {
 					"type": "iframe"
-				},
-				"importmap": {
-					"imports": {}
 				}
 			},
 			"tests": {
