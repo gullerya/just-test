@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import url from 'node:url';
 import path from 'node:path';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
@@ -6,16 +7,19 @@ import { findMimeType, extensionsMap } from '../server-utils.js';
 import { getSession } from '../sessions/sessions-service.js';
 import { ENVIRONMENT_KEYS } from '../../runner/environment-config.js';
 
-const
-	logger = new Logger({ context: 'handler core' }),
-	CONFIG_KEY = Symbol('config.key'),
-	sourceRoots = ['runner', 'common'];
-
 export default class RunnerCoreRequestHandler extends RequestHandlerBase {
+	#config;
+	#logger;
+	#baseFolder;
+	#allowedRoots = ['runner', 'common'];
+
 	constructor(config) {
 		super();
-		this[CONFIG_KEY] = config;
-		logger.info(`core requests handler initialized; basePath: '${this.basePath}'`);
+		this.#config = config;
+		this.#baseFolder = path.join(url.fileURLToPath(import.meta.url), '../../..');
+		this.#logger = new Logger({ context: 'handler core' });
+
+		this.#logger.info(`core requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
 	get basePath() {
@@ -24,18 +28,18 @@ export default class RunnerCoreRequestHandler extends RequestHandlerBase {
 
 	async handle(handlerRelativePath, req, res) {
 		if (req.method !== 'GET') {
-			logger.warn(`sending 403 for '${req.method} ${this.basePath}/${handlerRelativePath}' (method forbidden)`);
+			this.#logger.warn(`sending 403 for '${req.method} ${this.basePath}/${handlerRelativePath}' (method forbidden)`);
 			res.writeHead(403).end('method forbidden');
 			return;
 		}
-		if (!handlerRelativePath.indexOf(sourceRoots[0]) === 0 &&
-			!handlerRelativePath.indexOf(sourceRoots[1]) === 0) {
-			logger.warn(`sending 403 for '${req.method} ${this.basePath}/${handlerRelativePath}' (base path forbidden)`);
+		if (!handlerRelativePath.indexOf(this.#allowedRoots[0]) === 0 &&
+			!handlerRelativePath.indexOf(this.#allowedRoots[1]) === 0) {
+			this.#logger.warn(`sending 403 for '${req.method} ${this.basePath}/${handlerRelativePath}' (base path forbidden)`);
 			res.writeHead(403).end('base path forbidden');
 			return;
 		}
 
-		let result = await this.#readFile('bin', handlerRelativePath);
+		let result = await this.#readFile(handlerRelativePath);
 		if (result) {
 			if (handlerRelativePath.endsWith('box.html')) {
 				const sp = new URL(req.url, 'http://localhost').searchParams;
@@ -59,18 +63,18 @@ export default class RunnerCoreRequestHandler extends RequestHandlerBase {
 				'Cache-Control': 'private, max-age=604800'
 			}).end(result);
 		} else {
-			logger.warn(`sending 404 for '${handlerRelativePath}'`);
+			this.#logger.warn(`sending 404 for '${handlerRelativePath}'`);
 			res.writeHead(404).end();
 		}
 	}
 
-	async #readFile(sourceRoot, resourcePath) {
+	async #readFile(resourcePath) {
 		let result = null;
-		const fullPath = path.join(sourceRoot, resourcePath);
+		const fullPath = path.join(this.#baseFolder, resourcePath);
 		try {
 			result = await fs.readFile(fullPath, { encoding: 'utf-8' });
 		} catch (e) {
-			logger.error(`errored while reading resource from '${fullPath}':`, e);
+			this.#logger.error(`errored while reading resource from '${fullPath}':`, e);
 		}
 		return result;
 	}
