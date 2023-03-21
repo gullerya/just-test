@@ -15,5 +15,8 @@
 			"error",
 			"always"
 		]
+	},
+	"globals": {
+		"CustomEvent": "readonly"
 	}
 }
