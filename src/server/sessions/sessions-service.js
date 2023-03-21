@@ -60,7 +60,7 @@ async function runSession(sessionId) {
 	logger.info(`starting session '${sessionId}'...`);
 	const sesEnvs = await launch(session);
 	for (const sesEnv of sesEnvs) {
-		sesEnv.on('dismissed', () => {
+		sesEnv.addEventListener('dismissed', () => {
 			sesEnvs.splice(sesEnvs.indexOf(sesEnv), 1);
 			if (!sesEnvs.length) {
 				logger.info(`all environments of session ${sessionId} are closed, finalizing session`);

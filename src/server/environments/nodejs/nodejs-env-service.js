@@ -67,7 +67,7 @@ class NodeEnvImpl extends EnvironmentBase {
 		});
 		this.#worker.on('exit', exitCode => {
 			logger.info(`worker exited with code ${exitCode}`);
-			this.emit('dismissed', null);
+			this.dispatchEvent(new CustomEvent('dismissed'));
 		});
 	}
 

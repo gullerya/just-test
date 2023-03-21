@@ -1,16 +1,15 @@
 import fs from 'node:fs/promises';
-import { createRequire } from 'node:module';
+import path from 'node:path';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';
 
 export default class RunnerLibsRequestHandler extends RequestHandlerBase {
-	#logger = new Logger({ context: 'handler lib' });
-	#requirer = createRequire(import.meta.url);
+	#logger = new Logger({ context: 'handler libs' });
 
 	constructor() {
 		super();
-		this.#logger.info(`lib requests handler initialized; basePath: '${this.basePath}'`);
+		this.#logger.info(`libs requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
 	get basePath() {
@@ -25,7 +24,7 @@ export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 		}
 
 		try {
-			const filePath = this.#requirer.resolve(handlerRelativePath);
+			const filePath = path.join('node_modules', handlerRelativePath);
 
 			this.#logger.info(`serving '${filePath}' for '${handlerRelativePath}'`);
 
@@ -45,14 +44,5 @@ export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 		}
 
 		return true;
-	}
-
-	extractLibName(libPath) {
-		let result = libPath;
-		const i = libPath.indexOf('/');
-		if (i > 0) {
-			result = libPath.substring(0, i);
-		}
-		return result;
 	}
 }

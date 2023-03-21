@@ -6,7 +6,7 @@ export default Object.freeze({
 		'./handlers/api-request-handler.js',
 		'./handlers/aut-request-handler.js',
 		'./handlers/core-request-handler.js',
-		'./handlers/lib-request-handler.js',
+		'./handlers/libs-request-handler.js',
 		'./handlers/tests-request-handler.js',
 		'./handlers/ui-request-handler.js'
 	]
