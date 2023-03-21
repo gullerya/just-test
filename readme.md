@@ -1,4 +1,4 @@
-[![npm version](https://img.shields.io/npm/v/just-test.svg?label=npm)](https://www.npmjs.com/package/@gullerya/just-test)
+[![npm version](https://img.shields.io/npm/v/@gullerya/just-test.svg?label=npm)](https://www.npmjs.com/package/@gullerya/just-test)
 [![License GitHub](https://img.shields.io/github/license/gullerya/just-test.svg)](https://opensource.org/licenses/MIT)
 
 [![Quality pipeline](https://github.com/gullerya/just-test/actions/workflows/quality.yml/badge.svg?branch=main)](https://github.com/gullerya/just-test/actions/workflows/quality.yml)
