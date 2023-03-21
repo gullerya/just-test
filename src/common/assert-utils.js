@@ -133,10 +133,13 @@ class Assert {
 			}
 		}
 	}
-	throws(fn, error = Error, message) {
+	throws(fn, error, message) {
 		try {
 			fn();
 		} catch (e) {
+			if (!error) {
+				return;
+			}
 			if (typeof error === 'object' || typeof error === 'function') {
 				if (!(e instanceof error)) {
 					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
