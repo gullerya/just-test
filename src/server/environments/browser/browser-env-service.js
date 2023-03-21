@@ -23,6 +23,7 @@ const logger = new Logger({ context: 'browser env service' });
 
 class BrowserEnvImpl extends EnvironmentBase {
 	#envConfig;
+	#timeoutHandle;
 	#browser;
 	#browsingContext;
 	#coverageSession;
@@ -41,7 +42,6 @@ class BrowserEnvImpl extends EnvironmentBase {
 
 		this.consoleLogger = null;
 		this.dismissPromise = null;
-		this.timeoutHandle = null;
 
 		Object.seal(this);
 	}
@@ -74,23 +74,23 @@ class BrowserEnvImpl extends EnvironmentBase {
 			bLogger.error('"pageerror" event fired on page:');
 			bLogger.error(e);
 			bLogger.info('dismissing the environment due to previous error/s...');
-			this.dismiss();
+			this.#notifyError(e);
 		});
 		this.#browsingContext.on('page', async page => {
 			if (this.#envConfig.coverage) {
-				await this.installCoverageCollector(this.#envConfig.coverage, this.#browsingContext, page);
+				await this.#installCoverageCollector(this.#envConfig.coverage, this.#browsingContext, page);
 			}
 		});
 		if (this.#envConfig.coverage) {
-			await this.installCoverageCollector(this.#envConfig.coverage, this.#browsingContext, mainPage);
+			await this.#installCoverageCollector(this.#envConfig.coverage, this.#browsingContext, mainPage);
 		}
 
 		logger.info(`setting timeout for the whole tests execution to ${this.#envConfig.tests.ttl}ms as per configuration`);
-		this.timeoutHandle = setTimeout(() => {
+		this.#timeoutHandle = setTimeout(() => {
 			logger.error('tests execution timed out, dismissing the environment...');
-			this.dismiss();
+			this.#notifyError(new Error(`environment timed out ${this.#envConfig.tests.ttl}ms`));
 		}, this.#envConfig.tests.ttl);
-		this.#browser.once('disconnected', () => this.onDisconnected());
+		this.#browser.once('disconnected', () => this.#onDisconnected());
 
 		const envEntryUrl = new URL(`${serverConfig.origin}/core/runner/environments/browser/browser-session-box.html`);
 		envEntryUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, this.sessionId);
@@ -99,7 +99,33 @@ class BrowserEnvImpl extends EnvironmentBase {
 		await mainPage.goto(envEntryUrl.toString());
 	}
 
-	async installCoverageCollector(coverageConfig, browsingContext, _mainPage) {
+	async dismiss() {
+		if (!this.dismissPromise) {
+			this.dismissPromise = waitInterval(999)
+				.then(async () => {
+					await this.consoleLogger.close();
+					const artifacts = await this.#collectArtifacts();
+
+					logger.info('closing browsing context...');
+					await this.#browsingContext.close();
+					logger.info('... closed');
+
+
+					logger.info('closing browser...');
+					await this.#browser.close();
+					logger.info('... closed');
+
+					return artifacts;
+				});
+		}
+		return this.dismissPromise;
+	}
+
+	#notifyError(error) {
+		this.dispatchEvent(new CustomEvent('error', { detail: { error } }));
+	}
+
+	async #installCoverageCollector(coverageConfig, browsingContext, _mainPage) {
 		const coverageTargets = await collectTargetSources(coverageConfig);
 		if (!coverageTargets || !coverageTargets.length) {
 			console.log('no coverage targets found, skipping coverage collection');
@@ -139,42 +165,21 @@ class BrowserEnvImpl extends EnvironmentBase {
 		});
 	}
 
-	async dismiss() {
-		if (!this.dismissPromise) {
-			this.dismissPromise = waitInterval(999)
-				.then(async () => {
-					await this.consoleLogger.close();
-					const artifacts = await this.collectArtifacts();
-
-					logger.info('closing browsing context...');
-					await this.#browsingContext.close();
-					logger.info('... closed');
-
-
-					logger.info('closing browser...');
-					await this.#browser.close();
-					logger.info('... closed');
-
-					return artifacts;
-				});
-		}
-		return this.dismissPromise;
-	}
-
-	onDisconnected() {
-		clearTimeout(this.timeoutHandle);
+	#onDisconnected() {
+		clearTimeout(this.#timeoutHandle);
 		logger.info(`browser environment '${this.#envConfig.id}' disconnected`);
+		this.dispatchEvent(new CustomEvent('dismissed'));
 	}
 
-	async collectArtifacts() {
+	async #collectArtifacts() {
 		const [coverage, logs] = await Promise.all([
-			this.collectCoverage(),
-			this.collectLogs()
+			this.#collectCoverage(),
+			this.#collectLogs()
 		]);
 		return { coverage, logs };
 	}
 
-	async collectCoverage() {
+	async #collectCoverage() {
 		if (!this.#coverageSession) {
 			return null;
 		}
@@ -198,7 +203,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 		return result;
 	}
 
-	async collectLogs() {
+	async #collectLogs() {
 		//	TODO
 		return null;
 	}

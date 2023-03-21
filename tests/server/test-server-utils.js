@@ -1,5 +1,5 @@
-import { assert } from '../../src/common/assert-utils.js';
-import { test } from '../../src/runner/just-test.js';
+import { test } from '@gullerya/just-test';
+import { assert } from '@gullerya/just-test/assert';
 import {
 	extensionsMap, findMimeType
 } from '../../src/server/server-utils.js';

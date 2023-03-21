@@ -1,5 +1,5 @@
-﻿import { assert } from 'chai';
-import { test } from '@gullerya/just-test';
+﻿import { test } from '@gullerya/just-test';
+import { assert } from '@gullerya/just-test/assert';
 import { waitInterval } from '@gullerya/just-test/time-utils';
 import { STATUS } from '../../src/common/constants.js';
 
@@ -8,27 +8,26 @@ import { STATUS } from '../../src/common/constants.js';
 test('run test - pass (sync)', async () => {
 	const tp = test('name', () => { });
 
-	assert.instanceOf(tp, Promise);
+	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
 	assert.strictEqual(m.status, STATUS.PASS);
-	assert.isUndefined(m.error);
-	assert.isNumber(m.time);
+	assert.isTrue(m.error === undefined);
+	assert.isTrue(typeof m.time === 'number');
 });
 
 
 test('run test - fail by assert (sync)', async () => {
 	const tp = test('name', () => assert.fail('reason'));
 
-	assert.instanceOf(tp, Promise);
+	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
 	assert.strictEqual(m.status, STATUS.FAIL);
-	assert.isObject(m.error);
 	assert.strictEqual(m.error.type, 'AssertionError');
 	assert.strictEqual(m.error.name, 'AssertionError');
 	assert.strictEqual(m.error.message, 'reason');
-	assert.isArray(m.error.stacktrace);
-	assert.isAbove(m.error.stacktrace.length, 0);
-	assert.isNumber(m.time);
+	assert.isTrue(Array.isArray(m.error.stacktrace));
+	assert.isTrue(m.error.stacktrace.length > 0);
+	assert.isTrue(typeof m.time === 'number');
 });
 
 test('run test - fail by error (sync)', async () => {

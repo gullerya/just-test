@@ -53,6 +53,11 @@ async function launch(session) {
 		} else {
 			throw new Error(`unsupported environment configuration ${JSON.stringify(envConfig)}`);
 		}
+		env.addEventListener('error', ee => {
+			logger.error(`unhandled error notified for environment ${envConfig.id}:`);
+			logger.error(ee.detail.error);
+			dismiss(envConfig.id);
+		});
 		environments[envConfig.id] = env;
 		envsLaunched.push(env);
 	}

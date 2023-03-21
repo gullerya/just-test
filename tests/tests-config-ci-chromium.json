@@ -4,10 +4,13 @@
 			"browser": {
 				"type": "chromium",
 				"executors": {
-					"type": "worker"
+					"type": "iframe"
 				},
 				"importmap": {
-					"imports": {}
+					"imports": {
+						"@gullerya/just-test": "/libs/@gullerya/just-test/bin/runner/just-test.js",
+						"@gullerya/just-test/assert": "/libs/@gullerya/just-test/bin/common/assert-utils.js"
+					}
 				}
 			},
 			"tests": {
@@ -15,7 +18,10 @@
 				"maxFail": 0,
 				"maxSkip": 0,
 				"include": [
-					"./tests/common/**/test-time-*.js"
+					"./tests/**/*.js"
+				],
+				"exclude": [
+					"**/tests/runner/**"
 				]
 			},
 			"coverage": {

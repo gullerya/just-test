@@ -1,6 +1,4 @@
-import { EventEmitter } from 'events';
-
-export class EnvironmentBase extends EventEmitter {
+export class EnvironmentBase extends EventTarget {
 	constructor(sessionId) {
 		super();
 		if (!sessionId || typeof sessionId !== 'string') {

@@ -1,4 +1,4 @@
-const basePathValidator = /^[a-z]+$/;
+const basePathValidator = /^[a-z-_]+$/;
 export class RequestHandlerBase {
 	constructor() {
 		const bp = this.basePath;
