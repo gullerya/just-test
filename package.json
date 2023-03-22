@@ -61,7 +61,7 @@
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
-		"@gullerya/just-test": "^4.0.2",
+		"@gullerya/just-test": "^4.0.3",
 		"eslint": "^8.36.0"
 	},
 	"publishConfig": {
