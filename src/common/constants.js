@@ -15,8 +15,6 @@ const DEFAULT = Object.freeze({
 });
 
 const EVENT = Object.freeze({
-	RUN_INIT_REQUEST: 'RUN_INIT_REQUEST',
-	RUN_INIT_RESPONSE: 'RUN_INIT_RESPONSE',
 	RUN_START: 'RUN_START',
 	RUN_END: 'RUN_END'
 });
