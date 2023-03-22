@@ -101,6 +101,8 @@ function getIFrameExecutorFactory(metadata, stateService) {
 					stateService.updateRunStarted(suiteName, testName);
 				} else if (type === EVENT.RUN_END) {
 					stateService.updateRunEnded(suiteName, testName, run);
+					mc.port1.close();
+					mc.port2.close();
 					resolve();
 				}
 			});
@@ -128,37 +130,43 @@ function getIFrameExecutorFactory(metadata, stateService) {
 // 	return (test, suiteName) => { };
 // }
 
-// function getWorkerExecutorFactory(_metadata, stateService) {
-// 	console.info('preparing WebWorker executors factory');
+function getWorkerExecutorFactory(metadata, stateService) {
+	console.info('preparing WebWorker executors factory');
 
-// 	const workerUrl = new URL('./browser-test-box.js', import.meta.url);
+	const workerUrl = new URL('./browser-test-box.js', import.meta.url);
 
-// 	return (test, suiteName) => {
-// 		//	TODO: this should be reasource pooled
-// 		const worker = new Worker(workerUrl, { type: 'module' });
+	return (test, suiteName) => {
+		//	TODO: this should be reasource pooled
+		const worker = new Worker(workerUrl, { type: 'module' });
+		const mc = new MessageChannel();
 
-// 		return new Promise(resolve => {
-// 			worker.addEventListener('message', message => {
-// 				const { type, testName, run } = message.data;
-// 				if (type === EVENT.RUN_INIT_REQUEST) {
-// 					worker.postMessage({
-// 						type: EVENT.RUN_INIT_RESPONSE,
-// 						testName: test.name,
-// 						testSource: test.source,
-// 						coverage: null
-// 					});
-// 				} else if (type === EVENT.RUN_START) {
-// 					stateService.updateRunStarted(suiteName, testName);
-// 				} else if (type === EVENT.RUN_END) {
-// 					stateService.updateRunEnded(suiteName, testName, run);
-// 					resolve();
-// 				}
-// 			});
-// 			worker.addEventListener('error', ee => {
-// 				console.error(`worker for test '${test.name}' errored: ${ee}`);
-// 				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
-// 				resolve();
-// 			});
-// 		});
-// 	};
-// }
+		return new Promise(resolve => {
+			mc.port1.addEventListener('message', message => {
+				const { type, testName, run } = message.data;
+				if (type === EVENT.RUN_START) {
+					stateService.updateRunStarted(suiteName, testName);
+				} else if (type === EVENT.RUN_END) {
+					stateService.updateRunEnded(suiteName, testName, run);
+					mc.port1.close();
+					mc.port2.close();
+					resolve();
+				}
+			});
+			mc.port1.start();
+
+			worker.addEventListener('error', ee => {
+				console.error(`worker for test '${test.name}' errored: ${ee}`);
+				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
+				mc.port1.close();
+				mc.port2.close();
+				resolve();
+			});
+
+			worker.postMessage({
+				testName: test.name,
+				testSource: test.source,
+				coverage: metadata.coverage
+			}, [mc.port2]);
+		});
+	};
+}
