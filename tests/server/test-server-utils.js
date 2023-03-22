@@ -17,8 +17,7 @@ test('extension map is full', () => {
 
 test('extension map is immutable', () => {
 	assert.throws(
-		() => { extensionsMap.js = 'something else'; },
-		'Cannot assign to read only property'
+		() => { extensionsMap.js = 'something else'; }
 	);
 });
 

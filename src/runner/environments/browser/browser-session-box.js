@@ -92,29 +92,33 @@ function getIFrameExecutorFactory(metadata, stateService) {
 		f.src = iframeUrl;
 		d.body.appendChild(f);
 
+		const mc = new MessageChannel();
+
 		return new Promise(resolve => {
+			mc.port1.addEventListener('message', message => {
+				const { type, testName, run } = message.data;
+				if (type === EVENT.RUN_START) {
+					stateService.updateRunStarted(suiteName, testName);
+				} else if (type === EVENT.RUN_END) {
+					stateService.updateRunEnded(suiteName, testName, run);
+					resolve();
+				}
+			});
+			mc.port1.start();
 			f.addEventListener('load', () => {
-				f.contentWindow.addEventListener('message', message => {
-					const { type, testName, run } = message.data;
-					if (type === EVENT.RUN_INIT_REQUEST) {
-						f.contentWindow.postMessage({
-							type: EVENT.RUN_INIT_RESPONSE,
-							testName: test.name,
-							testSource: test.source,
-							coverage: metadata.coverage
-						});
-					} else if (type === EVENT.RUN_START) {
-						stateService.updateRunStarted(suiteName, testName);
-					} else if (type === EVENT.RUN_END) {
-						stateService.updateRunEnded(suiteName, testName, run);
-						resolve();
-					}
-				});
 				f.contentWindow.addEventListener('error', ee => {
 					console.error(`worker for test '${test.name}' errored: ${ee}`);
 					stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
+					mc.port1.close();
+					mc.port2.close();
 					resolve();
 				});
+
+				f.contentWindow.postMessage({
+					testName: test.name,
+					testSource: test.source,
+					coverage: metadata.coverage
+				}, '*', [mc.port2]);
 			}, { once: true });
 		});
 	};
