@@ -110,6 +110,7 @@ class Assert {
 			await asyncFn();
 		} catch (e) {
 			this.#assertError(e, error, message, 'rejects');
+			return;
 		}
 		throw new AssertionError({ message, actual: undefined, expected: error, operator: 'rejects' });
 	}
@@ -128,6 +129,7 @@ class Assert {
 			fn();
 		} catch (e) {
 			this.#assertError(e, error, message, 'throws');
+			return;
 		}
 		throw new AssertionError({ message, actual: undefined, expected: error, operator: 'throws' });
 	}
