@@ -1,10 +1,12 @@
 import { EVENT, INTEROP_NAMES } from '../../../common/constants.js';
 import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
 
+let parentPort;
 let externalizedTestName;
 
 globalThis.addEventListener('message', async m => {
-	if (m.data.type === EVENT.RUN_INIT_RESPONSE) {
+	if (m.ports?.length) {
+		parentPort = m.ports[0];
 		const { testName, testSource, coverage: coverageConfig } = m.data;
 		externalizedTestName = testName;
 
@@ -24,11 +26,6 @@ globalThis.addEventListener('message', async m => {
 	}
 });
 
-// this starts the chain of flow
-globalThis.postMessage({
-	type: EVENT.RUN_INIT_REQUEST
-});
-
 //
 // internal methods
 //
@@ -36,12 +33,12 @@ function runStartHandler(tName) {
 	if (tName !== externalizedTestName) {
 		throw new Error(`expected to get result of test '${externalizedTestName}', but received of '${tName}'`);
 	}
-	globalThis.postMessage({ type: EVENT.RUN_START, testName: tName });
+	parentPort.postMessage({ type: EVENT.RUN_START, testName: tName });
 }
 
 function runEndHandler(tName, run) {
 	if (tName !== externalizedTestName) {
 		throw new Error(`expected to get result of test '${externalizedTestName}', but received of '${tName}'`);
 	}
-	globalThis.postMessage({ type: EVENT.RUN_END, testName: tName, run });
+	parentPort.postMessage({ type: EVENT.RUN_END, testName: tName, run });
 }

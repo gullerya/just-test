@@ -55,7 +55,6 @@ jobs:
   quality_pipeline_firefox:
     runs-on: ubuntu-20.04
     timeout-minutes: 10
-    if: "false"
 
     steps:
       - name: Checkout
@@ -117,7 +116,7 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm run test:ci:node
+        run: npm run test:ci:nodejs
 
       - name: Report coverage
         uses: codecov/codecov-action@v3

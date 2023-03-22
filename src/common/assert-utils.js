@@ -105,27 +105,12 @@ class Assert {
 				}
 			});
 	}
-	async rejects(asyncFn, error = Error, message) {
+	async rejects(asyncFn, error, message) {
 		try {
 			await asyncFn();
 		} catch (e) {
-			if (error instanceof RegExp) {
-				if (!e.message?.match(error)) {
-					throw new AssertionError({ message, actual: e, expected: error, operator: 'rejects' });
-				} else {
-					return;
-				}
-			} else if (typeof error === 'object' || typeof error === 'function') {
-				if (!(e instanceof error)) {
-					throw new AssertionError({ message, actual: e, expected: error, operator: 'rejects' });
-				}
-			} else if (typeof error === 'string') {
-				if (!e.message?.includes(error)) {
-					throw new AssertionError({ message, actual: e, expected: error, operator: 'rejects' });
-				} else {
-					return;
-				}
-			}
+			this.#assertError(e, error, message, 'rejects');
+			return;
 		}
 		throw new AssertionError({ message, actual: undefined, expected: error, operator: 'rejects' });
 	}
@@ -143,26 +128,8 @@ class Assert {
 		try {
 			fn();
 		} catch (e) {
-			if (!error) {
-				return;
-			}
-			if (error instanceof RegExp) {
-				if (!e.message?.match(error)) {
-					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
-				} else {
-					return;
-				}
-			} else if (typeof error === 'object' || typeof error === 'function') {
-				if (!(e instanceof error)) {
-					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
-				}
-			} else if (typeof error === 'string') {
-				if (!e.message?.includes(error)) {
-					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
-				} else {
-					return;
-				}
-			}
+			this.#assertError(e, error, message, 'throws');
+			return;
 		}
 		throw new AssertionError({ message, actual: undefined, expected: error, operator: 'throws' });
 	}
@@ -186,6 +153,32 @@ class Assert {
 	ifError(value) {
 		if (value !== undefined && value !== null) {
 			throw new AssertionError({ actual: value, expected: 'undefined or null', operator: 'ifError' });
+		}
+	}
+
+	#assertError(error, expected, message, operator) {
+		if (!error) {
+			throw new AssertionError({ message, actual: error, expected, operator });
+		}
+		if (!expected) {
+			return;
+		}
+		if (expected instanceof RegExp) {
+			if (!error.message?.match(expected)) {
+				throw new AssertionError({ message, actual: error, expected, operator });
+			} else {
+				return;
+			}
+		} else if (typeof expected === 'object' || typeof expected === 'function') {
+			if (!(error instanceof expected)) {
+				throw new AssertionError({ message, actual: error, expected, operator });
+			}
+		} else if (typeof expected === 'string') {
+			if (!error.message?.includes(expected)) {
+				throw new AssertionError({ message, actual: error, expected, operator });
+			} else {
+				return;
+			}
 		}
 	}
 }

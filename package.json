@@ -50,7 +50,7 @@
 		"test:ci:chromium": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-chromium.json",
 		"test:ci:firefox": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-firefox.json",
 		"test:ci:webkit": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-webkit.json",
-		"test:ci:node": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-node.json"
+		"test:ci:nodejs": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-nodejs.json"
 	},
 	"dependencies": {
 		"data-tier": "^3.6.6",
@@ -61,7 +61,7 @@
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
-		"@gullerya/just-test": "^4.0.2",
+		"@gullerya/just-test": "^4.0.3",
 		"eslint": "^8.36.0"
 	},
 	"publishConfig": {
