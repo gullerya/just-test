@@ -109,19 +109,25 @@ class Assert {
 		try {
 			await asyncFn();
 		} catch (e) {
-			if (typeof error === 'object' || typeof error === 'function') {
-				if (!(e instanceof error)) {
-					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
-				}
-			} else if (typeof error === 'string' || error instanceof RegExp) {
+			if (error instanceof RegExp) {
 				if (!e.message?.match(error)) {
-					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
+					throw new AssertionError({ message, actual: e, expected: error, operator: 'rejects' });
+				} else {
+					return;
+				}
+			} else if (typeof error === 'object' || typeof error === 'function') {
+				if (!(e instanceof error)) {
+					throw new AssertionError({ message, actual: e, expected: error, operator: 'rejects' });
+				}
+			} else if (typeof error === 'string') {
+				if (!e.message?.includes(error)) {
+					throw new AssertionError({ message, actual: e, expected: error, operator: 'rejects' });
 				} else {
 					return;
 				}
 			}
 		}
-		throw new AssertionError({ message, actual: undefined, expected: error, operator: 'throws' });
+		throw new AssertionError({ message, actual: undefined, expected: error, operator: 'rejects' });
 	}
 
 	doesNotThrow(fn, error = Error, message) {
@@ -140,12 +146,18 @@ class Assert {
 			if (!error) {
 				return;
 			}
-			if (typeof error === 'object' || typeof error === 'function') {
+			if (error instanceof RegExp) {
+				if (!e.message?.match(error)) {
+					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
+				} else {
+					return;
+				}
+			} else if (typeof error === 'object' || typeof error === 'function') {
 				if (!(e instanceof error)) {
 					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
 				}
-			} else if (typeof error === 'string' || error instanceof RegExp) {
-				if (!e.message?.match(error)) {
+			} else if (typeof error === 'string') {
+				if (!e.message?.includes(error)) {
 					throw new AssertionError({ message, actual: e, expected: error, operator: 'throws' });
 				} else {
 					return;
