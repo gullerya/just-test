@@ -22,9 +22,18 @@ import { EVENT, STATUS } from '../../../common/constants.js';
 		console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
 		await planSession(metadata.testPaths, stateService);
 
-		const testExecutor = metadata.browser.executors?.type === 'iframe'
-			? getIFrameExecutorFactory(metadata, stateService)
-			: getWorkerExecutorFactory(metadata, stateService);
+		let testExecutor;
+		switch (metadata.browser.executors?.type) {
+			case 'worker':
+				testExecutor = getWorkerExecutorFactory(metadata, stateService);
+				break;
+			case 'page':
+				testExecutor = getPageExecutor(metadata, stateService);
+				break;
+			case 'iframe':
+			default:
+				testExecutor = getIFrameExecutorFactory(metadata, stateService);
+		}
 		await runSession(stateService, testExecutor);
 	} catch (e) {
 		stateService.reportError(e);
@@ -80,21 +89,21 @@ async function planSession(testsResources, stateService) {
 function getIFrameExecutorFactory(metadata, stateService) {
 	console.info('preparing IFrame executors factory');
 
-	const iframeUrl = new URL('./browser-test-box.html', import.meta.url);
-	iframeUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, metadata.sessionId);
-	iframeUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, metadata.id);
+	const executorUrl = new URL('./browser-test-box.html', import.meta.url);
+	executorUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, metadata.sessionId);
+	executorUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, metadata.id);
 
 	return (test, suiteName) => {
 		//	TODO: this should be reasource pooled
 		const d = globalThis.document;
 		const f = d.createElement('iframe');
 		f.name = test.name;
-		f.src = iframeUrl;
+		f.src = executorUrl;
 		d.body.appendChild(f);
 
-		const mc = new MessageChannel();
-
 		return new Promise(resolve => {
+			const mc = new MessageChannel();
+
 			mc.port1.addEventListener('message', message => {
 				const { type, testName, run } = message.data;
 				if (type === EVENT.RUN_START) {
@@ -126,9 +135,50 @@ function getIFrameExecutorFactory(metadata, stateService) {
 	};
 }
 
-// function createPageExecutor(metadata, stateService) {
-// 	return (test, suiteName) => { };
-// }
+function getPageExecutor(metadata, stateService) {
+	console.info('preparing Page executors factory');
+
+	const executorUrl = new URL('./browser-test-box.html', import.meta.url);
+	executorUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, metadata.sessionId);
+	executorUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, metadata.id);
+
+	return (test, suiteName) => {
+		//	TODO: this should be reasource pooled
+		const page = globalThis.open(executorUrl);
+
+		return new Promise(resolve => {
+			const mc = new MessageChannel();
+
+			mc.port1.addEventListener('message', message => {
+				const { type, testName, run } = message.data;
+				if (type === EVENT.RUN_START) {
+					stateService.updateRunStarted(suiteName, testName);
+				} else if (type === EVENT.RUN_END) {
+					stateService.updateRunEnded(suiteName, testName, run);
+					mc.port1.close();
+					mc.port2.close();
+					resolve();
+				}
+			});
+			mc.port1.start();
+			page.addEventListener('load', () => {
+				page.addEventListener('error', ee => {
+					console.error(`worker for test '${test.name}' errored: ${ee}`);
+					stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
+					mc.port1.close();
+					mc.port2.close();
+					resolve();
+				});
+
+				page.postMessage({
+					testName: test.name,
+					testSource: test.source,
+					coverage: metadata.coverage
+				}, '*', [mc.port2]);
+			}, { once: true });
+		});
+	};
+}
 
 function getWorkerExecutorFactory(metadata, stateService) {
 	console.info('preparing WebWorker executors factory');
@@ -138,9 +188,10 @@ function getWorkerExecutorFactory(metadata, stateService) {
 	return (test, suiteName) => {
 		//	TODO: this should be reasource pooled
 		const worker = new Worker(workerUrl, { type: 'module' });
-		const mc = new MessageChannel();
 
 		return new Promise(resolve => {
+			const mc = new MessageChannel();
+
 			mc.port1.addEventListener('message', message => {
 				const { type, testName, run } = message.data;
 				if (type === EVENT.RUN_START) {

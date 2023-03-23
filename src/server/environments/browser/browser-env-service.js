@@ -27,7 +27,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 	#browser;
 	#browsingContext;
 	#coverageSession;
-	#scriptsCoverageMap;
+	#scriptsCoverageMap = {};
 
 	/**
 	 * construct browser environment for a specific session
@@ -78,11 +78,11 @@ class BrowserEnvImpl extends EnvironmentBase {
 		});
 		this.#browsingContext.on('page', async page => {
 			if (this.#envConfig.coverage) {
-				await this.#installCoverageCollector(this.#envConfig.coverage, this.#browsingContext, page);
+				await this.#installCoverageCollector(this.#envConfig.coverage, page);
 			}
 		});
 		if (this.#envConfig.coverage) {
-			await this.#installCoverageCollector(this.#envConfig.coverage, this.#browsingContext, mainPage);
+			await this.#installCoverageCollector(this.#envConfig.coverage, mainPage);
 		}
 
 		logger.info(`setting timeout for the whole tests execution to ${this.#envConfig.tests.ttl}ms as per configuration`);
@@ -125,7 +125,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 		this.dispatchEvent(new CustomEvent('error', { detail: { error } }));
 	}
 
-	async #installCoverageCollector(coverageConfig, browsingContext, _mainPage) {
+	async #installCoverageCollector(coverageConfig, page) {
 		const coverageTargets = await collectTargetSources(coverageConfig);
 		if (!coverageTargets || !coverageTargets.length) {
 			console.log('no coverage targets found, skipping coverage collection');
@@ -133,27 +133,35 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}
 
 		//	install coverage session
-		this.#coverageSession = await browsingContext.newCDPSession(_mainPage);
-		await Promise.all([
-			this.#coverageSession.send('Profiler.enable'),
-			this.#coverageSession.send('Debugger.enable'),
-		]);
-		await Promise.all([
-			this.#coverageSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true }),
-			this.#coverageSession.send('Debugger.setSkipAllPauses', { skip: true })
-		]);
+		// const browsingContext = page.context();
+		// this.#coverageSession = await browsingContext.newCDPSession(page);
+		// await Promise.all([
+		// 	this.#coverageSession.send('Profiler.enable'),
+		// 	this.#coverageSession.send('Debugger.enable'),
+		// ]);
+		// await Promise.all([
+		// 	this.#coverageSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true }),
+		// 	this.#coverageSession.send('Debugger.setSkipAllPauses', { skip: true })
+		// ]);
 
 		//	install test registrar and scripts listener
-		this.#scriptsCoverageMap = {};
-		browsingContext.exposeBinding(INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE, async ({ page }, testName) => {
-			const session = await browsingContext.newCDPSession(page);
+		page.exposeBinding(INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE, async ({ page: _page }, testName) => {
+			const context = _page.context();
+			const session = await context.newCDPSession(_page);
 
 			await Promise.all([
 				session.send('Debugger.enable'),
-				session.send('Debugger.setSkipAllPauses', { skip: true })
+				session.send('Profiler.enable')
+			]);
+			await Promise.all([
+				session.send('Debugger.setSkipAllPauses', { skip: true }),
+				session.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true }),
 			]);
 
 			session.on('Debugger.scriptParsed', e => {
+				if (e.url) {
+					console.log(e.url);
+				}
 				if (e.url.startsWith(`${serverConfig.origin}/aut/`)) {
 					if (!this.#scriptsCoverageMap[e.scriptId]) {
 						this.#scriptsCoverageMap[e.scriptId] = testName;
