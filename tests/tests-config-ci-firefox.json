@@ -2,10 +2,7 @@
 	"environments": [
 		{
 			"browser": {
-				"type": "firefox",
-				"executors": {
-					"type": "iframe"
-				}
+				"type": "firefox"
 			},
 			"tests": {
 				"ttl": 300000,

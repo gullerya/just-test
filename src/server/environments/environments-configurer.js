@@ -13,7 +13,10 @@ const
 	BROWSER_TYPES = ['chromium', 'firefox', 'webkit'],
 	BROWSER_EXECUTORS = ['iframe', 'page', 'worker'],
 	SCHEMES = ['light', 'dark'],
-	DEFAULT_IMPORTS = {
+	DEFAULT_BROWSER_EXECUTORS = {
+		type: 'iframe'
+	},
+	DEFAULT_BROWSER_IMPORTS = {
 		'@gullerya/just-test': '/libs/@gullerya/just-test/bin/runner/just-test.js',
 		'@gullerya/just-test/assert': '/libs/@gullerya/just-test/bin/common/assert-utils.js'
 	};
@@ -83,8 +86,11 @@ function validateBrowser(b) {
 	}
 
 	//	browser should have an executor defined
-	if (!b.executors) {
+	if (b.executors && typeof b.executors !== 'object') {
 		throw new Error(`executors MUST be defined for the browser`);
+	}
+	if (!b.executors) {
+		b.executors = DEFAULT_BROWSER_EXECUTORS;
 	}
 	if (!BROWSER_EXECUTORS.includes(b.executors.type)) {
 		throw new Error(`executor MUST define one of the supported types [${BROWSER_EXECUTORS.join(',')}]`);
@@ -101,7 +107,7 @@ function validateBrowser(b) {
 	}
 	const imports = Object.assign({
 
-	}, DEFAULT_IMPORTS, b.importmap?.imports);
+	}, DEFAULT_BROWSER_IMPORTS, b.importmap?.imports);
 	b.importmap = { imports };
 }
 
