@@ -11,7 +11,12 @@ const
 	}),
 	PRINCIPAL_ENTRIES = ['interactive', 'browser', 'node'],
 	BROWSER_TYPES = ['chromium', 'firefox', 'webkit'],
-	SCHEMES = ['light', 'dark'];
+	BROWSER_EXECUTORS = ['iframe', 'page', 'worker'],
+	SCHEMES = ['light', 'dark'],
+	DEFAULT_IMPORTS = {
+		'@gullerya/just-test': '/libs/@gullerya/just-test/bin/runner/just-test.js',
+		'@gullerya/just-test/assert': '/libs/@gullerya/just-test/bin/common/assert-utils.js'
+	};
 
 export default environment => {
 	validateEnvironment(environment);
@@ -67,18 +72,37 @@ function validateEnvironment(e) {
 }
 
 function validateBrowser(b) {
-	//	browsers should be an non-empty array
+	//	browser should be an object
 	if (typeof b !== 'object') {
 		throw new Error(`browser, if/when defined, MUST be an object`);
 	}
+
 	//	browser should have a type defined
 	if (!BROWSER_TYPES.includes(b.type)) {
 		throw new Error(`browser MUST define one of the supported types [${BROWSER_TYPES.join(',')}]`);
 	}
+
+	//	browser should have an executor defined
+	if (!b.executors) {
+		throw new Error(`executors MUST be defined for the browser`);
+	}
+	if (!BROWSER_EXECUTORS.includes(b.executors.type)) {
+		throw new Error(`executor MUST define one of the supported types [${BROWSER_EXECUTORS.join(',')}]`);
+	}
+
 	//	scheme should be valid, if any
 	if (b.scheme && !SCHEMES.includes(b.scheme)) {
 		throw new Error(`scheme MUST be one of the supported ones [${SCHEMES.join(',')}]`);
 	}
+
+	//	importmap
+	if (b.importmap && (typeof b.importmap !== 'object' || typeof b.importmap.imports !== 'object')) {
+		throw new Error(`importmap, if/when defined, MUST be a valid importmap object`);
+	}
+	const imports = Object.assign({
+
+	}, DEFAULT_IMPORTS, b.importmap?.imports);
+	b.importmap = { imports };
 }
 
 function validateInteractive(i) {
