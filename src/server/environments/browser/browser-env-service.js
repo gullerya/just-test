@@ -16,7 +16,7 @@ import { collectTargetSources } from '../../../coverage/coverage-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 import { ENVIRONMENT_KEYS } from '../../../runner/environment-config.js';
 import playwright from 'playwright';
-import minimatch from 'minimatch'
+import minimatch from 'minimatch';
 
 export default launch;
 
@@ -134,7 +134,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}
 
 		//	install test registrar and scripts listener
-		page.exposeBinding(INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE, async ({ page: _page }, testName) => {
+		page.exposeBinding(INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE, async ({ page: _page }, testName, suiteName) => {
 			const context = _page.context();
 			const session = await context.newCDPSession(_page);
 
@@ -157,7 +157,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 					return;
 				}
 				if (!this.#scriptsCoverageMap[e.scriptId]) {
-					this.#scriptsCoverageMap[e.scriptId] = testName;
+					this.#scriptsCoverageMap[e.scriptId] = testName + ' - ' + suiteName;
 				} else {
 					console.error(`unexpected duplication of script ${e.scriptId} [${e.url}]`);
 				}

@@ -40,6 +40,5 @@ const TEST_CONFIG_DEFAULT = Object.freeze({
 });
 
 const INTEROP_NAMES = Object.freeze({
-	REGISTER_TEST_FOR_COVERAGE: '_registerTestForCoverage',
-	IPC_HANDSHAKE: 'ipcHandshake'
+	REGISTER_TEST_FOR_COVERAGE: '_registerTestForCoverage'
 });

@@ -7,12 +7,12 @@ let externalizedTestName;
 globalThis.addEventListener('message', async m => {
 	if (m.ports?.length) {
 		parentPort = m.ports[0];
-		const { testName, testSource, coverage: coverageConfig } = m.data;
+		const { testName, suiteName, testSource, coverage: coverageConfig } = m.data;
 		externalizedTestName = testName;
 
 		if (coverageConfig) {
 			if (typeof globalThis[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE] === 'function') {
-				await globalThis[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE](testName);
+				await globalThis[INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE](testName, suiteName);
 			} else {
 				console.warn('coverage required by configuration but not supported on this environment');
 			}

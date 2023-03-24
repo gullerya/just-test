@@ -127,6 +127,7 @@ function getIFrameExecutorFactory(metadata, stateService) {
 
 				f.contentWindow.postMessage({
 					testName: test.name,
+					suiteName: suiteName,
 					testSource: test.source,
 					coverage: metadata.coverage
 				}, '*', [mc.port2]);
@@ -172,6 +173,7 @@ function getPageExecutor(metadata, stateService) {
 
 				page.postMessage({
 					testName: test.name,
+					suiteName: suiteName,
 					testSource: test.source,
 					coverage: metadata.coverage
 				}, '*', [mc.port2]);
@@ -215,6 +217,7 @@ function getWorkerExecutorFactory(metadata, stateService) {
 
 			worker.postMessage({
 				testName: test.name,
+				suiteName: suiteName,
 				testSource: test.source,
 				coverage: metadata.coverage
 			}, [mc.port2]);
