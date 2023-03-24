@@ -4,15 +4,15 @@ import { extensionsMap } from '../server-utils.js';
 import { addSession, storeResult, getAll, getSession } from '../sessions/sessions-service.js';
 import { collectTestResources } from '../../testing/testing-service.js';
 
-const
-	logger = new Logger({ context: 'handler API' }),
-	CONFIG_KEY = Symbol('config.key');
-
 export default class APIRequestHandler extends RequestHandlerBase {
+	#config;
+	#logger;
+
 	constructor(config) {
 		super();
-		this[CONFIG_KEY] = config;
-		logger.info(`API requests handler initialized; basePath: '${this.basePath}'`);
+		this.#config = config;
+		this.#logger = new Logger({ context: `'API' handler` });
+		this.#logger.info(`'API' requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
 	get basePath() { return 'api'; }
@@ -71,9 +71,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 				let data = '';
 				req.on('error', reject);
 				req.on('data', chunk => data += chunk);
-				req.on('end', () => {
-					resolve(JSON.parse(data));
-				});
+				req.on('end', () => resolve(JSON.parse(data)));
 			} catch (error) {
 				reject(error);
 			}
@@ -124,7 +122,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		let result;
 		let found = false;
 		if (entity === 'environments') {
-			result = await this.getEnvironmentData(session, entityId, args);
+			result = await this.#getEnvironmentData(session, entityId, args);
 			found = true;
 		} else if (entity === 'result') {
 			result = session.result;
@@ -142,7 +140,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		}
 	}
 
-	async getEnvironmentData(session, envId, args) {
+	async #getEnvironmentData(session, envId, args) {
 		let result = null;
 		const env = session.config.environments[envId];
 
@@ -164,29 +162,6 @@ export default class APIRequestHandler extends RequestHandlerBase {
 				);
 			}
 		}
-		return result;
-	}
-
-	_resolveExecutionEnvironment(req) {
-		let result = {};
-
-		const envType = req.headers['just-test-env-type'];
-		if (envType) {
-			result.interactive = false;
-			if (envType === 'browser') {
-				result.browser = {
-					name: req.headers['just-test-browser-name'],
-					version: req.headers['just-test-browser-ver']
-				};
-			}
-		} else {
-			result.interactive = true;
-			result.browser = {
-				name: 'custom',
-				version: null
-			};
-		}
-
 		return result;
 	}
 }

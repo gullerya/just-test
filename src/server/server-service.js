@@ -82,7 +82,7 @@ class ServerService {
 				} catch (error) {
 					logger.error(`sending 500 for '${req.url}' due to:`);
 					logger.error(error);
-					res.writeHead(500).end(`${error}`);
+					res.writeHead(500, http.STATUS_CODES[500]).end();
 				}
 			} else {
 				res.writeHead(404, `no handler matched '${req.url}'`).end();

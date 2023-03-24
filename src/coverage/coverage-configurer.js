@@ -1,6 +1,6 @@
 const
 	COVERAGE_SUPPORTING_BROWSERS = ['chromium'],
-	COVERAGE_FORMATS = ['lcov', 'html'],
+	COVERAGE_FORMATS = ['lcov'],
 	DEFAULT_CONFIG = Object.freeze({
 		include: [],
 		exclude: [
@@ -12,12 +12,32 @@ const
 	});
 
 export default (coverageConfig, environment) => {
-	if (coverageConfig === undefined) {
-		return null;
+	if (!coverageConfig) {
+		return DEFAULT_CONFIG;
 	}
-	if (!coverageConfig || typeof coverageConfig !== 'object') {
+	validate(coverageConfig, environment);
+
+	const result = {};
+	result.include = Array.isArray(coverageConfig.include)
+		? DEFAULT_CONFIG.include.concat(coverageConfig.include)
+		: DEFAULT_CONFIG.include;
+	result.exclude = Array.isArray(coverageConfig.exclude)
+		? DEFAULT_CONFIG.exclude.concat(coverageConfig.exclude)
+		: DEFAULT_CONFIG.exclude;
+	result.reports = Array.isArray(coverageConfig.reports)
+		? coverageConfig.reports
+		: DEFAULT_CONFIG.reports;
+
+	return Object.freeze(result);
+};
+
+function validate(config, environment) {
+	//	validate self
+	if (config && typeof config !== 'object') {
 		throw new Error(`coverage config, if/when defined, MUST be a non-null object`);
 	}
+
+	//	validate against environment
 	if (environment.interactive) {
 		throw new Error(`coverage is NOT supported in interactive environement`);
 	}
@@ -25,31 +45,20 @@ export default (coverageConfig, environment) => {
 		throw new Error(`coverage supported ONLY in [${COVERAGE_SUPPORTING_BROWSERS.join(', ')}]`);
 	}
 
-	const result = Object.assign(
-		{},
-		DEFAULT_CONFIG,
-		Object.entries(coverageConfig)
-			.filter(([key]) => key in DEFAULT_CONFIG)
-			.reduce((pv, [key, value]) => { pv[key] = value; return pv; }, {})
-	);
-
-	validate(result);
-	return Object.freeze(result);
-};
-
-function validate(config) {
 	//	validate reports
-	if (!Array.isArray(config.reports) || config.reports.some(r => !r || typeof r !== 'object')) {
-		throw new Error(`coverage reports MUST be an array of non-null objects; got ${config.reports}`);
+	if (config.reports) {
+		if (!Array.isArray(config.reports) || config.reports.some(r => !r || typeof r !== 'object')) {
+			throw new Error(`coverage reports MUST be an array of non-null objects; got ${config.reports}`);
+		}
+		config.reports.forEach(report => {
+			if (!report.path || typeof report.path !== 'string') {
+				throw new Error(`coverage report path MUST be a non-empty string; got ${report.path}`);
+			}
+			if (!COVERAGE_FORMATS.includes(report.format)) {
+				throw new Error(`coverage report format MUST be a one of [${COVERAGE_FORMATS}]; got ${report.format}`);
+			}
+		});
 	}
-	config.reports.forEach(report => {
-		if (!report.path || typeof report.path !== 'string') {
-			throw new Error(`coverage report path MUST be a non-empty string; got ${report.path}`);
-		}
-		if (!COVERAGE_FORMATS.includes(report.format)) {
-			throw new Error(`coverage report format MUST be a one of [${COVERAGE_FORMATS}]; got ${report.format}`);
-		}
-	});
 
 	//	validate include/exclude
 	if (config.include) {

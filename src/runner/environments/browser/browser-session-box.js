@@ -62,22 +62,22 @@ async function planSession(testsResources, stateService) {
 	const started = globalThis.performance.now();
 
 	console.info(`fetching ${testsResources.length} test resource/s...`);
-	for (const tr of testsResources) {
+	for (const testSource of testsResources) {
 		try {
 			const execContext = setExecutionContext(EXECUTION_MODES.PLAN);
-			execContext.suiteName = tr;
-			await import(`/tests/${tr}`);
+			execContext.suiteName = testSource;
+			await import(`/static/${testSource}`);
 			for (const { name, config } of execContext.testConfigs) {
 				stateService.addTest({
 					name,
 					config,
-					source: tr,
+					source: testSource,
 					suiteName: execContext.suiteName,
 					runs: []
 				});
 			}
 		} catch (e) {
-			console.error(`failed to process '${tr}':`);
+			console.error(`failed to process '${testSource}':`);
 			console.error(e);
 		}
 	}

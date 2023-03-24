@@ -21,10 +21,6 @@
 					{
 						"format": "lcov",
 						"path": "./reports/coverage.lcov"
-					},
-					{
-						"format": "html",
-						"path": "./reports/coverage-html"
 					}
 				]
 			}

@@ -57,6 +57,7 @@
 		"data-tier-list": "^2.2.1",
 		"es-module-shims": "^1.7.0",
 		"glob": "^9.3.0",
+		"minimatch": "^7.4.3",
 		"playwright": "^1.31.2",
 		"rich-component": "^1.8.0"
 	},

@@ -14,8 +14,9 @@ import { waitInterval } from '../../../common/time-utils.js';
 import { config as serverConfig } from '../../server-service.js';
 import { collectTargetSources } from '../../../coverage/coverage-service.js';
 import { EnvironmentBase } from '../environment-base.js';
-import playwright from 'playwright';
 import { ENVIRONMENT_KEYS } from '../../../runner/environment-config.js';
+import playwright from 'playwright';
+import minimatch from 'minimatch'
 
 export default launch;
 
@@ -132,18 +133,6 @@ class BrowserEnvImpl extends EnvironmentBase {
 			return;
 		}
 
-		//	install coverage session
-		// const browsingContext = page.context();
-		// this.#coverageSession = await browsingContext.newCDPSession(page);
-		// await Promise.all([
-		// 	this.#coverageSession.send('Profiler.enable'),
-		// 	this.#coverageSession.send('Debugger.enable'),
-		// ]);
-		// await Promise.all([
-		// 	this.#coverageSession.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true }),
-		// 	this.#coverageSession.send('Debugger.setSkipAllPauses', { skip: true })
-		// ]);
-
 		//	install test registrar and scripts listener
 		page.exposeBinding(INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE, async ({ page: _page }, testName) => {
 			const context = _page.context();
@@ -159,15 +148,18 @@ class BrowserEnvImpl extends EnvironmentBase {
 			]);
 
 			session.on('Debugger.scriptParsed', e => {
-				if (e.url) {
-					console.log(e.url);
+				if (!e.url) {
+					return;
 				}
-				if (e.url.startsWith(`${serverConfig.origin}/aut/`)) {
-					if (!this.#scriptsCoverageMap[e.scriptId]) {
-						this.#scriptsCoverageMap[e.scriptId] = testName;
-					} else {
-						console.error(`unexpected duplication of script ${e.scriptId} [${e.url}]`);
-					}
+				const cover = coverageConfig.include.some(p => minimatch(e.url, p))
+					&& !coverageConfig.exclude.some(p => minimatch(e.url, p));
+				if (!cover) {
+					return;
+				}
+				if (!this.#scriptsCoverageMap[e.scriptId]) {
+					this.#scriptsCoverageMap[e.scriptId] = testName;
+				} else {
+					console.error(`unexpected duplication of script ${e.scriptId} [${e.url}]`);
 				}
 			});
 		});
@@ -208,6 +200,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 			throw new Error('replace the single cov process with the new methods');
 			//result[testId].push(processV8ScriptCoverage(trSCov));
 		}
+		console.log(result);
 		return result;
 	}
 

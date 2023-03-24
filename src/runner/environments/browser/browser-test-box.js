@@ -20,7 +20,7 @@ globalThis.addEventListener('message', async m => {
 
 		setExecutionContext(EXECUTION_MODES.TEST, testName, runStartHandler, runEndHandler);
 
-		import(`/tests/${testSource}`);
+		import(`/static/${testSource}`);
 	} else {
 		console.warn(`unexpected message from parent: ${JSON.stringify(m.data)}`);
 	}
