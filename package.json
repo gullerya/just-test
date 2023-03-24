@@ -38,8 +38,8 @@
 	"exports": {
 		".": "./bin/runner/just-test.js",
 		"./assert": "./bin/common/assert-utils.js",
-		"./random-utils": "./bin/common/random-utils.js",
-		"./time-utils": "./bin/common/time-utils.js"
+		"./random": "./bin/common/random-utils.js",
+		"./timing": "./bin/common/time-utils.js"
 	},
 	"scripts": {
 		"build": "node ./ci/tools/build.js",
@@ -56,9 +56,9 @@
 		"data-tier": "^3.6.6",
 		"data-tier-list": "^2.2.1",
 		"es-module-shims": "^1.7.0",
-		"glob": "^9.3.0",
+		"glob": "^9.3.2",
 		"minimatch": "^7.4.3",
-		"playwright": "^1.31.2",
+		"playwright": "^1.32.0",
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {

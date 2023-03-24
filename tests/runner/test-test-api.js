@@ -1,6 +1,6 @@
 ﻿import { test } from '@gullerya/just-test';
 import { assert } from '@gullerya/just-test/assert';
-import { waitInterval } from '@gullerya/just-test/time-utils';
+import { waitInterval } from '@gullerya/just-test/timing';
 import { STATUS } from '../../src/common/constants.js';
 
 //	sync
