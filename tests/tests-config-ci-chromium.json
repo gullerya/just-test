@@ -2,7 +2,10 @@
 	"environments": [
 		{
 			"browser": {
-				"type": "chromium"
+				"type": "chromium",
+				"executors": {
+					"type": "page"
+				}
 			},
 			"tests": {
 				"ttl": 300000,

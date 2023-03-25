@@ -94,7 +94,7 @@ function getIFrameExecutorFactory(metadata, stateService) {
 	executorUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, metadata.id);
 
 	return (test, suiteName) => {
-		//	TODO: this should be reasource pooled
+		//	TODO: this should be resource pooled
 		const d = globalThis.document;
 		const f = d.createElement('iframe');
 		f.name = test.name;
@@ -102,35 +102,10 @@ function getIFrameExecutorFactory(metadata, stateService) {
 		d.body.appendChild(f);
 
 		return new Promise(resolve => {
-			const mc = new MessageChannel();
+			const mc = setupMessaging(stateService, suiteName, resolve);
 
-			mc.port1.addEventListener('message', message => {
-				const { type, testName, run } = message.data;
-				if (type === EVENT.RUN_START) {
-					stateService.updateRunStarted(suiteName, testName);
-				} else if (type === EVENT.RUN_END) {
-					stateService.updateRunEnded(suiteName, testName, run);
-					mc.port1.close();
-					mc.port2.close();
-					resolve();
-				}
-			});
-			mc.port1.start();
 			f.addEventListener('load', () => {
-				f.contentWindow.addEventListener('error', ee => {
-					console.error(`worker for test '${test.name}' errored: ${ee}`);
-					stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
-					mc.port1.close();
-					mc.port2.close();
-					resolve();
-				});
-
-				f.contentWindow.postMessage({
-					testName: test.name,
-					suiteName,
-					testSource: test.source,
-					coverage: metadata.coverage
-				}, '*', [mc.port2]);
+				setupWorkerEvents(stateService, f.contentWindow, test, metadata.coverage, suiteName, mc, resolve);
 			}, { once: true });
 		});
 	};
@@ -144,39 +119,14 @@ function getPageExecutor(metadata, stateService) {
 	executorUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, metadata.id);
 
 	return (test, suiteName) => {
-		//	TODO: this should be reasource pooled
+		//	TODO: this should be resource pooled
 		const page = globalThis.open(executorUrl);
 
 		return new Promise(resolve => {
-			const mc = new MessageChannel();
+			const mc = setupMessaging(stateService, suiteName, resolve);
 
-			mc.port1.addEventListener('message', message => {
-				const { type, testName, run } = message.data;
-				if (type === EVENT.RUN_START) {
-					stateService.updateRunStarted(suiteName, testName);
-				} else if (type === EVENT.RUN_END) {
-					stateService.updateRunEnded(suiteName, testName, run);
-					mc.port1.close();
-					mc.port2.close();
-					resolve();
-				}
-			});
-			mc.port1.start();
 			page.addEventListener('load', () => {
-				page.addEventListener('error', ee => {
-					console.error(`worker for test '${test.name}' errored: ${ee}`);
-					stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
-					mc.port1.close();
-					mc.port2.close();
-					resolve();
-				});
-
-				page.postMessage({
-					testName: test.name,
-					suiteName,
-					testSource: test.source,
-					coverage: metadata.coverage
-				}, '*', [mc.port2]);
+				setupWorkerEvents(stateService, page, test, metadata.coverage, suiteName, mc, resolve);
 			}, { once: true });
 		});
 	};
@@ -188,39 +138,48 @@ function getWorkerExecutorFactory(metadata, stateService) {
 	const workerUrl = new URL('./browser-test-box.js', import.meta.url);
 
 	return (test, suiteName) => {
-		//	TODO: this should be reasource pooled
+		//	TODO: this should be resource pooled
 		const worker = new Worker(workerUrl, { type: 'module' });
 
 		return new Promise(resolve => {
-			const mc = new MessageChannel();
-
-			mc.port1.addEventListener('message', message => {
-				const { type, testName, run } = message.data;
-				if (type === EVENT.RUN_START) {
-					stateService.updateRunStarted(suiteName, testName);
-				} else if (type === EVENT.RUN_END) {
-					stateService.updateRunEnded(suiteName, testName, run);
-					mc.port1.close();
-					mc.port2.close();
-					resolve();
-				}
-			});
-			mc.port1.start();
-
-			worker.addEventListener('error', ee => {
-				console.error(`worker for test '${test.name}' errored: ${ee}`);
-				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
-				mc.port1.close();
-				mc.port2.close();
-				resolve();
-			});
-
-			worker.postMessage({
-				testName: test.name,
-				suiteName,
-				testSource: test.source,
-				coverage: metadata.coverage
-			}, [mc.port2]);
+			const mc = setupMessaging(stateService, suiteName, resolve);
+			setupWorkerEvents(stateService, worker, test, metadata.coverage, suiteName, mc, resolve);
 		});
 	};
+}
+
+function setupMessaging(stateService, suiteName, resolve) {
+	const mc = new MessageChannel();
+
+	mc.port1.addEventListener('message', message => {
+		const { type, testName, run } = message.data;
+		if (type === EVENT.RUN_START) {
+			stateService.updateRunStarted(suiteName, testName);
+		} else if (type === EVENT.RUN_END) {
+			stateService.updateRunEnded(suiteName, testName, run);
+			mc.port1.close();
+			mc.port2.close();
+			resolve();
+		}
+	});
+	mc.port1.start();
+
+	return mc;
+}
+
+function setupWorkerEvents(stateService, worker, test, coverage, suiteName, mc, resolve) {
+	worker.addEventListener('error', ee => {
+		console.error(`worker for test '${test.name}' errored: ${ee}`);
+		stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
+		mc.port1.close();
+		mc.port2.close();
+		resolve();
+	});
+
+	worker.postMessage({
+		testName: test.name,
+		suiteName,
+		testSource: test.source,
+		coverage
+	}, '*', [mc.port2]);
 }
