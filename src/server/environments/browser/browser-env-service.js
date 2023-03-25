@@ -113,10 +113,10 @@ class BrowserEnvImpl extends EnvironmentBase {
 				pageLogger[type](consoleMessage);
 			}
 		});
-		page.on('crash', p => {
+		page.on('crash', () => {
 			pageLogger.error('"crash" event fired on page');
 			pageLogger.info('dismissing the environment due to previous error/s...');
-			self.#notifyError(e);
+			self.#notifyError(null);
 		});
 		page.on('pageerror', e => {
 			pageLogger.error('"pageerror" event fired on page:');
@@ -169,7 +169,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 					return {
 						url: entry.url.replace(`${serverConfig.origin}/static/`, './'),
 						functions: entry.functions
-					}
+					};
 				})
 			);
 		}
