@@ -69,7 +69,7 @@ function createNodeJSExecutor(sessionMetadata, _stateService) {
 	const workerUrl = new URL('./nodejs-test-box.js', import.meta.url);
 
 	return (test, suiteName) => {
-		//	TODO: this should be reasource pooled
+		//	TODO: this should be resource pooled
 		const worker = new Worker(workerUrl, {
 			workerData: {
 				testName: test.name,

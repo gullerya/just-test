@@ -157,8 +157,6 @@ function setupMessaging(stateService, suiteName, resolve) {
 			stateService.updateRunStarted(suiteName, testName);
 		} else if (type === EVENT.RUN_END) {
 			stateService.updateRunEnded(suiteName, testName, run);
-			mc.port1.close();
-			mc.port2.close();
 			resolve();
 		}
 	});
@@ -171,8 +169,6 @@ function setupWorkerEvents(stateService, worker, test, coverage, suiteName, mc, 
 	worker.addEventListener('error', ee => {
 		console.error(`worker for test '${test.name}' errored: ${ee}`);
 		stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
-		mc.port1.close();
-		mc.port2.close();
 		resolve();
 	});
 
