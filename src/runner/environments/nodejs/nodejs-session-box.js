@@ -38,7 +38,7 @@ try {
 
 // internals
 //
-async function planSession(testsResources, _stateService) {
+async function planSession(testsResources, stateService) {
 	const started = globalThis.performance.now();
 
 	console.info(`fetching ${testsResources.length} test resource/s...`);
@@ -48,7 +48,7 @@ async function planSession(testsResources, _stateService) {
 			execContext.suiteName = tr;
 			await import(url.pathToFileURL(tr));
 			for (const { name, config } of execContext.testConfigs) {
-				_stateService.addTest({
+				stateService.addTest({
 					name,
 					config,
 					source: tr,
@@ -65,29 +65,30 @@ async function planSession(testsResources, _stateService) {
 	console.info(`... ${testsResources.length} test resource/s fetched (planning phase) in ${(ended - started).toFixed(1)}ms`);
 }
 
-function createNodeJSExecutor(sessionMetadata, _stateService) {
+function createNodeJSExecutor(sessionMetadata, stateService) {
 	const workerUrl = new URL('./nodejs-test-box.js', import.meta.url);
 
 	return (test, suiteName) => {
 		//	TODO: this should be resource pooled
-		const worker = new Worker(workerUrl, {
-			workerData: {
-				testName: test.name,
-				testSource: test.source,
-				coverage: sessionMetadata.coverage
-			}
-		});
-		//	TODO: the basic messaging interaction shoule be done via BroadcastChannel
+		const worker = new Worker(workerUrl);
+
 		worker.on('message', message => {
 			const { type, testName, run } = message;
 			if (type === EVENT.RUN_START) {
-				_stateService.updateRunStarted(suiteName, testName);
+				stateService.updateRunStarted(suiteName, testName);
 			} else if (type === EVENT.RUN_END) {
-				_stateService.updateRunEnded(suiteName, testName, run);
+				stateService.updateRunEnded(suiteName, testName, run);
 			}
 		});
 		worker.on('error', error => {
 			console.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
+		});
+
+		worker.postMessage({
+			testName: test.name,
+			suiteName,
+			testSource: test.source,
+			coverage: sessionMetadata.coverage
 		});
 
 		return new Promise(resolve => {

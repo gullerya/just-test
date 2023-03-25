@@ -3,32 +3,39 @@ import { cwd } from 'node:process';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import minimatch from 'minimatch';
-import { workerData, parentPort as sessionRunnerPort } from 'node:worker_threads';
+import { parentPort } from 'node:worker_threads';
 import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
 import { v8toJustTest } from '../../../coverage/coverage-service.js';
 import { EVENT } from '../../../common/constants.js';
 
-const { testName, testSource, coverage: coverageConfig } = workerData;
 const currentBase = pathToFileURL(cwd()).href;
+let testName;
+let coverageConfig;
 
-let sessionPost;
+parentPort.addEventListener('message', async m => {
+	const { testName: tName, testSource, coverage } = m.data;
+	testName = tName;
+	coverageConfig = coverage;
 
-if (coverageConfig) {
-	sessionPost = await initCoverage();
-}
+	if (coverageConfig) {
+		sessionPost = await initCoverage();
+	}
 
-setExecutionContext(EXECUTION_MODES.TEST, testName, runStartHandler, runEndHandler);
+	setExecutionContext(EXECUTION_MODES.TEST, testName, runStartHandler, runEndHandler);
 
-await import(pathToFileURL(testSource));
+	import(pathToFileURL(testSource));
+});
+parentPort.unref();
 
 //
 // internal methods
 //
+let sessionPost;
 async function runStartHandler(tName) {
 	if (tName !== testName) {
 		throw new Error(`expected to get result of test '${testName}', but received of '${tName}'`);
 	}
-	sessionRunnerPort.postMessage({ type: EVENT.RUN_START, testName });
+	parentPort.postMessage({ type: EVENT.RUN_START, testName });
 }
 
 async function runEndHandler(tName, run) {
@@ -43,7 +50,7 @@ async function runEndHandler(tName, run) {
 			console.error(`failed to collect coverage of '${testName}': ${e}`);
 		}
 	}
-	sessionRunnerPort.postMessage({ type: EVENT.RUN_END, testName, run });
+	parentPort.postMessage({ type: EVENT.RUN_END, testName, run });
 }
 
 //	TODO: consider to move to coverage service
@@ -78,9 +85,9 @@ async function collectCoverage() {
 				return result;
 			}
 
-			for (const ig of workerData.coverage.include) {
+			for (const ig of coverageConfig.include) {
 				const m = minimatch(entry.url, ig, {
-					ignore: workerData.coverage.exclude
+					ignore: coverageConfig.exclude
 				});
 
 				result = result || m;
