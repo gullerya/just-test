@@ -13,28 +13,30 @@ import { runSession } from '../../session-service.js';
 import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 import { EVENT } from '../../../common/constants.js';
 
-const { sesId, envId, origin } = workerData;
-const stateService = new SimpleStateService();
-try {
-	const metadata = await serverAPI.getSessionMetadata(sesId, envId, origin);
-	stateService.setSessionId(metadata.sessionId);
-	stateService.setEnvironmentId(metadata.id);
+(async () => {
+	const { sesId, envId, origin } = workerData;
+	const stateService = new SimpleStateService();
+	try {
+		const metadata = await serverAPI.getSessionMetadata(sesId, envId, origin);
+		stateService.setSessionId(metadata.sessionId);
+		stateService.setEnvironmentId(metadata.id);
 
-	console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
-	await planSession(metadata.testPaths, stateService);
+		console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
+		await planSession(metadata.testPaths, stateService);
 
-	const testExecutor = createNodeJSExecutor(metadata, stateService);
-	await runSession(stateService, testExecutor);
-} catch (e) {
-	stateService.reportError(e);
-	console.error(e);
-	console.error('session execution failed due to the previous error/s');
-} finally {
-	console.info(`reporting '${envId}':'${sesId}' results...`);
-	const sessionResult = stateService.getResult();
-	await serverAPI.reportSessionResult(sesId, envId, origin, sessionResult);
-	console.info(`session '${envId}':'${sesId}' finalized`);
-}
+		const testExecutor = createNodeJSExecutor(metadata, stateService);
+		await runSession(stateService, testExecutor);
+	} catch (e) {
+		stateService.reportError(e);
+		console.error(e);
+		console.error('session execution failed due to the previous error/s');
+	} finally {
+		console.info(`reporting '${envId}':'${sesId}' results...`);
+		const sessionResult = stateService.getResult();
+		await serverAPI.reportSessionResult(sesId, envId, origin, sessionResult);
+		console.info(`session '${envId}':'${sesId}' finalized`);
+	}
+})();
 
 // internals
 //
