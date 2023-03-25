@@ -19,8 +19,7 @@
 				],
 				"reports": [
 					{
-						"format": "lcov",
-						"path": "./reports/coverage.lcov"
+						"format": "lcov"
 					}
 				]
 			}

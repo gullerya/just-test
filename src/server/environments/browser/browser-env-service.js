@@ -9,14 +9,12 @@
  * @param {string} envConfig.browser in this context expected always to equal true
  */
 import Logger, { FileOutput } from '../../logger/logger.js';
-import { INTEROP_NAMES } from '../../../common/constants.js';
 import { waitInterval } from '../../../common/time-utils.js';
 import { config as serverConfig } from '../../server-service.js';
-import { collectTargetSources } from '../../../coverage/coverage-service.js';
+import { collectTargetSources, v8toJustTest } from '../../../coverage/coverage-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 import { ENVIRONMENT_KEYS } from '../../../runner/environment-config.js';
 import playwright from 'playwright';
-import minimatch from 'minimatch';
 
 export default launch;
 
@@ -27,8 +25,11 @@ class BrowserEnvImpl extends EnvironmentBase {
 	#timeoutHandle;
 	#browser;
 	#browsingContext;
-	#coverageSession;
-	#scriptsCoverageMap = {};
+
+	#coverageData = [];
+
+	// #coverageSession;
+	// #scriptsCoverageMap = {};
 
 	/**
 	 * construct browser environment for a specific session
@@ -50,49 +51,28 @@ class BrowserEnvImpl extends EnvironmentBase {
 	async launch() {
 		const browserType = this.#envConfig.browser.type;
 		logger.info(`launching '${browserType}' environment...`);
+
 		this.#browser = await playwright[browserType].launch();
+		this.#browser.once('disconnected', () => this.#onDisconnected());
 
 		this.consoleLogger = new FileOutput(`./reports/logs/${browserType}-${this.#browser.version()}.log`);
-		const bLogger = new Logger({
+		const pageLogger = new Logger({
 			context: `${browserType}-${this.#browser.version()}`,
 			outputs: [this.consoleLogger]
 		});
 
 		this.#browsingContext = await this.#browser.newContext();
-		const mainPage = await this.#browsingContext.newPage();
-
-		mainPage.on('console', async msg => {
-			const type = msg.type();
-			for (const msgArg of msg.args()) {
-				const consoleMessage = await msgArg.evaluate(o => o);
-				bLogger[type](consoleMessage);
-			}
-		});
-		mainPage.on('error', e => {
-			bLogger.error('"error" event fired on page', e);
-		});
-		mainPage.on('pageerror', e => {
-			bLogger.error('"pageerror" event fired on page:');
-			bLogger.error(e);
-			bLogger.info('dismissing the environment due to previous error/s...');
-			this.#notifyError(e);
-		});
 		this.#browsingContext.on('page', async page => {
-			if (this.#envConfig.coverage) {
-				await this.#installCoverageCollector(this.#envConfig.coverage, page);
-			}
+			await this.#setupPage(page, pageLogger);
 		});
-		if (this.#envConfig.coverage) {
-			await this.#installCoverageCollector(this.#envConfig.coverage, mainPage);
-		}
 
 		logger.info(`setting timeout for the whole tests execution to ${this.#envConfig.tests.ttl}ms as per configuration`);
 		this.#timeoutHandle = setTimeout(() => {
 			logger.error('tests execution timed out, dismissing the environment...');
 			this.#notifyError(new Error(`environment timed out ${this.#envConfig.tests.ttl}ms`));
 		}, this.#envConfig.tests.ttl);
-		this.#browser.once('disconnected', () => this.#onDisconnected());
 
+		const mainPage = await this.#browsingContext.newPage();
 		const envEntryUrl = new URL(`${serverConfig.origin}/core/runner/environments/browser/browser-session-box.html`);
 		envEntryUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, this.sessionId);
 		envEntryUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, this.#envConfig.id);
@@ -111,7 +91,6 @@ class BrowserEnvImpl extends EnvironmentBase {
 					await this.#browsingContext.close();
 					logger.info('... closed');
 
-
 					logger.info('closing browser...');
 					await this.#browser.close();
 					logger.info('... closed');
@@ -122,47 +101,47 @@ class BrowserEnvImpl extends EnvironmentBase {
 		return this.dismissPromise;
 	}
 
+	async #setupPage(page, pageLogger) {
+		const self = this;
+		if (this.#envConfig.coverage) {
+			await this.#initCoverage(this.#envConfig.coverage, page);
+		}
+		page.on('console', async msg => {
+			const type = msg.type();
+			for (const msgArg of msg.args()) {
+				const consoleMessage = await msgArg.evaluate(o => o);
+				pageLogger[type](consoleMessage);
+			}
+		});
+		page.on('crash', p => {
+			pageLogger.error('"crash" event fired on page');
+			pageLogger.info('dismissing the environment due to previous error/s...');
+			self.#notifyError(e);
+		});
+		page.on('pageerror', e => {
+			pageLogger.error('"pageerror" event fired on page:');
+			pageLogger.error(e);
+			pageLogger.info('dismissing the environment due to previous error/s...');
+			self.#notifyError(e);
+		});
+	}
+
 	#notifyError(error) {
 		this.dispatchEvent(new CustomEvent('error', { detail: { error } }));
 	}
 
-	async #installCoverageCollector(coverageConfig, page) {
+	async #initCoverage(coverageConfig, page) {
 		const coverageTargets = await collectTargetSources(coverageConfig);
 		if (!coverageTargets || !coverageTargets.length) {
-			console.log('no coverage targets found, skipping coverage collection');
-			return;
-		}
-
-		//	install test registrar and scripts listener
-		page.exposeBinding(INTEROP_NAMES.REGISTER_TEST_FOR_COVERAGE, async ({ page: _page }, testName, suiteName) => {
-			const context = _page.context();
-			const session = await context.newCDPSession(_page);
-
-			await Promise.all([
-				session.send('Debugger.enable'),
-				session.send('Profiler.enable')
-			]);
-			await Promise.all([
-				session.send('Debugger.setSkipAllPauses', { skip: true }),
-				session.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true }),
-			]);
-
-			session.on('Debugger.scriptParsed', e => {
-				if (!e.url) {
-					return;
-				}
-				const cover = coverageConfig.include.some(p => minimatch(e.url, p))
-					&& !coverageConfig.exclude.some(p => minimatch(e.url, p));
-				if (!cover) {
-					return;
-				}
-				if (!this.#scriptsCoverageMap[e.scriptId]) {
-					this.#scriptsCoverageMap[e.scriptId] = testName + ' - ' + suiteName;
-				} else {
-					console.error(`unexpected duplication of script ${e.scriptId} [${e.url}]`);
-				}
+			logger.info('no coverage targets found, skipping coverage collection');
+		} else {
+			this.#coverageData.push({
+				page,
+				targets: coverageTargets
 			});
-		});
+			await page.coverage.startJSCoverage();
+			logger.info(`started coverage collection for ${coverageTargets.length} targets`);
+		}
 	}
 
 	#onDisconnected() {
@@ -172,41 +151,29 @@ class BrowserEnvImpl extends EnvironmentBase {
 	}
 
 	async #collectArtifacts() {
-		const [coverage, logs] = await Promise.all([
-			this.#collectCoverage(),
-			this.#collectLogs()
+		const [coverage] = await Promise.all([
+			this.#collectCoverage()
 		]);
-		return { coverage, logs };
+		return { coverage };
 	}
 
 	async #collectCoverage() {
-		if (!this.#coverageSession) {
-			return null;
+		const result = [];
+		for (const pageCovBucket of this.#coverageData) {
+			const page = pageCovBucket.page;
+			delete pageCovBucket.page;
+			const jsCoverage = await page.coverage.stopJSCoverage();
+			result.push(...jsCoverage
+				.filter(entry => pageCovBucket.targets.some(t => entry.url.endsWith(t)))
+				.map(entry => {
+					return {
+						url: entry.url.replace(`${serverConfig.origin}/static/`, './'),
+						functions: entry.functions
+					}
+				})
+			);
 		}
-
-		const result = {};
-		const jsCoverage = (await this.#coverageSession.send('Profiler.takePreciseCoverage')).result;
-		for (const scriptCoverage of jsCoverage) {
-			const testId = this.#scriptsCoverageMap[scriptCoverage.scriptId];
-			if (!testId) {
-				continue;
-			}
-
-			const trPath = scriptCoverage.url.replace(`${serverConfig.origin}/aut/`, './');
-			const trSCov = { ...scriptCoverage };
-			trSCov.url = trPath;
-
-			result[testId] = result[testId] || [];
-			throw new Error('replace the single cov process with the new methods');
-			//result[testId].push(processV8ScriptCoverage(trSCov));
-		}
-		console.log(result);
-		return result;
-	}
-
-	async #collectLogs() {
-		//	TODO
-		return null;
+		return await v8toJustTest(result);
 	}
 }
 

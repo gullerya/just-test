@@ -17,7 +17,12 @@
 			},
 			"coverage": {
 				"include": [
-					"**/src/**/*.js"
+					"./src/**/*.js"
+				],
+				"reports": [
+					{
+						"format": "lcov"
+					}
 				]
 			}
 		}

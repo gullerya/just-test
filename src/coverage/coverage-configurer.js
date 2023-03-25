@@ -51,9 +51,6 @@ function validate(config, environment) {
 			throw new Error(`coverage reports MUST be an array of non-null objects; got ${config.reports}`);
 		}
 		config.reports.forEach(report => {
-			if (!report.path || typeof report.path !== 'string') {
-				throw new Error(`coverage report path MUST be a non-empty string; got ${report.path}`);
-			}
 			if (!COVERAGE_FORMATS.includes(report.format)) {
 				throw new Error(`coverage report format MUST be a one of [${COVERAGE_FORMATS}]; got ${report.format}`);
 			}

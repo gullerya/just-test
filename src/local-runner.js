@@ -104,9 +104,9 @@ async function executeSession(serverBaseUrl, clArguments) {
 			.map(ts => buildJTFileCov(ts, false))
 	);
 	const covContent = lcovReporter.convert({ testCoverages, fileCoverages });
-	await fs.rm('reports/coverage.lcov', { force: true });
+	await fs.rm('reports/coverage.lcov', { force: true, recursive: true });
 	if (covContent) {
-		await fs.writeFile('reports/coverage.lcov', covContent, { encoding: 'utf-8' });
+		await fs.writeFile('reports/coverage.lcov', covContent, { encoding: 'utf-8', recursive: true });
 	}
 
 	//	analysis
