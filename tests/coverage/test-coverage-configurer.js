@@ -106,7 +106,7 @@ test('coverage config - bad report type - not an array', () => {
 		covConf({
 			include: ['some/path'],
 			reports: {}
-		}, { node: true })
+		}, { node: true });
 	}, 'MUST be an array of non-null');
 });
 
@@ -115,18 +115,17 @@ test('coverage config - bad report type - null in array', () => {
 		covConf({
 			include: ['some/path'],
 			reports: [null]
-		}, { node: true })
+		}, { node: true });
 	}, 'MUST be an array of non-null');
 });
 
 test('coverage config - bad report type - wrong type', () => {
-	assert.throws(() =>
+	assert.throws(() => {
 		covConf({
 			include: ['some/path'],
 			reports: [{}]
-		}, { node: true }),
-		'report type MUST be a one'
-	);
+		}, { node: true });
+	}, 'report type MUST be a one');
 });
 
 test('coverage config - correct report type', () => {
