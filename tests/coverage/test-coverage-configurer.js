@@ -17,17 +17,11 @@ test('coverage config - bad config, some envs', () => {
 });
 
 test('coverage config - some config, bad envs', () => {
-	assert.throws(
-		() => covConf({}, 'text'),
-		'coverage supported ONLY'
-	);
+	assert.throws(() => covConf({}, 'text'), 'coverage supported ONLY');
 });
 
 test('coverage config - unsupported env - empty', () => {
-	assert.throws(
-		() => covConf({}, {}),
-		'coverage supported ONLY'
-	);
+	assert.throws(() => covConf({}, {}), 'coverage supported ONLY');
 });
 
 test('coverage config - supported env - chromium', () => {
@@ -50,6 +44,22 @@ test('coverage config - supported env - node', () => {
 	});
 });
 
+test('coverage config - bad include part - object', () => {
+	assert.throws(() => {
+		covConf({
+			include: {}
+		}, { node: true });
+	}, 'MUST be a non-empty array');
+});
+
+test('coverage config - bad include part - empty array', () => {
+	assert.throws(() => {
+		covConf({
+			include: []
+		}, { node: true });
+	}, 'MUST be a non-empty array');
+});
+
 test('coverage config - enriching the include', () => {
 	let cc = covConf({
 		include: ['some/path']
@@ -60,6 +70,22 @@ test('coverage config - enriching the include', () => {
 		exclude: ['*.min.js'],
 		reports: [{ type: 'lcov' }]
 	});
+});
+
+test('coverage config - bad exclude part - object', () => {
+	assert.throws(() => {
+		covConf({
+			exclude: {}
+		}, { node: true });
+	}, 'MUST be a non-empty array');
+});
+
+test('coverage config - bad exclude part - empty array', () => {
+	assert.throws(() => {
+		covConf({
+			exclude: []
+		}, { node: true });
+	}, 'MUST be a non-empty array');
 });
 
 test('coverage config - enriching the exclude', () => {
@@ -76,23 +102,21 @@ test('coverage config - enriching the exclude', () => {
 });
 
 test('coverage config - bad report type - not an array', () => {
-	assert.throws(() =>
+	assert.throws(() => {
 		covConf({
 			include: ['some/path'],
 			reports: {}
-		}, { node: true }),
-		'MUST be an array of non-null'
-	);
+		}, { node: true })
+	}, 'MUST be an array of non-null');
 });
 
 test('coverage config - bad report type - null in array', () => {
-	assert.throws(() =>
+	assert.throws(() => {
 		covConf({
 			include: ['some/path'],
 			reports: [null]
-		}, { node: true }),
-		'MUST be an array of non-null'
-	);
+		}, { node: true })
+	}, 'MUST be an array of non-null');
 });
 
 test('coverage config - bad report type - wrong type', () => {
