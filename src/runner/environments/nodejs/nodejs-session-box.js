@@ -11,8 +11,7 @@ import * as serverAPI from '../../server-api-service.js';
 import SimpleStateService from '../../simple-state-service.js';
 import { runSession } from '../../session-service.js';
 import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
-import { EVENT } from '../../../common/constants.js';
-import { resolve } from 'path/posix';
+import { EVENT, STATUS } from '../../../common/constants.js';
 
 (async () => {
 	const { sesId, envId, origin } = workerData;
