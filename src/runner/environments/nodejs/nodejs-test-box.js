@@ -22,10 +22,8 @@ parentPort.addEventListener('message', async m => {
 	}
 
 	setExecutionContext(EXECUTION_MODES.TEST, testName, runStartHandler, runEndHandler);
-
-	import(pathToFileURL(testSource));
+	await import(pathToFileURL(testSource));
 });
-parentPort.unref();
 
 //
 // internal methods
