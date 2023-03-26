@@ -82,6 +82,7 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 				} else if (type === EVENT.RUN_END) {
 					stateService.updateRunEnded(suiteName, testName, run);
 					await worker.terminate();
+					worker.unref();
 					resolve();
 				}
 			});
@@ -89,6 +90,7 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 				console.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
 				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error });
 				await worker.terminate();
+				worker.unref();
 				resolve();
 			});
 
