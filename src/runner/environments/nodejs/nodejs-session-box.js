@@ -12,6 +12,7 @@ import SimpleStateService from '../../simple-state-service.js';
 import { runSession } from '../../session-service.js';
 import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 import { EVENT } from '../../../common/constants.js';
+import { resolve } from 'path/posix';
 
 (async () => {
 	const { sesId, envId, origin } = workerData;
@@ -74,29 +75,29 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 		//	TODO: this should be resource pooled
 		const worker = new Worker(workerUrl);
 
-		worker.on('message', message => {
-			const { type, testName, run } = message;
-			if (type === EVENT.RUN_START) {
-				stateService.updateRunStarted(suiteName, testName);
-			} else if (type === EVENT.RUN_END) {
-				stateService.updateRunEnded(suiteName, testName, run);
-			}
-		});
-		worker.on('error', error => {
-			console.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
-		});
-
-		worker.postMessage({
-			testName: test.name,
-			suiteName,
-			testSource: test.source,
-			coverage: sessionMetadata.coverage
-		});
-
 		return new Promise(resolve => {
-			worker.on('exit', exitCode => {
-				// console.debug(`worker for test '${test.name}' exited with code ${exitCode}`);
-				resolve(exitCode);
+			worker.on('message', async message => {
+				const { type, testName, run } = message;
+				if (type === EVENT.RUN_START) {
+					stateService.updateRunStarted(suiteName, testName);
+				} else if (type === EVENT.RUN_END) {
+					stateService.updateRunEnded(suiteName, testName, run);
+					await worker.terminate();
+					resolve();
+				}
+			});
+			worker.on('error', async error => {
+				console.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
+				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error });
+				await worker.terminate();
+				resolve();
+			});
+
+			worker.postMessage({
+				testName: test.name,
+				suiteName,
+				testSource: test.source,
+				coverage: sessionMetadata.coverage
 			});
 		});
 	};

@@ -18,8 +18,8 @@ TODO
 - __re-running__ any test in browser ad-hoc - convenient for debugging and developing on the fly
 - friendly __UI__ on top of the page of the tests, allows immediatelly observe the behavior of the code and the test
 - running tests from __NodeJS__ via headless browser (chromium, firefox, webkit) to run in __CI/CD automation__
-- generating __test results__ report (format: __xUnit__)
-- collecting __coverage__ and generating report (formats: __lcov__)
+- generating __test results__ report (types: __xUnit__)
+- collecting __coverage__ and generating report (types: __lcov__)
 - flexible yet simple ability to run tests in __sync__ as well as __async__ (default) manner
 - in general, a lot of attention was paid to create __simple and usable__ framework even for a not-so-simple cases, like asynchronous tests etc
 
@@ -30,8 +30,8 @@ TODO
 
 TODO - move to features
 * run your tests in CI in the following browsers: Chromium (covering all based upon), Firefox, WebKit
-* test report formats: `xUnit`
-* coverage report formats: `lcov`
+* test report types: `xUnit`
+* coverage report types: `lcov`
 
 # Examples
 

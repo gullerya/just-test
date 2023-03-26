@@ -50,7 +50,7 @@ export default {
  * receives a set of coverage data and coverts it to the lcov text
  * - expects to receive the full and self-contained set of data
  * 
- * @param {Array} testCoverages coverage data in `just-test` format
+ * @param {Array} testCoverages coverage data in `just-test` structure
  */
 function convert({ testCoverages, fileCoverages }) {
 	const testsReport = convertTestCoverages(testCoverages);

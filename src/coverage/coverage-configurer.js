@@ -1,13 +1,13 @@
 const
 	COVERAGE_SUPPORTING_BROWSERS = ['chromium'],
-	COVERAGE_FORMATS = ['lcov'],
+	COVERAGE_TYPES = ['lcov'],
 	DEFAULT_CONFIG = Object.freeze({
 		include: [],
 		exclude: [
 			'*.min.js'
 		],
 		reports: [
-			{ format: 'lcov', path: './reports/coverage.lcov' }
+			{ type: 'lcov' }
 		]
 	});
 
@@ -38,11 +38,8 @@ function validate(config, environment) {
 	}
 
 	//	validate against environment
-	if (environment.interactive) {
-		throw new Error(`coverage is NOT supported in interactive environement`);
-	}
-	if (environment.browser && !COVERAGE_SUPPORTING_BROWSERS.includes(environment.browser.type)) {
-		throw new Error(`coverage supported ONLY in [${COVERAGE_SUPPORTING_BROWSERS.join(', ')}]`);
+	if (!environment?.node && !COVERAGE_SUPPORTING_BROWSERS.includes(environment.browser?.type)) {
+		throw new Error(`coverage supported ONLY in 'nodejs' or [${COVERAGE_SUPPORTING_BROWSERS.join(', ')}]`);
 	}
 
 	//	validate reports
@@ -51,8 +48,8 @@ function validate(config, environment) {
 			throw new Error(`coverage reports MUST be an array of non-null objects; got ${config.reports}`);
 		}
 		config.reports.forEach(report => {
-			if (!COVERAGE_FORMATS.includes(report.format)) {
-				throw new Error(`coverage report format MUST be a one of [${COVERAGE_FORMATS}]; got ${report.format}`);
+			if (!COVERAGE_TYPES.includes(report.type)) {
+				throw new Error(`coverage report type MUST be a one of [${COVERAGE_TYPES}]; got ${report.type}`);
 			}
 		});
 	}
