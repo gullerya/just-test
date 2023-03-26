@@ -21,7 +21,7 @@ test('random numeric', () => {
 	const rl = 10;
 	const sm = new Set();
 	for (let i = 0; i < it; i++) {
-		sm.add(getRandom(rl, CHAR_SOURCES.numeric))
+		sm.add(getRandom(rl, CHAR_SOURCES.numeric));
 	}
 
 	assert.strictEqual(it, sm.size);

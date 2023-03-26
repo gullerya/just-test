@@ -1,7 +1,6 @@
 export {
 	DEFAULT,
 	EVENT,
-	INTEROP_NAMES,
 	STATUS,
 	SUITE_CONFIG_DEFAULT,
 	TEST_ID_SEPARATOR,
@@ -37,9 +36,4 @@ const TEST_CONFIG_DEFAULT = Object.freeze({
 	ttl: DEFAULT.TEST_RUN_TTL,
 	skip: false,
 	sync: false
-});
-
-const INTEROP_NAMES = Object.freeze({
-	REGISTER_TEST_FOR_COVERAGE: '_registerTestForCoverage',
-	IPC_HANDSHAKE: 'ipcHandshake'
 });

@@ -11,34 +11,36 @@ import * as serverAPI from '../../server-api-service.js';
 import SimpleStateService from '../../simple-state-service.js';
 import { runSession } from '../../session-service.js';
 import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
-import { EVENT } from '../../../common/constants.js';
+import { EVENT, STATUS } from '../../../common/constants.js';
 
-const { sesId, envId, origin } = workerData;
-const stateService = new SimpleStateService();
-try {
-	const metadata = await serverAPI.getSessionMetadata(sesId, envId, origin);
-	stateService.setSessionId(metadata.sessionId);
-	stateService.setEnvironmentId(metadata.id);
+(async () => {
+	const { sesId, envId, origin } = workerData;
+	const stateService = new SimpleStateService();
+	try {
+		const metadata = await serverAPI.getSessionMetadata(sesId, envId, origin);
+		stateService.setSessionId(metadata.sessionId);
+		stateService.setEnvironmentId(metadata.id);
 
-	console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
-	await planSession(metadata.testPaths, stateService);
+		console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
+		await planSession(metadata.testPaths, stateService);
 
-	const testExecutor = createNodeJSExecutor(metadata, stateService);
-	await runSession(stateService, testExecutor);
-} catch (e) {
-	stateService.reportError(e);
-	console.error(e);
-	console.error('session execution failed due to the previous error/s');
-} finally {
-	console.info(`reporting '${envId}':'${sesId}' results...`);
-	const sessionResult = stateService.getResult();
-	await serverAPI.reportSessionResult(sesId, envId, origin, sessionResult);
-	console.info(`session '${envId}':'${sesId}' finalized`);
-}
+		const testExecutor = createNodeJSExecutor(metadata, stateService);
+		await runSession(stateService, testExecutor);
+	} catch (e) {
+		stateService.reportError(e);
+		console.error(e);
+		console.error('session execution failed due to the previous error/s');
+	} finally {
+		console.info(`reporting '${envId}':'${sesId}' results...`);
+		const sessionResult = stateService.getResult();
+		await serverAPI.reportSessionResult(sesId, envId, origin, sessionResult);
+		console.info(`session '${envId}':'${sesId}' finalized`);
+	}
+})();
 
 // internals
 //
-async function planSession(testsResources, _stateService) {
+async function planSession(testsResources, stateService) {
 	const started = globalThis.performance.now();
 
 	console.info(`fetching ${testsResources.length} test resource/s...`);
@@ -48,7 +50,7 @@ async function planSession(testsResources, _stateService) {
 			execContext.suiteName = tr;
 			await import(url.pathToFileURL(tr));
 			for (const { name, config } of execContext.testConfigs) {
-				_stateService.addTest({
+				stateService.addTest({
 					name,
 					config,
 					source: tr,
@@ -65,35 +67,36 @@ async function planSession(testsResources, _stateService) {
 	console.info(`... ${testsResources.length} test resource/s fetched (planning phase) in ${(ended - started).toFixed(1)}ms`);
 }
 
-function createNodeJSExecutor(sessionMetadata, _stateService) {
+function createNodeJSExecutor(sessionMetadata, stateService) {
 	const workerUrl = new URL('./nodejs-test-box.js', import.meta.url);
 
 	return (test, suiteName) => {
-		//	TODO: this should be reasource pooled
-		const worker = new Worker(workerUrl, {
-			workerData: {
-				testName: test.name,
-				testSource: test.source,
-				coverage: sessionMetadata.coverage
-			}
-		});
-		//	TODO: the basic messaging interaction shoule be done via BroadcastChannel
-		worker.on('message', message => {
-			const { type, testName, run } = message;
-			if (type === EVENT.RUN_START) {
-				_stateService.updateRunStarted(suiteName, testName);
-			} else if (type === EVENT.RUN_END) {
-				_stateService.updateRunEnded(suiteName, testName, run);
-			}
-		});
-		worker.on('error', error => {
-			console.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
-		});
+		//	TODO: this should be resource pooled
+		const worker = new Worker(workerUrl);
 
 		return new Promise(resolve => {
-			worker.on('exit', exitCode => {
-				// console.debug(`worker for test '${test.name}' exited with code ${exitCode}`);
-				resolve(exitCode);
+			worker.on('message', async message => {
+				const { type, testName, run } = message;
+				if (type === EVENT.RUN_START) {
+					stateService.updateRunStarted(suiteName, testName);
+				} else if (type === EVENT.RUN_END) {
+					stateService.updateRunEnded(suiteName, testName, run);
+					await worker.terminate();
+					resolve();
+				}
+			});
+			worker.on('error', async error => {
+				console.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
+				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error });
+				await worker.terminate();
+				resolve();
+			});
+
+			worker.postMessage({
+				testName: test.name,
+				suiteName,
+				testSource: test.source,
+				coverage: sessionMetadata.coverage
 			});
 		});
 	};

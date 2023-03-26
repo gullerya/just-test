@@ -56,7 +56,7 @@ function validate(config) {
 function _reduceIdenticalReports(config) {
 	const map = {};
 	const toBeRemoved = config.reports.filter(report => {
-		const hash = report.format + report.path;
+		const hash = report.type + report.path;
 		if (hash in map) {
 			logger.warn(`removing duplicate report (${JSON.stringify(report)})`);
 			return true;

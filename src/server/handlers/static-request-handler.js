@@ -1,14 +1,14 @@
 import fs from 'node:fs/promises';
-import url from 'node:url';
 import { STATUS_CODES } from 'node:http';
 import path from 'node:path';
+import process from 'node:process';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.js';
 import { findMimeType, extensionsMap } from '../server-utils.js';
 import { getSession } from '../sessions/sessions-service.js';
 import { ENVIRONMENT_KEYS } from '../../runner/environment-config.js';
 
-export default class CoreRequestHandler extends RequestHandlerBase {
+export default class StaticRequestHandler extends RequestHandlerBase {
 	#config;
 	#logger;
 	#baseFolder;
@@ -16,19 +16,19 @@ export default class CoreRequestHandler extends RequestHandlerBase {
 	constructor(config) {
 		super();
 		this.#config = config;
-		this.#logger = new Logger({ context: `'core' handler` });
-		this.#baseFolder = path.join(url.fileURLToPath(import.meta.url), '../../..');
+		this.#logger = new Logger({ context: `'static' handler` });
+		this.#baseFolder = process.cwd();
 
-		this.#logger.info(`core requests handler initialized; basePath: '${this.basePath}'`);
+		this.#logger.info(`static requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
 	get basePath() {
-		return 'core';
+		return 'static';
 	}
 
 	async handle(handlerRelativePath, req, res) {
 		if (req.method !== 'GET') {
-			this.#logger.warn(`sending 405 for '${req.method} ${this.basePath}/${handlerRelativePath}'`);
+			this.#logger.warn(`sending 405 for '${req.method} /${handlerRelativePath}'`);
 			res.writeHead(405, STATUS_CODES[405]).end();
 			return;
 		}
@@ -57,7 +57,7 @@ export default class CoreRequestHandler extends RequestHandlerBase {
 				'Cache-Control': 'private, max-age=604800'
 			}).end(result);
 		} else {
-			this.#logger.warn(`sending 404 for '${req.method} ${this.basePath}/${handlerRelativePath}'`);
+			this.#logger.warn(`sending 404 for '${req.method} /${handlerRelativePath}'`);
 			res.writeHead(404, STATUS_CODES[404]).end();
 		}
 	}
