@@ -137,6 +137,19 @@ class BrowserEnvImpl extends EnvironmentBase {
 			});
 			await page.coverage.startJSCoverage();
 			logger.info(`started coverage collection for ${coverageTargets.length} targets`);
+
+			await page.exposeBinding('collectCoverage', async ({ page }) => {
+				const jsCoverage = await page.coverage.stopJSCoverage();
+				const prepCov = jsCoverage
+					.filter(entry => coverageTargets.some(t => entry.url.endsWith(t)))
+					.map(entry => {
+						return {
+							url: entry.url.replace(`${serverConfig.origin}/static/`, './'),
+							functions: entry.functions
+						};
+					});
+				return await v8toJustTest(prepCov);
+			});
 		}
 	}
 
@@ -154,22 +167,22 @@ class BrowserEnvImpl extends EnvironmentBase {
 	}
 
 	async #collectCoverage() {
-		const result = [];
-		for (const pageCovBucket of this.#coverageData) {
-			const page = pageCovBucket.page;
-			delete pageCovBucket.page;
-			const jsCoverage = await page.coverage.stopJSCoverage();
-			result.push(...jsCoverage
-				.filter(entry => pageCovBucket.targets.some(t => entry.url.endsWith(t)))
-				.map(entry => {
-					return {
-						url: entry.url.replace(`${serverConfig.origin}/static/`, './'),
-						functions: entry.functions
-					};
-				})
-			);
-		}
-		return await v8toJustTest(result);
+		// const result = [];
+		// for (const pageCovBucket of this.#coverageData) {
+		// 	const page = pageCovBucket.page;
+		// 	delete pageCovBucket.page;
+		// 	const jsCoverage = await page.coverage.stopJSCoverage();
+		// 	result.push(...jsCoverage
+		// 		.filter(entry => pageCovBucket.targets.some(t => entry.url.endsWith(t)))
+		// 		.map(entry => {
+		// 			return {
+		// 				url: entry.url.replace(`${serverConfig.origin}/static/`, './'),
+		// 				functions: entry.functions
+		// 			};
+		// 		})
+		// 	);
+		// }
+		// return await v8toJustTest(result);
 	}
 }
 
