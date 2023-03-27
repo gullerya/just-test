@@ -22,8 +22,9 @@ import { EVENT, STATUS } from '../../../common/constants.js';
 		console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
 		await planSession(metadata.testPaths, stateService);
 
+		const executorType = metadata.browser.executors?.type ?? 'iframe';
 		let testExecutor;
-		switch (metadata.browser.executors?.type) {
+		switch (executorType) {
 			case 'worker':
 				testExecutor = getWorkerExecutorFactory(metadata, stateService);
 				break;
@@ -35,6 +36,9 @@ import { EVENT, STATUS } from '../../../common/constants.js';
 				testExecutor = getIFrameExecutorFactory(metadata, stateService);
 		}
 		await runSession(stateService, testExecutor);
+
+		const coverage = await collectCoverage(executorType);
+		stateService.reportSessionCoverage(coverage);
 	} catch (e) {
 		stateService.reportError(e);
 		console.error(e);
@@ -178,4 +182,18 @@ function setupWorkerEvents(stateService, worker, test, coverage, suiteName, mc, 
 		testSource: test.source,
 		coverage
 	}, '*', [mc.port2]);
+}
+
+async function collectCoverage(executorType) {
+	let result = null;
+	if (executorType === 'iframe') {
+		if (typeof globalThis.collectCoverage === 'function') {
+			result = await globalThis.collectCoverage();
+		} else {
+			console.warn(`coverage collection was not initialized on backend`);
+		}
+	} else {
+		console.warn(`coverage collection is not supported on '${executorType}' executors`);
+	}
+	return result;
 }

@@ -25,11 +25,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 	#timeoutHandle;
 	#browser;
 	#browsingContext;
-
 	#coverageData = [];
-
-	// #coverageSession;
-	// #scriptsCoverageMap = {};
 
 	/**
 	 * construct browser environment for a specific session
