@@ -76,6 +76,10 @@ async function executeSession(serverBaseUrl, clArguments) {
 	const sessionDetails = await sendAddSession(serverBaseUrl, config);
 	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
 
+	fs.writeFile('reports/session-result.json', JSON.stringify(sessionResult, null, 4), {
+		encoding: 'utf-8'
+	});
+
 	//	test report
 	const reportText = xUnitReporter.report(sessionResult);
 	await fs.writeFile('reports/results.xml', reportText, { encoding: 'utf-8' });

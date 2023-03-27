@@ -84,6 +84,10 @@ export default class SimpleStateService {
 		}
 	}
 
+	reportSessionCoverage(coverage) {
+		this.#model.coverage = coverage;
+	}
+
 	reportError(error) {
 		const stacktrace = error.stack.split(/\r\n|\r|\n/)
 			.map(l => l.trim())

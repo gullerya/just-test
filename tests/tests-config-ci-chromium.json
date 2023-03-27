@@ -4,7 +4,7 @@
 			"browser": {
 				"type": "chromium",
 				"executors": {
-					"type": "page"
+					"type": "iframe"
 				}
 			},
 			"tests": {
