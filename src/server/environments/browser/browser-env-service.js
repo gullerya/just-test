@@ -138,8 +138,8 @@ class BrowserEnvImpl extends EnvironmentBase {
 			await page.coverage.startJSCoverage();
 			logger.info(`started coverage collection for ${coverageTargets.length} targets`);
 
-			await page.exposeBinding('collectCoverage', async ({ page }) => {
-				const jsCoverage = await page.coverage.stopJSCoverage();
+			await page.exposeBinding('collectCoverage', async ({ page: p }) => {
+				const jsCoverage = await p.coverage.stopJSCoverage();
 				const prepCov = jsCoverage
 					.filter(entry => coverageTargets.some(t => entry.url.endsWith(t)))
 					.map(entry => {
