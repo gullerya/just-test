@@ -38,8 +38,8 @@ async function start() {
 	//	resolve effective configuration
 	const customConfig = {};
 	const enar = Object.assign({}, envs, args);
-	if (enar.config_file) {
-		const cf = JSON.parse(fs.readFileSync(enar.config_file));
+	if (enar['config-file']) {
+		const cf = JSON.parse(fs.readFileSync(enar['config-file']));
 		Object.assign(customConfig, cf);
 	}
 	Object.assign(customConfig, enar);

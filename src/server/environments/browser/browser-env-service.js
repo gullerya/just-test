@@ -25,11 +25,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 	#timeoutHandle;
 	#browser;
 	#browsingContext;
-
 	#coverageData = [];
-
-	// #coverageSession;
-	// #scriptsCoverageMap = {};
 
 	/**
 	 * construct browser environment for a specific session
@@ -62,8 +58,11 @@ class BrowserEnvImpl extends EnvironmentBase {
 		});
 
 		this.#browsingContext = await this.#browser.newContext();
-		this.#browsingContext.on('page', async page => {
-			await this.#setupPage(page, pageLogger);
+		const pageReady = new Promise(r => {
+			this.#browsingContext.on('page', async page => {
+				await this.#setupPage(page, pageLogger);
+				r();
+			});
 		});
 
 		logger.info(`setting timeout for the whole tests execution to ${this.#envConfig.tests.ttl}ms as per configuration`);
@@ -73,6 +72,8 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}, this.#envConfig.tests.ttl);
 
 		const mainPage = await this.#browsingContext.newPage();
+		await pageReady;
+
 		const envEntryUrl = new URL(`${serverConfig.origin}/core/runner/environments/browser/browser-session-box.html`);
 		envEntryUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, this.sessionId);
 		envEntryUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, this.#envConfig.id);
@@ -139,6 +140,20 @@ class BrowserEnvImpl extends EnvironmentBase {
 				page,
 				targets: coverageTargets
 			});
+
+			await page.exposeBinding('collectCoverage', async ({ page: p }) => {
+				const jsCoverage = await p.coverage.stopJSCoverage();
+				const prepCov = jsCoverage
+					.filter(entry => coverageTargets.some(t => entry.url.endsWith(t)))
+					.map(entry => {
+						return {
+							url: entry.url.replace(`${serverConfig.origin}/static/`, './'),
+							functions: entry.functions
+						};
+					});
+				return await v8toJustTest(prepCov);
+			});
+
 			await page.coverage.startJSCoverage();
 			logger.info(`started coverage collection for ${coverageTargets.length} targets`);
 		}

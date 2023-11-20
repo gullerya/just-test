@@ -6,6 +6,7 @@ export class Session {
 		this.time = null;
 		this.suites = [];
 		this.errors = [];
+		this.coverage = null;
 
 		this.total = 0;
 		this.done = 0;

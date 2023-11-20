@@ -128,11 +128,11 @@ async function executeSession(serverBaseUrl, clArguments) {
 }
 
 async function readConfigAndMergeWithCLArguments(clArguments) {
-	if (!clArguments || !clArguments.config_file || typeof clArguments.config_file !== 'string') {
-		throw new Error(`invalid config_file argument (${clArguments?.config_file})`);
+	if (!clArguments || !clArguments['config-file'] || typeof clArguments['config-file'] !== 'string') {
+		throw new Error(`invalid config-file argument (${clArguments['config-file']})`);
 	}
 
-	const configText = await fs.readFile(clArguments.config_file, { encoding: 'utf-8' });
+	const configText = await fs.readFile(clArguments['config-file'], { encoding: 'utf-8' });
 	const result = JSON.parse(configText);
 	//	merge with command line arguments
 

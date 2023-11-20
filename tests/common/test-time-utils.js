@@ -1,5 +1,5 @@
 ﻿import { test } from '@gullerya/just-test';
-import { assert } from '@gullerya/just-test/assert';
+import { assert } from '../tests-chai-helper.js';
 import { waitInterval, waitNextTask } from '../../src/common/time-utils.js';
 
 test('waitInterval', async () => {

@@ -1,30 +1,30 @@
 import { test } from '@gullerya/just-test';
-import { assert } from '@gullerya/just-test/assert';
+import { assert } from '../tests-chai-helper.js';
 import { buildJTFileCov } from '../../src/coverage/model/model-utils.js';
 
 test('build model - negative (bad source URL, not a string)', async () => {
-	await assert.rejects(
+	await assert.throw(
 		async () => await buildJTFileCov(5),
 		'source URL MUST be a non-empty string'
 	);
 });
 
 test('build model - negative (bad source URL, empty string)', async () => {
-	await assert.rejects(
+	await assert.isRejected(
 		async () => await buildJTFileCov(''),
 		'source URL MUST be a non-empty string'
 	);
 });
 
 test('build model - negative (bad everImported, not a boolean)', async () => {
-	await assert.rejects(
+	await assert.isRejected(
 		async () => await buildJTFileCov('url', 6),
 		'even imported MUST be a boolean'
 	);
 });
 
 test('build model - negative (bad sourceFetcher, not a function)', async () => {
-	await assert.rejects(
+	await assert.isRejected(
 		async () => await buildJTFileCov('url', false, 'string'),
 		'source fetcher MUST be a function'
 	);

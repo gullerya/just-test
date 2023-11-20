@@ -1,5 +1,5 @@
 ﻿import { test } from '@gullerya/just-test';
-import { assert } from '@gullerya/just-test/assert';
+import { assert } from '../tests-chai-helper.js';
 import { CHAR_SOURCES, getRandom } from '../../src/common/random-utils.js';
 
 test('random all', () => {

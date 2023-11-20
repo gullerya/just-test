@@ -10,6 +10,7 @@ import SimpleStateService from '../../simple-state-service.js';
 import { runSession } from '../../session-service.js';
 import { ENVIRONMENT_KEYS, EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
 import { EVENT, STATUS } from '../../../common/constants.js';
+import { transformError } from '../../just-test.js';
 
 (async () => {
 	const { sesId, envId, serverOrigin } = await getEnvironmentConfig();
@@ -22,8 +23,9 @@ import { EVENT, STATUS } from '../../../common/constants.js';
 		console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
 		await planSession(metadata.testPaths, stateService);
 
+		const executorType = metadata.browser.executors?.type ?? 'iframe';
 		let testExecutor;
-		switch (metadata.browser.executors?.type) {
+		switch (executorType) {
 			case 'worker':
 				testExecutor = getWorkerExecutorFactory(metadata, stateService);
 				break;
@@ -35,9 +37,13 @@ import { EVENT, STATUS } from '../../../common/constants.js';
 				testExecutor = getIFrameExecutorFactory(metadata, stateService);
 		}
 		await runSession(stateService, testExecutor);
+
+		const coverage = await collectCoverage(executorType);
+		stateService.reportSessionCoverage(coverage);
 	} catch (e) {
-		stateService.reportError(e);
-		console.error(e);
+		const ownError = transformError(e);
+		stateService.reportError(ownError);
+		console.error(ownError);
 		console.error('session execution failed due to the previous error/s');
 	} finally {
 		console.info(`reporting '${envId}':'${sesId}' results...`);
@@ -62,23 +68,24 @@ async function planSession(testsResources, stateService) {
 	const started = globalThis.performance.now();
 
 	console.info(`fetching ${testsResources.length} test resource/s...`);
-	for (const testSource of testsResources) {
+	for (const tr of testsResources) {
 		try {
 			const execContext = setExecutionContext(EXECUTION_MODES.PLAN);
-			execContext.suiteName = testSource;
-			await import(`/static/${testSource}`);
+			execContext.suiteName = tr;
+			await import(`/static/${tr}`);
 			for (const { name, config } of execContext.testConfigs) {
 				stateService.addTest({
 					name,
 					config,
-					source: testSource,
+					source: tr,
 					suiteName: execContext.suiteName,
 					runs: []
 				});
 			}
 		} catch (e) {
-			console.error(`failed to process '${testSource}':`);
-			console.error(e);
+			const ownError = transformError(e);
+			stateService.reportError(ownError);
+			console.error(`failed to process '${tr}':`, ownError);
 		}
 	}
 
@@ -167,8 +174,9 @@ function setupMessaging(stateService, suiteName, resolve) {
 
 function setupWorkerEvents(stateService, worker, test, coverage, suiteName, mc, resolve) {
 	worker.addEventListener('error', ee => {
-		console.error(`worker for test '${test.name}' errored: ${ee}`);
-		stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
+		const error = transformError(ee.error);
+		console.error(`worker for test '${test.name}' errored: ${e}`);
+		stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error });
 		resolve();
 	});
 
@@ -178,4 +186,18 @@ function setupWorkerEvents(stateService, worker, test, coverage, suiteName, mc, 
 		testSource: test.source,
 		coverage
 	}, '*', [mc.port2]);
+}
+
+async function collectCoverage(executorType) {
+	let result = null;
+	if (executorType === 'iframe') {
+		if (typeof globalThis.collectCoverage === 'function') {
+			result = await globalThis.collectCoverage();
+		} else {
+			console.warn(`coverage collection was not initialized on backend`);
+		}
+	} else {
+		console.warn(`coverage collection is not supported on '${executorType}' executors`);
+	}
+	return result;
 }

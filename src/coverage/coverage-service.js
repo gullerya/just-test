@@ -1,4 +1,4 @@
-import glob from 'glob';
+import { glob } from 'glob';
 import Logger from '../server/logger/logger.js';
 import verifyEnrichConfig from './coverage-configurer.js';
 import { v8toJustTest } from './converters/v8-coverage-converter.js';
