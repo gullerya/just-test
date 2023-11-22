@@ -21,6 +21,7 @@ export default launch;
 const logger = new Logger({ context: 'browser env service' });
 
 class BrowserEnvImpl extends EnvironmentBase {
+	#dismissed = false;
 	#envConfig;
 	#timeoutHandle;
 	#browser;
@@ -83,6 +84,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 
 	async dismiss() {
 		if (!this.dismissPromise) {
+			this.#dismissed = true;
 			this.dismissPromise = waitInterval(999)
 				.then(async () => {
 					await this.consoleLogger.close();
@@ -100,6 +102,10 @@ class BrowserEnvImpl extends EnvironmentBase {
 				});
 		}
 		return this.dismissPromise;
+	}
+
+	isDismissed() {
+		return this.#dismissed;
 	}
 
 	async #setupPage(page, pageLogger) {

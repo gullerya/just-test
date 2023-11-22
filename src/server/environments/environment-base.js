@@ -14,4 +14,8 @@ export class EnvironmentBase extends EventTarget {
 	async dismiss() {
 		throw new Error('not implemented');
 	}
+
+	isDismissed() {
+		throw new Error('not implemented');
+	}
 }
