@@ -114,6 +114,9 @@ jobs:
         with:
           token: ${{ secrets.JT_CI_AT }}
 
+      - name: Install D2
+        run: curl -fsSL https://d2lang.com/install.sh | sh -s --
+
       - name: Render
         run: |
           d2 docs/architecture.d2 docs/architecture.svg
