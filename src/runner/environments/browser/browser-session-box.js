@@ -175,7 +175,7 @@ function setupMessaging(stateService, suiteName, resolve) {
 function setupWorkerEvents(stateService, worker, test, coverage, suiteName, mc, resolve) {
 	worker.addEventListener('error', ee => {
 		const error = transformError(ee.error);
-		console.error(`worker for test '${test.name}' errored: ${e}`);
+		console.error(`worker for test '${test.name}' errored: ${error}`);
 		stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error });
 		resolve();
 	});
