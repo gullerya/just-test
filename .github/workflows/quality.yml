@@ -112,6 +112,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref }}
           token: ${{ secrets.JT_CI_AT }}
 
       - name: Install D2
