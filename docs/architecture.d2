@@ -1,0 +1,31 @@
+interactive-browser: Custom Browser (interactive) {
+  Session
+  Test
+  UI
+}
+
+cli-process: JustTest CLI
+
+just-test-process: Main process {
+  server: Server
+
+  client-nodejs: NodeJS environment {
+    Session
+    Test
+  }
+
+  client-browser: Browser (managed) environment {
+    Session
+    Test
+  }
+
+  client-nodejs.session <-> server
+  client-nodejs.test <-> server
+  client-browser.session <-> server
+  client-browser.test <-> server
+}
+
+just-test-process.server <-> interactive-browser.session
+just-test-process.server <-> interactive-browser.test
+just-test-process.server <-> interactive-browser.ui
+just-test-process.server <-> cli-process
