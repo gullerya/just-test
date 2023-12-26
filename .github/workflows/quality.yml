@@ -113,9 +113,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.JT_CI_AT }}
+
       - name: Render
         run: |
           d2 docs/architecture.d2 docs/architecture.svg
+
       - name: Commit & Push
         run: |
           git add --all
