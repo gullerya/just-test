@@ -133,5 +133,5 @@ jobs:
           git config user.email "gullerya@gmail.com"
           git config user.name "GullerYA CI"
           git add --all
-          git commit --allow-empty -m 'adding rendered graphics'
+          git commit -m 'adding rendered graphics'
           git push
