@@ -33,7 +33,9 @@ jobs:
           node-version-file: '.nvmrc'
 
       - name: Install
-        run: npm ci
+        run: |
+          npm ci
+          npx playwright install chromium --with-deps
 
       - name: Build
         run: npm run build
@@ -55,7 +57,9 @@ jobs:
           node-version-file: '.nvmrc'
 
       - name: Install
-        run: npm ci
+        run: |
+          npm ci
+          npx playwright install firefox --with-deps
 
       - name: Build
         run: npm run build
@@ -74,7 +78,9 @@ jobs:
           node-version-file: '.nvmrc'
 
       - name: Install
-        run: npm ci && npx playwright install-deps
+        run: |
+          npm ci
+          npx playwright install webkit --with-deps
 
       - name: Build
         run: npm run build
