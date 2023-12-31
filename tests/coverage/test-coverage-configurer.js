@@ -1,5 +1,5 @@
 import { test } from '@gullerya/just-test';
-import { assert } from '@gullerya/just-test/assert';
+import { assert } from '../tests-chai-helper.js';
 import covConf from '../../src/coverage/coverage-configurer.js';
 
 test('coverage config - empty config, empty envs', () => {

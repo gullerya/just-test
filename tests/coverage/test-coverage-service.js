@@ -1,5 +1,5 @@
 import { test } from '@gullerya/just-test';
-import { assert } from '@gullerya/just-test/assert';
+import { assert } from '../tests-chai-helper.js';
 import { collectTargetSources } from '../../src/coverage/coverage-service.js';
 
 test('collect sources - empty or null input', async () => {

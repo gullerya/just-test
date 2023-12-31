@@ -1,5 +1,5 @@
 import { test } from '@gullerya/just-test';
-import { assert } from '@gullerya/just-test/assert';
+import { assert } from '../tests-chai-helper.js';
 import {
 	extensionsMap, findMimeType
 } from '../../src/server/server-utils.js';

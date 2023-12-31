@@ -4,7 +4,12 @@
 			"browser": {
 				"type": "chromium",
 				"executors": {
-					"type": "page"
+					"type": "iframe"
+				},
+				"importmap": {
+					"imports": {
+						"chai": "/libs/chai/chai.js"
+					}
 				}
 			},
 			"tests": {
@@ -15,7 +20,8 @@
 					"./tests/**/*.js"
 				],
 				"exclude": [
-					"**/tests/runner/**"
+					"**/tests/runner/**",
+					"**/test-coverage-service.js"
 				]
 			},
 			"coverage": {

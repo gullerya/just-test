@@ -18,6 +18,7 @@ export default launch;
 const logger = new Logger({ context: 'NodeJS env service' });
 
 class NodeEnvImpl extends EnvironmentBase {
+	#dismissed = false;
 	#envConfig;
 	#consoleLogger;
 	#worker;
@@ -72,8 +73,13 @@ class NodeEnvImpl extends EnvironmentBase {
 	}
 
 	async dismiss() {
+		this.#dismissed = true;
 		await waitInterval(100);
 		await this.#worker.terminate();
+	}
+
+	isDismissed() {
+		return this.#dismissed;
 	}
 }
 

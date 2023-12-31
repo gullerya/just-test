@@ -6,7 +6,7 @@
 import { getExecutionContext, EXECUTION_MODES } from './environment-config.js';
 import { STATUS } from '../common/constants.js';
 
-export { suite, test, TestDto };
+export { suite, test, TestDto, transformError };
 
 const DEFAULT_SUITE_OPTIONS = {
 	only: false,
@@ -129,10 +129,9 @@ async function executeRun(name, opts, code) {
 
 function finalizeRun(run, runError) {
 	if (runError && typeof runError.name === 'string' && typeof runError.message === 'string' && runError.stack) {
-		runError = processError(runError);
+		runError = transformError(runError);
 		if ((runError.type && runError.type.toLowerCase().includes('assert')) ||
-			(runError.name && runError.name.toLowerCase().includes('assert')) ||
-			(runError.message && runError.message.toLowerCase().includes('assert'))
+			(runError.name && runError.name.toLowerCase().includes('assert'))
 		) {
 			run.status = STATUS.FAIL;
 		} else {
@@ -144,15 +143,15 @@ function finalizeRun(run, runError) {
 	}
 }
 
-function processError(error) {
-	const cause = error.cause ? processError(error.cause) : undefined;
+function transformError(error) {
+	const cause = error.cause ? transformError(error.cause) : undefined;
 	const stacktrace = error.stack.split(/\r\n|\r|\n/)
 		.map(l => l.trim())
 		.filter(Boolean);
 
 	return {
 		name: error.name,
-		type: error.constructor.name,
+		type: error.constructor.prototype.name,
 		message: error.message,
 		cause,
 		stacktrace

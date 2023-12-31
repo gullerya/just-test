@@ -1,5 +1,5 @@
 import { test } from '@gullerya/just-test';
-import { assert } from '@gullerya/just-test/assert';
+import { assert } from '../tests-chai-helper.js';
 import RangeCov from '../../src/coverage/model/range-cov.js';
 import { merge } from '../../src/coverage/model/range-utils.js';
 

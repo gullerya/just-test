@@ -4,8 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  schedule:
-    - cron: "0 */12 * * *"
 
 jobs:
   quality_pipeline_static_analysis:
@@ -13,11 +11,8 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup NodeJS
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
 
@@ -32,16 +27,15 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup NodeJS
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
 
       - name: Install
-        run: npm ci
+        run: |
+          npm ci
+          npx playwright install chromium --with-deps
 
       - name: Build
         run: npm run build
@@ -57,16 +51,15 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup NodeJS
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
 
       - name: Install
-        run: npm ci
+        run: |
+          npm ci
+          npx playwright install firefox --with-deps
 
       - name: Build
         run: npm run build
@@ -79,16 +72,15 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup NodeJS
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
 
       - name: Install
-        run: npm ci && npx playwright install-deps
+        run: |
+          npm ci
+          npx playwright install webkit --with-deps
 
       - name: Build
         run: npm run build
@@ -101,11 +93,8 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup NodeJS
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
 
@@ -120,3 +109,28 @@ jobs:
 
       - name: Report coverage
         uses: codecov/codecov-action@v3
+
+  render-graphs:
+    runs-on: ubuntu-20.04
+    env:
+      D2_LAYOUT: elk
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install D2
+        run: curl -fsSL https://d2lang.com/install.sh | sh -s --
+
+      - name: Render
+        run: |
+          d2 docs/architecture.d2 docs/architecture.svg
+
+      - name: Commit & Push
+        run: |
+          git config user.email "gullerya@gmail.com"
+          git config user.name "GullerYA CI"
+          git add --all
+          git commit -m 'adding rendered graphics' || echo "empty changeset silently skipped"
+          git push

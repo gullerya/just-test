@@ -1,5 +1,5 @@
 ﻿import { test } from '@gullerya/just-test';
-import { assert } from '@gullerya/just-test/assert';
+import { assert } from '../tests-chai-helper.js';
 import { EXECUTION_MODES, setExecutionContext } from '../../src/runner/environment-config.js';
 
 const localECKey = 'test-suite-api-ec';

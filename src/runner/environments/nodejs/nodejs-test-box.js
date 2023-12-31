@@ -2,7 +2,7 @@ import { Session } from 'node:inspector';
 import { cwd } from 'node:process';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
-import minimatch from 'minimatch';
+import { minimatch } from 'minimatch';
 import { parentPort } from 'node:worker_threads';
 import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
 import { v8toJustTest } from '../../../coverage/coverage-service.js';

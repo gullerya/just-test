@@ -84,16 +84,12 @@ export default class SimpleStateService {
 		}
 	}
 
+	reportSessionCoverage(coverage) {
+		this.#model.coverage = coverage;
+	}
+
 	reportError(error) {
-		const stacktrace = error.stack.split(/\r\n|\r|\n/)
-			.map(l => l.trim())
-			.filter(Boolean);
-		this.#model.errors.push({
-			name: error.name,
-			type: error.constructor.name,
-			message: error.message,
-			stacktrace
-		});
+		this.#model.errors.push(error);
 		this.#model.error++;
 	}
 

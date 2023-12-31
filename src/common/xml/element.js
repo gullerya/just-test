@@ -16,7 +16,7 @@ export default class ElementImpl extends NodeImpl {
 		if (attrValue === undefined) {
 			throw new TypeError(`'attrValue' MUST be provided`);
 		}
-		this._attributes[attrName] = attrValue === null ? 'null' : attrValue.toString();
+		this._attributes[attrName] = String(attrValue);
 	}
 
 	getAttribute(attrName) {

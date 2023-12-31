@@ -77,13 +77,13 @@ async function dismiss(envId) {
 	}
 
 	const envToDismiss = environments[envId];
-	if (envToDismiss) {
+	if (envToDismiss && !envToDismiss.isDismissed()) {
 		logger.info(`dismissing environment '${envId}'...`);
 		await envToDismiss.dismiss();
 		delete environments[envId];
 		logger.warn(`... environment '${envId}' dismissed`);
 	} else {
-		logger.warn(`environment '${envId}' was not found, nothing to dismiss`);
+		logger.warn(`environment '${envId}' was not found or already dismissed, nothing to dismiss`);
 	}
 }
 

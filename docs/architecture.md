@@ -1,11 +1,13 @@
 # Architecture, data model, data flow
 
-`just test` is a fully features application, having it's own structure, specific data model and several data flows.
+`just test` is a fully featured application, having it's own structure, specific data model and several data flows.
 It is important to understand those principals in order to understand `just-test` capabilities and limitations.
 
 ## Architecture
 
-`just-test` has a server-client architectural structure. Any tests execution, even a 'local' one, starts server that manages the execution life-cycle. There are several runners that are being launched/loaded as per session configuration and are actually executing tests - those are test environment instances.
+![Alt text](./architecture.svg)
+
+`just-test` has a server-client architecture. Any tests execution, even a 'local' one, starts server that manages the execution life-cycle. There are several runners that are being launched/loaded as per session configuration and are actually executing tests - those are test environment instances.
 
 ### Server
 
@@ -27,7 +29,7 @@ Those runners responsibilities, roughtly, are:
 
 There are 3 kinds of runners in `just-test`.
 
-**Interactive** runner - a simple set of static resources, that are serverd to a browser and provide interactive session UI.
+**Interactive** runner - a simple set of static resources, that are served to a browser and provide interactive session UI.
 
 **Browser** runner - NodeJS-based runner, that launches a browser instance/s and executes test session there.
 

@@ -12,6 +12,7 @@ import SimpleStateService from '../../simple-state-service.js';
 import { runSession } from '../../session-service.js';
 import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 import { EVENT, STATUS } from '../../../common/constants.js';
+import { transformError } from '../../just-test.js';
 
 (async () => {
 	const { sesId, envId, origin } = workerData;
@@ -27,8 +28,9 @@ import { EVENT, STATUS } from '../../../common/constants.js';
 		const testExecutor = createNodeJSExecutor(metadata, stateService);
 		await runSession(stateService, testExecutor);
 	} catch (e) {
-		stateService.reportError(e);
-		console.error(e);
+		const ownError = transformError(e);
+		stateService.reportError(ownError);
+		console.error(ownError);
 		console.error('session execution failed due to the previous error/s');
 	} finally {
 		console.info(`reporting '${envId}':'${sesId}' results...`);
@@ -59,7 +61,9 @@ async function planSession(testsResources, stateService) {
 				});
 			}
 		} catch (e) {
-			console.error(`failed to process '${tr}': `, e);
+			const ownError = transformError(e);
+			stateService.reportError(ownError);
+			console.error(`failed to process '${tr}':`, ownError);
 		}
 	}
 
@@ -87,8 +91,9 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 				}
 			});
 			worker.on('error', async error => {
-				console.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
-				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error });
+				const ownError = transformError(error);
+				console.error(`worker for test '${test.name}' errored: ${error}`);
+				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ownError });
 				await worker.terminate();
 				worker.unref();
 				resolve();
