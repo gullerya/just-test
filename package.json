@@ -55,15 +55,15 @@
 	"dependencies": {
 		"data-tier": "^3.6.6",
 		"data-tier-list": "^2.2.1",
-		"es-module-shims": "^1.7.0",
-		"glob": "^9.3.2",
-		"minimatch": "^7.4.3",
-		"playwright": "^1.32.0",
+		"es-module-shims": "^2.6.2",
+		"glob": "^11.0.3",
+		"minimatch": "^10.1.1",
+		"playwright": "^1.56.1",
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
 		"@gullerya/just-test": "^4.0.4",
-		"eslint": "^8.36.0"
+		"eslint": "^9.39.1"
 	},
 	"publishConfig": {
 		"access": "public"

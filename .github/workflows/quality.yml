@@ -9,15 +9,15 @@ on:
 
 jobs:
   quality_pipeline_static_analysis:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
@@ -28,15 +28,15 @@ jobs:
         run: npm run lint
 
   quality_pipeline_chromium:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
@@ -50,18 +50,18 @@ jobs:
         run: npm run test:ci:chromium
 
       - name: Report coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
 
   quality_pipeline_firefox:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
@@ -75,15 +75,15 @@ jobs:
         run: npm run test:ci:firefox
 
   quality_pipeline_webkit:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
@@ -97,15 +97,15 @@ jobs:
         run: npm run test:ci:webkit
 
   quality_pipeline_nodejs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
@@ -119,4 +119,4 @@ jobs:
         run: npm run test:ci:nodejs
 
       - name: Report coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
