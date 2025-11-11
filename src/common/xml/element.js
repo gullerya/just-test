@@ -14,7 +14,7 @@ export default class ElementImpl extends NodeImpl {
 			throw new TypeError(`'attrName' MUST be a non-empty string; got '${attrName}'`);
 		}
 		if (attrValue === undefined) {
-			throw new TypeError(`'attrValue' MUST be provided`);
+			throw new TypeError(`'attrValue' MUST be provided; got '${attrValue}' (attrName is '${attrName}')`);
 		}
 		this._attributes[attrName] = attrValue === null ? 'null' : attrValue.toString();
 	}
