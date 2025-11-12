@@ -22,6 +22,8 @@ async function go() {
 	try {
 		//	TODO: spawn out the server in a separate process
 		server = await start();
+
+		// long running async operation
 		sessionResult = await executeSession(server.baseUrl, clArguments);
 		endedWithFailure = !sessionResult.summary.success;
 	} catch (error) {
@@ -46,7 +48,15 @@ async function go() {
 			console.info(`FAILED: ${sessionResult.fail}`);
 			console.info(`ERRORED: ${sessionResult.error}`);
 			console.info(`SKIPPED: ${sessionResult.skip}${os.EOL}`);
-			console.info(`SESSION SUMMARY: ${endedWithFailure ? 'FAILURE' : 'SUCCESS'} (${duration}s)${os.EOL}`);
+			console.info(`SESSION SUMMARY: ${endedWithFailure
+				? `FAILURE (${sessionResult.summary.failReason})`
+				: 'SUCCESS'} (${duration}s)${os.EOL}`);
+			if (sessionResult.errors && sessionResult.errors.length > 0) {
+				console.info('SESSION ERRORS');
+				console.info('==============');
+				sessionResult.errors.forEach(e => console.info(`- ${JSON.stringify(e)}`));
+				console.info(os.EOL);
+			}
 			process.exit(endedWithFailure ? 1 : 0);
 		} else {
 			console.info(`SESSION SUMMARY: FAILURE (${duration}s), see errors in the log above${os.EOL}`);
