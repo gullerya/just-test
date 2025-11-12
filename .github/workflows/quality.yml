@@ -53,6 +53,8 @@ jobs:
 
       - name: Report coverage
         uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   quality_pipeline_firefox:
     runs-on: ubuntu-24.04
