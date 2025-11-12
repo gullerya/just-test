@@ -55,7 +55,6 @@
 	"dependencies": {
 		"data-tier": "^3.6.6",
 		"data-tier-list": "^2.2.1",
-		"es-module-shims": "^2.6.2",
 		"glob": "^11.0.3",
 		"minimatch": "^10.1.1",
 		"playwright": "^1.56.1",
