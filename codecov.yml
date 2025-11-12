@@ -5,3 +5,5 @@ parsers:
     include_full_missed_files: true
   javascript:
     enable_partials: true
+codecov: 
+  token: fac40936-0a1f-4dce-b7a2-1ee02e2b7eef
