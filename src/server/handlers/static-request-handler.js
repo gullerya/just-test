@@ -22,9 +22,8 @@ export default class StaticRequestHandler extends RequestHandlerBase {
 		this.#logger.info(`static requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
-	get basePath() {
-		return 'static';
-	}
+	get config() { return this.#config; }
+	get basePath() { return 'static'; }
 
 	async handle(handlerRelativePath, req, res) {
 		if (req.method !== 'GET') {

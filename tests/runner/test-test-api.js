@@ -15,7 +15,6 @@ test('run test - pass (sync)', async () => {
 	assert.isTrue(typeof m.time === 'number');
 });
 
-
 test('run test - fail by assert (sync)', async () => {
 	const tp = test('name', () => assert.fail('reason'));
 
@@ -31,7 +30,7 @@ test('run test - fail by assert (sync)', async () => {
 });
 
 test('run test - fail by error (sync)', async () => {
-	/* eslint-disable no-undef */
+	/* eslint-disable-next-line no-undef */
 	const tp = test('name', () => nonsense);
 
 	assert.instanceOf(tp, Promise);
@@ -102,7 +101,7 @@ test('run test - fail by assert (async)', async () => {
 test('run test - fail by error (async)', async () => {
 	const tp = test('name', async () => {
 		await waitInterval(3);
-		/* eslint-disable no-undef */
+		/* eslint-disable-next-line no-undef */
 		nonsense;
 	});
 

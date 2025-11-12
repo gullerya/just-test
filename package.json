@@ -44,8 +44,8 @@
 	"scripts": {
 		"build": "node ./ci/tools/build.js",
 		"lint": "npm run lint:runner && npm run lint:server",
-		"lint:runner": "eslint -c ./ci/.eslintrc.runner.json \"./src/runner/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/**/*.js\"",
-		"lint:server": "eslint -c ./ci/.eslintrc.server.json \"./src/common/**/*.js\" \"./src/server/**/*.js\" \"./src/*.js\" \"./ci/**/*.js\" \"./tests/**/*.js\"",
+		"lint:runner": "eslint -c ./ci/eslint.runner.js \"./src/runner/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/**/*.js\"",
+		"lint:server": "eslint -c ./ci/eslint.server.js \"./src/common/**/*.js\" \"./src/server/**/*.js\" \"./src/*.js\" \"./ci/**/*.js\" \"./tests/**/*.js\"",
 		"test:dev": "npm run build && node ./bin/local-runner.js config_file=./tests/tests-config-dev.json",
 		"test:ci:chromium": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-chromium.json",
 		"test:ci:firefox": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-firefox.json",

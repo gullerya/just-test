@@ -17,6 +17,10 @@ class AssertionError extends Error {
 		this.#expected = expected;
 		this.#operator = operator;
 	}
+
+	get actual() { return this.#actual; }
+	get expected() { return this.#expected; }
+	get operator() { return this.#operator; }
 }
 
 class Assert {
