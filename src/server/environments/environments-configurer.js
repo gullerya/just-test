@@ -105,9 +105,7 @@ function validateBrowser(b) {
 	if (b.importmap && (typeof b.importmap !== 'object' || typeof b.importmap.imports !== 'object')) {
 		throw new Error(`importmap, if/when defined, MUST be a valid importmap object`);
 	}
-	const imports = Object.assign({
-
-	}, DEFAULT_BROWSER_IMPORTS, b.importmap?.imports);
+	const imports = Object.assign({}, DEFAULT_BROWSER_IMPORTS, b.importmap?.imports);
 	b.importmap = { imports };
 }
 
