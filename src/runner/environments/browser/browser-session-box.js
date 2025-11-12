@@ -79,6 +79,8 @@ async function planSession(testsResources, stateService) {
 		} catch (e) {
 			console.error(`failed to process '${testSource}':`);
 			console.error(e);
+			stateService.sessionResult.summary.success = false;
+			stateService.sessionResult.summary.failReason = 'failed due to a previous errors, see the log for the details';
 		}
 	}
 
