@@ -79,6 +79,7 @@ async function planSession(testsResources, stateService) {
 		} catch (e) {
 			console.error(`failed to process '${testSource}':`);
 			console.error(e);
+			stateService.reportError(e);
 		}
 	}
 

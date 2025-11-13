@@ -22,9 +22,8 @@ export default class CoreRequestHandler extends RequestHandlerBase {
 		this.#logger.info(`core requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
-	get basePath() {
-		return 'core';
-	}
+	get config() { return this.#config; }
+	get basePath() { return 'core'; }
 
 	async handle(handlerRelativePath, req, res) {
 		if (req.method !== 'GET') {

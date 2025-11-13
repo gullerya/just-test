@@ -15,6 +15,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		this.#logger.info(`'API' requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
+	get config() { return this.#config; }
 	get basePath() { return 'api'; }
 
 	async handle(handlerRelativePath, req, res) {

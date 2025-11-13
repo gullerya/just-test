@@ -15,6 +15,7 @@
 					"./tests/**/*.js"
 				],
 				"exclude": [
+					"**/tests/coverage/**",
 					"**/tests/runner/**"
 				]
 			},

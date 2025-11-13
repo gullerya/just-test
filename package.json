@@ -44,8 +44,8 @@
 	"scripts": {
 		"build": "node ./ci/tools/build.js",
 		"lint": "npm run lint:runner && npm run lint:server",
-		"lint:runner": "eslint -c ./ci/.eslintrc.runner.json \"./src/runner/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/**/*.js\"",
-		"lint:server": "eslint -c ./ci/.eslintrc.server.json \"./src/common/**/*.js\" \"./src/server/**/*.js\" \"./src/*.js\" \"./ci/**/*.js\" \"./tests/**/*.js\"",
+		"lint:runner": "eslint -c ./ci/eslint.runner.js \"./src/runner/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/**/*.js\"",
+		"lint:server": "eslint -c ./ci/eslint.server.js \"./src/common/**/*.js\" \"./src/server/**/*.js\" \"./src/*.js\" \"./ci/**/*.js\" \"./tests/**/*.js\"",
 		"test:dev": "npm run build && node ./bin/local-runner.js config_file=./tests/tests-config-dev.json",
 		"test:ci:chromium": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-chromium.json",
 		"test:ci:firefox": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-firefox.json",
@@ -55,15 +55,14 @@
 	"dependencies": {
 		"data-tier": "^3.6.6",
 		"data-tier-list": "^2.2.1",
-		"es-module-shims": "^1.7.0",
-		"glob": "^9.3.2",
-		"minimatch": "^7.4.3",
-		"playwright": "^1.32.0",
+		"glob": "^11.0.3",
+		"minimatch": "^10.1.1",
+		"playwright": "^1.56.1",
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
 		"@gullerya/just-test": "^4.0.4",
-		"eslint": "^8.36.0"
+		"eslint": "^9.39.1"
 	},
 	"publishConfig": {
 		"access": "public"
