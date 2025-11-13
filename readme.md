@@ -8,7 +8,7 @@
 
 # Summary
 
-`just-test` is an all-JS platforms oriented test runner strongly opinionated about testing practices, libraries, frameworks and components.
+`just-test` is an all JS platforms oriented test runner strongly opinionated about testing practices, libraries, frameworks and components.
 
 TODO
 
