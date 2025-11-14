@@ -1,4 +1,4 @@
-name: Release (Git tag)
+name: Release new version
 run-name: Releasing '${{ inputs.version }}' update (by @${{ github.actor }})
 
 on:
