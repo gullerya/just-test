@@ -18,7 +18,8 @@ const
 	},
 	DEFAULT_BROWSER_IMPORTS = {
 		'@gullerya/just-test': '/libs/@gullerya/just-test/bin/runner/just-test.js',
-		'@gullerya/just-test/': '/libs/@gullerya/just-test/bin/common/'
+		'@gullerya/just-test/assert': '/libs/@gullerya/just-test/bin/common/assert-utils.js',
+		'@gullerya/just-test/timing': '/libs/@gullerya/just-test/bin/common/time-utils.js'
 	};
 
 export default environment => {
