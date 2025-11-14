@@ -5,12 +5,11 @@ on:
     tags:
       - '*.*.*'
 
-permissions:
-  id-token: write
-
 jobs:
   publish:
     runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
 
     steps:
       - name: Checkout
