@@ -37,9 +37,7 @@
 	],
 	"exports": {
 		".": "./bin/runner/just-test.js",
-		"./assert": "./bin/common/assert-utils.js",
-		"./random": "./bin/common/random-utils.js",
-		"./timing": "./bin/common/time-utils.js"
+		"./common/": "./bin/common/"
 	},
 	"scripts": {
 		"build": "node ./ci/tools/build.js",
