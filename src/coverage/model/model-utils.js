@@ -26,6 +26,10 @@ async function buildJTFileCov(sourceUrl, everImported, sourceFetcher = defaultSo
 
 	//	get the source text
 	const text = await sourceFetcher(sourceUrl);
+	if (!text || EMPTY_TEXT_REGEX.test(text)) {
+		return result;
+	}
+
 	result.addRangeCov(new RangeCov(0, text.length, everImported ? 1 : 0));
 
 	//	get lines from source
