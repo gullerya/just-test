@@ -22,7 +22,12 @@ parentPort.addEventListener('message', async m => {
 	}
 
 	setExecutionContext(EXECUTION_MODES.TEST, testName, runStartHandler, runEndHandler);
-	await import(pathToFileURL(testSource));
+	try {
+		await import(pathToFileURL(testSource));
+	} catch (e) {
+		console.error(`failed to import test '${testName}': ${e}`);
+		await runEndHandler(testName, { status: 'error', time: 0, timestamp: Date.now(), error: processError(e) });
+	}
 });
 
 //
@@ -95,4 +100,20 @@ async function collectCoverage() {
 		});
 
 	return fineCov;
+}
+
+//	TODO: move to common utils, it's a duplicate of src/runner/just-test.js
+function processError(error) {
+	const cause = error.cause ? processError(error.cause) : undefined;
+	const stacktrace = error.stack.split(/\r\n|\r|\n/)
+		.map(l => l.trim())
+		.filter(Boolean);
+
+	return {
+		name: error.name,
+		type: error.constructor.name,
+		message: error.message,
+		cause,
+		stacktrace
+	};
 }
