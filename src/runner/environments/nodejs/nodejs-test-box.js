@@ -25,7 +25,7 @@ parentPort.addEventListener('message', async m => {
 	try {
 		await import(pathToFileURL(testSource));
 	} catch (e) {
-		console.error(`failed to import test '${testName}': ${e}`);
+		console.error(`failed to import test '${testName}':`, e);
 		await runEndHandler(testName, { status: 'error', time: 0, timestamp: Date.now(), error: processError(e) });
 	}
 });
