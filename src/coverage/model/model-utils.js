@@ -22,6 +22,7 @@ async function buildJTFileCov(sourceUrl, everImported, sourceFetcher = defaultSo
 		throw new Error(`source fetcher MUST be a function, got: '${sourceFetcher}'`);
 	}
 
+	sourceUrl = sourceUrl.split('?')[0].trim();
 	const result = new FileCov(sourceUrl);
 
 	//	get the source text
