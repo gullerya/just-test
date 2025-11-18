@@ -128,3 +128,13 @@ test('build model - remark, multi line (spit around)', async () => {
 		functions: []
 	});
 });
+
+test('build model - empty file', async () => {
+	const fileCov = await buildJTFileCov('url', false, () => Promise.resolve(''));
+	assert.deepStrictEqual(fileCov, {
+		url: 'url',
+		lines: [],
+		ranges: [],
+		functions: []
+	});
+});

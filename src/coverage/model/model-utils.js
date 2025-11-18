@@ -33,7 +33,8 @@ async function buildJTFileCov(sourceUrl, everImported, sourceFetcher = defaultSo
 	result.addRangeCov(new RangeCov(0, text.length, everImported ? 1 : 0));
 
 	//	get lines from source
-	const lines = text.split(/\r\n|\n/);
+	//	brackets ensure we keep the line separators as a line to correctly count line/char positions
+	const lines = text.split(/(\r\n|\n)/);
 
 	let comment = false;
 	let stillTakeThisLine = false;
