@@ -44,7 +44,7 @@ test('processError with valid Error object - nested', () => {
 	assert.strictEqual(r.cause.name, 'ReferenceError');
 	assert.strictEqual(r.cause.type, 'ReferenceError');
 	assert.strictEqual(r.cause.message, 'This is a reference error');
-	assert.strictEqual
+	assert.strictEqual(r.cause.cause, undefined);
 	assert.isTrue(Array.isArray(r.cause.stacktrace));
 	assert.isTrue(r.cause.stacktrace.length > 0);
 });
