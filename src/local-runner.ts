@@ -1,7 +1,7 @@
 import os from 'node:os';
 import fs from 'node:fs/promises';
 import process from 'node:process';
-import { start, stop } from './server/cli.js';
+import { start, stop } from './server/cli.ts';
 import { xUnitReporter } from './testing/testing-service.js';
 import { collectTargetSources, lcovReporter } from './coverage/coverage-service.js';
 import { buildJTFileCov } from './coverage/model/model-utils.js';
@@ -65,8 +65,8 @@ async function go() {
 	}
 }
 
-function parseCLArgs(args) {
-	const result = {};
+function parseCLArgs(args): Record<string, string> {
+	const result = {} as Record<string, string>;
 	if (Array.isArray(args)) {
 		for (let i = 0; i < args.length; i++) {
 			if (args[i].includes('=')) {
@@ -81,7 +81,7 @@ function parseCLArgs(args) {
 	return result;
 }
 
-async function executeSession(serverBaseUrl, clArguments) {
+async function executeSession(serverBaseUrl, clArguments: Record<string, string>) {
 	const config = await readConfigAndMergeWithCLArguments(clArguments);
 	const sessionDetails = await sendAddSession(serverBaseUrl, config);
 	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
@@ -137,7 +137,7 @@ async function executeSession(serverBaseUrl, clArguments) {
 	return sessionResult;
 }
 
-async function readConfigAndMergeWithCLArguments(clArguments) {
+async function readConfigAndMergeWithCLArguments(clArguments: Record<string, string>): Promise<object> {
 	if (!clArguments || !clArguments.config_file || typeof clArguments.config_file !== 'string') {
 		throw new Error(`invalid config_file argument (${clArguments?.config_file})`);
 	}
@@ -149,7 +149,7 @@ async function readConfigAndMergeWithCLArguments(clArguments) {
 	return result;
 }
 
-async function sendAddSession(serverBaseUrl, config) {
+async function sendAddSession(serverBaseUrl: string, config: object) {
 	const addSessionUrl = `${serverBaseUrl}/api/v1/sessions`;
 	const options = {
 		method: 'POST',
@@ -167,7 +167,7 @@ async function sendAddSession(serverBaseUrl, config) {
 	}
 }
 
-async function waitSessionEnd(serverBaseUrl, sessionDetails) {
+async function waitSessionEnd(serverBaseUrl: string, sessionDetails: object) {
 	const sessionResultUrl = `${serverBaseUrl}/api/v1/sessions/${sessionDetails.sessionId}/result`;
 
 	//	TODO: add global timeout

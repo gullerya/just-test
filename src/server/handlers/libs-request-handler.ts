@@ -1,9 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { STATUS_CODES } from 'node:http';
+import { IncomingMessage, ServerResponse, STATUS_CODES } from 'node:http';
 import Logger from '../logger/logger.js';
-import { RequestHandlerBase } from './request-handler-base.js';
-import { findMimeType, extensionsMap } from '../server-utils.js';
+import { RequestHandlerBase } from './request-handler-base.ts';
+import { findMimeType, extensionsMap } from '../server-utils.ts';
 
 export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 	#logger = new Logger({ context: 'handler libs' });
@@ -17,7 +17,7 @@ export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 		return 'libs';
 	}
 
-	async handle(handlerRelativePath, req, res) {
+	async handle(handlerRelativePath: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
 		if (req.method !== 'GET') {
 			this.#logger.warn(`sending 405 for '${req.method} ${this.basePath}/${handlerRelativePath}'`);
 			res.writeHead(405).end(STATUS_CODES[405]);

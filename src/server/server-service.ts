@@ -3,9 +3,10 @@
  * - initializing the handlers and the infra configuration (port)
  * - starting the server
  */
-import * as http from 'node:http';
+import { IncomingMessage, Server, ServerResponse, STATUS_CODES, createServer } from 'node:http';
 import Logger from './logger/logger.js';
 import { dismissAll } from './environments/environments-service.js';
+import { RequestHandlerBase } from './handlers/request-handler-base.ts';
 
 export {
 	config,
@@ -16,36 +17,38 @@ export {
 const
 	logger = new Logger({ context: 'server' }),
 	STATUS_STOPPED = 0,
-	STATUS_RUNNING = 1,
-	CONFIG_KEY = Symbol('config.key'),
-	STATUS_KEY = Symbol('status.key'),
-	SERVER_KEY = Symbol('server.key'),
-	BASE_URL_KEY = Symbol('base.url.key'),
-	HANDLERS_READY_PROMISE_KEY = Symbol('handlers.ready.promise.key');
+	STATUS_RUNNING = 1;
 
 let config;
-let server;
+let server: ServerService;
 
 class ServerService {
+	#config;
+	#status;
+	#server: Server | null;
+	#baseUrl;
+	#handlersReadyPromise;
+	#stopPromise: Promise<void>;
+
 	constructor(serverConfig) {
-		this[CONFIG_KEY] = serverConfig;
+		this.#config = serverConfig;
 		config = serverConfig;
 
-		this[STATUS_KEY] = STATUS_STOPPED;
-		this[SERVER_KEY] = null;
-		this[BASE_URL_KEY] = this.effectiveConfig.origin;
-		this[HANDLERS_READY_PROMISE_KEY] = this.initHandlers();
+		this.#status = STATUS_STOPPED;
+		this.#server = null;
+		this.#baseUrl = this.effectiveConfig.origin;
+		this.#handlersReadyPromise = this.initHandlers();
 	}
 
-	async initHandlers() {
+	async initHandlers(): Promise<Record<string, RequestHandlerBase>> {
 		const
 			started = globalThis.performance.now(),
-			candidates = this[CONFIG_KEY].handlers,
-			handlers = {};
+			candidates = this.#config.handlers,
+			handlers = {} as Record<string, RequestHandlerBase>;
 		logger.info(`initializing ${candidates.length} handler/s...`);
 		for (const h of candidates) {
 			const handlerCTor = (await import(h)).default;
-			const handler = new handlerCTor(this[CONFIG_KEY]);
+			const handler: RequestHandlerBase = new handlerCTor(this.#config);
 			if (handler.basePath in handlers) {
 				throw new Error(`base path '${handler.basePath}' is already registered`);
 			}
@@ -56,20 +59,20 @@ class ServerService {
 	}
 
 	async start() {
-		if (this[STATUS_KEY] === STATUS_RUNNING) {
+		if (this.#status === STATUS_RUNNING) {
 			logger.error('server is already running');
 			return null;
 		}
 
-		const handlers = await this[HANDLERS_READY_PROMISE_KEY];
+		const handlers = await this.#handlersReadyPromise;
 
 		const
-			origin = this[CONFIG_KEY].origin,
-			port = this[CONFIG_KEY].port;
+			origin = this.#config.origin,
+			port = this.#config.port;
 		logger.info(`starting listening on port ${port} (full origin '${origin}')...`);
 
 		//	init dispatcher
-		const mainRequestDispatcher = async function mainRequestHandler(req, res) {
+		const mainRequestDispatcher = async function mainRequestHandler(req: IncomingMessage, res: ServerResponse) {
 			const { pathname } = new URL(req.url, origin);
 			const path = pathname === '/' || pathname === '' ? '/ui' : pathname;
 			const basePath = path.split('/')[1];
@@ -82,7 +85,7 @@ class ServerService {
 				} catch (error) {
 					logger.error(`sending 500 for '${req.url}' due to:`);
 					logger.error(error);
-					res.writeHead(500, http.STATUS_CODES[500]).end();
+					res.writeHead(500, STATUS_CODES[500]).end();
 				}
 			} else {
 				res.writeHead(404, `no handler matched '${req.url}'`).end();
@@ -91,15 +94,15 @@ class ServerService {
 
 		//	init server
 		logger.info(`\tregistered ${Object.keys(handlers).length} handler/s`);
-		const s = http.createServer(mainRequestDispatcher);
-		this[SERVER_KEY] = s.listen(port);
+		const s = createServer(mainRequestDispatcher);
+		this.#server = s.listen(port);
 		s.on('listening', () => {
-			this[STATUS_KEY] = STATUS_RUNNING;
+			this.#status = STATUS_RUNNING;
 			logger.info(`... listening on port ${port}`);
 		});
-		this.stopPromise = new Promise(r => {
+		this.#stopPromise = new Promise<void>(r => {
 			s.on('close', () => {
-				this[STATUS_KEY] = STATUS_STOPPED;
+				this.#status = STATUS_STOPPED;
 				logger.info(`port ${port} closed`);
 				r();
 			});
@@ -109,10 +112,10 @@ class ServerService {
 	async stop() {
 		let resPromise;
 		logger.info('stopping local server...');
-		if (this[SERVER_KEY] && this[STATUS_KEY] === STATUS_RUNNING) {
-			resPromise = new Promise(resolve => {
-				this[SERVER_KEY].close(closeError => {
-					this[STATUS_KEY] = STATUS_STOPPED;
+		if (this.#server && this.#status === STATUS_RUNNING) {
+			resPromise = new Promise<void>(resolve => {
+				this.#server.close(closeError => {
+					this.#status = STATUS_STOPPED;
 					logger.info(`... local server stopped${closeError ? ` ${closeError}` : ``}`);
 					resolve();
 				});
@@ -124,15 +127,19 @@ class ServerService {
 	}
 
 	get effectiveConfig() {
-		return this[CONFIG_KEY];
+		return this.#config;
 	}
 
 	get baseUrl() {
-		return this[BASE_URL_KEY];
+		return this.#baseUrl;
 	}
 
 	get isRunning() {
-		return this[STATUS_KEY] === STATUS_RUNNING;
+		return this.#status === STATUS_RUNNING;
+	}
+
+	get stopPromise() {
+		return this.#stopPromise;
 	}
 }
 

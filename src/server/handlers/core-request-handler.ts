@@ -1,10 +1,10 @@
 import fs from 'node:fs/promises';
 import url from 'node:url';
-import { STATUS_CODES } from 'node:http';
+import { IncomingMessage, ServerResponse, STATUS_CODES } from 'node:http';
 import path from 'node:path';
 import Logger from '../logger/logger.js';
-import { RequestHandlerBase } from './request-handler-base.js';
-import { findMimeType, extensionsMap } from '../server-utils.js';
+import { RequestHandlerBase } from './request-handler-base.ts';
+import { findMimeType, extensionsMap } from '../server-utils.ts';
 import { getSession } from '../sessions/sessions-service.js';
 import { ENVIRONMENT_KEYS } from '../../runner/environment-config.js';
 
@@ -25,7 +25,7 @@ export default class CoreRequestHandler extends RequestHandlerBase {
 	get config() { return this.#config; }
 	get basePath() { return 'core'; }
 
-	async handle(handlerRelativePath, req, res) {
+	async handle(handlerRelativePath: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
 		if (req.method !== 'GET') {
 			this.#logger.warn(`sending 405 for '${req.method} ${this.basePath}/${handlerRelativePath}'`);
 			res.writeHead(405, STATUS_CODES[405]).end();
@@ -61,7 +61,7 @@ export default class CoreRequestHandler extends RequestHandlerBase {
 		}
 	}
 
-	async #readFile(resourcePath) {
+	async #readFile(resourcePath: string): Promise<string> {
 		const fullPath = path.join(this.#baseFolder, resourcePath);
 		return await fs.readFile(fullPath, { encoding: 'utf-8' });
 	}

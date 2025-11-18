@@ -7,15 +7,15 @@
 				"maxFail": 0,
 				"maxSkip": 0,
 				"include": [
-					"./tests/**/*.js"
+					"./tests/**/*"
 				],
 				"exclude": [
-					"**/runner/*.js"
+					"**/runner/*"
 				]
 			},
 			"coverage": {
 				"include": [
-					"./src/**/*.js"
+					"./src/**/*"
 				]
 			}
 		}

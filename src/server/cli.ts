@@ -7,7 +7,7 @@
 import fs from 'node:fs';
 import Logger from './logger/logger.js';
 import buildConfig from './configuration/server-configurer.js';
-import { start as serverStart, stop } from './server-service.js';
+import { start as serverStart, stop } from './server-service.ts';
 
 export {
 	start,
@@ -39,7 +39,7 @@ async function start() {
 	const customConfig = {};
 	const enar = Object.assign({}, envs, args);
 	if (enar.config_file) {
-		const cf = JSON.parse(fs.readFileSync(enar.config_file));
+		const cf = JSON.parse(fs.readFileSync(enar.config_file, { encoding: 'utf-8' }));
 		Object.assign(customConfig, cf);
 	}
 	Object.assign(customConfig, enar);
@@ -53,8 +53,8 @@ async function start() {
 	return serverService;
 }
 
-async function collectEnvs() {
-	const result = {};
+async function collectEnvs(): Promise<Record<string, string>> {
+	const result = {} as Record<string, string>;
 	for (const [key, val] of Object.entries(process.env)) {
 		if (SUPPORTED_ENV_KEY.includes(key)) {
 			result[key] = val;
@@ -63,9 +63,9 @@ async function collectEnvs() {
 	return result;
 }
 
-async function collectArgs() {
+async function collectArgs(): Promise<Record<string, string>> {
 	//	TODO: resolve ARG keys to normalized config object
-	const result = {};
+	const result = {} as Record<string, string>;
 	for (const a of process.argv) {
 		if (a.includes('=')) {
 			const [key, value] = a.split('=');

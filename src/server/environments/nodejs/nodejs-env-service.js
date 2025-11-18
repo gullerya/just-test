@@ -10,7 +10,7 @@
 import { Worker } from 'node:worker_threads';
 import { waitInterval } from '../../../common/time-utils.js';
 import Logger, { FileOutput } from '../../logger/logger.js';
-import { config as serverConfig } from '../../server-service.js';
+import { config as serverConfig } from '../../server-service.ts';
 import { EnvironmentBase } from '../environment-base.js';
 
 export default launch;

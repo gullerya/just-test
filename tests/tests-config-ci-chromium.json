@@ -16,7 +16,8 @@
 				],
 				"exclude": [
 					"**/tests/coverage/**",
-					"**/tests/runner/**"
+					"**/tests/runner/**",
+					"**/tests/server/**"
 				]
 			},
 			"coverage": {
