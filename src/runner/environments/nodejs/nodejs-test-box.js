@@ -6,6 +6,7 @@ import { minimatch } from 'minimatch';
 import { parentPort } from 'node:worker_threads';
 import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
 import { v8toJustTest } from '../../../coverage/coverage-service.js';
+import { processError } from '../../../common/error-utils.js';
 import { EVENT } from '../../../common/constants.js';
 
 const currentBase = pathToFileURL(cwd()).href;
@@ -100,20 +101,4 @@ async function collectCoverage() {
 		});
 
 	return fineCov;
-}
-
-//	TODO: move to common utils, it's a duplicate of src/runner/just-test.js
-function processError(error) {
-	const cause = error.cause ? processError(error.cause) : undefined;
-	const stacktrace = error.stack.split(/\r\n|\r|\n/)
-		.map(l => l.trim())
-		.filter(Boolean);
-
-	return {
-		name: error.name,
-		type: error.constructor.name,
-		message: error.message,
-		cause,
-		stacktrace
-	};
 }

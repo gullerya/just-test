@@ -55,13 +55,13 @@
 	"dependencies": {
 		"data-tier": "^3.6.6",
 		"data-tier-list": "^2.2.1",
-		"glob": "^11.0.3",
+		"glob": "^12.0.0",
 		"minimatch": "^10.1.1",
 		"playwright": "^1.56.1",
 		"rich-component": "^1.8.0"
 	},
 	"devDependencies": {
-		"@gullerya/just-test": "^4.0.4",
+		"@gullerya/just-test": "^4.0.13",
 		"eslint": "^9.39.1"
 	},
 	"publishConfig": {

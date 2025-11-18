@@ -4,6 +4,7 @@
 //	- plan - tests planning phase, tests are not being run
 //	- test - test run, only the tests required by environment will be running
 import { getExecutionContext, EXECUTION_MODES } from './environment-config.js';
+import { processError } from '../common/error-utils.js';
 import { STATUS } from '../common/constants.js';
 
 export { suite, test, TestDto };
@@ -144,17 +145,3 @@ function finalizeRun(run, runError) {
 	}
 }
 
-function processError(error) {
-	const cause = error.cause ? processError(error.cause) : undefined;
-	const stacktrace = error.stack.split(/\r\n|\r|\n/)
-		.map(l => l.trim())
-		.filter(Boolean);
-
-	return {
-		name: error.name,
-		type: error.constructor.name,
-		message: error.message,
-		cause,
-		stacktrace
-	};
-}
