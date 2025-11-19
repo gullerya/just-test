@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "strict": false,
+        "target": "es2022",
+        "module": "es2022",
+        "noEmit": true,
+        "allowImportingTsExtensions": true,
+        "rewriteRelativeImportExtensions": true,
+        "verbatimModuleSyntax": true,
+        "erasableSyntaxOnly": true
+    }
+}

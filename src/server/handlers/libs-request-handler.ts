@@ -1,5 +1,5 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { IncomingMessage, ServerResponse, STATUS_CODES } from 'node:http';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.ts';
@@ -25,12 +25,12 @@ export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 		}
 
 		try {
-			const filePath = path.join('node_modules', handlerRelativePath);
+			const filePath = join('node_modules', handlerRelativePath);
 
 			this.#logger.info(`serving '${filePath}' for '${handlerRelativePath}'`);
 
 			const contentType = findMimeType(filePath, extensionsMap.js);
-			const content = await fs.readFile(filePath, { encoding: 'utf-8' });
+			const content = await readFile(filePath, { encoding: 'utf-8' });
 			res.writeHead(200, {
 				'Content-Type': contentType,
 				'Cache-Control': 'public, max-age=604800'
@@ -43,7 +43,5 @@ export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 				throw error;
 			}
 		}
-
-		return true;
 	}
 }

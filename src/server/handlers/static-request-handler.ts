@@ -1,7 +1,7 @@
-import fs from 'node:fs/promises';
-import { ClientRequest, ServerResponse, STATUS_CODES } from 'node:http';
-import path from 'node:path';
-import process from 'node:process';
+import { readFile } from 'node:fs/promises';
+import { IncomingMessage, ServerResponse, STATUS_CODES } from 'node:http';
+import { join } from 'node:path';
+import { cwd } from 'node:process';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.ts';
 import { findMimeType, extensionsMap } from '../server-utils.ts';
@@ -17,7 +17,7 @@ export default class StaticRequestHandler extends RequestHandlerBase {
 		super();
 		this.#config = config;
 		this.#logger = new Logger({ context: `'static' handler` });
-		this.#baseFolder = process.cwd();
+		this.#baseFolder = cwd();
 
 		this.#logger.info(`static requests handler initialized; basePath: '${this.basePath}'`);
 	}
@@ -25,7 +25,7 @@ export default class StaticRequestHandler extends RequestHandlerBase {
 	get config() { return this.#config; }
 	get basePath() { return 'static'; }
 
-	async handle(handlerRelativePath: string, req: ClientRequest, res: ServerResponse): Promise<void> {
+	async handle(handlerRelativePath: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
 		if (req.method !== 'GET') {
 			this.#logger.warn(`sending 405 for '${req.method} /${handlerRelativePath}'`);
 			res.writeHead(405, STATUS_CODES[405]).end();
@@ -61,8 +61,8 @@ export default class StaticRequestHandler extends RequestHandlerBase {
 		}
 	}
 
-	async #readFile(resourcePath) {
-		const fullPath = path.join(this.#baseFolder, resourcePath);
-		return await fs.readFile(fullPath, { encoding: 'utf-8' });
+	async #readFile(resourcePath: string): Promise<string> {
+		const fullPath = join(this.#baseFolder, resourcePath);
+		return await readFile(fullPath, { encoding: 'utf-8' });
 	}
 }

@@ -1,7 +1,7 @@
-import fs from 'node:fs/promises';
-import url from 'node:url';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { IncomingMessage, ServerResponse, STATUS_CODES } from 'node:http';
-import path from 'node:path';
+import { join } from 'node:path';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.ts';
 import { findMimeType, extensionsMap } from '../server-utils.ts';
@@ -17,7 +17,7 @@ export default class CoreRequestHandler extends RequestHandlerBase {
 		super();
 		this.#config = config;
 		this.#logger = new Logger({ context: `'core' handler` });
-		this.#baseFolder = path.join(url.fileURLToPath(import.meta.url), '../../..');
+		this.#baseFolder = join(fileURLToPath(import.meta.url), '../../..');
 
 		this.#logger.info(`core requests handler initialized; basePath: '${this.basePath}'`);
 	}
@@ -62,7 +62,7 @@ export default class CoreRequestHandler extends RequestHandlerBase {
 	}
 
 	async #readFile(resourcePath: string): Promise<string> {
-		const fullPath = path.join(this.#baseFolder, resourcePath);
-		return await fs.readFile(fullPath, { encoding: 'utf-8' });
+		const fullPath = join(this.#baseFolder, resourcePath);
+		return await readFile(fullPath, { encoding: 'utf-8' });
 	}
 }
