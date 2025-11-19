@@ -1,6 +1,6 @@
 {
 	"name": "@gullerya/just-test",
-	"version": "4.0.12",
+	"version": "4.0.14",
 	"description": "JavaScript multiplatform tests runner",
 	"keywords": [
 		"javascript",
