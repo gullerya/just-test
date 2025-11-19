@@ -31,6 +31,7 @@ function extractExtension(filePath: string): string {
 		result = filePath.substring(i + 1);
 	}
 	if (!(result in extensionsMap)) {
+		console.warn(`unknown file extension '.${result}', falling back to default mime type`);
 		result = '';
 	}
 	return result;
