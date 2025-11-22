@@ -1,8 +1,9 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import { readFile } from 'node:fs';
+import { resolve } from 'node:path';
+import { IncomingMessage, ServerResponse } from 'node:http';
 import Logger from '../logger/logger.js';
-import { RequestHandlerBase } from './request-handler-base.js';
-import { findMimeType, extensionsMap } from '../server-utils.js';
+import { RequestHandlerBase } from './request-handler-base.ts';
+import { findMimeType, extensionsMap } from '../server-utils.ts';
 
 const
 	logger = new Logger({ context: 'handler UI' }),
@@ -19,7 +20,7 @@ export default class UIRequestHandler extends RequestHandlerBase {
 		return 'ui';
 	}
 
-	async handle(handlerRelativePath, req, res) {
+	async handle(handlerRelativePath: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
 		if (req.method !== 'GET') {
 			logger.warn(`sending 403 for '${req.method} ${this.basePath}/${handlerRelativePath}'`);
 			res.writeHead(403).end();
@@ -29,7 +30,7 @@ export default class UIRequestHandler extends RequestHandlerBase {
 		const filePath = handlerRelativePath === '' ? 'app.html' : handlerRelativePath;
 		const contentType = findMimeType(filePath, extensionsMap.txt);
 
-		fs.readFile(path.resolve('bin/ui', filePath), (error, content) => {
+		readFile(resolve('bin/ui', filePath), (error, content) => {
 			if (!error) {
 				res.writeHead(200, {
 					'Content-Type': contentType,

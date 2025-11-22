@@ -1,4 +1,7 @@
+import { IncomingMessage, ServerResponse } from 'node:http';
+
 const basePathValidator = /^[a-z-_]+$/;
+
 export class RequestHandlerBase {
 	constructor() {
 		const bp = this.basePath;
@@ -7,11 +10,11 @@ export class RequestHandlerBase {
 		}
 	}
 
-	get basePath() {
-		return null;
+	get basePath(): string {
+		return '';
 	}
 
-	async handle() {
+	async handle(handlerRelativePath: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
 		throw new Error('implementation missing');
 	}
 }

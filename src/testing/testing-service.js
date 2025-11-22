@@ -8,7 +8,7 @@ export {
 	collectTestResources,
 	verifyEnrichConfig,
 	xUnitReporter
-}
+};
 
 const
 	logger = new Logger({ context: 'testing' }),

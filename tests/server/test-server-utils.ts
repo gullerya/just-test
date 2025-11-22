@@ -2,7 +2,7 @@ import { test } from '@gullerya/just-test';
 import { assert } from '@gullerya/just-test/assert';
 import {
 	extensionsMap, findMimeType
-} from '../../src/server/server-utils.js';
+} from '../../src/server/server-utils.ts';
 
 test('extension map is full', () => {
 	assert.strictEqual(extensionsMap.css, 'text/css');
@@ -38,5 +38,10 @@ test('provided default mime type - unknown extension', () => {
 
 test('provided default mime type - no extension', () => {
 	const mime = findMimeType('some/path/to-file-with-some', 'text/plain');
+	assert.strictEqual(mime, 'text/plain');
+});
+
+test('file path is ending with dot - fallbacks to default', () => {
+	const mime = findMimeType('some/path/to-file-with-some.');
 	assert.strictEqual(mime, 'text/plain');
 });

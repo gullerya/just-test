@@ -14,8 +14,8 @@ const extensionsMap = Object.freeze({
 	txt: 'text/plain'
 });
 
-function findMimeType(filePath, fallback) {
-	let result = null;
+function findMimeType(filePath: string, fallback: string = extensionsMap.txt): string {
+	let result: string;
 	const extension = extractExtension(filePath);
 	result = extensionsMap[extension];
 	if (!result && fallback) {
@@ -24,11 +24,15 @@ function findMimeType(filePath, fallback) {
 	return result || extensionsMap.txt;
 }
 
-function extractExtension(filePath) {
+function extractExtension(filePath: string): string {
+	let result: string = '';
 	const i = filePath.lastIndexOf('.');
 	if (i > 0) {
-		return filePath.substring(i + 1);
-	} else {
-		return '';
+		result = filePath.substring(i + 1);
 	}
+	if (!(result in extensionsMap)) {
+		console.warn(`unknown file extension '.${result}', falling back to default mime type`);
+		result = '';
+	}
+	return result;
 }

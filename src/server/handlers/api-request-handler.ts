@@ -1,8 +1,9 @@
 import Logger from '../logger/logger.js';
-import { RequestHandlerBase } from './request-handler-base.js';
-import { extensionsMap } from '../server-utils.js';
+import { RequestHandlerBase } from './request-handler-base.ts';
+import { extensionsMap } from '../server-utils.ts';
 import { addSession, storeResult, getAll, getSession } from '../sessions/sessions-service.js';
 import { collectTestResources } from '../../testing/testing-service.js';
+import { IncomingMessage, ServerResponse } from 'node:http';
 
 export default class APIRequestHandler extends RequestHandlerBase {
 	#config;
@@ -18,7 +19,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 	get config() { return this.#config; }
 	get basePath() { return 'api'; }
 
-	async handle(handlerRelativePath, req, res) {
+	async handle(handlerRelativePath: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
 		let handled = false;
 		if (/^.+\/sessions(|\/.+)$/.test(handlerRelativePath)) {
 			if (req.method === 'POST') {
@@ -45,7 +46,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		}
 	}
 
-	async #createSession(req, res) {
+	async #createSession(req: IncomingMessage, res: ServerResponse): Promise<void> {
 		const sessionConfig = await new Promise((resolve, reject) => {
 			try {
 				let data = '';
@@ -64,7 +65,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 			}));
 	}
 
-	async #storeResult(handlerRelativePath, req, res) {
+	async #storeResult(handlerRelativePath: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
 		/* eslint-disable no-unused-vars */
 		const [sesId, _envConst, envId] = handlerRelativePath.split('/').slice(2);
 		const sesResult = await new Promise((resolve, reject) => {
@@ -81,12 +82,12 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		res.writeHead(201).end();
 	}
 
-	async #getAllSessions(res) {
+	async #getAllSessions(res: ServerResponse): Promise<void> {
 		const allSessions = await getAll();
 		res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(JSON.stringify(allSessions));
 	}
 
-	async #getSession(handlerRelativePath, res) {
+	async #getSession(handlerRelativePath: string, res: ServerResponse): Promise<void> {
 		const [sesId, entity, entityId, ...args] = handlerRelativePath.split('/').slice(2);
 
 		if (!sesId) {
@@ -141,7 +142,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		}
 	}
 
-	async #getEnvironmentData(session, envId, args) {
+	async #getEnvironmentData(session, envId: string, args: string[]): Promise<string[]> {
 		let result = null;
 		const env = session.config.environments[envId];
 

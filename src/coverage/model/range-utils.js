@@ -3,7 +3,7 @@ import RangeCov from './range-cov.js';
 export {
 	merge,
 	calcRangeCoverage
-}
+};
 
 /**
  * merges 2 ranges according to the following rules:
