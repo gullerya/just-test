@@ -1,7 +1,7 @@
 import { initComponent, ComponentBase } from 'rich-component';
 
 const TEMPLATE = document.createElement('template');
-TEMPLATE.innerHTML = ``;
+TEMPLATE.innerHTML = '';
 
 initComponent('jt-duration', class extends ComponentBase {
 	set value(duration) {

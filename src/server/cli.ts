@@ -4,7 +4,7 @@
  * - prepares effective config
  * - starts the server
  */
-import fs from 'node:fs';
+import { resolve } from 'node:path';
 import Logger from './logger/logger.js';
 import buildConfig from './configuration/server-configurer.js';
 import { start as serverStart, stop } from './server-service.ts';
@@ -36,14 +36,15 @@ async function start() {
 	const [args, envs] = await Promise.all([collectArgs(), collectEnvs()]);
 
 	//	resolve effective configuration
-	const customConfig = {};
+	const finalConfig = {};
 	const enar = Object.assign({}, envs, args);
 	if (enar.config_file) {
-		const cf = JSON.parse(fs.readFileSync(enar.config_file, { encoding: 'utf-8' }));
-		Object.assign(customConfig, cf);
+		const configFilePath = resolve(process.cwd(), enar.config_file);
+		const cf = await import(configFilePath);
+		Object.assign(finalConfig, cf.default);
 	}
-	Object.assign(customConfig, enar);
-	const effectiveConfig = buildConfig(customConfig);
+	Object.assign(finalConfig, enar);
+	const effectiveConfig = buildConfig(finalConfig);
 
 	//	init server service
 	logger.info('effective configuration:', effectiveConfig);

@@ -4,7 +4,7 @@ import RangeCov from './range-cov.js';
 
 export {
 	buildJTFileCov
-}
+};
 
 const EMPTY_TEXT_REGEX = /^\s*$/;
 const ONE_LINE_REMARK_REGEX = /^\s*\/\//;

@@ -1,6 +1,7 @@
-import os from 'node:os';
-import fs from 'node:fs/promises';
-import process from 'node:process';
+import * as os from 'node:os';
+import * as fs from 'node:fs/promises';
+import * as process from 'node:process';
+import * as path from 'node:path';
 import { start, stop } from './server/cli.ts';
 import { xUnitReporter } from './testing/testing-service.js';
 import { collectTargetSources, lcovReporter } from './coverage/coverage-service.js';
@@ -137,16 +138,17 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 	return sessionResult;
 }
 
+//	TODO: this is done in the cli as well, refactor to avoid code duplication
 async function readConfigAndMergeWithCLArguments(clArguments: Record<string, string>): Promise<object> {
 	if (!clArguments || !clArguments.config_file || typeof clArguments.config_file !== 'string') {
 		throw new Error(`invalid config_file argument (${clArguments?.config_file})`);
 	}
 
-	const configText = await fs.readFile(clArguments.config_file, { encoding: 'utf-8' });
-	const result = JSON.parse(configText);
+	const configPath = path.resolve(process.cwd(), clArguments.config_file);
+	const config = await import(configPath);
 	//	merge with command line arguments
 
-	return result;
+	return config.default;
 }
 
 async function sendAddSession(serverBaseUrl: string, config: object) {

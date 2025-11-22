@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 
-//	eslint-disable-next-line no-control-regex
+// eslint-disable-next-line no-control-regex
 const FILE_OUTPUT_TEXT_CLEANER = /\u001B\[\d+m/g;
 
 export default class FileOutput {

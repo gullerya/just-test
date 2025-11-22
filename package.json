@@ -44,13 +44,13 @@
 	"scripts": {
 		"build": "node ./ci/tools/build.js",
 		"lint": "npm run lint:runner && npm run lint:server",
-		"lint:runner": "eslint -c ./ci/eslint.runner.js \"./src/runner/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/**/*.js\"",
-		"lint:server": "eslint -c ./ci/eslint.server.js \"./src/common/**/*.js\" \"./src/server/**/*.js\" \"./src/*.js\" \"./ci/**/*.js\" \"./tests/**/*.js\"",
-		"test:dev": "npm run build && node ./bin/local-runner.ts config_file=./tests/tests-config-dev.json",
-		"test:ci:chromium": "node ./bin/local-runner.ts config_file=./tests/tests-config-ci-chromium.json",
-		"test:ci:firefox": "node ./bin/local-runner.ts config_file=./tests/tests-config-ci-firefox.json",
-		"test:ci:webkit": "node ./bin/local-runner.ts config_file=./tests/tests-config-ci-webkit.json",
-		"test:ci:nodejs": "node ./bin/local-runner.ts config_file=./tests/tests-config-ci-nodejs.json"
+		"lint:runner": "eslint -c ./ci/eslint.runner.js",
+		"lint:server": "eslint -c ./ci/eslint.server.js",
+		"test:dev": "npm run build && node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-dev.ts",
+		"test:ci:chromium": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-chromium.ts",
+		"test:ci:firefox": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-firefox.ts",
+		"test:ci:webkit": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-webkit.ts",
+		"test:ci:nodejs": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-nodejs.ts"
 	},
 	"dependencies": {
 		"data-tier": "^3.6.6",

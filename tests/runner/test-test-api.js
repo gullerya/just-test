@@ -55,7 +55,7 @@ test('run test - skip', async () => {
 });
 
 test('setup test - error on bad name', { skip: true }, () => {
-	assert.throws(() => test('', () => { }), `test name MUST be a non-empty string`);
+	assert.throws(() => test('', () => { }), 'test name MUST be a non-empty string');
 });
 
 test('setup test - error on bad options', { skip: true }, () => {
