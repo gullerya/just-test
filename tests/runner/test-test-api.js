@@ -33,7 +33,7 @@ test('run test - fail by error (sync)', async () => {
 	/* eslint-disable-next-line no-undef */
 	const tp = test('name', () => nonsense);
 
-	assert.instanceOf(tp, Promise);
+	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
 	assert.strictEqual(m.status, STATUS.ERROR);
 	assert.isObject(m.error);
@@ -47,7 +47,7 @@ test('run test - fail by error (sync)', async () => {
 test('run test - skip', async () => {
 	const tp = test('name', { skip: true }, () => { });
 
-	assert.instanceOf(tp, Promise);
+	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
 	assert.strictEqual(m.status, STATUS.SKIP);
 	assert.isUndefined(m.error);
@@ -71,7 +71,7 @@ test('run test - pass (async)', async () => {
 		await waitInterval(2);
 	});
 
-	assert.instanceOf(tp, Promise);
+	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
 	assert.strictEqual(m.status, STATUS.PASS);
 	assert.isUndefined(m.error);
@@ -85,7 +85,7 @@ test('run test - fail by assert (async)', async () => {
 		assert.fail('reason');
 	});
 
-	assert.instanceOf(tp, Promise);
+	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
 	assert.strictEqual(m.status, STATUS.FAIL);
 	assert.isObject(m.error);
@@ -105,7 +105,7 @@ test('run test - fail by error (async)', async () => {
 		nonsense;
 	});
 
-	assert.instanceOf(tp, Promise);
+	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
 	assert.strictEqual(m.status, STATUS.ERROR);
 	assert.isObject(m.error);
@@ -123,7 +123,7 @@ test('run test - fail by timeout (async)', async () => {
 		await waitInterval(timeout);
 	});
 
-	assert.instanceOf(tp, Promise);
+	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
 	assert.strictEqual(m.status, STATUS.FAIL);
 	assert.isObject(m.error);

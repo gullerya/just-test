@@ -1,23 +1,23 @@
 import { test } from '@gullerya/just-test';
 import { assert } from '@gullerya/just-test/assert';
 import {
-	extensionsMap, findMimeType
+	EXT_TO_MIME_MAP, findMimeType
 } from '../../src/server/server-utils.ts';
 
 test('extension map is full', () => {
-	assert.strictEqual(extensionsMap.css, 'text/css');
-	assert.strictEqual(extensionsMap.html, 'text/html');
-	assert.strictEqual(extensionsMap.htm, 'text/html');
-	assert.strictEqual(extensionsMap.js, 'text/javascript');
-	assert.strictEqual(extensionsMap.mjs, 'text/javascript');
-	assert.strictEqual(extensionsMap.json, 'application/json');
-	assert.strictEqual(extensionsMap.txt, 'text/plain');
-	assert.strictEqual(extensionsMap.xml, 'application/xml');
+	assert.strictEqual(EXT_TO_MIME_MAP.css, 'text/css');
+	assert.strictEqual(EXT_TO_MIME_MAP.html, 'text/html');
+	assert.strictEqual(EXT_TO_MIME_MAP.htm, 'text/html');
+	assert.strictEqual(EXT_TO_MIME_MAP.js, 'text/javascript');
+	assert.strictEqual(EXT_TO_MIME_MAP.mjs, 'text/javascript');
+	assert.strictEqual(EXT_TO_MIME_MAP.json, 'application/json');
+	assert.strictEqual(EXT_TO_MIME_MAP.txt, 'text/plain');
+	assert.strictEqual(EXT_TO_MIME_MAP.xml, 'application/xml');
 });
 
 test('extension map is immutable', () => {
 	assert.throws(
-		() => { extensionsMap.js = 'something else'; }
+		() => { EXT_TO_MIME_MAP.js = 'something else'; }
 	);
 });
 

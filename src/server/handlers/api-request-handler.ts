@@ -1,6 +1,6 @@
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.ts';
-import { extensionsMap } from '../server-utils.ts';
+import { EXT_TO_MIME_MAP } from '../server-utils.ts';
 import { addSession, storeResult, getAll, getSession } from '../sessions/sessions-service.js';
 import { collectTestResources } from '../../testing/testing-service.js';
 import { IncomingMessage, ServerResponse } from 'node:http';
@@ -59,7 +59,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		});
 
 		const sessionId = await addSession(sessionConfig);
-		res.writeHead(201, { 'Content-Type': extensionsMap.json })
+		res.writeHead(201, { 'Content-Type': EXT_TO_MIME_MAP.json })
 			.end(JSON.stringify({
 				sessionId: sessionId
 			}));
@@ -84,7 +84,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 
 	async #getAllSessions(res: ServerResponse): Promise<void> {
 		const allSessions = await getAll();
-		res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(JSON.stringify(allSessions));
+		res.writeHead(200, { 'Content-Type': EXT_TO_MIME_MAP.json }).end(JSON.stringify(allSessions));
 	}
 
 	async #getSession(handlerRelativePath: string, res: ServerResponse): Promise<void> {
@@ -106,7 +106,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 					}
 				}
 			}
-			res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(JSON.stringify(iResult));
+			res.writeHead(200, { 'Content-Type': EXT_TO_MIME_MAP.json }).end(JSON.stringify(iResult));
 			return;
 		}
 
@@ -133,7 +133,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 
 		if (found) {
 			if (result) {
-				res.writeHead(200, { 'Content-Type': extensionsMap.json }).end(JSON.stringify(result));
+				res.writeHead(200, { 'Content-Type': EXT_TO_MIME_MAP.json }).end(JSON.stringify(result));
 			} else {
 				res.writeHead(204).end();
 			}

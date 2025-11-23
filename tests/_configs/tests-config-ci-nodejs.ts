@@ -10,8 +10,7 @@ const config = {
 					'./tests/**/*'
 				],
 				exclude: [
-					'**/_configs/**',
-					'**/runner/*'
+					'**/_configs/**'
 				]
 			},
 			coverage: {

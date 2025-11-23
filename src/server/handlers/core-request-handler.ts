@@ -4,7 +4,7 @@ import { IncomingMessage, ServerResponse, STATUS_CODES } from 'node:http';
 import { join } from 'node:path';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.ts';
-import { findMimeType, extensionsMap } from '../server-utils.ts';
+import { findMimeType, EXT_TO_MIME_MAP } from '../server-utils.ts';
 import { getSession } from '../sessions/sessions-service.js';
 import { ENVIRONMENT_KEYS } from '../../runner/environment-config.js';
 
@@ -50,7 +50,7 @@ export default class CoreRequestHandler extends RequestHandlerBase {
 				}
 			}
 
-			const contentType = findMimeType(handlerRelativePath, extensionsMap.txt);
+			const contentType = findMimeType(handlerRelativePath, EXT_TO_MIME_MAP.txt);
 			res.writeHead(200, {
 				'Content-Type': contentType,
 				'Cache-Control': 'private, max-age=604800'

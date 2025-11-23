@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.ts';
-import { findMimeType, extensionsMap } from '../server-utils.ts';
+import { findMimeType, EXT_TO_MIME_MAP } from '../server-utils.ts';
 
 const
 	logger = new Logger({ context: 'handler UI' }),
@@ -28,7 +28,7 @@ export default class UIRequestHandler extends RequestHandlerBase {
 		}
 
 		const filePath = handlerRelativePath === '' ? 'app.html' : handlerRelativePath;
-		const contentType = findMimeType(filePath, extensionsMap.txt);
+		const contentType = findMimeType(filePath, EXT_TO_MIME_MAP.txt);
 
 		readFile(resolve('bin/ui', filePath), (error, content) => {
 			if (!error) {

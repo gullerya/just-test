@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { IncomingMessage, ServerResponse, STATUS_CODES } from 'node:http';
 import Logger from '../logger/logger.js';
 import { RequestHandlerBase } from './request-handler-base.ts';
-import { findMimeType, extensionsMap } from '../server-utils.ts';
+import { findMimeType, EXT_TO_MIME_MAP } from '../server-utils.ts';
 
 export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 	#logger = new Logger({ context: 'handler libs' });
@@ -29,7 +29,7 @@ export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 
 			this.#logger.info(`serving '${filePath}' for '${handlerRelativePath}'`);
 
-			const contentType = findMimeType(filePath, extensionsMap.js);
+			const contentType = findMimeType(filePath, EXT_TO_MIME_MAP.js);
 			const content = await readFile(filePath, { encoding: 'utf-8' });
 			res.writeHead(200, {
 				'Content-Type': contentType,
