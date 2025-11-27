@@ -9,12 +9,11 @@ const config = {
 				maxFail: 0,
 				maxSkip: 0,
 				include: [
-					'./tests/**/*.js'
+					'./tests/**/*'
 				],
 				exclude: [
 					'**/_configs/**',
 					'**/tests/coverage/**',
-					'**/tests/runner/**',
 					'**/tests/server/**'
 				]
 			}

@@ -27,13 +27,11 @@ test('finding mime type', () => {
 });
 
 test('OOTB default mime type', () => {
-	const mime = findMimeType('some/path/to.file.with.some');
-	assert.strictEqual(mime, 'text/plain');
+	assert.throws(() => findMimeType('some/path/to.file.with.some'));
 });
 
 test('provided default mime type - unknown extension', () => {
-	const mime = findMimeType('some/path/to.file.with.some', 'text/plain');
-	assert.strictEqual(mime, 'text/plain');
+	assert.throws(() => findMimeType('some/path/to.file.with.some', 'text/plain'));
 });
 
 test('provided default mime type - no extension', () => {
@@ -42,6 +40,5 @@ test('provided default mime type - no extension', () => {
 });
 
 test('file path is ending with dot - fallbacks to default', () => {
-	const mime = findMimeType('some/path/to-file-with-some.');
-	assert.strictEqual(mime, 'text/plain');
+	assert.throws(() => findMimeType('some/path/to-file-with-some.'));
 });
