@@ -15,9 +15,9 @@ test('suite PLAN - base API', async () => {
 	});
 });
 
-test('suite PLAN - base API FAIL', { skip: true }, async () => {
+test('suite PLAN - base API FAIL', async () => {
 	prepareExecutionContext();
-	assert.throws(async () => await test('name', { ecKey: localECKey, only: true, skip: true }, () => { }), 'at the same time');
+	await assert.throws(async () => await test('name', { ecKey: localECKey, only: true, skip: true }, () => { }), 'at the same time');
 });
 
 function prepareExecutionContext(mode = EXECUTION_MODES.PLAN) {

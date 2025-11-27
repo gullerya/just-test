@@ -116,6 +116,7 @@ class Assert {
 				}
 			});
 	}
+
 	async rejects(asyncFn, error, message) {
 		try {
 			await asyncFn();
@@ -126,18 +127,19 @@ class Assert {
 		throw new AssertionError({ message, actual: undefined, expected: error, operator: 'rejects' });
 	}
 
-	doesNotThrow(fn, error = Error, message) {
+	async doesNotThrow(fn, error = Error, message) {
 		try {
-			fn();
+			await fn();
 		} catch (e) {
 			if (e instanceof error || e.message?.indexOf(error) >= 0) {
 				throw new AssertionError({ message, actual: e, expected: error, operator: 'doesNotThrow' });
 			}
 		}
 	}
-	throws(fn, error, message) {
+
+	async throws(fn, error, message) {
 		try {
-			fn();
+			await fn();
 		} catch (e) {
 			this.#assertError(e, error, message, 'throws');
 			return;

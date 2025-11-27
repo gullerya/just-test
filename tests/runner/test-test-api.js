@@ -57,13 +57,13 @@ test('run test - skip', async () => {
 	assert.isTrue(m.time === undefined);
 });
 
-test('setup test - error on bad name', { skip: true }, () => {
-	assert.throws(() => test('', isoTestConf, () => { }), 'test name MUST be a non-empty string');
+test('setup test - error on bad name', () => {
+	assert.throws(async () => await test('', isoTestConf, () => { }), 'test name MUST be a non-empty string');
 });
 
-test('setup test - error on bad options', { skip: true }, () => {
-	assert.throws(() => {
-		test('name', { ...isoTestConf, skip: true, only: true }, () => { });
+test('setup test - error on bad options', () => {
+	assert.throws(async () => {
+		await test('name', { ...isoTestConf, skip: true, only: true }, () => { });
 	}, `can't opt in 'only' and 'skip' at the same time`);
 });
 
