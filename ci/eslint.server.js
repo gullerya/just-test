@@ -11,14 +11,14 @@ const effectiveConfig = {
 			...globals.node
 		}
 	},
+	files: ['ci/**', 'src/common/**', 'src/coverage/**', 'src/server/**', 'src/testing/**', 'tests/**'],
 	rules: {
-		'no-shadow': [
-			'error'
-		],
-		semi: [
-			'error',
-			'always'
-		]
+		'no-shadow': 'error',
+		semi: 'error',
+		quotes: ['error', 'single', {
+			avoidEscape: true,
+			allowTemplateLiterals: true
+		}]
 	}
 };
 

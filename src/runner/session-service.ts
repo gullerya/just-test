@@ -2,6 +2,9 @@
  * Runs a session of all suites/tests
  */
 
+import { Session } from '../testing/model/session.ts';
+import { Suite } from '../testing/model/suite.ts';
+
 export {
 	runSession,
 	runSuite,
@@ -10,15 +13,17 @@ export {
 async function runSession(stateService, testExecutor) {
 	const started = globalThis.performance.now();
 
-	const executionData = stateService.getExecutionData();
+	const executionData: Session = stateService.getExecutionData();
 	console.info(`starting test session (${executionData.suites.length} suites)...`);
+	executionData.timestamp = Date.now();
 	const suitePromises = executionData.suites.map(suite => runSuite(suite, testExecutor));
 	await Promise.all(suitePromises);
-	const ended = globalThis.performance.now();
-	console.info(`... session done (${(ended - started).toFixed(1)}ms)`);
+	executionData.time = Date.now() - executionData.timestamp;
+
+	console.info(`... session done (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
 }
 
-async function runSuite(suite, testExecutor) {
+async function runSuite(suite: Suite, testExecutor) {
 	const testPromises = [];
 	console.log(`suite '${suite.name}' started...`);
 

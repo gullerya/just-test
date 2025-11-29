@@ -1,9 +1,9 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { STATUS_CODES } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { IncomingMessage, ServerResponse, STATUS_CODES } from 'node:http';
 import Logger from '../logger/logger.js';
-import { RequestHandlerBase } from './request-handler-base.js';
-import { findMimeType, extensionsMap } from '../server-utils.js';
+import { RequestHandlerBase } from './request-handler-base.ts';
+import { findMimeType, EXT_TO_MIME_MAP } from '../server-utils.ts';
 
 export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 	#logger = new Logger({ context: 'handler libs' });
@@ -17,7 +17,7 @@ export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 		return 'libs';
 	}
 
-	async handle(handlerRelativePath, req, res) {
+	async handle(handlerRelativePath: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
 		if (req.method !== 'GET') {
 			this.#logger.warn(`sending 405 for '${req.method} ${this.basePath}/${handlerRelativePath}'`);
 			res.writeHead(405).end(STATUS_CODES[405]);
@@ -25,12 +25,19 @@ export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 		}
 
 		try {
-			const filePath = path.join('node_modules', handlerRelativePath);
+			const filePath = join('node_modules', handlerRelativePath);
 
 			this.#logger.info(`serving '${filePath}' for '${handlerRelativePath}'`);
 
-			const contentType = findMimeType(filePath, extensionsMap.js);
-			const content = await fs.readFile(filePath, { encoding: 'utf-8' });
+			let content = await readFile(filePath, { encoding: 'utf-8' });
+			let contentType: string;
+			if (handlerRelativePath.endsWith('.ts')) {
+				content = this.compileTsToJs(req.url, content);
+				contentType = EXT_TO_MIME_MAP.js;
+			} else {
+				contentType = findMimeType(handlerRelativePath, EXT_TO_MIME_MAP.js);
+			}
+
 			res.writeHead(200, {
 				'Content-Type': contentType,
 				'Cache-Control': 'public, max-age=604800'
@@ -43,7 +50,5 @@ export default class RunnerLibsRequestHandler extends RequestHandlerBase {
 				throw error;
 			}
 		}
-
-		return true;
 	}
 }

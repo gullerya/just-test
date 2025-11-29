@@ -4,8 +4,8 @@
 //	- plan - tests planning phase, tests are not being run
 //	- test - test run, only the tests required by environment will be running
 import { getExecutionContext, EXECUTION_MODES } from './environment-config.js';
-import { processError } from '../common/error-utils.js';
 import { STATUS } from '../common/constants.js';
+import { TestError } from '../../bin/testing/model/test-error.ts';
 
 export { suite, test, TestDto };
 
@@ -113,7 +113,7 @@ async function executeRun(name, opts, code) {
 		start = globalThis.performance.now();
 		const runPromise = Promise.race([
 			new Promise(resolve => { timeout = setTimeout(resolve, opts.timeout, timeoutError); }),
-			Promise.resolve(code())
+			code()
 		]);
 		runError = await runPromise;
 	} catch (e) {
@@ -129,8 +129,8 @@ async function executeRun(name, opts, code) {
 }
 
 function finalizeRun(run, runError) {
-	if (runError && typeof runError.name === 'string' && typeof runError.message === 'string' && runError.stack) {
-		runError = processError(runError);
+	if (runError && typeof runError.name === 'string' && typeof runError.message === 'string') {
+		runError = TestError.fromError(runError);
 		if ((runError.type && runError.type.toLowerCase().includes('assert')) ||
 			(runError.name && runError.name.toLowerCase().includes('assert')) ||
 			(runError.message && runError.message.toLowerCase().includes('assert'))

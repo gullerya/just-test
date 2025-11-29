@@ -12,16 +12,16 @@ test('collect sources - empty or null input', async () => {
 
 test('collect sources - only include', async () => {
 	let ts = await collectTargetSources({
-		include: '**/test-coverage-service.js'
+		include: '**/test-coverage-service.ts'
 	});
 
-	assert.deepStrictEqual(ts, ['tests/coverage/test-coverage-service.js']);
+	assert.deepStrictEqual(ts, ['tests/coverage/test-coverage-service.ts']);
 });
 
 test('collect sources - include and exclude', async () => {
 	let ts = await collectTargetSources({
-		include: '**/test-coverage-service.js',
-		exclude: '**/*-service.js'
+		include: '**/test-coverage-service.ts',
+		exclude: '**/*-service.ts'
 	});
 
 	assert.deepStrictEqual(ts, []);

@@ -10,7 +10,7 @@
 import { Worker } from 'node:worker_threads';
 import { waitInterval } from '../../../common/time-utils.js';
 import Logger, { FileOutput } from '../../logger/logger.js';
-import { config as serverConfig } from '../../server-service.js';
+import { config as serverConfig } from '../../server-service.ts';
 import { EnvironmentBase } from '../environment-base.js';
 
 export default launch;
@@ -48,7 +48,7 @@ class NodeEnvImpl extends EnvironmentBase {
 		});
 
 		this.#worker = new Worker(
-			new URL('../../../runner/environments/nodejs/nodejs-session-box.js', import.meta.url),
+			new URL('../../../runner/environments/nodejs/nodejs-session-box.ts', import.meta.url),
 			{
 				stdout: true,
 				stderr: this,

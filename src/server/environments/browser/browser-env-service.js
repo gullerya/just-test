@@ -10,7 +10,7 @@
  */
 import Logger, { FileOutput } from '../../logger/logger.js';
 import { waitInterval } from '../../../common/time-utils.js';
-import { config as serverConfig } from '../../server-service.js';
+import { config as serverConfig } from '../../server-service.ts';
 import { collectTargetSources, v8toJustTest } from '../../../coverage/coverage-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 import { ENVIRONMENT_KEYS } from '../../../runner/environment-config.js';

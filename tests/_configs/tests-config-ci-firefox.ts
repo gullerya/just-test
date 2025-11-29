@@ -1,0 +1,24 @@
+const config = {
+	environments: [
+		{
+			browser: {
+				type: 'firefox'
+			},
+			tests: {
+				ttl: 300000,
+				maxFail: 0,
+				maxSkip: 0,
+				include: [
+					'./tests/**/test-test-api.js'
+				],
+				exclude: [
+					'**/_configs/**',
+					'**/tests/coverage/**',
+					'**/tests/server/**'
+				]
+			}
+		}
+	]
+};
+
+export default config;

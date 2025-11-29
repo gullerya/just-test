@@ -10,7 +10,8 @@ initComponent('jt-error', class extends ComponentBase {
 		this.shadowRoot.querySelector('.title').textContent = `${data.type} - ${data.message}`;
 
 		let df = document.createDocumentFragment();
-		for (const line of data.stacktrace) {
+		const stacklines = data.stack.split('\n|\r\n');
+		for (const line of stacklines) {
 			const text = line;
 			const lib =
 				text.indexOf('node_modules') >= 0 ||
