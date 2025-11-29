@@ -4,7 +4,7 @@ import { EXECUTION_MODES, setExecutionContext } from '../../src/runner/environme
 
 const localECKey = 'test-suite-api-ec';
 
-test('suite PLAN - base API', async () => {
+test('suite PLAN - base API', () => {
 	const pp = prepareExecutionContext();
 	test('name', { ecKey: localECKey }, () => { });
 
@@ -15,9 +15,9 @@ test('suite PLAN - base API', async () => {
 	});
 });
 
-test('suite PLAN - base API FAIL', async () => {
+test('suite PLAN - base API FAIL', () => {
 	prepareExecutionContext();
-	await assert.throws(async () => await test('name', { ecKey: localECKey, only: true, skip: true }, () => { }), 'at the same time');
+	assert.rejects(() => test('name', { ecKey: localECKey, only: true, skip: true }, () => { }), 'at the same time');
 });
 
 function prepareExecutionContext(mode = EXECUTION_MODES.PLAN) {

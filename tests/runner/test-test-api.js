@@ -26,9 +26,8 @@ test('run test - fail by assert (sync)', async () => {
 	assert.strictEqual(m.status, STATUS.FAIL);
 	assert.strictEqual(m.error.type, 'AssertionError');
 	assert.strictEqual(m.error.name, 'Error');
-	assert.strictEqual(m.error.message, `failed on 'undefined'\n\t\t\texpected: undefined\n\t\t\treceived: undefined\n\t\t\tmessage: reason`);
-	assert.isTrue(Array.isArray(m.error.stacktrace));
-	assert.isTrue(m.error.stacktrace.length > 0);
+	assert.strictEqual(m.error.message, `failed on assertion 'fail':\n\t\texpected: 'undefined'\n\t\treceived: 'undefined'\n\t\tmessage: reason`);
+	assert.isTrue(m.error.stack.length > 0);
 	assert.isTrue(typeof m.time === 'number');
 });
 
@@ -42,8 +41,7 @@ test('run test - fail by error (sync)', async () => {
 	assert.strictEqual(m.error.type, 'ReferenceError');
 	assert.strictEqual(m.error.name, 'ReferenceError');
 	assert.isTrue(m.error.message.includes('nonsense'));
-	assert.isTrue(Array.isArray(m.error.stacktrace));
-	assert.isTrue(m.error.stacktrace.length > 0);
+	assert.isTrue(m.error.stack.length > 0);
 	assert.isTrue(typeof m.time === 'number');
 });
 
@@ -57,14 +55,15 @@ test('run test - skip', async () => {
 	assert.isTrue(m.time === undefined);
 });
 
-test('setup test - error on bad name', () => {
-	assert.throws(async () => await test('', isoTestConf, () => { }), 'test name MUST be a non-empty string');
+test('setup test - error on bad name', async () => {
+	await assert.rejects(() => test('', isoTestConf, () => { }), 'test name MUST be a non-empty string');
 });
 
-test('setup test - error on bad options', () => {
-	assert.throws(async () => {
-		await test('name', { ...isoTestConf, skip: true, only: true }, () => { });
-	}, `can't opt in 'only' and 'skip' at the same time`);
+test('setup test - error on bad options', { only: true }, async () => {
+	await assert.rejects(
+		() => test('name', { ...isoTestConf, skip: true, only: true }, () => { }),
+		`can't opt in 'only' and 'skip' at the same time`
+	);
 });
 
 //	async
@@ -94,8 +93,7 @@ test('run test - fail by assert (async)', async () => {
 	assert.isTrue(typeof m.error === 'object');
 	assert.strictEqual(m.error.type, 'AssertionError');
 	assert.strictEqual(m.error.name, 'Error');
-	assert.isTrue(Array.isArray(m.error.stacktrace));
-	assert.isTrue(m.error.stacktrace.length > 0);
+	assert.isTrue(m.error.stack.length > 0);
 	assert.isTrue(typeof m.time === 'number');
 	assert.isTrue(m.time > 0);
 });
@@ -113,8 +111,7 @@ test('run test - fail by error (async)', async () => {
 	assert.isTrue(typeof m.error === 'object');
 	assert.strictEqual(m.error.type, 'ReferenceError');
 	assert.strictEqual(m.error.name, 'ReferenceError');
-	assert.isTrue(Array.isArray(m.error.stacktrace));
-	assert.isTrue(m.error.stacktrace.length > 0);
+	assert.isTrue(m.error.stack.length > 0);
 	assert.isTrue(typeof m.time === 'number');
 	assert.isTrue(m.time > 0);
 });
@@ -132,8 +129,7 @@ test('run test - fail by timeout (async)', async () => {
 	assert.strictEqual(m.error.type, 'Error');
 	assert.strictEqual(m.error.name, 'Error');
 	assert.isTrue(m.error.message.includes(`exceeded ${timeout}ms`));
-	assert.isTrue(Array.isArray(m.error.stacktrace));
-	assert.isTrue(m.error.stacktrace.length > 0);
+	assert.isTrue(m.error.stack.length > 0);
 	assert.isTrue(typeof m.time === 'number');
 	assert.isTrue(m.time > timeout - 1);
 });

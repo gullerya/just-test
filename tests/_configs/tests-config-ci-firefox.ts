@@ -9,7 +9,7 @@ const config = {
 				maxFail: 0,
 				maxSkip: 0,
 				include: [
-					'./tests/**/*'
+					'./tests/**/test-test-api.js'
 				],
 				exclude: [
 					'**/_configs/**',

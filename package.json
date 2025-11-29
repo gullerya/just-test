@@ -37,7 +37,7 @@
 	],
 	"exports": {
 		".": "./bin/runner/just-test.js",
-		"./assert": "./bin/common/assert-utils.js",
+		"./assert": "./bin/common/assert-utils.ts",
 		"./random": "./bin/common/random-utils.js",
 		"./timing": "./bin/common/time-utils.js"
 	},

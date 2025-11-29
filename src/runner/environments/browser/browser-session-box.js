@@ -6,8 +6,8 @@
  */
 
 import * as serverAPI from '../../server-api-service.js';
-import SimpleStateService from '../../simple-state-service.js';
-import { runSession } from '../../session-service.js';
+import SimpleStateService from '../../simple-state-service.ts';
+import { runSession } from '../../session-service.ts';
 import { ENVIRONMENT_KEYS, EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
 import { EVENT, STATUS } from '../../../common/constants.js';
 
@@ -16,8 +16,8 @@ import { EVENT, STATUS } from '../../../common/constants.js';
 	const stateService = new SimpleStateService();
 	try {
 		const metadata = await serverAPI.getSessionMetadata(sesId, envId, serverOrigin);
-		stateService.setSessionId(metadata.sessionId);
-		stateService.setEnvironmentId(metadata.id);
+		stateService.session.sessionId = metadata.sessionId;
+		stateService.session.environmentId = metadata.id;
 
 		console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
 		await planSession(metadata.testPaths, stateService);
@@ -41,7 +41,7 @@ import { EVENT, STATUS } from '../../../common/constants.js';
 		console.error('session execution failed due to the previous error/s');
 	} finally {
 		console.info(`reporting '${envId}':'${sesId}' results...`);
-		const sessionResult = stateService.getResult();
+		const sessionResult = stateService.session;
 		await serverAPI.reportSessionResult(sesId, envId, serverOrigin, sessionResult);
 		console.info(`session '${envId}':'${sesId}' finalized`);
 	}

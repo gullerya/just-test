@@ -6,14 +6,14 @@ import { minimatch } from 'minimatch';
 import { parentPort } from 'node:worker_threads';
 import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
 import { v8toJustTest } from '../../../coverage/coverage-service.js';
-import { processError } from '../../../common/error-utils.js';
 import { EVENT } from '../../../common/constants.js';
+import { TestError } from '../../../testing/model/test-error.ts';
 
 const currentBase = pathToFileURL(cwd()).href;
 let testName;
 let coverageConfig;
 
-parentPort.addEventListener('message', async m => {
+parentPort.addEventListener('message', async (m: MessageEvent) => {
 	const { testName: tName, testSource, coverage } = m.data;
 	testName = tName;
 	coverageConfig = coverage;
@@ -24,10 +24,10 @@ parentPort.addEventListener('message', async m => {
 
 	setExecutionContext(EXECUTION_MODES.TEST, testName, runStartHandler, runEndHandler);
 	try {
-		await import(pathToFileURL(testSource));
+		await import(pathToFileURL(testSource).toString());
 	} catch (e) {
 		console.error(`failed to import test '${testName}':`, e);
-		await runEndHandler(testName, { status: 'error', time: 0, timestamp: Date.now(), error: processError(e) });
+		await runEndHandler(testName, { status: 'error', time: 0, timestamp: Date.now(), error: TestError.fromError(e) });
 	}
 });
 
@@ -48,8 +48,9 @@ async function runEndHandler(tName, run) {
 	}
 	if (coverageConfig) {
 		try {
-			const coverage = await collectCoverage();
-			run.coverage = await v8toJustTest(coverage);
+			const v8Coverage = await collectCoverage();
+			const jtCoverage = await v8toJustTest(v8Coverage);
+			run.coverage = jtCoverage;
 		} catch (e) {
 			console.error(`failed to collect coverage of '${testName}': ${e}`);
 		}

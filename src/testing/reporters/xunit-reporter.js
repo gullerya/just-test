@@ -21,7 +21,7 @@ function report(results) {
 		const eEl = rDoc.createElement('error');
 		eEl.setAttribute('type', error.type);
 		eEl.setAttribute('message', error.message);
-		eEl.textContent = error.stacktrace;
+		eEl.textContent = error.stack;
 		rDoc.documentElement.appendChild(eEl);
 
 		sessionErrors++;
@@ -53,7 +53,7 @@ function report(results) {
 					if (lastRun.error) {
 						fEl.setAttribute('type', lastRun.error.type);
 						fEl.setAttribute('message', lastRun.error.message);
-						fEl.textContent = lastRun.error.stacktrace;
+						fEl.textContent = lastRun.error.stack;
 					}
 					tEl.appendChild(fEl);
 				} else if (lastRun.status === STATUS.ERROR) {
@@ -62,7 +62,7 @@ function report(results) {
 					if (lastRun.error) {
 						eEl.setAttribute('type', lastRun.error.type);
 						eEl.setAttribute('message', lastRun.error.message);
-						eEl.textContent = lastRun.error.stacktrace;
+						eEl.textContent = lastRun.error.stack;
 					}
 					tEl.appendChild(eEl);
 				} else if (lastRun.status === STATUS.SKIP) {

@@ -8,18 +8,19 @@
 import url from 'node:url';
 import { workerData, Worker } from 'node:worker_threads';
 import * as serverAPI from '../../server-api-service.js';
-import SimpleStateService from '../../simple-state-service.js';
-import { runSession } from '../../session-service.js';
+import SimpleStateService from '../../simple-state-service.ts';
+import { runSession } from '../../session-service.ts';
 import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
 import { EVENT, STATUS } from '../../../common/constants.js';
+import { TestError } from '../../../testing/model/test-error.ts';
 
 (async () => {
 	const { sesId, envId, origin } = workerData;
 	const stateService = new SimpleStateService();
 	try {
 		const metadata = await serverAPI.getSessionMetadata(sesId, envId, origin);
-		stateService.setSessionId(metadata.sessionId);
-		stateService.setEnvironmentId(metadata.id);
+		stateService.session.sessionId = metadata.sessionId;
+		stateService.session.environmentId = metadata.id;
 
 		console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
 		await planSession(metadata.testPaths, stateService);
@@ -27,12 +28,12 @@ import { EVENT, STATUS } from '../../../common/constants.js';
 		const testExecutor = createNodeJSExecutor(metadata, stateService);
 		await runSession(stateService, testExecutor);
 	} catch (e) {
-		stateService.reportError(e);
+		stateService.reportError(TestError.fromError(e));
 		console.error(e);
 		console.error('session execution failed due to the previous error/s');
 	} finally {
 		console.info(`reporting '${envId}':'${sesId}' results...`);
-		const sessionResult = stateService.getResult();
+		const sessionResult = stateService.session;
 		await serverAPI.reportSessionResult(sesId, envId, origin, sessionResult);
 		console.info(`session '${envId}':'${sesId}' finalized`);
 	}
@@ -48,7 +49,7 @@ async function planSession(testsResources, stateService) {
 		try {
 			const execContext = setExecutionContext(EXECUTION_MODES.PLAN);
 			execContext.suiteName = tr;
-			await import(url.pathToFileURL(tr));
+			await import(url.pathToFileURL(tr).toString());
 			for (const { name, config } of execContext.testConfigs) {
 				stateService.addTest({
 					name,
@@ -68,7 +69,7 @@ async function planSession(testsResources, stateService) {
 }
 
 function createNodeJSExecutor(sessionMetadata, stateService) {
-	const workerUrl = new URL('./nodejs-test-box.js', import.meta.url);
+	const workerUrl = new URL('./nodejs-test-box.ts', import.meta.url);
 
 	return (test, suiteName) => {
 		//	TODO: this should be resource pooled
@@ -83,15 +84,15 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 					stateService.updateRunEnded(suiteName, testName, run);
 					await worker.terminate();
 					worker.unref();
-					resolve();
+					resolve(void 0);
 				}
 			});
 			worker.on('error', async error => {
 				console.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
-				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error });
+				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: TestError.fromError(error) });
 				await worker.terminate();
 				worker.unref();
-				resolve();
+				resolve(void 0);
 			});
 
 			worker.postMessage({
