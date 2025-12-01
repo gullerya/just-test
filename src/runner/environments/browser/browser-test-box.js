@@ -37,12 +37,12 @@ function runStartHandler(testName) {
 	if (testName !== externalizedTestName) {
 		throw new Error(`expected to get result of test '${externalizedTestName}', but received of '${testName}'`);
 	}
-	parentPort.postMessage({ type: EVENT.RUN_START, testName: testName });
+	parentPort.postMessage({ type: EVENT.RUN_START, testName });
 }
 
 function runEndHandler(testName, run) {
 	if (testName !== externalizedTestName) {
 		throw new Error(`expected to get result of test '${externalizedTestName}', but received of '${testName}'`);
 	}
-	parentPort.postMessage({ type: EVENT.RUN_END, testName: testName, run });
+	parentPort.postMessage({ type: EVENT.RUN_END, testName, run });
 }
