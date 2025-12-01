@@ -2,7 +2,10 @@ const config = {
 	environments: [
 		{
 			browser: {
-				type: 'webkit'
+				type: 'webkit',
+				executors: {
+					type: 'iframe'
+				}
 			},
 			tests: {
 				ttl: 300000,

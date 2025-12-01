@@ -2,9 +2,9 @@ const config = {
 	environments: [
 		{
 			browser: {
-				type: "chromium",
+				type: 'chromium',
 				executors: {
-					type: "page"
+					type: 'iframe'
 				}
 			},
 			tests: {

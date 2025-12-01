@@ -3,8 +3,8 @@ import { Suite } from './suite.ts';
 export class Session {
 	sessionId: string = 'unspecified';
 	environmentId: string = 'unspecified';
-	timestamp: number = -1;
-	time: number = -1;
+	timestamp: number = 0;
+	time: number = 0;
 	suites: Suite[] = [];
 	errors: (Error & { type: string })[] = [];
 

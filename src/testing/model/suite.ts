@@ -2,8 +2,8 @@ export class Suite {
 	id: string = 'unspecified';
 	name: string = 'unspecified';
 	config: object = {};
-	timestamp: number = -1;
-	time: number = -1;
+	timestamp: number = 0;
+	time: number = 0;
 	tests: any[] = [];
 
 	total: number = 0;

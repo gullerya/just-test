@@ -2,14 +2,17 @@ const config = {
 	environments: [
 		{
 			browser: {
-				type: 'firefox'
+				type: 'firefox',
+				executors: {
+					type: 'worker'
+				}
 			},
 			tests: {
 				ttl: 300000,
 				maxFail: 0,
 				maxSkip: 0,
 				include: [
-					'./tests/**/test-test-api.js'
+					'./tests/**/*'
 				],
 				exclude: [
 					'**/_configs/**',

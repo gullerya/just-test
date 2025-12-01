@@ -10,6 +10,7 @@ import SimpleStateService from '../../simple-state-service.ts';
 import { runSession } from '../../session-service.ts';
 import { ENVIRONMENT_KEYS, EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
 import { EVENT, STATUS } from '../../../common/constants.js';
+import { TestError } from '../../../testing/model/test-error.ts';
 
 (async () => {
 	const { sesId, envId, serverOrigin } = await getEnvironmentConfig();
@@ -36,7 +37,7 @@ import { EVENT, STATUS } from '../../../common/constants.js';
 		}
 		await runSession(stateService, testExecutor);
 	} catch (e) {
-		stateService.reportError(e);
+		stateService.reportError(TestError.fromError(e));
 		console.error(e);
 		console.error('session execution failed due to the previous error/s');
 	} finally {
@@ -79,7 +80,7 @@ async function planSession(testsResources, stateService) {
 		} catch (e) {
 			console.error(`failed to process '${testSource}':`);
 			console.error(e);
-			stateService.reportError(e);
+			stateService.reportError(TestError.fromError(e));
 		}
 	}
 
@@ -169,14 +170,24 @@ function setupMessaging(stateService, suiteName, resolve) {
 function setupWorkerEvents(stateService, worker, test, coverage, suiteName, mc, resolve) {
 	worker.addEventListener('error', ee => {
 		console.error(`worker for test '${test.name}' errored: ${ee}`);
-		stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: ee.error });
+		stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: TestError.fromError(ee.error) });
 		resolve();
 	});
 
-	worker.postMessage({
-		testName: test.name,
-		suiteName,
-		testSource: test.source,
-		coverage
-	}, '*', [mc.port2]);
+	if (worker instanceof Worker) {
+		worker.postMessage({
+			testName: test.name,
+			suiteName,
+			testSource: test.source,
+			coverage,
+			port: mc.port2
+		}, [mc.port2]);
+	} else {
+		worker.postMessage({
+			testName: test.name,
+			suiteName,
+			testSource: test.source,
+			coverage
+		}, '*', [mc.port2]);
+	}
 }

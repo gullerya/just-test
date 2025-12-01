@@ -1,6 +1,6 @@
-﻿import { test } from '@gullerya/just-test';
-import { assert } from '@gullerya/just-test/assert';
-import { waitInterval } from '@gullerya/just-test/timing';
+﻿import { test } from '../../src/runner/just-test.js';
+import { assert } from '../../src/common/assert-utils.ts';
+import { waitInterval } from '../../src/common/time-utils.js';
 import { STATUS } from '../../src/common/constants.js';
 
 const isolatedECKey = 'test-runner-test-api-ec';

@@ -1,8 +1,15 @@
-import { test } from '@gullerya/just-test';
-import { assert } from '@gullerya/just-test/assert';
-import { Session } from '../../../src/testing/model/session.ts';
+import { test } from '../../../src/runner/just-test.js';
+import { assert } from '../../../src/common/assert-utils.ts';
+import { STATUS } from '../../../src/common/constants.js';
+import { TestRun } from '../../../src/testing/model/test-run.ts';
 
-test('Session class - basics', () => {
-    const session = new Session();
-    assert.strictEqual();
+test('TestRun class - basics', () => {
+    const testRun = new TestRun();
+    assert.deepEqual(testRun, {
+        timestamp: 0,
+        time: 0,
+        status: STATUS.INIT,
+        error: null,
+        coverage: null
+    } as TestRun);
 });

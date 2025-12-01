@@ -1,18 +1,14 @@
 import { STATUS } from '../../common/constants.js';
+import { TestError } from './test-error.ts';
 
 export class TestRun {
-	timestamp: number = -1;
-	time: number = -1;
+	timestamp: number = 0;
+	time: number = 0;
 	status: string = STATUS.INIT;
-	error: Error | null = null;
+	error: TestError | null = null;
 	coverage: any | null;
 
 	constructor() {
-		this.timestamp = null;
-		this.time = null;
-		this.status = null;
-		this.error = null;
-		this.coverage = null;
 		Object.seal(this);
 	}
 
@@ -21,12 +17,7 @@ export class TestRun {
 			timestamp: this.timestamp,
 			time: this.time,
 			status: this.status,
-			error: this.error ? {
-				name: this.error.name,
-				message: this.error.message,
-				stack: this.error.stack,
-				type: this.error.constructor.name
-			} : null,
+			error: this.error instanceof TestError ? this.error.toJSON() : null,
 			coverage: this.coverage
 		};
 	}
