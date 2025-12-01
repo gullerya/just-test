@@ -42,6 +42,7 @@
 		"./timing": "./bin/common/time-utils.js"
 	},
 	"scripts": {
+		"build-ts": "rm -rf ./bin && tsc",
 		"build": "node ./ci/tools/build.js",
 		"lint": "npm run lint:runner && npm run lint:server",
 		"lint:runner": "eslint -c ./ci/eslint.runner.js \"./src/runner/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/**/*.js\"",
