@@ -5,6 +5,7 @@
 //	- test - test run, only the tests required by environment will be running
 import { getExecutionContext, EXECUTION_MODES } from './environment-config.js';
 import { STATUS } from '../common/constants.js';
+import { TestError } from '../../bin/testing/model/test-error.ts';
 
 export { suite, test, TestDto };
 
@@ -47,26 +48,23 @@ async function test(name, opts, code) {
 	const ecKey = opts.ecKey || undefined;
 	delete opts.ecKey;
 	const ec = getExecutionContext(ecKey);
-	if (ec) {
-		switch (ec.mode) {
-			case EXECUTION_MODES.PLAN: {
-				ec.addTestConfig({ name: nameF, config: optsF });
-				break;
-			}
-			case EXECUTION_MODES.TEST: {
-				if (ec.testId !== name) {
-					return null;
-				}
-				await ec.startHandler(name);
-				const run = await executeRun(nameF, optsF, codeF);
-				await ec.endHandler(name, run);
-				return run;
-			}
-			default:
-				throw new Error(`unexpected execution mode: ${ec.mode}`);
+	switch (ec.mode) {
+		case EXECUTION_MODES.PLAN: {
+			ec.addTestConfig({ name: nameF, config: optsF });
+			break;
 		}
-	} else {
-		return await executeRun(nameF, optsF, codeF);
+		case EXECUTION_MODES.TEST: {
+			if (ec.testId !== name) {
+				return null;
+			}
+			await ec.startHandler(name);
+			const run = await executeRun(nameF, optsF, codeF);
+			await ec.endHandler(name, run);
+			return run;
+		}
+		case EXECUTION_MODES.PLAIN_RUN:
+		default:
+			return await executeRun(nameF, optsF, codeF);
 	}
 }
 
@@ -112,7 +110,7 @@ async function executeRun(name, opts, code) {
 		start = globalThis.performance.now();
 		const runPromise = Promise.race([
 			new Promise(resolve => { timeout = setTimeout(resolve, opts.timeout, timeoutError); }),
-			Promise.resolve(code())
+			code()
 		]);
 		runError = await runPromise;
 	} catch (e) {
@@ -128,8 +126,8 @@ async function executeRun(name, opts, code) {
 }
 
 function finalizeRun(run, runError) {
-	if (runError && typeof runError.name === 'string' && typeof runError.message === 'string' && runError.stack) {
-		runError = processError(runError);
+	if (runError && typeof runError.name === 'string' && typeof runError.message === 'string') {
+		runError = TestError.fromError(runError);
 		if ((runError.type && runError.type.toLowerCase().includes('assert')) ||
 			(runError.name && runError.name.toLowerCase().includes('assert')) ||
 			(runError.message && runError.message.toLowerCase().includes('assert'))
@@ -144,17 +142,3 @@ function finalizeRun(run, runError) {
 	}
 }
 
-function processError(error) {
-	const cause = error.cause ? processError(error.cause) : undefined;
-	const stacktrace = error.stack.split(/\r\n|\r|\n/)
-		.map(l => l.trim())
-		.filter(Boolean);
-
-	return {
-		name: error.name,
-		type: error.constructor.name,
-		message: error.message,
-		cause,
-		stacktrace
-	};
-}

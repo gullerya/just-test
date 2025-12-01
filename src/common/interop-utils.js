@@ -25,7 +25,7 @@ function getValidName(input) {
 
 	const result = input.trim();
 	if (!result) {
-		throw new Error(`name MUST NOT be empty`);
+		throw new Error('name MUST NOT be empty');
 	}
 
 	return result;

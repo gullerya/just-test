@@ -8,7 +8,7 @@
  */
 import { ENVIRONMENT_KEYS } from '../../../runner/environment-config.js';
 import Logger from '../../logger/logger.js';
-import { config as serverConfig } from '../../server-service.js';
+import { config as serverConfig } from '../../server-service.ts';
 import { EnvironmentBase } from '../environment-base.js';
 
 export default launch;

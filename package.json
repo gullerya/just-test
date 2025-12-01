@@ -1,6 +1,6 @@
 {
 	"name": "@gullerya/just-test",
-	"version": "4.0.12",
+	"version": "4.0.15",
 	"description": "JavaScript multiplatform tests runner",
 	"keywords": [
 		"javascript",
@@ -37,7 +37,7 @@
 	],
 	"exports": {
 		".": "./bin/runner/just-test.js",
-		"./assert": "./bin/common/assert-utils.js",
+		"./assert": "./bin/common/assert-utils.ts",
 		"./random": "./bin/common/random-utils.js",
 		"./timing": "./bin/common/time-utils.js"
 	},
@@ -45,24 +45,26 @@
 		"build-ts": "rm -rf ./bin && tsc",
 		"build": "node ./ci/tools/build.js",
 		"lint": "npm run lint:runner && npm run lint:server",
-		"lint:runner": "eslint -c ./ci/eslint.runner.js \"./src/runner/**/*.js\" \"./src/common/**/*.js\" \"./src/ui/**/*.js\" \"./tests/**/*.js\"",
-		"lint:server": "eslint -c ./ci/eslint.server.js \"./src/common/**/*.js\" \"./src/server/**/*.js\" \"./src/*.js\" \"./ci/**/*.js\" \"./tests/**/*.js\"",
-		"test:dev": "npm run build && node ./bin/local-runner.js config_file=./tests/tests-config-dev.json",
-		"test:ci:chromium": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-chromium.json",
-		"test:ci:firefox": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-firefox.json",
-		"test:ci:webkit": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-webkit.json",
-		"test:ci:nodejs": "node ./bin/local-runner.js config_file=./tests/tests-config-ci-nodejs.json"
+		"lint:runner": "eslint -c ./ci/eslint.runner.js",
+		"lint:server": "eslint -c ./ci/eslint.server.js",
+		"test:dev": "npm run build && node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-dev.ts",
+		"test:ci:chromium": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-chromium.ts",
+		"test:ci:firefox": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-firefox.ts",
+		"test:ci:webkit": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-webkit.ts",
+		"test:ci:nodejs": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-nodejs.ts"
 	},
 	"dependencies": {
 		"data-tier": "^3.6.6",
 		"data-tier-list": "^2.2.1",
-		"glob": "^11.0.3",
+		"glob": "^12.0.0",
 		"minimatch": "^10.1.1",
 		"playwright": "^1.56.1",
-		"rich-component": "^1.8.0"
+		"rich-component": "^1.8.0",
+		"typescript": "^5.9.3"
 	},
 	"devDependencies": {
-		"@gullerya/just-test": "^4.0.4",
+		"@types/node": "^24.10.1",
+		"@gullerya/just-test": "^4.0.14",
 		"eslint": "^9.39.1"
 	},
 	"publishConfig": {

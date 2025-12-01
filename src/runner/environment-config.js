@@ -84,5 +84,5 @@ function setExecutionContext(mode, testId = null, startHandler, endHandler, key 
 }
 
 function getExecutionContext(key = EXECUTION_CONTEXT_SYMBOL) {
-	return globalThis[key];
+	return globalThis[key] ?? { mode: EXECUTION_MODES.PLAIN_RUN };
 }
