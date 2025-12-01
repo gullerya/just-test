@@ -49,7 +49,7 @@ async function runEndHandler(tName, run) {
 	if (coverageConfig) {
 		try {
 			const v8Coverage = await collectCoverage();
-			const jtCoverage = await v8toJustTest(v8Coverage);
+			const jtCoverage = await v8toJustTest(v8Coverage, null);
 			run.coverage = jtCoverage;
 		} catch (e) {
 			console.error(`failed to collect coverage of '${testName}': ${e}`);
@@ -92,7 +92,7 @@ async function collectCoverage() {
 
 			for (const ig of coverageConfig.include) {
 				const m = minimatch(entry.url, ig, {
-					ignore: coverageConfig.exclude
+					// ignore: coverageConfig.exclude
 				});
 
 				result = result || m;

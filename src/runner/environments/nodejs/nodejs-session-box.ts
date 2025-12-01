@@ -11,6 +11,7 @@ import * as serverAPI from '../../server-api-service.js';
 import SimpleStateService from '../../simple-state-service.ts';
 import { runSession } from '../../session-service.ts';
 import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
+import { PlanningExecutionContext } from '../../environment-config.js';
 import { EVENT, STATUS } from '../../../common/constants.js';
 import { TestError } from '../../../testing/model/test-error.ts';
 
@@ -47,7 +48,7 @@ async function planSession(testsResources, stateService) {
 	console.info(`fetching ${testsResources.length} test resource/s...`);
 	for (const tr of testsResources) {
 		try {
-			const execContext = setExecutionContext(EXECUTION_MODES.PLAN);
+			const execContext = setExecutionContext(EXECUTION_MODES.PLAN) as PlanningExecutionContext;
 			execContext.suiteName = tr;
 			await import(url.pathToFileURL(tr).toString());
 			for (const { name, config } of execContext.testConfigs) {

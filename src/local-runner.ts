@@ -6,6 +6,7 @@ import { start, stop } from './server/cli.ts';
 import { xUnitReporter } from './testing/testing-service.js';
 import { collectTargetSources, lcovReporter } from './coverage/coverage-service.js';
 import { buildJTFileCov } from './coverage/model/model-utils.js';
+import { Session } from './testing/model/session.ts';
 
 go();
 
@@ -83,9 +84,9 @@ function parseCLArgs(args): Record<string, string> {
 }
 
 async function executeSession(serverBaseUrl, clArguments: Record<string, string>) {
-	const config = await readConfigAndMergeWithCLArguments(clArguments);
+	const config: any = await readConfigAndMergeWithCLArguments(clArguments);
 	const sessionDetails = await sendAddSession(serverBaseUrl, config);
-	const sessionResult = await waitSessionEnd(serverBaseUrl, sessionDetails);
+	const sessionResult: Session & { summary: any } = (await waitSessionEnd(serverBaseUrl, sessionDetails)) as any;
 
 	//	test report
 	const reportText = xUnitReporter.report(sessionResult);
@@ -114,10 +115,11 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 			})
 			.map(ts => buildJTFileCov(ts, false))
 	);
-	const covContent = lcovReporter.convert({ testCoverages, fileCoverages });
+	const covContent = lcovReporter.convert({ testCoverages, fileCoverages } as any);
 	await fs.rm('reports/coverage.lcov', { force: true, recursive: true });
 	if (covContent) {
-		await fs.writeFile('reports/coverage.lcov', covContent, { encoding: 'utf-8', recursive: true });
+		await fs.mkdir('reports', { recursive: true });
+		await fs.writeFile('reports/coverage.lcov', covContent, { encoding: 'utf-8' });
 	}
 
 	//	analysis
@@ -169,8 +171,8 @@ async function sendAddSession(serverBaseUrl: string, config: object) {
 	}
 }
 
-async function waitSessionEnd(serverBaseUrl: string, sessionDetails: object) {
-	const sessionResultUrl = `${serverBaseUrl}/api/v1/sessions/${sessionDetails.sessionId}/result`;
+async function waitSessionEnd(serverBaseUrl: string, sessionDetails: object): Promise<Session> {
+	const sessionResultUrl = `${serverBaseUrl}/api/v1/sessions/${(sessionDetails as Session).sessionId}/result`;
 
 	//	TODO: add global timeout
 	return new Promise(resolve => {

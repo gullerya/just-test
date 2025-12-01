@@ -101,7 +101,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 			if (sessions && Object.values(sessions).length === 1) {
 				const iSession = Object.values(sessions)[0];
 				for (const e of Object.values(iSession.config.environments)) {
-					if (e.interactive) {
+					if ((e as any).interactive) {
 						iResult = { id: iSession.id };
 					}
 				}
@@ -142,14 +142,14 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		}
 	}
 
-	async #getEnvironmentData(session, envId: string, args: string[]): Promise<string[]> {
+	async #getEnvironmentData(session, envId: string, args: string[]): Promise<string[] | object | null> {
 		let result = null;
 		const env = session.config.environments[envId];
 
 		if (envId === 'interactive') {
 			for (const e of Object.values(session.config.environments)) {
-				if (e.interactive) {
-					return { id: e.id };
+				if ((e as any).interactive) {
+					return { id: (e as any).id };
 				}
 			}
 		}

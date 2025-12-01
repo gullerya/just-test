@@ -62,7 +62,7 @@ class Assert {
 			return;
 		}
 		for (const key in expected) {
-			if (typeof expected[key] === 'object') {
+			if (typeof actual[key] === 'object' && typeof expected[key] === 'object') {
 				this.deepEqual(actual[key], expected[key], message);
 			} else if (actual[key] != expected[key]) {
 				throw new AssertionError(message, actual, expected, 'deepEqual');
@@ -90,14 +90,14 @@ class Assert {
 			return;
 		}
 		for (const key in expected) {
-			if (typeof expected[key] === 'object') {
+			if (typeof actual[key] === 'object' && typeof expected[key] === 'object') {
 				this.deepStrictEqual(actual[key], expected[key], message);
 			} else if (actual[key] !== expected[key]) {
 				throw new AssertionError(message, actual, expected, 'deepStrictEqual');
 			}
 		}
 		for (const key in actual) {
-			if (typeof expected[key] === 'object') {
+			if (typeof actual[key] === 'object' && typeof expected[key] === 'object') {
 				this.deepStrictEqual(actual[key], expected[key], message);
 			} else if (actual[key] !== expected[key]) {
 				throw new AssertionError(message, actual, expected, 'deepStrictEqual');
@@ -190,7 +190,7 @@ class Assert {
 				return;
 			}
 		} else if (typeof expected === 'object' || typeof expected === 'function') {
-			if (!(error instanceof expected)) {
+			if (!(error instanceof (expected as Function))) {
 				throw new AssertionError(message, error, expected, operator);
 			}
 		} else if (typeof expected === 'string') {
