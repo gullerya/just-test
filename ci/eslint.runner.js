@@ -12,14 +12,14 @@ const effectiveConfig = {
 			...globals.node
 		}
 	},
+	files: ['src/common/**', 'src/runner/**', 'src/ui/**', 'tests/**'],
 	rules: {
-		'no-shadow': [
-			'error'
-		],
-		semi: [
-			'error',
-			'always'
-		]
+		'no-shadow': 'error',
+		semi: 'error',
+		quotes: ['error', 'single', {
+			avoidEscape: true,
+			allowTemplateLiterals: true
+		}]
 	}
 };
 

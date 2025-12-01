@@ -9,7 +9,7 @@ export {
 	lcovReporter,
 	verifyEnrichConfig,
 	v8toJustTest
-}
+};
 
 const logger = new Logger({ context: 'coverage' });
 

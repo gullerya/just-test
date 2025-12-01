@@ -19,6 +19,7 @@ const EVENT = Object.freeze({
 });
 
 const STATUS = Object.freeze({
+	INIT: 'init',
 	SKIP: 'skip',
 	WAIT: 'wait',
 	RUNS: 'runs',

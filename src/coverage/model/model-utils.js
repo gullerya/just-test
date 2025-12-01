@@ -4,7 +4,7 @@ import RangeCov from './range-cov.js';
 
 export {
 	buildJTFileCov
-}
+};
 
 const EMPTY_TEXT_REGEX = /^\s*$/;
 const ONE_LINE_REMARK_REGEX = /^\s*\/\//;
@@ -22,6 +22,7 @@ async function buildJTFileCov(sourceUrl, everImported, sourceFetcher = defaultSo
 		throw new Error(`source fetcher MUST be a function, got: '${sourceFetcher}'`);
 	}
 
+	sourceUrl = sourceUrl.split('?')[0].trim();
 	const result = new FileCov(sourceUrl);
 
 	//	get the source text
