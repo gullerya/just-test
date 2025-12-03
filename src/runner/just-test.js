@@ -5,7 +5,8 @@
 //	- test - test run, only the tests required by environment will be running
 import { getExecutionContext, EXECUTION_MODES } from './environment-config.js';
 import { STATUS } from '../common/constants.js';
-import { TestError } from '../../bin/testing/model/test-error.ts';
+import { TestError } from '../testing/model/test-error.ts';
+import { TestRun } from '../testing/model/test-run.ts';
 
 export { suite, test, TestDto };
 
@@ -42,8 +43,14 @@ const suite = Object.freeze({
 	}
 });
 
-async function test(name, opts, code) {
-	const { name: nameF, opts: optsF, code: codeF } = validate(name, opts, code);
+async function test(name, code, opts = DEFAULT_TEST_OPTIONS) {
+	const { name: nameF, code: codeF, opts: optsF, error } = validate(name, code, opts);
+	const run = new TestRun();
+	run.timestamp = Date.now();
+
+	if (error) {
+		return finalizeRun(run, new Error(error));
+	}
 
 	const ecKey = opts.ecKey || undefined;
 	delete opts.ecKey;
@@ -58,55 +65,47 @@ async function test(name, opts, code) {
 				return null;
 			}
 			await ec.startHandler(name);
-			const run = await executeRun(nameF, optsF, codeF);
+			await executeRun(nameF, codeF, optsF, run);
 			await ec.endHandler(name, run);
-			return run;
+			break;
 		}
 		case EXECUTION_MODES.PLAIN_RUN:
 		default:
-			return await executeRun(nameF, optsF, codeF);
+			return await executeRun(nameF, codeF, optsF, run);
 	}
+	return run;
 }
 
-function validate(name, opts, code) {
+function validate(name, code, opts) {
 	if (!name || typeof name !== 'string') {
-		throw new Error(`test name MUST be a non-empty string, got: '${name}'`);
+		return { error: `test name MUST be a non-empty string, got: '${name}'` };
 	}
-	if (typeof opts === 'function') {
-		if (code) {
-			throw new Error(`when second parameter is a test's code no further parameter expected, got (in 3rd place): ${code}`);
-		}
-		code = opts;
-		opts = DEFAULT_TEST_OPTIONS;
-	} else {
-		if (!opts || typeof opts !== 'object') {
-			throw new Error(`options, when provided, expected to be an object, got: ${JSON.stringify(opts)}`);
-		}
-		if (!code || typeof code !== 'function') {
-			throw new Error(`test code expected, got: ${JSON.stringify(code)}`);
-		}
-		opts = Object.assign({}, DEFAULT_TEST_OPTIONS, opts);
+	if (!code || typeof code !== 'function') {
+		return { error: `test code expected, got: ${JSON.stringify(code)}` };
 	}
+
+	if (!opts || typeof opts !== 'object') {
+		return { error: `options, when provided, expected to be a non-null object, got: ${JSON.stringify(opts)}` };
+	}
+	opts = Object.assign({}, DEFAULT_TEST_OPTIONS, opts);
+
 	if (opts.only && opts.skip) {
-		throw new Error(`can't opt in 'only' and 'skip' at the same time, found in test: ${name}`);
+		return { error: `can't opt in 'only' and 'skip' at the same time, found in test: ${name}` };
 	}
-	return { name, opts, code };
+	return { name, code, opts };
 }
 
-async function executeRun(name, opts, code) {
+async function executeRun(name, code, opts, run) {
 	if (opts.skip) {
-		return {
-			status: STATUS.SKIP
-		};
+		run.status = STATUS.SKIP;
+		return run;
 	}
 
-	const run = {};
 	const timeoutError = new Error(`timeout assertion: run of '${name}' exceeded ${opts.timeout}ms`);
 	let runError;
 	let start;
 	let timeout;
 	try {
-		run.timestamp = Date.now();
 		start = globalThis.performance.now();
 		const runPromise = Promise.race([
 			new Promise(resolve => { timeout = setTimeout(resolve, opts.timeout, timeoutError); }),
@@ -119,10 +118,10 @@ async function executeRun(name, opts, code) {
 	} finally {
 		clearTimeout(timeout);
 		run.time = Math.round((globalThis.performance.now() - start) * 10000) / 10000;
-		finalizeRun(run, runError);
-	}
+		run.time = Math.max(run.time, 0.1); // minimum time slice is 0.1ms
 
-	return run;
+	}
+	return finalizeRun(run, runError);
 }
 
 function finalizeRun(run, runError) {
@@ -140,5 +139,6 @@ function finalizeRun(run, runError) {
 	} else {
 		run.status = STATUS.PASS;
 	}
+	return run;
 }
 

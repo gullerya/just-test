@@ -46,10 +46,10 @@ async function go() {
 			console.info('TESTS SUMMARY');
 			console.info('=============');
 			console.info(`TOTAL: ${sessionResult.total}`);
-			console.info(`PASSED: ${sessionResult.pass}`);
-			console.info(`FAILED: ${sessionResult.fail}`);
-			console.info(`ERRORED: ${sessionResult.error}`);
-			console.info(`SKIPPED: ${sessionResult.skip}${os.EOL}`);
+			console.info(`PASS: ${sessionResult.pass}`);
+			console.info(`FAIL: ${sessionResult.fail}`);
+			console.info(`ERROR: ${sessionResult.error}`);
+			console.info(`SKIP: ${sessionResult.skip}${os.EOL}`);
 			console.info(`SESSION SUMMARY: ${endedWithFailure
 				? `FAILURE (${sessionResult.summary.failReason})`
 				: 'SUCCESS'} (${duration}s)${os.EOL}`);
@@ -134,7 +134,7 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 		sessionResult.summary.failReason = `failing due to too many failures/errors; max allowed: ${maxFail}, found: ${sessionResult.fail + sessionResult.error}`;
 	} else if (sessionResult.skip > maxSkip) {
 		sessionResult.summary.success = false;
-		sessionResult.summary.failReason = `failing due to too many skipped; max allowed: ${maxSkip}, found: ${sessionResult.skip}`;
+		sessionResult.summary.failReason = `failing due to too many skips; max allowed: ${maxSkip}, found: ${sessionResult.skip}`;
 	}
 
 	return sessionResult;

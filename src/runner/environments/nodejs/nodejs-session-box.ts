@@ -70,7 +70,7 @@ async function planSession(testsResources, stateService) {
 }
 
 function createNodeJSExecutor(sessionMetadata, stateService) {
-	const workerUrl = new URL('./nodejs-test-box.ts', import.meta.url);
+	const workerUrl = new URL('./nodejs-test-box.js', import.meta.url);
 
 	return (test, suiteName) => {
 		//	TODO: this should be resource pooled

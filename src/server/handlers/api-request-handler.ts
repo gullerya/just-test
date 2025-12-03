@@ -25,19 +25,17 @@ export default class APIRequestHandler extends RequestHandlerBase {
 			if (req.method === 'POST') {
 				if (handlerRelativePath.endsWith('sessions')) {
 					await this.#createSession(req, res);
-					handled = true;
 				} else {
 					await this.#storeResult(handlerRelativePath, req, res);
-					handled = true;
 				}
+				handled = true;
 			} else if (req.method === 'GET') {
 				if (handlerRelativePath.endsWith('sessions')) {
 					await this.#getAllSessions(res);
-					handled = true;
 				} else {
 					await this.#getSession(handlerRelativePath, res);
-					handled = true;
 				}
+				handled = true;
 			}
 		}
 
