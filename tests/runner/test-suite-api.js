@@ -6,7 +6,7 @@ const localECKey = 'test-suite-api-ec';
 
 test('suite PLAN - base API', () => {
 	const pp = prepareExecutionContext();
-	test('name', { ecKey: localECKey }, () => { });
+	test('name', () => { }, { ecKey: localECKey });
 
 	assert.isTrue(pp instanceof Object && Array.isArray(pp.testConfigs));
 	assert.deepEqual(pp.testConfigs[0], {
@@ -15,9 +15,10 @@ test('suite PLAN - base API', () => {
 	});
 });
 
-test('suite PLAN - base API FAIL', () => {
+test('suite PLAN - base API FAIL', async () => {
 	prepareExecutionContext();
-	assert.rejects(() => test('name', { ecKey: localECKey, only: true, skip: true }, () => { }), 'at the same time');
+	const tr = await test('name', () => { }, { ecKey: localECKey, only: true, skip: true });
+	assert.strictEqual(tr.error.message, `can't opt in 'only' and 'skip' at the same time, found in test: name`);
 });
 
 function prepareExecutionContext(mode = EXECUTION_MODES.PLAN) {

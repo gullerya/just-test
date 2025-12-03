@@ -6,8 +6,9 @@ import { minimatch } from 'minimatch';
 import { parentPort } from 'node:worker_threads';
 import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
 import { v8toJustTest } from '../../../coverage/coverage-service.js';
-import { EVENT } from '../../../common/constants.js';
+import { EVENT, STATUS } from '../../../common/constants.js';
 import { TestError } from '../../../testing/model/test-error.ts';
+import { TestRun } from '../../../testing/model/test-run.ts';
 
 const currentBase = pathToFileURL(cwd()).href;
 let testName;
@@ -27,7 +28,12 @@ parentPort.addEventListener('message', async (m: MessageEvent) => {
 		await import(pathToFileURL(testSource).toString());
 	} catch (e) {
 		console.error(`failed to import test '${testName}':`, e);
-		await runEndHandler(testName, { status: 'error', time: 0, timestamp: Date.now(), error: TestError.fromError(e) });
+		const run = new TestRun();
+		run.status = STATUS.ERROR;
+		run.time = 0;
+		run.timestamp = Date.now();
+		run.error = TestError.fromError(e);
+		await runEndHandler(testName, run);
 	}
 });
 
@@ -35,21 +41,21 @@ parentPort.addEventListener('message', async (m: MessageEvent) => {
 // internal methods
 //
 let sessionPost;
-async function runStartHandler(tName) {
+async function runStartHandler(tName: string): Promise<void> {
 	if (tName !== testName) {
 		throw new Error(`expected to get result of test '${testName}', but received of '${tName}'`);
 	}
 	parentPort.postMessage({ type: EVENT.RUN_START, testName });
 }
 
-async function runEndHandler(tName, run) {
+async function runEndHandler(tName: string, run: TestRun): Promise<void> {
 	if (tName !== testName) {
 		throw new Error(`expected to get result of test '${testName}', but received of '${tName}'`);
 	}
 	if (coverageConfig) {
 		try {
 			const v8Coverage = await collectCoverage();
-			const jtCoverage = await v8toJustTest(v8Coverage);
+			const jtCoverage = await v8toJustTest(v8Coverage, undefined);
 			run.coverage = jtCoverage;
 		} catch (e) {
 			console.error(`failed to collect coverage of '${testName}': ${e}`);
@@ -92,7 +98,7 @@ async function collectCoverage() {
 
 			for (const ig of coverageConfig.include) {
 				const m = minimatch(entry.url, ig, {
-					ignore: coverageConfig.exclude
+					// ignore: coverageConfig.exclude
 				});
 
 				result = result || m;

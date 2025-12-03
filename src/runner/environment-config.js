@@ -32,7 +32,7 @@ class BaseExecutionContext {
 	get testId() { return this.#testId; }
 }
 
-class PlanningExecutionContext extends BaseExecutionContext {
+export class PlanningExecutionContext extends BaseExecutionContext {
 	#suiteName;
 	#testConfigs = [];
 

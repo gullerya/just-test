@@ -14,8 +14,11 @@ const VALID_NODE_TYPES = [
 	NodeImpl.ATTRIBUTE_NODE
 ];
 
+const EOL = '\n';
+const TAB = '\t';
+
 export default class XMLSerializerImpl {
-	serializeToString(rootNode) {
+	serializeToString(rootNode, indentLevel = 0) {
 		if (!rootNode || !VALID_NODE_TYPES.includes(rootNode.nodeType)) {
 			throw new TypeError(`valid 'rootNode' MUST be provided; got '${rootNode}'`);
 		}
@@ -24,17 +27,28 @@ export default class XMLSerializerImpl {
 
 		let textContent = '';
 		for (const child of tmpNode.childNodes) {
-			textContent += (this.serializeToString(child));
+			textContent += (this.serializeToString(child, indentLevel + 1));
 		}
 		if (!textContent && tmpNode.textContent) {
 			textContent = tmpNode.textContent;
 		}
 
-		return this._serializeNode(tmpNode.nodeName, tmpNode.attributes, textContent);
+		return this._serializeNode(tmpNode.nodeName, tmpNode.attributes, textContent, indentLevel);
 	}
 
-	_serializeNode(nodeName, attributes, textContent) {
-		return `<${nodeName}${this._serializeAttributes(attributes)}${textContent ? `>${textContent}</${nodeName}>` : '/>'}`;
+	_serializeNode(nodeName, attributes, textContent, indentLevel) {
+		const opening = `${TAB.repeat(indentLevel)}<${nodeName}${this._serializeAttributes(attributes)}`;
+		let content;
+		let closing;
+		if (!textContent) {
+			content = '';
+			closing = `/>${EOL}`;
+		} else {
+			content = `>${EOL}${textContent}`;
+			closing = `${TAB.repeat(indentLevel)}</${nodeName}>${EOL}`;
+		}
+
+		return `${opening}${content}${closing}`;
 	}
 
 	_serializeAttributes(attributes) {

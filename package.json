@@ -42,15 +42,15 @@
 		"./timing": "./bin/common/time-utils.js"
 	},
 	"scripts": {
-		"build": "node ./ci/tools/build.js",
+		"build": "rm -rf ./bin && tsc",
 		"lint": "npm run lint:runner && npm run lint:server",
 		"lint:runner": "eslint -c ./ci/eslint.runner.js",
 		"lint:server": "eslint -c ./ci/eslint.server.js",
-		"test:dev": "npm run build && node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-dev.ts",
-		"test:ci:chromium": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-chromium.ts",
-		"test:ci:firefox": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-firefox.ts",
-		"test:ci:webkit": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-webkit.ts",
-		"test:ci:nodejs": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-nodejs.ts"
+		"test:dev": "npm run build && node ./bin/local-runner.js config_file=./tests/_configs/tests-config-dev.ts",
+		"test:ci:chromium": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-chromium.ts",
+		"test:ci:firefox": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-firefox.ts",
+		"test:ci:webkit": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-webkit.ts",
+		"test:ci:nodejs": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-nodejs.ts"
 	},
 	"dependencies": {
 		"data-tier": "^3.6.6",

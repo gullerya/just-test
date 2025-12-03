@@ -1,5 +1,5 @@
-import { test } from '@gullerya/just-test';
-import { assert } from '@gullerya/just-test/assert';
+import { test } from '../../src/runner/just-test.js';
+import { assert } from '../../src/common/assert-utils.ts';
 import RangeCov from '../../src/coverage/model/range-cov.js';
 import { merge } from '../../src/coverage/model/range-utils.js';
 

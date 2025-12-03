@@ -1,5 +1,5 @@
-import { test } from '@gullerya/just-test';
-import { assert } from '@gullerya/just-test/assert';
+import { test } from '../../src/runner/just-test.js';
+import { assert } from '../../src/common/assert-utils.ts';
 import { buildJTFileCov } from '../../src/coverage/model/model-utils.js';
 
 test('build model - negative (bad source URL, not a string)', async () => {
