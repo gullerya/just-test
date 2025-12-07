@@ -48,7 +48,7 @@ class NodeEnvImpl extends EnvironmentBase {
 		});
 
 		this.#worker = new Worker(
-			new URL('../../../runner/environments/nodejs/nodejs-session-box.ts', import.meta.url),
+			new URL('../../../runner/environments/nodejs/nodejs-session-box.js', import.meta.url),
 			{
 				stdout: true,
 				stderr: this,

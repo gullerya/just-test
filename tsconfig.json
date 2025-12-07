@@ -1,13 +1,21 @@
 {
     "compilerOptions": {
         "strict": false,
-        "target": "es2022",
+        "target": "esnext",
         "module": "nodenext",
-        "noEmit": true,
         "moduleResolution": "nodenext",
         "allowImportingTsExtensions": true,
         "rewriteRelativeImportExtensions": true,
         "verbatimModuleSyntax": true,
-        "erasableSyntaxOnly": true
-    }
+        "erasableSyntaxOnly": true,
+        "declaration": true,
+        "declarationMap": true,
+        "allowJs": true,
+        "allowArbitraryExtensions": true,
+        "outDir": "./bin",
+        "rootDir": "./src"
+    },
+    "include": [
+        "src/**/*"
+    ]
 }

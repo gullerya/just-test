@@ -37,20 +37,20 @@
 	],
 	"exports": {
 		".": "./bin/runner/just-test.js",
-		"./assert": "./bin/common/assert-utils.ts",
+		"./assert": "./bin/common/assert-utils.js",
 		"./random": "./bin/common/random-utils.js",
 		"./timing": "./bin/common/time-utils.js"
 	},
 	"scripts": {
-		"build": "node ./ci/tools/build.js",
+		"build": "node ./ci/build.ts",
 		"lint": "npm run lint:runner && npm run lint:server",
 		"lint:runner": "eslint -c ./ci/eslint.runner.js",
 		"lint:server": "eslint -c ./ci/eslint.server.js",
-		"test:dev": "npm run build && node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-dev.ts",
-		"test:ci:chromium": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-chromium.ts",
-		"test:ci:firefox": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-firefox.ts",
-		"test:ci:webkit": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-webkit.ts",
-		"test:ci:nodejs": "node ./bin/local-runner.ts config_file=./tests/_configs/tests-config-ci-nodejs.ts"
+		"test:dev": "npm run build && node ./bin/local-runner.js config_file=./tests/_configs/tests-config-dev.ts",
+		"test:ci:chromium": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-chromium.ts",
+		"test:ci:firefox": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-firefox.ts",
+		"test:ci:webkit": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-webkit.ts",
+		"test:ci:nodejs": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-nodejs.ts"
 	},
 	"dependencies": {
 		"data-tier": "^3.6.6",
@@ -64,7 +64,8 @@
 	"devDependencies": {
 		"@types/node": "^24.10.1",
 		"@gullerya/just-test": "^4.0.14",
-		"eslint": "^9.39.1"
+		"eslint": "^9.39.1",
+		"esbuild": "^0.27.0"
 	},
 	"publishConfig": {
 		"access": "public"

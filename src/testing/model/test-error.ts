@@ -31,16 +31,13 @@ export class TestError {
 	}
 
 	toJSON(): object {
-		return {
-			name: this.#name,
-			type: this.#type,
-			message: this.#message,
-			stack: this.#stack,
-			cause: this.#cause ? this.#cause.toJSON() : null
-		};
+		return TestError.toJSON(this);
 	}
 
 	static fromError(error: Error): TestError {
+		if (error instanceof TestError) {
+			return error;
+		}
 		if (!(error instanceof Error)) {
 			throw new TypeError(`the provided value (${error}) is not an Error instance`);
 		}
@@ -52,5 +49,18 @@ export class TestError {
 			error.stack,
 			error.cause instanceof Error ? TestError.fromError(error.cause) : null
 		);
+	}
+
+	static toJSON(error: Error): object {
+		if (error === null) {
+			return null;
+		}
+		return {
+			name: error.name,
+			type: error.constructor.name,
+			message: error.message,
+			stack: error.stack,
+			cause: error.cause instanceof Error ? TestError.toJSON(error.cause) : null
+		}
 	}
 }

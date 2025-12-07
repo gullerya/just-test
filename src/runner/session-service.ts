@@ -33,7 +33,7 @@ async function runSuite(suite: Suite, testExecutor) {
 			testPromises.push(Promise.resolve());
 		} else {
 			const runResultPromise = testExecutor(test, suite.name);
-			if (suite.config.sync) {
+			if ((suite.config as any).sync) {
 				syncChain = syncChain.finally(() => runResultPromise);
 			} else {
 				testPromises.push(runResultPromise);

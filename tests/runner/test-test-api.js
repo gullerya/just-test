@@ -9,17 +9,17 @@ const isoTestConf = { ecKey: isolatedECKey };
 //	sync
 //
 test('run test - pass (sync)', async () => {
-	const tp = test('name', isoTestConf, () => { });
+	const tp = test('name', () => { }, isoTestConf);
 
 	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
 	assert.strictEqual(m.status, STATUS.PASS);
-	assert.isTrue(m.error === undefined);
+	assert.isTrue(m.error === null);
 	assert.isTrue(typeof m.time === 'number');
 });
 
 test('run test - fail by assert (sync)', async () => {
-	const tp = test('name', isoTestConf, () => assert.fail('reason'));
+	const tp = test('name', () => assert.fail('reason'), isoTestConf);
 
 	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
@@ -33,7 +33,7 @@ test('run test - fail by assert (sync)', async () => {
 
 test('run test - fail by error (sync)', async () => {
 	/* eslint-disable-next-line no-undef */
-	const tp = test('name', isoTestConf, () => nonsense);
+	const tp = test('name', () => nonsense, isoTestConf);
 
 	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
@@ -46,46 +46,45 @@ test('run test - fail by error (sync)', async () => {
 });
 
 test('run test - skip', async () => {
-	const tp = test('name', { ...isoTestConf, skip: true }, () => { });
+	const tp = test('name', () => { }, { ...isoTestConf, skip: true });
 
 	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
 	assert.strictEqual(m.status, STATUS.SKIP);
-	assert.isTrue(m.error === undefined);
-	assert.isTrue(m.time === undefined);
+	assert.isTrue(m.error === null);
+	assert.isTrue(m.time === 0);
 });
 
 test('setup test - error on bad name', async () => {
-	await assert.rejects(() => test('', isoTestConf, () => { }), 'test name MUST be a non-empty string');
+	const tr = await test('', () => { }, isoTestConf);
+	assert.strictEqual(tr.error.message, `test name MUST be a non-empty string, got: ''`);
 });
 
 test('setup test - error on bad options', { only: true }, async () => {
-	await assert.rejects(
-		() => test('name', { ...isoTestConf, skip: true, only: true }, () => { }),
-		`can't opt in 'only' and 'skip' at the same time`
-	);
+	const tr = await test('name', () => { }, { ...isoTestConf, skip: true, only: true });
+	assert.strictEqual(tr.error.message, `can't opt in 'only' and 'skip' at the same time`);
 });
 
 //	async
 //
 test('run test - pass (async)', async () => {
-	const tp = test('name', isoTestConf, async () => {
+	const tp = test('name', async () => {
 		await waitInterval(2);
-	});
+	}, isoTestConf);
 
 	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
 	assert.strictEqual(m.status, STATUS.PASS);
-	assert.isTrue(m.error === undefined);
+	assert.isTrue(m.error === null);
 	assert.isTrue(typeof m.time === 'number');
 	assert.isTrue(m.time > 0);
 });
 
 test('run test - fail by assert (async)', async () => {
-	const tp = test('name', isoTestConf, async () => {
+	const tp = test('name', async () => {
 		await waitInterval(3);
 		assert.fail('reason');
-	});
+	}, isoTestConf);
 
 	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
@@ -99,11 +98,11 @@ test('run test - fail by assert (async)', async () => {
 });
 
 test('run test - fail by error (async)', async () => {
-	const tp = test('name', isoTestConf, async () => {
+	const tp = test('name', async () => {
 		await waitInterval(3);
 		/* eslint-disable-next-line no-undef */
 		nonsense;
-	});
+	}, isoTestConf);
 
 	assert.isTrue(tp instanceof Promise);
 	const m = await tp;
@@ -118,9 +117,9 @@ test('run test - fail by error (async)', async () => {
 
 test('run test - fail by timeout (async)', async () => {
 	const timeout = 30;
-	const tp = test('name', { ...isoTestConf, timeout }, async () => {
+	const tp = test('name', async () => {
 		await waitInterval(timeout);
-	});
+	}, { ...isoTestConf, timeout });
 
 	assert.isTrue(tp instanceof Promise);
 	const m = await tp;

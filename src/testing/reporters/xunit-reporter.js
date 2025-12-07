@@ -11,7 +11,7 @@ function report(results) {
 
 	const rDoc = DOMImplementation.instance.createDocument(null, 'testsuites');
 	rDoc.documentElement.setAttribute('timestamp', new Date(results.timestamp).toISOString());
-	rDoc.documentElement.setAttribute('time', Math.round(parseFloat(results.time)) / 1000);
+	rDoc.documentElement.setAttribute('time', millisToSeconds(results.time));
 	let sessionTests = 0;
 	let sessionFailures = 0;
 	let sessionErrors = 0;
@@ -31,7 +31,7 @@ function report(results) {
 		const sEl = rDoc.createElement('testsuite');
 		sEl.setAttribute('name', suite.name);
 		sEl.setAttribute('timestamp', new Date(suite.timestamp).toISOString());
-		sEl.setAttribute('time', Math.round(parseFloat(suite.time)) / 1000);
+		sEl.setAttribute('time', millisToSeconds(suite.time));
 		sEl.setAttribute('tests', suite.tests.length);
 		let suiteFailures = 0;
 		let suiteErrors = 0;
@@ -43,7 +43,7 @@ function report(results) {
 			tEl.setAttribute('name', test.name);
 
 			if (lastRun) {
-				tEl.setAttribute('time', Math.round(lastRun.time) / 1000);
+				tEl.setAttribute('time', millisToSeconds(lastRun.time));
 				tEl.setAttribute('status', lastRun.status);
 
 				if (lastRun.status === STATUS.FAIL) {
@@ -78,7 +78,7 @@ function report(results) {
 
 		sEl.setAttribute('failures', suiteFailures);
 		sEl.setAttribute('errors', suiteErrors);
-		sEl.setAttribute('skipped', suiteSkips);
+		sEl.setAttribute('skips', suiteSkips);
 
 		sessionTests += suite.tests.length;
 		sessionFailures += suiteFailures;
@@ -91,7 +91,11 @@ function report(results) {
 	rDoc.documentElement.setAttribute('tests', sessionTests);
 	rDoc.documentElement.setAttribute('failures', sessionFailures);
 	rDoc.documentElement.setAttribute('errors', sessionErrors);
-	rDoc.documentElement.setAttribute('skipped', sessionSkips);
+	rDoc.documentElement.setAttribute('skips', sessionSkips);
 
 	return new DOMImplementation.XMLSerializer().serializeToString(rDoc);
+}
+
+function millisToSeconds(milliseconds, maxPrecision = 4) {
+	return parseFloat((milliseconds / 1000).toFixed(maxPrecision));
 }
