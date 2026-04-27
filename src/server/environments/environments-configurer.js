@@ -37,7 +37,7 @@ export default environment => {
 		}
 	} catch (e) {
 		logger.error(e);
-		throw new Error(`environment configuration failed; violator: ${JSON.stringify(environment)}`);
+		throw new Error(`environment configuration failed; violator: ${JSON.stringify(environment)}`, { cause: e });
 	}
 
 	return result;

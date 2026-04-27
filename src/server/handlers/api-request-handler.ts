@@ -125,7 +125,10 @@ export default class APIRequestHandler extends RequestHandlerBase {
 			result = await this.#getEnvironmentData(session, entityId, args);
 			found = true;
 		} else if (entity === 'result') {
-			result = session.result;
+			//	only publish the result once side-channel artifacts (e.g.
+			//	coverage) have been attached by storeResult; otherwise callers
+			//	polling `/result` race and resolve with a partial payload
+			result = session.resultReady ? session.result : null;
 			found = true;
 		}
 

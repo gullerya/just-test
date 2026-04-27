@@ -1,10 +1,13 @@
+//	same as tests-config-ci-chromium but with the `page`-per-test browser
+//	executor, so per-test coverage (collected on page close, keyed by
+//	TEST_ID) is exercised in CI
 const config = {
 	environments: [
 		{
 			browser: {
 				type: 'chromium',
 				executors: {
-					type: 'iframe'
+					type: 'page'
 				}
 			},
 			tests: {
