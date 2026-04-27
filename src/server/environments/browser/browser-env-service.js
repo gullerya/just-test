@@ -34,8 +34,16 @@ class BrowserEnvImpl extends EnvironmentBase {
 	//	`SESSION_COVERAGE_ID` bucket for pages without a test-id (main page,
 	//	iframe/worker mode where there is no 1:1 test-to-page mapping)
 	#coverageByTestId = new Map();
-	//	pages still tracked for coverage; drained at dismiss
+	//	pages still tracked for coverage; drained at dismiss. in page mode
+	//	per-test keying proved unreliable (race between navigation and
+	//	startJSCoverage even with route-gating for child pages), so we
+	//	bucket everything into SESSION_COVERAGE_ID and report the union
 	#openCoverPages = new Set();
+	//	per-page promise that resolves once startJSCoverage has landed; the
+	//	context-level route interceptor awaits this before letting the first
+	//	document request through, eliminating the race between page creation
+	//	and coverage setup (so V8 actually tracks the scripts that load)
+	#coverageReady = new Map();
 
 	/**
 	 * construct browser environment for a specific session
@@ -68,8 +76,36 @@ class BrowserEnvImpl extends EnvironmentBase {
 		});
 
 		this.#browsingContext = await this.#browser.newContext();
-		this.#browsingContext.on('page', async page => {
-			await this.#setupPage(page, pageLogger);
+		//	gate the first request on CHILD pages on coverage setup so V8
+		//	has tracking enabled before any script executes (the `page`
+		//	listener is async and otherwise races window.open navigation).
+		//	the main page is set up explicitly below so doesn't need this.
+		if (this.#envConfig.coverage) {
+			await this.#browsingContext.route('**/*', async route => {
+				const req = route.request();
+				//	navigation requests have no frame yet and carry no JS
+				//	the browser will track — let them through unthrottled.
+				//	subsequent resource requests (scripts, XHR) belong to
+				//	a real frame and we gate those on coverage setup.
+				if (!req.isNavigationRequest()) {
+					try {
+						const page = req.frame().page();
+						const pending = this.#coverageReady.get(page);
+						if (pending) {
+							this.#coverageReady.delete(page);
+							await pending;
+						}
+					} catch {
+						//	frame gone / page closed mid-flight; continue
+					}
+				}
+				await route.continue();
+			});
+		}
+		this.#browsingContext.on('page', page => {
+			//	register the coverage-ready promise SYNCHRONOUSLY so the
+			//	route interceptor can find it when the first request fires
+			this.#coverageReady.set(page, this.#setupPage(page, pageLogger));
 		});
 
 		logger.info(`setting timeout for the whole tests execution to ${this.#envConfig.tests.ttl}ms as per configuration`);
@@ -79,6 +115,15 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}, this.#envConfig.tests.ttl);
 
 		const mainPage = await this.#browsingContext.newPage();
+		//	ensure the main page's coverage setup has landed BEFORE the
+		//	navigation kicks off. the 'page' listener above has already
+		//	run (synchronously, during newPage) and stored the promise;
+		//	awaiting it here also avoids any lingering race where `goto`'s
+		//	first request could hit the route handler before the listener
+		//	has added the entry.
+		if (this.#coverageReady.has(mainPage)) {
+			await this.#coverageReady.get(mainPage);
+		}
 		const envEntryUrl = new URL(`${serverConfig.origin}/core/runner/environments/browser/browser-session-box.html`);
 		envEntryUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, this.sessionId);
 		envEntryUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, this.#envConfig.id);
@@ -115,8 +160,14 @@ class BrowserEnvImpl extends EnvironmentBase {
 		page.on('console', async msg => {
 			const type = msg.type();
 			for (const msgArg of msg.args()) {
-				const consoleMessage = await msgArg.evaluate(o => o);
-				pageLogger[type](consoleMessage);
+				try {
+					const consoleMessage = await msgArg.evaluate(o => o);
+					pageLogger[type](consoleMessage);
+				} catch {
+					//	page closed / navigated away before the arg could be
+					//	serialized; common in page-per-test mode and not an
+					//	actual failure — drop the message
+				}
 			}
 		});
 		page.on('crash', () => {
@@ -146,41 +197,25 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}
 		await page.coverage.startJSCoverage();
 		this.#openCoverPages.add(page);
-		//	test id is captured at close time from the final URL: pages spawned
-		//	by the session-box for a specific test carry the TEST_ID search
-		//	param; pages without it (main page, iframe/worker host) contribute
-		//	to the session-global bucket
-		let lastKnownUrl = page.url();
-		page.on('framenavigated', frame => {
-			if (frame === page.mainFrame()) {
-				lastKnownUrl = frame.url();
-			}
-		});
+		//	per-test browser coverage is not reliable across executor modes
+		//	(iframe/worker share a host, page mode races navigation); merge
+		//	every page's coverage into a single session-global bucket and let
+		//	the lcov output reflect the union of what the session executed
 		page.on('close', async () => {
 			if (!this.#openCoverPages.has(page)) {
 				return;
 			}
 			this.#openCoverPages.delete(page);
-			const testId = this.#extractTestId(lastKnownUrl) ?? SESSION_COVERAGE_ID;
 			try {
 				const fileCovs = await this.#stopAndConvert(page);
 				if (fileCovs.length) {
-					this.#appendCoverage(testId, fileCovs);
+					this.#appendCoverage(SESSION_COVERAGE_ID, fileCovs);
 				}
 			} catch (e) {
-				logger.warn(`failed to collect coverage on page close for '${testId}': ${e?.message ?? e}`);
+				logger.warn(`failed to collect coverage on page close: ${e?.message ?? e}`);
 			}
 		});
 		logger.info(`started coverage collection for ${this.#coverageTargets.length} targets`);
-	}
-
-	#extractTestId(url) {
-		try {
-			const sp = new URL(url).searchParams;
-			return sp.get(ENVIRONMENT_KEYS.TEST_ID);
-		} catch {
-			return null;
-		}
 	}
 
 	async #stopAndConvert(page) {
@@ -215,19 +250,19 @@ class BrowserEnvImpl extends EnvironmentBase {
 	}
 
 	async #drainOpenCoverPages() {
-		//	pages that are still open at dismiss (typically the main
-		//	session-box page, and any iframe/worker host) are flushed here
+		//	pages still open at dismiss (typically the main session-box
+		//	page, and any iframe/worker host) are flushed here into the
+		//	session-global bucket
 		const pending = [...this.#openCoverPages];
 		this.#openCoverPages.clear();
 		for (const page of pending) {
-			const testId = this.#extractTestId(page.url()) ?? SESSION_COVERAGE_ID;
 			try {
 				const fileCovs = await this.#stopAndConvert(page);
 				if (fileCovs.length) {
-					this.#appendCoverage(testId, fileCovs);
+					this.#appendCoverage(SESSION_COVERAGE_ID, fileCovs);
 				}
 			} catch (e) {
-				logger.warn(`failed to flush coverage at dismiss for '${testId}': ${e?.message ?? e}`);
+				logger.warn(`failed to flush coverage at dismiss: ${e?.message ?? e}`);
 			}
 		}
 	}
