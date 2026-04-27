@@ -6,6 +6,7 @@ import { start, stop } from './server/cli.ts';
 import { xUnitReporter } from './testing/testing-service.js';
 import { collectTargetSources, lcovReporter } from './coverage/coverage-service.js';
 import { buildJTFileCov } from './coverage/model/model-utils.js';
+import { normalizeCoverageUrl } from './coverage/model/url-utils.js';
 import { Session } from './testing/model/session.ts';
 
 go();
@@ -106,13 +107,14 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 		.filter(Boolean);
 
 	const targetSources = await collectTargetSources(config.environments[0].coverage);
+	const coveredUrls = new Set(
+		testCoverages
+			.flatMap(tc => tc.coverage)
+			.map(fc => normalizeCoverageUrl(fc.url))
+	);
 	const fileCoverages = await Promise.all(
 		targetSources
-			.filter(ts => {
-				return !testCoverages
-					.flatMap(tc => tc.coverage)
-					.some(fc => fc.url === ts);
-			})
+			.filter(ts => !coveredUrls.has(normalizeCoverageUrl(ts)))
 			.map(ts => buildJTFileCov(ts, false))
 	);
 	const covContent = lcovReporter.convert({ testCoverages, fileCoverages } as any);
