@@ -76,11 +76,17 @@ class BrowserEnvImpl extends EnvironmentBase {
 		});
 
 		this.#browsingContext = await this.#browser.newContext();
-		//	gate the first request on CHILD pages on coverage setup so V8
-		//	has tracking enabled before any script executes (the `page`
-		//	listener is async and otherwise races window.open navigation).
-		//	the main page is set up explicitly below so doesn't need this.
-		if (this.#envConfig.coverage) {
+		//	page-mode coverage needs V8 tracking enabled BEFORE any script
+		//	executes on each page. install a context-level route gate that
+		//	pauses the first non-navigation request per page until its
+		//	coverage-ready promise resolves. only page mode spawns child
+		//	pages via `window.open`; iframe / worker modes share the main
+		//	page so the gate is both unnecessary and a source of flake
+		//	(observed under concurrent iframe loads in downstream
+		//	consumers) — scope it narrowly.
+		const needsCoverageGate = this.#envConfig.coverage
+			&& this.#envConfig.browser.executors?.type === 'page';
+		if (needsCoverageGate) {
 			await this.#browsingContext.route('**/*', async route => {
 				const req = route.request();
 				//	navigation requests have no frame yet and carry no JS
@@ -101,12 +107,17 @@ class BrowserEnvImpl extends EnvironmentBase {
 				}
 				await route.continue();
 			});
+			this.#browsingContext.on('page', page => {
+				//	register the coverage-ready promise SYNCHRONOUSLY so
+				//	the route interceptor can find it when the first
+				//	request fires
+				this.#coverageReady.set(page, this.#setupPage(page, pageLogger));
+			});
+		} else {
+			this.#browsingContext.on('page', async page => {
+				await this.#setupPage(page, pageLogger);
+			});
 		}
-		this.#browsingContext.on('page', page => {
-			//	register the coverage-ready promise SYNCHRONOUSLY so the
-			//	route interceptor can find it when the first request fires
-			this.#coverageReady.set(page, this.#setupPage(page, pageLogger));
-		});
 
 		logger.info(`setting timeout for the whole tests execution to ${this.#envConfig.tests.ttl}ms as per configuration`);
 		this.#timeoutHandle = setTimeout(() => {
@@ -115,13 +126,13 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}, this.#envConfig.tests.ttl);
 
 		const mainPage = await this.#browsingContext.newPage();
-		//	ensure the main page's coverage setup has landed BEFORE the
-		//	navigation kicks off. the 'page' listener above has already
-		//	run (synchronously, during newPage) and stored the promise;
-		//	awaiting it here also avoids any lingering race where `goto`'s
-		//	first request could hit the route handler before the listener
-		//	has added the entry.
-		if (this.#coverageReady.has(mainPage)) {
+		if (needsCoverageGate && this.#coverageReady.has(mainPage)) {
+			//	ensure the main page's coverage setup has landed BEFORE
+			//	the navigation kicks off. the 'page' listener above has
+			//	already run (synchronously, during newPage) and stored
+			//	the promise; awaiting it here also closes any lingering
+			//	race where `goto`'s first request could hit the route
+			//	handler before the listener has added the entry.
 			await this.#coverageReady.get(mainPage);
 		}
 		const envEntryUrl = new URL(`${serverConfig.origin}/core/runner/environments/browser/browser-session-box.html`);
