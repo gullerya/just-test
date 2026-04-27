@@ -7,30 +7,35 @@
 ## SDK
 SDK provides the code that is imported and used within the tests written by consumer.
 
-For the clarity and convenience we split the structure into __Suites__ and __Tests__:
-- tests always run within suite
-- suite if the top-level formation (no suite within suite)
-- some of the configuration can be set on suite level and unless overridden on the test level, will apply to all tests
+Each test file is a __Suite__ — `just-test` treats the file itself as the grouping unit. A file contains one or more `test()` declarations; there is no separate suite-declaration API.
 
 > Whereever possible `just-test` attempts to follow NodeJS [native Test API](https://nodejs.org/api/test.html), that will be visible but should not be assumed.
 
-### Suite API
-`suite` is a top level factory (function) imported from the SDK and is a single entrypoint into the `just-test` harness.
+### Test API
+`test` is the single entrypoint into the `just-test` harness.
 
-```
-import { suite } from 'just-test';
+```js
+import { test } from '@gullerya/just-test';
+import { assert } from '@gullerya/just-test/assert';
 
-const suiteA = suite('Suite A', suiteOptions);
-
-suiteA.test('Test A', testOptions, testContext => {
+test('Test A', async () => {
 	//	actual test code goes here
+	assert.strictEqual(1 + 1, 2);
 });
 
-suiteA.addEventListener('done', doneCallback);
+test('Test B - skipped', { skip: true }, async () => {
+	//	will not run
+});
+
+test('Test C - custom timeout', { timeout: 10000 }, async () => {
+	//	runs with a 10s deadline
+});
 ```
 
-### Test API
-TBD
+Options (all fields optional):
+- `only: boolean` — when any test in the suite is `only`, only such tests run. Default `false`.
+- `skip: boolean` — skip this test. Mutually exclusive with `only`. Default `false`.
+- `timeout: number` — per-test deadline in milliseconds. Default `3000`.
 
 ## CLI
 TODO: explain CLI command and options possible.

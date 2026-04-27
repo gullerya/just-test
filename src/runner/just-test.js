@@ -8,13 +8,7 @@ import { STATUS } from '../common/constants.js';
 import { TestError } from '../testing/model/test-error.ts';
 import { TestRun } from '../testing/model/test-run.ts';
 
-export { suite, test, TestDto };
-
-const DEFAULT_SUITE_OPTIONS = {
-	only: false,
-	skip: false,
-	sequental: false
-};
+export { test, TestDto };
 
 const DEFAULT_TEST_OPTIONS = {
 	only: false,
@@ -28,20 +22,6 @@ class TestDto {
 		this.config = config;
 	}
 }
-
-const suite = Object.freeze({
-	configure: (name, opts) => {
-		if (typeof name === 'object') {
-			if (opts) {
-				throw new Error(`when no name provided only single 'opts' object parameter expected, got second param: ${opts}`);
-			}
-			opts = name;
-			name = undefined;
-		}
-		opts = Object.assign({}, DEFAULT_SUITE_OPTIONS, opts);
-		//	setup the suite's name and options
-	}
-});
 
 async function test(name, code, opts = DEFAULT_TEST_OPTIONS) {
 	const { name: nameF, code: codeF, opts: optsF, error } = validate(name, code, opts);

@@ -2,9 +2,24 @@
 import { assert } from '../../src/common/assert-utils.ts';
 import { waitInterval } from '../../src/common/time-utils.js';
 import { STATUS } from '../../src/common/constants.js';
+import { EXECUTION_MODES, setExecutionContext } from '../../src/runner/environment-config.js';
 
 const isolatedECKey = 'test-runner-test-api-ec';
 const isoTestConf = { ecKey: isolatedECKey };
+
+//	PLAN mode
+//
+test('PLAN mode - registers testConfig with defaults', () => {
+	const planECKey = 'test-runner-test-api-plan-ec';
+	const ec = setExecutionContext(EXECUTION_MODES.PLAN, null, null, null, planECKey);
+	test('name', () => { }, { ecKey: planECKey });
+
+	assert.isTrue(ec instanceof Object && Array.isArray(ec.testConfigs));
+	assert.deepEqual(ec.testConfigs[0], {
+		name: 'name',
+		config: { only: false, skip: false, timeout: 3000, ecKey: planECKey }
+	});
+});
 
 //	sync
 //
