@@ -7,6 +7,7 @@ import { xUnitReporter } from './testing/testing-service.js';
 import { collectTargetSources, lcovReporter } from './coverage/coverage-service.js';
 import { buildJTFileCov } from './coverage/model/model-utils.js';
 import { normalizeCoverageUrl } from './coverage/model/url-utils.js';
+import { getTestId } from './common/interop-utils.js';
 import { Session } from './testing/model/session.ts';
 
 go();
@@ -95,11 +96,11 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 
 	//	coverage report
 	const testCoverages = sessionResult.suites
-		.flatMap(s => s.tests)
-		.map(t => {
+		.flatMap(s => s.tests.map(t => ({ suiteName: s.name, test: t })))
+		.map(({ suiteName, test: t }) => {
 			return t && t.lastRun && t.lastRun.coverage
 				? {
-					testId: t.name,
+					testId: getTestId(suiteName, t.name),
 					coverage: t.lastRun.coverage
 				}
 				: null;
