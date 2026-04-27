@@ -6,6 +6,7 @@
  */
 import Logger from '../logger/logger.js';
 import { getRandom } from '../../common/random-utils.js';
+import { getTestId } from '../../common/interop-utils.js';
 import buildConfig from './sessions-configurer.js';
 import { launch, dismiss } from '../environments/environments-service.js';
 
@@ -31,7 +32,11 @@ async function addSession(sessionConfig) {
 	sessions[sessionId] = Object.seal({
 		id: sessionId,
 		config: effectiveConfig,
-		result: null
+		result: null,
+		//	`resultReady` flips to true only after storeResult finishes attaching
+		//	side-channel artifacts (coverage). the result endpoint must hide the
+		//	result until then, otherwise callers poll and resolve too early
+		resultReady: false
 	});
 	logger.info(`session created; id '${sessionId}'`);
 
@@ -86,7 +91,16 @@ async function storeResult(sesId, envId, envResult) {
 	if (artifacts?.coverage) {
 		attachCoverageArtifacts(envResult, artifacts.coverage);
 	}
+	//	mark result as fully assembled so the /result endpoint may publish it
+	session.resultReady = true;
 }
+
+//	coverage artifacts arrive keyed by `getTestId(suite, test)` for per-test
+//	coverage, and by the sentinel `__session__` for session-global coverage
+//	(main page / iframe / worker hosts where 1:1 test-to-page mapping does
+//	not exist). per-test values land on `test.lastRun.coverage`; the session
+//	value lands on `envResult.coverage` and is consumed by the reporter.
+const SESSION_COVERAGE_ID = '__session__';
 
 function attachCoverageArtifacts(envResult, coverageByTestId) {
 	if (!envResult || !Array.isArray(envResult.suites)) {
@@ -95,15 +109,19 @@ function attachCoverageArtifacts(envResult, coverageByTestId) {
 	const testsById = new Map();
 	for (const suite of envResult.suites) {
 		for (const t of suite.tests ?? []) {
-			testsById.set(t.id, t);
+			testsById.set(getTestId(suite.name, t.name), t);
 		}
 	}
 	for (const [testId, coverage] of coverageByTestId instanceof Map
 		? coverageByTestId.entries()
 		: Object.entries(coverageByTestId)) {
+		if (testId === SESSION_COVERAGE_ID) {
+			envResult.coverage = coverage;
+			continue;
+		}
 		const t = testsById.get(testId);
 		if (!t) {
-			logger.warn(`coverage artifact for unknown test id '${testId}', dropping`);
+			logger.warn(`coverage artifact for unknown test '${testId}', dropping`);
 			continue;
 		}
 		if (!t.lastRun) {

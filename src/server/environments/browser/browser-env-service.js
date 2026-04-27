@@ -14,11 +14,14 @@ import { config as serverConfig } from '../../server-service.ts';
 import { collectTargetSources, v8toJustTest } from '../../../coverage/coverage-service.js';
 import { EnvironmentBase } from '../environment-base.js';
 import { ENVIRONMENT_KEYS } from '../../../runner/environment-config.js';
+import { normalizeCoverageUrl } from '../../../coverage/model/url-utils.js';
 import playwright from 'playwright';
 
 export default launch;
 
 const logger = new Logger({ context: 'browser env service' });
+
+const SESSION_COVERAGE_ID = '__session__';
 
 class BrowserEnvImpl extends EnvironmentBase {
 	#envConfig;
@@ -26,14 +29,17 @@ class BrowserEnvImpl extends EnvironmentBase {
 	#browser;
 	#browsingContext;
 
-	#coverageData = [];
-
-	// #coverageSession;
-	// #scriptsCoverageMap = {};
+	#coverageTargets = null;
+	//	per-test coverage collected as pages are closed; also holds a
+	//	`SESSION_COVERAGE_ID` bucket for pages without a test-id (main page,
+	//	iframe/worker mode where there is no 1:1 test-to-page mapping)
+	#coverageByTestId = new Map();
+	//	pages still tracked for coverage; drained at dismiss
+	#openCoverPages = new Set();
 
 	/**
 	 * construct browser environment for a specific session
-	 * 
+	 *
 	 * @param {string} sessionId session ID
 	 * @param {object} envConfig environment setup
 	 */
@@ -104,7 +110,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 	async #setupPage(page, pageLogger) {
 		const self = this;
 		if (this.#envConfig.coverage) {
-			await this.#initCoverage(this.#envConfig.coverage, page);
+			await this.#initCoverage(page);
 		}
 		page.on('console', async msg => {
 			const type = msg.type();
@@ -130,17 +136,70 @@ class BrowserEnvImpl extends EnvironmentBase {
 		this.dispatchEvent(new CustomEvent('error', { detail: { error } }));
 	}
 
-	async #initCoverage(coverageConfig, page) {
-		const coverageTargets = await collectTargetSources(coverageConfig);
-		if (!coverageTargets || !coverageTargets.length) {
+	async #initCoverage(page) {
+		if (!this.#coverageTargets) {
+			this.#coverageTargets = await collectTargetSources(this.#envConfig.coverage) ?? [];
+		}
+		if (!this.#coverageTargets.length) {
 			logger.info('no coverage targets found, skipping coverage collection');
+			return;
+		}
+		await page.coverage.startJSCoverage();
+		this.#openCoverPages.add(page);
+		//	test id is captured at close time from the final URL: pages spawned
+		//	by the session-box for a specific test carry the TEST_ID search
+		//	param; pages without it (main page, iframe/worker host) contribute
+		//	to the session-global bucket
+		let lastKnownUrl = page.url();
+		page.on('framenavigated', frame => {
+			if (frame === page.mainFrame()) {
+				lastKnownUrl = frame.url();
+			}
+		});
+		page.on('close', async () => {
+			if (!this.#openCoverPages.has(page)) {
+				return;
+			}
+			this.#openCoverPages.delete(page);
+			const testId = this.#extractTestId(lastKnownUrl) ?? SESSION_COVERAGE_ID;
+			try {
+				const fileCovs = await this.#stopAndConvert(page);
+				if (fileCovs.length) {
+					this.#appendCoverage(testId, fileCovs);
+				}
+			} catch (e) {
+				logger.warn(`failed to collect coverage on page close for '${testId}': ${e?.message ?? e}`);
+			}
+		});
+		logger.info(`started coverage collection for ${this.#coverageTargets.length} targets`);
+	}
+
+	#extractTestId(url) {
+		try {
+			const sp = new URL(url).searchParams;
+			return sp.get(ENVIRONMENT_KEYS.TEST_ID);
+		} catch {
+			return null;
+		}
+	}
+
+	async #stopAndConvert(page) {
+		const jsCoverage = await page.coverage.stopJSCoverage();
+		const filtered = jsCoverage
+			.filter(entry => this.#coverageTargets.some(t => entry.url.endsWith(t)))
+			.map(entry => ({
+				url: normalizeCoverageUrl(entry.url.replace(`${serverConfig.origin}/static/`, './')),
+				functions: entry.functions
+			}));
+		return filtered.length ? await v8toJustTest(filtered) : [];
+	}
+
+	#appendCoverage(testId, fileCovs) {
+		const existing = this.#coverageByTestId.get(testId);
+		if (existing) {
+			existing.push(...fileCovs);
 		} else {
-			this.#coverageData.push({
-				page,
-				targets: coverageTargets
-			});
-			await page.coverage.startJSCoverage();
-			logger.info(`started coverage collection for ${coverageTargets.length} targets`);
+			this.#coverageByTestId.set(testId, fileCovs);
 		}
 	}
 
@@ -151,29 +210,26 @@ class BrowserEnvImpl extends EnvironmentBase {
 	}
 
 	async #collectArtifacts() {
-		const [coverage] = await Promise.all([
-			this.#collectCoverage()
-		]);
-		return { coverage };
+		await this.#drainOpenCoverPages();
+		return { coverage: this.#coverageByTestId };
 	}
 
-	async #collectCoverage() {
-		const result = [];
-		for (const pageCovBucket of this.#coverageData) {
-			const page = pageCovBucket.page;
-			delete pageCovBucket.page;
-			const jsCoverage = await page.coverage.stopJSCoverage();
-			result.push(...jsCoverage
-				.filter(entry => pageCovBucket.targets.some(t => entry.url.endsWith(t)))
-				.map(entry => {
-					return {
-						url: entry.url.replace(`${serverConfig.origin}/static/`, './'),
-						functions: entry.functions
-					};
-				})
-			);
+	async #drainOpenCoverPages() {
+		//	pages that are still open at dismiss (typically the main
+		//	session-box page, and any iframe/worker host) are flushed here
+		const pending = [...this.#openCoverPages];
+		this.#openCoverPages.clear();
+		for (const page of pending) {
+			const testId = this.#extractTestId(page.url()) ?? SESSION_COVERAGE_ID;
+			try {
+				const fileCovs = await this.#stopAndConvert(page);
+				if (fileCovs.length) {
+					this.#appendCoverage(testId, fileCovs);
+				}
+			} catch (e) {
+				logger.warn(`failed to flush coverage at dismiss for '${testId}': ${e?.message ?? e}`);
+			}
 		}
-		return await v8toJustTest(result);
 	}
 }
 

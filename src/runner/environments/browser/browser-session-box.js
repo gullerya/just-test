@@ -10,6 +10,7 @@ import SimpleStateService from '../../simple-state-service.ts';
 import { runSession } from '../../session-service.ts';
 import { ENVIRONMENT_KEYS, EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
 import { EVENT, STATUS } from '../../../common/constants.js';
+import { getTestId } from '../../../common/interop-utils.js';
 import { TestError } from '../../../testing/model/test-error.ts';
 
 (async () => {
@@ -116,12 +117,15 @@ function getIFrameExecutorFactory(metadata, stateService) {
 function getPageExecutor(metadata, stateService) {
 	console.info('preparing Page executors factory');
 
-	const executorUrl = new URL('./browser-test-box.html', import.meta.url);
-	executorUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, metadata.sessionId);
-	executorUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, metadata.id);
+	const baseExecutorUrl = new URL('./browser-test-box.html', import.meta.url);
+	baseExecutorUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, metadata.sessionId);
+	baseExecutorUrl.searchParams.append(ENVIRONMENT_KEYS.ENVIRONMENT_ID, metadata.id);
 
 	return (test, suiteName) => {
 		//	TODO: this should be resource pooled
+		//	per-test URL lets the server-side browser env key coverage by test
+		const executorUrl = new URL(baseExecutorUrl);
+		executorUrl.searchParams.append(ENVIRONMENT_KEYS.TEST_ID, getTestId(suiteName, test.name));
 		const page = globalThis.open(executorUrl);
 
 		return new Promise(resolve => {
