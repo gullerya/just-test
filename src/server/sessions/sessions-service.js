@@ -80,24 +80,38 @@ async function storeResult(sesId, envId, envResult) {
 	session.result = envResult;
 	logger.info(`environment '${envId}' reported results for session '${sesId}'`);
 
-	// if (artifacts) {
-	// 	if (artifacts.coverage) {
-	// 		for (const [testId, coverage] of Object.entries(artifacts.coverage)) {
-	// 			const [sid] = parseTestId(testId);
-	// 			const suite = envResult.suites.find(s => s.id === sid);
-	// 			const test = suite.tests.find(t => t.id === testId);
-	// 			test.lastRun.coverage = coverage;
+	//	dismiss the environment, then merge any side-channel artifacts
+	//	(e.g. per-test coverage collected by Playwright) back into envResult
+	const artifacts = await dismiss(envId);
+	if (artifacts?.coverage) {
+		attachCoverageArtifacts(envResult, artifacts.coverage);
+	}
+}
 
-	// 			logger.info(coverage);
-	// 		}
-	// 	}
-	// 	if (artifacts.logs) {
-	// 		//	TBD
-	// 	}
-	// }
-
-	//	we'll not wait for dismissal
-	dismiss(envId);
+function attachCoverageArtifacts(envResult, coverageByTestId) {
+	if (!envResult || !Array.isArray(envResult.suites)) {
+		return;
+	}
+	const testsById = new Map();
+	for (const suite of envResult.suites) {
+		for (const t of suite.tests ?? []) {
+			testsById.set(t.id, t);
+		}
+	}
+	for (const [testId, coverage] of coverageByTestId instanceof Map
+		? coverageByTestId.entries()
+		: Object.entries(coverageByTestId)) {
+		const t = testsById.get(testId);
+		if (!t) {
+			logger.warn(`coverage artifact for unknown test id '${testId}', dropping`);
+			continue;
+		}
+		if (!t.lastRun) {
+			logger.warn(`test '${testId}' has no lastRun, cannot attach coverage`);
+			continue;
+		}
+		t.lastRun.coverage = coverage;
+	}
 }
 
 async function finalizeSession(sessionId) {
