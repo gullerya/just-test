@@ -8,7 +8,8 @@
 import * as serverAPI from '../../server-api-service.js';
 import SimpleStateService from '../../simple-state-service.ts';
 import { runSession } from '../../session-service.ts';
-import { ENVIRONMENT_KEYS, EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
+import { planSession } from '../../session-planner.ts';
+import { ENVIRONMENT_KEYS } from '../../environment-config.js';
 import { EVENT, STATUS } from '../../../common/constants.js';
 import { getTestId } from '../../../common/interop-utils.js';
 import { TestError } from '../../../testing/model/test-error.ts';
@@ -22,7 +23,7 @@ import { TestError } from '../../../testing/model/test-error.ts';
 		stateService.session.environmentId = metadata.id;
 
 		console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
-		await planSession(metadata.testPaths, stateService);
+		await planSession(metadata.testPaths, stateService, src => `/static/${src}`);
 
 		let testExecutor;
 		const executorType = metadata.browser.executors?.type ?? 'iframe';
@@ -84,35 +85,6 @@ function collapseToSessionCoverage(session) {
 	if (merged.length) {
 		session.coverage = merged;
 	}
-}
-
-async function planSession(testsResources, stateService) {
-	const started = globalThis.performance.now();
-
-	console.info(`fetching ${testsResources.length} test resource/s...`);
-	for (const testSource of testsResources) {
-		try {
-			const execContext = setExecutionContext(EXECUTION_MODES.PLAN);
-			execContext.suiteName = testSource;
-			await import(`/static/${testSource}`);
-			for (const { name, config } of execContext.testConfigs) {
-				stateService.addTest({
-					name,
-					config,
-					source: testSource,
-					suiteName: execContext.suiteName,
-					runs: []
-				});
-			}
-		} catch (e) {
-			console.error(`failed to process '${testSource}':`);
-			console.error(e);
-			stateService.reportError(TestError.fromError(e));
-		}
-	}
-
-	const ended = globalThis.performance.now();
-	console.info(`... ${testsResources.length} test resource/s fetched (planning phase) in ${(ended - started).toFixed(1)}ms`);
 }
 
 function getIFrameExecutorFactory(metadata, stateService) {
