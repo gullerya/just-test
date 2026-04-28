@@ -6,7 +6,6 @@
  */
 import Logger from '../logger/logger.js';
 import { getRandom } from '../../common/random-utils.js';
-import { getTestId } from '../../common/interop-utils.js';
 import buildConfig from './sessions-configurer.js';
 import { launch, dismiss } from '../environments/environments-service.js';
 
@@ -17,10 +16,17 @@ export {
 	getSession
 };
 
-const logger = new Logger({ context: 'sessions' });
-const sessions = {};
+type SessionEntry = {
+	id: string;
+	config: any;
+	result: any;
+	resultReady: boolean;
+};
 
-async function addSession(sessionConfig) {
+const logger = new Logger({ context: 'sessions' });
+const sessions: Record<string, SessionEntry> = {};
+
+async function addSession(sessionConfig): Promise<string> {
 	const effectiveConfig = buildConfig(sessionConfig);
 
 	logger.info('session effective config', effectiveConfig);
@@ -33,9 +39,9 @@ async function addSession(sessionConfig) {
 		id: sessionId,
 		config: effectiveConfig,
 		result: null,
-		//	`resultReady` flips to true only after storeResult finishes attaching
-		//	side-channel artifacts (coverage). the result endpoint must hide the
-		//	result until then, otherwise callers poll and resolve too early
+		//	`resultReady` flips to true only after the environment is fully
+		//	dismissed. the /result endpoint hides the result until then so
+		//	polling callers cannot race an in-flight teardown
 		resultReady: false
 	});
 	logger.info(`session created; id '${sessionId}'`);
@@ -52,11 +58,11 @@ async function getSession(sessionId) {
 	return sessions[sessionId] || null;
 }
 
-async function getAll() {
+async function getAll(): Promise<typeof sessions> {
 	return sessions;
 }
 
-async function runSession(sessionId) {
+async function runSession(sessionId: string): Promise<void> {
 	const session = sessions[sessionId];
 	if (!session) {
 		throw new Error(`session with ID '${sessionId}' not exists`);
@@ -76,7 +82,7 @@ async function runSession(sessionId) {
 	logger.info(`... session '${sessionId}' started, waiting finalization...`);
 }
 
-async function storeResult(sesId, envId, envResult) {
+async function storeResult(sesId: string, envId: string, envResult: any): Promise<void> {
 	const session = await getSession(sesId);
 	if (!session) {
 		throw new Error(`session ID '${sesId}' not exists`);
@@ -85,54 +91,14 @@ async function storeResult(sesId, envId, envResult) {
 	session.result = envResult;
 	logger.info(`environment '${envId}' reported results for session '${sesId}'`);
 
-	//	dismiss the environment, then merge any side-channel artifacts
-	//	(e.g. per-test coverage collected by Playwright) back into envResult
-	const artifacts = await dismiss(envId);
-	if (artifacts?.coverage) {
-		attachCoverageArtifacts(envResult, artifacts.coverage);
-	}
-	//	mark result as fully assembled so the /result endpoint may publish it
+	//	the sandbox already attached per-test coverage to each test.lastRun
+	//	via the exposeBinding start/stop bracket, so no side-channel merge
+	//	is needed here. dismiss the environment and publish the result.
+	await dismiss(envId);
 	session.resultReady = true;
 }
 
-//	coverage artifacts arrive keyed by `getTestId(suite, test)` for per-test
-//	coverage, and by the sentinel `__session__` for session-global coverage
-//	(main page / iframe / worker hosts where 1:1 test-to-page mapping does
-//	not exist). per-test values land on `test.lastRun.coverage`; the session
-//	value lands on `envResult.coverage` and is consumed by the reporter.
-const SESSION_COVERAGE_ID = '__session__';
-
-function attachCoverageArtifacts(envResult, coverageByTestId) {
-	if (!envResult || !Array.isArray(envResult.suites)) {
-		return;
-	}
-	const testsById = new Map();
-	for (const suite of envResult.suites) {
-		for (const t of suite.tests ?? []) {
-			testsById.set(getTestId(suite.name, t.name), t);
-		}
-	}
-	for (const [testId, coverage] of coverageByTestId instanceof Map
-		? coverageByTestId.entries()
-		: Object.entries(coverageByTestId)) {
-		if (testId === SESSION_COVERAGE_ID) {
-			envResult.coverage = coverage;
-			continue;
-		}
-		const t = testsById.get(testId);
-		if (!t) {
-			logger.warn(`coverage artifact for unknown test '${testId}', dropping`);
-			continue;
-		}
-		if (!t.lastRun) {
-			logger.warn(`test '${testId}' has no lastRun, cannot attach coverage`);
-			continue;
-		}
-		t.lastRun.coverage = coverage;
-	}
-}
-
-async function finalizeSession(sessionId) {
+async function finalizeSession(sessionId: string): Promise<void> {
 	const session = await getSession(sessionId);
 	if (!session) {
 		throw new Error(`session with ID '${sessionId}' not exists`);

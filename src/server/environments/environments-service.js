@@ -67,10 +67,9 @@ async function launch(session) {
 }
 
 /**
- * dismisses environment and returns the artifacts it produced
+ * dismisses environment and tears down its underlying resources
  *
  * @param {string} envId environment ID to be dismissed
- * @returns {Promise<object|null>} artifacts (e.g. `{ coverage: Map<testId, FileCov[]> }`) or `null`
  */
 async function dismiss(envId) {
 	if (!envId || typeof envId !== 'string') {
@@ -80,13 +79,11 @@ async function dismiss(envId) {
 	const envToDismiss = environments[envId];
 	if (envToDismiss) {
 		logger.info(`dismissing environment '${envId}'...`);
-		const artifacts = await envToDismiss.dismiss();
+		await envToDismiss.dismiss();
 		delete environments[envId];
 		logger.warn(`... environment '${envId}' dismissed`);
-		return artifacts ?? null;
 	} else {
 		logger.warn(`environment '${envId}' was not found, nothing to dismiss`);
-		return null;
 	}
 }
 

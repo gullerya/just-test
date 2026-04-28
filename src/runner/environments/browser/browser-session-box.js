@@ -25,7 +25,8 @@ import { TestError } from '../../../testing/model/test-error.ts';
 		await planSession(metadata.testPaths, stateService);
 
 		let testExecutor;
-		switch (metadata.browser.executors?.type) {
+		const executorType = metadata.browser.executors?.type ?? 'iframe';
+		switch (executorType) {
 			case 'worker':
 				testExecutor = getWorkerExecutorFactory(metadata, stateService);
 				break;
@@ -37,6 +38,16 @@ import { TestError } from '../../../testing/model/test-error.ts';
 				testExecutor = getIFrameExecutorFactory(metadata, stateService);
 		}
 		await runSession(stateService, testExecutor);
+
+		//	iframe tests share one V8 with the host page, so per-test
+		//	coverage attribution is nominal — the last-to-finish test
+		//	received the aggregated bracket. collapse those into a
+		//	session-global field so the backend can emit an honest
+		//	`__session__` lcov record. worker mode produces no coverage;
+		//	page mode has real per-test attribution and is left alone.
+		if (metadata.coverage && executorType !== 'page') {
+			collapseToSessionCoverage(stateService.session);
+		}
 	} catch (e) {
 		stateService.reportError(TestError.fromError(e));
 		console.error(e);
@@ -58,6 +69,21 @@ function getEnvironmentConfig() {
 		envId: sp.get(ENVIRONMENT_KEYS.ENVIRONMENT_ID),
 		serverOrigin: globalThis.location.origin
 	};
+}
+
+function collapseToSessionCoverage(session) {
+	const merged = [];
+	for (const suite of session.suites) {
+		for (const t of suite.tests) {
+			if (t.lastRun?.coverage?.length) {
+				merged.push(...t.lastRun.coverage);
+				t.lastRun.coverage = null;
+			}
+		}
+	}
+	if (merged.length) {
+		session.coverage = merged;
+	}
 }
 
 async function planSession(testsResources, stateService) {

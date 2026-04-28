@@ -107,8 +107,9 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 		})
 		.filter(Boolean);
 
-	//	session-global coverage (main page / iframe / worker hosts): emitted
-	//	as a synthetic `__session__` lcov record alongside per-test records
+	//	iframe/worker modes can't attribute coverage per-test, so the
+	//	session-box collapses it onto `session.coverage`; emit it as a
+	//	synthetic `__session__` lcov record
 	const sessionCoverage = (sessionResult as any).coverage;
 	if (Array.isArray(sessionCoverage) && sessionCoverage.length) {
 		testCoverages.push({ testId: '__session__', coverage: sessionCoverage });

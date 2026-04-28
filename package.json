@@ -49,6 +49,7 @@
 		"test:dev": "npm run build && node ./bin/local-runner.js config_file=./tests/_configs/tests-config-dev.ts",
 		"test:ci:chromium": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-chromium.ts",
 		"test:ci:chromium:page": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-chromium-page.ts",
+		"test:ci:chromium:worker": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-chromium-worker.ts",
 		"test:ci:firefox": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-firefox.ts",
 		"test:ci:webkit": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-webkit.ts",
 		"test:ci:nodejs": "node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-nodejs.ts"
