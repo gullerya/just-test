@@ -49,7 +49,6 @@ function report(results) {
 				if (lastRun.status === STATUS.FAIL) {
 					suiteFailures++;
 					const fEl = rDoc.createElement('failure');
-					console.log(lastRun.error);
 					if (lastRun.error) {
 						fEl.setAttribute('type', lastRun.error.type);
 						fEl.setAttribute('message', lastRun.error.message);
