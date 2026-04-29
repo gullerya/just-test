@@ -68,6 +68,13 @@ class Assert {
 				throw new AssertionError(message, actual, expected, 'deepEqual');
 			}
 		}
+		for (const key in actual) {
+			if (typeof actual[key] === 'object' && typeof expected[key] === 'object') {
+				this.deepEqual(actual[key], expected[key], message);
+			} else if (actual[key] != expected[key]) {
+				throw new AssertionError(message, actual, expected, 'deepEqual');
+			}
+		}
 	}
 	// notDeepEqual(actual, expected, message) {
 	// 	if (!expected || !actual) {

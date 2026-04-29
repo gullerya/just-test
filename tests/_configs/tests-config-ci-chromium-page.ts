@@ -19,6 +19,8 @@ const config = {
 				],
 				exclude: [
 					'**/_configs/**',
+					//	Fixtures consumed by session-planner-test
+					'**/tests/runner/_planner-fixtures/**',
 					//	Worker-only: relative-path imports, covered by the
 					//	chromium-worker / firefox configs
 					'**/tests/_worker/**',
@@ -26,7 +28,12 @@ const config = {
 					'**/tests/coverage/reporters/**',
 					'**/tests/coverage/coverage-service-test.ts',
 					'**/tests/coverage/coverage-configurer-test.ts',
-					'**/tests/server/**'
+					'**/tests/server/**',
+					//	Flaky under chromium + page-per-test: spawning ~200
+					//	popups alongside nested `import()` calls races in
+					//	Chromium (passes in iframe-chromium, firefox-page,
+					//	webkit-iframe, nodejs). Exercised by those configs.
+					'**/tests/runner/session-planner-test.ts'
 				]
 			},
 			coverage: {

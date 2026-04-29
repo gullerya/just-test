@@ -11,6 +11,8 @@ const config = {
 				],
 				exclude: [
 					'**/_configs/**',
+					//	Fixtures consumed by session-planner-test
+					'**/tests/runner/_planner-fixtures/**',
 					//	Worker-only: browser smoke test, covered by the
 					//	chromium-worker / firefox configs
 					'**/tests/_worker/**'

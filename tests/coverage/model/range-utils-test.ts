@@ -248,3 +248,83 @@ test('FileCov.addFunctionCov - appends and returns self', () => {
 	assert.strictEqual(self, fc);
 	assert.strictEqual(fc.functions.length, 1);
 });
+
+test('BaseRange.validate - rejects primitives', () => {
+	assert.throws(() => BaseRange.validate(42 as any), 'invalid range parameter');
+	assert.throws(() => BaseRange.validate('x' as any), 'invalid range parameter');
+});
+
+test('BaseRange.validate - rejects wrong beg/end types individually', () => {
+	assert.throws(() => BaseRange.validate({ beg: 'x', end: 5 } as any), 'invalid range parameter');
+	assert.throws(() => BaseRange.validate({ beg: 0, end: 'x' } as any), 'invalid range parameter');
+});
+
+test('BaseRange.validate - accepts multiple valid ranges', () => {
+	assert.doesNotThrow(() => BaseRange.validate(
+		{ beg: 0, end: 1 } as any,
+		{ beg: 2, end: 3 } as any
+	));
+});
+
+test('BaseRange - equal ranges contain each other and are mutually within', () => {
+	const a = new RangeCov(0, 5, 1);
+	const b = new RangeCov(0, 5, 2);
+	assert.isTrue(a.contains(b));
+	assert.isTrue(b.contains(a));
+	assert.isTrue(a.isWithin(b));
+	assert.isTrue(b.isWithin(a));
+});
+
+test('BaseRange - adjacent ranges do not contain each other', () => {
+	const a = new RangeCov(0, 3, 1);
+	const b = new RangeCov(3, 7, 1);
+	assert.isFalse(a.contains(b));
+	assert.isFalse(b.contains(a));
+	assert.isFalse(a.isWithin(b));
+	assert.isFalse(b.isWithin(a));
+});
+
+test('BaseRange - positional predicates reject invalid inputs', () => {
+	const r = new RangeCov(0, 5, 0);
+	assert.throws(() => r.isAfterNonAdjacent(null as any), 'invalid range parameter');
+	assert.throws(() => r.isBeforeNonAdjacent(null as any), 'invalid range parameter');
+	assert.throws(() => r.isWithin({} as any), 'invalid range parameter');
+	assert.throws(() => r.contains('x' as any), 'invalid range parameter');
+});
+
+test('RangeCov - negative (hits not a number)', () => {
+	assert.throws(() => new RangeCov(0, 5, 'x' as any), 'hits MUST be a non-negative number');
+});
+
+test('RangeCov - negative (hits is negative)', () => {
+	assert.throws(() => new RangeCov(0, 5, -1), 'hits MUST be a non-negative number');
+});
+
+test('LineCov - constructs with valid inputs and inherits range methods', () => {
+	const l = new LineCov(3, 10, 20);
+	assert.strictEqual(l.number, 3);
+	assert.strictEqual(l.beg, 10);
+	assert.strictEqual(l.end, 20);
+	assert.isTrue(l.includes(15));
+});
+
+test('FileCov - negative (empty string url)', () => {
+	assert.throws(() => new FileCov(''), 'url MUST be a non-empty string');
+});
+
+test('FileCov - is frozen, structural fields cannot be reassigned', () => {
+	const fc = new FileCov('src/x.ts');
+	assert.throws(() => { (fc as any).url = 'other'; });
+	//	array contents are still mutable — Object.freeze is shallow
+	fc.lines.push(new LineCov(0, 0, 1));
+	assert.strictEqual(fc.lines.length, 1);
+});
+
+test('FileCov.addRangeCov - smaller range inside larger with same hits collapses', () => {
+	const fc = new FileCov('src/x.ts');
+	fc.addRangeCov(new RangeCov(3, 6, 1));
+	fc.addRangeCov(new RangeCov(0, 10, 1));
+	//	new range contains the existing one — merge path via `.contains(tr)`
+	assert.strictEqual(fc.ranges.length, 1);
+	assert.deepEqual(fc.ranges[0], { beg: 0, end: 10, hits: 1 });
+});

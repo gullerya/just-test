@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -	Error-path `dismiss()` and `finalizeSession()` calls inside event
 	listeners are now `.catch`-guarded so promise rejections are logged
 	instead of becoming unhandled rejections.
+-	`assert.deepEqual` now compares symmetrically — extra keys on
+	`actual` that aren't in `expected` are flagged (previously the
+	check only iterated `expected`'s keys, so `{a:1,b:2}` was
+	considered "deep-equal" to `{a:1}`). Matches `deepStrictEqual`'s
+	behavior.
 
 ###	Changed
 

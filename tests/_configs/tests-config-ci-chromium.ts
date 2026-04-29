@@ -16,6 +16,8 @@ const config = {
 				],
 				exclude: [
 					'**/_configs/**',
+					//	Fixtures consumed by session-planner-test
+					'**/tests/runner/_planner-fixtures/**',
 					//	Worker-only: relative-path imports, covered by the
 					//	chromium-worker / firefox configs
 					'**/tests/_worker/**',
