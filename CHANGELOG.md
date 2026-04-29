@@ -7,8 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##	[Unreleased]
 
+###	Fixed
+
+-	`normalizeCoverageUrl` now throws `TypeError` on empty / non-string input
+	instead of silently passing it through, so coverage match-set equality
+	can no longer be poisoned by an empty key.
+-	`finalizeSession` now publishes a proper `Session`-shape failure object
+	(and flips `resultReady`) when no environment reports a result, instead
+	of assigning the string `'failure'` and leaving `/result` stuck at 204.
+-	`local-runner`'s `waitSessionEnd` has a 30-minute hard timeout and
+	propagates fetch errors via `reject`, closing the CI-hang path where a
+	crashed env would loop forever.
+-	Error-path `dismiss()` and `finalizeSession()` calls inside event
+	listeners are now `.catch`-guarded so promise rejections are logged
+	instead of becoming unhandled rejections.
+
 ###	Changed
 
+-	REST access consolidated into a typed `OrchestratorClient` SDK at
+	`src/server/orchestrator-client.ts`, consumed from both Node (local-runner,
+	nodejs-session-box) and browser (browser-session-box, interactive UI).
+	`src/runner/server-api-service.ts` and the local-runner's inline
+	`sendAddSession` / fetch-in-`waitSessionEnd` are gone; the polling
+	loop stayed in `local-runner` where the timeout policy belongs.
+-	Wire shapes (`SessionCreateResponse`, `EnvironmentMetadata`) moved to
+	`src/server/api-contracts.ts` — the server owns them, the SDK
+	re-exports. The `environments/:id/config` + `test-file-paths` endpoint
+	pair collapsed into a single `environments/:id/metadata` endpoint
+	that returns the full stitched shape, so the SDK no longer stitches
+	on the client side.
 -	Source tree migrated from `.js` to `.ts`; dead `src/configurer.js`
 	removed.
 -	Shared `src/runner/session-planner.ts` extracted and reused by both

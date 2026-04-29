@@ -5,7 +5,7 @@
  * - manages tests execution: frames/workers, lifecycle reporting
  */
 
-import * as serverAPI from '../../server-api-service.ts';
+import { OrchestratorClient } from '../../../server/orchestrator-client.ts';
 import SimpleStateService from '../../simple-state-service.ts';
 import { runSession } from '../../session-service.ts';
 import { planSession } from '../../session-planner.ts';
@@ -16,9 +16,10 @@ import { TestError } from '../../../testing/model/test-error.ts';
 
 (async () => {
 	const { sesId, envId, serverOrigin } = await getEnvironmentConfig();
+	const client = new OrchestratorClient(serverOrigin);
 	const stateService = new SimpleStateService();
 	try {
-		const metadata = await serverAPI.getSessionMetadata(sesId, envId, serverOrigin);
+		const metadata = await client.getEnvironmentMetadata(sesId, envId);
 		stateService.session.sessionId = metadata.sessionId;
 		stateService.session.environmentId = metadata.id;
 
@@ -56,7 +57,7 @@ import { TestError } from '../../../testing/model/test-error.ts';
 	} finally {
 		console.info(`reporting '${envId}':'${sesId}' results...`);
 		const sessionResult = stateService.session;
-		await serverAPI.reportSessionResult(sesId, envId, serverOrigin, sessionResult);
+		await client.reportEnvironmentResult(sesId, envId, sessionResult);
 		console.info(`session '${envId}':'${sesId}' finalized`);
 	}
 })();

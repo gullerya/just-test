@@ -8,6 +8,7 @@ import Logger from '../logger/logger.ts';
 import { getRandom } from '../../common/random-utils.ts';
 import buildConfig from './sessions-configurer.ts';
 import { launch, dismiss } from '../environments/environments-service.ts';
+import { Session } from '../../testing/model/session.ts';
 
 export {
 	addSession,
@@ -74,8 +75,10 @@ async function runSession(sessionId: string): Promise<void> {
 		sesEnv.addEventListener('dismissed', () => {
 			sesEnvs.splice(sesEnvs.indexOf(sesEnv), 1);
 			if (!sesEnvs.length) {
-				logger.info(`all environments of session ${sessionId} are closed, finalizing session`);
-				finalizeSession(sessionId);
+				logger.info(`all environments of session '${sessionId}' are closed, finalizing session`);
+				finalizeSession(sessionId).catch(err =>
+					logger.error(`finalizeSession failed for session '${sessionId}':`, err)
+				);
 			}
 		});
 	}
@@ -107,7 +110,17 @@ async function finalizeSession(sessionId: string): Promise<void> {
 	//	TODO: calculate session status/result from the envs, or error
 	if (session.result) {
 		return;
-	} else {
-		session.result = 'failure';
 	}
+
+	//	no env ever posted a result (env crashed / dismissed before reporting).
+	//	publish a Session-shape failure so /result responds and local-runner's
+	//	`sessionResult.summary.success` path doesn't explode
+	const failure = new Session();
+	failure.sessionId = sessionId;
+	failure.errors.push(Object.assign(
+		new Error(`session '${sessionId}' finalized with no environment result`),
+		{ type: 'session-finalize' }
+	));
+	session.result = failure;
+	session.resultReady = true;
 }

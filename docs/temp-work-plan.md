@@ -6,16 +6,8 @@ Items are tiered by impact. Tick off as they ship; add/remove as reality changes
 
 ---
 
-## Tier 1 — shipping-quality issues
-
-- [ ] **1.1 `normalizeCoverageUrl` silently passes empty input through.** `local-runner.ts:125` equality relies on it being total. Add a non-empty guard or make the function throw on falsy input.
-- [ ] **1.2 CI hang risk: `waitSessionEnd` has no timeout.** `local-runner.ts:186` `TODO: add global timeout`. If the env errors before posting a result, `session.resultReady` never flips and the poll loops forever. Make env-error path also mark `resultReady = true` with a failure result.
-- [ ] **1.3 `finalizeSession` returns a string, not a Session.** `sessions-service.ts:104` sets `session.result = 'failure'`. Downstream `sessionResult.summary.success` explodes. Must be a proper `Session`-shape failure object.
-- [ ] **1.4 Error-path `dismiss()` is fire-and-forget.** `environments-service.js:56-60` and `sessions-service.ts:67-74` dispatch async work in event listeners without awaiting — unhandled rejections possible.
-
 ## Tier 2 — architectural simplification
 
-- [ ] **2.1 Unify the REST client as an SDK.** `runner/server-api-service.js` has half; `local-runner.ts` inlines the other half (`sendAddSession`, `waitSessionEnd`). Consolidate into one typed `src/server/client.ts`. Matches SDK-driven principle.
 - [ ] **2.2 Route matcher in `api-request-handler.ts`.** Three handlers, three shapes of `split('/').slice(2)`. Extract a declarative `/sessions/:sesId/environments/:envId/:action` matcher.
 - [ ] **2.4 `coverage` config is sent verbatim only to be tested as boolean.** Send `coverageEnabled: boolean` in the sandbox metadata instead of the whole config.
 - [ ] **2.5 Rename `SimpleStateService` — the `Simple` prefix lies.** Only state service; drop the prefix.
@@ -32,5 +24,6 @@ Items are tiered by impact. Tick off as they ship; add/remove as reality changes
 
 ## Suggested next step (if resuming cold)
 
-1. **1.3 + 1.2** together — correctness bugs, CI-hang risk, both touch `sessions-service` + `local-runner`, one cohesive PR.
-2. **1.1 + 1.4** — remaining Tier 1 correctness items.
+1. **3.4** — lock the per-mode coverage invariants before any more refactors touch that area.
+2. **2.5** — trivial rename, good warm-up.
+3. **2.1** — larger SDK consolidation; schedule after 3.4.

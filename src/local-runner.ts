@@ -9,10 +9,12 @@ import { buildJTFileCov } from './coverage/model/model-utils.ts';
 import { normalizeCoverageUrl } from './coverage/model/url-utils.ts';
 import { getTestId } from './common/interop-utils.ts';
 import { Session } from './testing/model/session.ts';
+import { OrchestratorClient } from './server/orchestrator-client.ts';
 
 go();
 
 const SESSION_STATUS_POLL_INTERVAL = 137;
+const SESSION_WAIT_TIMEOUT_MS = 30 * 60 * 1000;
 
 async function go() {
 	const startTime = globalThis.performance.now();
@@ -87,8 +89,9 @@ function parseCLArgs(args): Record<string, string> {
 
 async function executeSession(serverBaseUrl, clArguments: Record<string, string>) {
 	const config: any = await readConfigAndMergeWithCLArguments(clArguments);
-	const sessionDetails = await sendAddSession(serverBaseUrl, config);
-	const sessionResult: Session & { summary: any } = (await waitSessionEnd(serverBaseUrl, sessionDetails)) as any;
+	const client = new OrchestratorClient(serverBaseUrl);
+	const { sessionId } = await client.createSession(config);
+	const sessionResult: Session & { summary: any } = (await waitSessionEnd(client, sessionId)) as any;
 
 	//	test report
 	const reportText = xUnitReporter.report(sessionResult);
@@ -164,39 +167,22 @@ async function readConfigAndMergeWithCLArguments(clArguments: Record<string, str
 	return config.default;
 }
 
-async function sendAddSession(serverBaseUrl: string, config: object) {
-	const addSessionUrl = `${serverBaseUrl}/api/v1/sessions`;
-	const options = {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(config)
-	};
+async function waitSessionEnd(client: OrchestratorClient, sessionId: string): Promise<Session> {
+	const deadline = Date.now() + SESSION_WAIT_TIMEOUT_MS;
 
-	const response = await fetch(addSessionUrl, options);
-	if (response.status !== 201) {
-		throw new Error(`failed to create session; status: ${response.status}, message: ${response.statusText}`);
-	} else {
-		return await response.json();
-	}
-}
-
-async function waitSessionEnd(serverBaseUrl: string, sessionDetails: object): Promise<Session> {
-	const sessionResultUrl = `${serverBaseUrl}/api/v1/sessions/${(sessionDetails as Session).sessionId}/result`;
-
-	//	TODO: add global timeout
-	return new Promise(resolve => {
+	return new Promise((resolve, reject) => {
 		const p = async () => {
-			const response = await fetch(sessionResultUrl);
-			if (response.status === 200) {
-				resolve(await response.json());
-			} else if (response.status === 204) {
-				setTimeout(p, SESSION_STATUS_POLL_INTERVAL);
+			if (Date.now() > deadline) {
+				reject(new Error(`session '${sessionId}' result poll timed out after ${SESSION_WAIT_TIMEOUT_MS}ms`));
+				return;
+			}
+			const poll = await client.pollSessionResult(sessionId);
+			if (poll.ready) {
+				resolve(poll.result);
 			} else {
-				throw new Error(`failed to obtain session status; status: ${response.status}, message: ${response.statusText}`);
+				setTimeout(() => p().catch(reject), SESSION_STATUS_POLL_INTERVAL);
 			}
 		};
-		p();
+		p().catch(reject);
 	});
 }

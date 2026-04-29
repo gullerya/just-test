@@ -4,6 +4,7 @@ import { EXT_TO_MIME_MAP } from '../server-utils.ts';
 import { addSession, storeResult, getAll, getSession } from '../sessions/sessions-service.ts';
 import { collectTestResources } from '../../testing/testing-service.ts';
 import { IncomingMessage, ServerResponse } from 'node:http';
+import type { EnvironmentMetadata, SessionCreateResponse } from '../api-contracts.ts';
 
 export default class APIRequestHandler extends RequestHandlerBase {
 	#config;
@@ -57,10 +58,9 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		});
 
 		const sessionId = await addSession(sessionConfig);
+		const response: SessionCreateResponse = { sessionId };
 		res.writeHead(201, { 'Content-Type': EXT_TO_MIME_MAP.json })
-			.end(JSON.stringify({
-				sessionId: sessionId
-			}));
+			.end(JSON.stringify(response));
 	}
 
 	async #storeResult(handlerRelativePath: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -143,8 +143,7 @@ export default class APIRequestHandler extends RequestHandlerBase {
 		}
 	}
 
-	async #getEnvironmentData(session, envId: string, args: string[]): Promise<string[] | object | null> {
-		let result = null;
+	async #getEnvironmentData(session, envId: string, args: string[]): Promise<EnvironmentMetadata | { id: string } | null> {
 		const env = session.config.environments[envId];
 
 		if (envId === 'interactive') {
@@ -153,18 +152,24 @@ export default class APIRequestHandler extends RequestHandlerBase {
 					return { id: (e as any).id };
 				}
 			}
+			return null;
 		}
 
-		if (env) {
-			if (args[0] === 'config') {
-				result = env;
-			} else if (args[0] === 'test-file-paths') {
-				result = await collectTestResources(
-					env.tests.include,
-					env.tests.exclude
-				);
-			}
+		if (!env || args[0] !== 'metadata') {
+			return null;
 		}
-		return result;
+
+		const testPaths = await collectTestResources(env.tests.include, env.tests.exclude);
+		const metadata: EnvironmentMetadata = {
+			id: envId,
+			sessionId: session.id,
+			testPaths,
+			browser: env.browser,
+			node: env.node,
+			interactive: env.interactive,
+			tests: env.tests,
+			coverage: env.coverage
+		};
+		return metadata;
 	}
 }

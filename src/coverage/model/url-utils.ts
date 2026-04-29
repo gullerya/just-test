@@ -19,7 +19,7 @@ export {
 
 function normalizeCoverageUrl(url) {
 	if (typeof url !== 'string' || url.length === 0) {
-		return url;
+		throw new TypeError(`url MUST be a non-empty string, got '${url}'`);
 	}
 
 	//	strip query and hash

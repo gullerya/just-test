@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { initComponent, ComponentBase } from 'rich-component';
 import stateService from '../../interactive-state-service.ts';
-import * as serverAPI from '/core/runner/server-api-service.js';
+import { OrchestratorClient } from '/core/server/orchestrator-client.js';
 
 const TEMPLATE = document.createElement('template');
 TEMPLATE.innerHTML = `
@@ -37,7 +37,8 @@ initComponent('jt-header', class extends ComponentBase {
 		this.shadowRoot.querySelector('.close').addEventListener('click', async () => {
 			console.log('finalize session');
 			const state = stateService.getAll();
-			await serverAPI.reportSessionResult(state.sessionId, state.environmentId, location.origin, state);
+			const client = new OrchestratorClient(location.origin);
+			await client.reportEnvironmentResult(state.sessionId, state.environmentId, state);
 			setTimeout(() => window.location.reload(), 4000);
 		});
 	}
