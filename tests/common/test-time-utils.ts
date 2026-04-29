@@ -1,6 +1,6 @@
-﻿import { test } from '../../src/runner/just-test.js';
+﻿import { test } from '../../src/runner/just-test.ts';
 import { assert } from '../../src/common/assert-utils.ts';
-import { waitInterval, waitNextTask } from '../../src/common/time-utils.js';
+import { waitInterval, waitNextTask } from '../../src/common/time-utils.ts';
 
 test('waitInterval', async () => {
 	const startTime = performance.now();

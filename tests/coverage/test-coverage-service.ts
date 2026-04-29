@@ -1,6 +1,6 @@
-import { test } from '../../src/runner/just-test.js';
+import { test } from '../../src/runner/just-test.ts';
 import { assert } from '../../src/common/assert-utils.ts';
-import { collectTargetSources } from '../../src/coverage/coverage-service.js';
+import { collectTargetSources } from '../../src/coverage/coverage-service.ts';
 
 test('collect sources - empty or null input', async () => {
 	let ts = await collectTargetSources();

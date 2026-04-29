@@ -1,4 +1,4 @@
-import { test } from '../../../src/runner/just-test.js';
+import { test } from '../../../src/runner/just-test.ts';
 import { assert } from '../../../src/common/assert-utils.ts';
 import { Suite } from '../../../src/testing/model/suite.ts';
 

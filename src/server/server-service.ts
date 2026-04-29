@@ -4,8 +4,8 @@
  * - starting the server
  */
 import { IncomingMessage, Server, ServerResponse, STATUS_CODES, createServer } from 'node:http';
-import Logger from './logger/logger.js';
-import { dismissAll } from './environments/environments-service.js';
+import Logger from './logger/logger.ts';
+import { dismissAll } from './environments/environments-service.ts';
 import { RequestHandlerBase } from './handlers/request-handler-base.ts';
 
 export {

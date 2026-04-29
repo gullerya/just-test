@@ -4,9 +4,9 @@ import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import { minimatch } from 'minimatch';
 import { parentPort } from 'node:worker_threads';
-import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.js';
-import { v8toJustTest } from '../../../coverage/coverage-service.js';
-import { EVENT, STATUS } from '../../../common/constants.js';
+import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.ts';
+import { v8toJustTest } from '../../../coverage/coverage-service.ts';
+import { EVENT, STATUS } from '../../../common/constants.ts';
 import { TestError } from '../../../testing/model/test-error.ts';
 import { TestRun } from '../../../testing/model/test-run.ts';
 

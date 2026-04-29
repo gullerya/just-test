@@ -3,11 +3,11 @@ import * as fs from 'node:fs/promises';
 import * as process from 'node:process';
 import * as path from 'node:path';
 import { start, stop } from './server/cli.ts';
-import { xUnitReporter } from './testing/testing-service.js';
-import { collectTargetSources, lcovReporter } from './coverage/coverage-service.js';
-import { buildJTFileCov } from './coverage/model/model-utils.js';
-import { normalizeCoverageUrl } from './coverage/model/url-utils.js';
-import { getTestId } from './common/interop-utils.js';
+import { xUnitReporter } from './testing/testing-service.ts';
+import { collectTargetSources, lcovReporter } from './coverage/coverage-service.ts';
+import { buildJTFileCov } from './coverage/model/model-utils.ts';
+import { normalizeCoverageUrl } from './coverage/model/url-utils.ts';
+import { getTestId } from './common/interop-utils.ts';
 import { Session } from './testing/model/session.ts';
 
 go();

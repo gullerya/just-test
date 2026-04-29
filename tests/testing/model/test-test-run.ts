@@ -1,6 +1,6 @@
-import { test } from '../../../src/runner/just-test.js';
+import { test } from '../../../src/runner/just-test.ts';
 import { assert } from '../../../src/common/assert-utils.ts';
-import { STATUS } from '../../../src/common/constants.js';
+import { STATUS } from '../../../src/common/constants.ts';
 import { TestRun } from '../../../src/testing/model/test-run.ts';
 
 test('TestRun class - basics', () => {

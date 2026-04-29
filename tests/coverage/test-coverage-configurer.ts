@@ -1,6 +1,6 @@
-import { test } from '../../src/runner/just-test.js';
+import { test } from '../../src/runner/just-test.ts';
 import { assert } from '../../src/common/assert-utils.ts';
-import covConf from '../../src/coverage/coverage-configurer.js';
+import covConf from '../../src/coverage/coverage-configurer.ts';
 
 test('coverage config - empty config, empty envs', () => {
 	let cc = covConf();

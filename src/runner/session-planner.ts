@@ -9,7 +9,7 @@
  */
 
 import SimpleStateService from './simple-state-service.ts';
-import { PlanningExecutionContext, EXECUTION_MODES, setExecutionContext } from './environment-config.js';
+import { PlanningExecutionContext, EXECUTION_MODES, setExecutionContext } from './environment-config.ts';
 import { TestError } from '../testing/model/test-error.ts';
 
 export async function planSession(

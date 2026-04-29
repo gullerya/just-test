@@ -1,8 +1,8 @@
-import Logger from '../logger/logger.js';
+import Logger from '../logger/logger.ts';
 import { RequestHandlerBase } from './request-handler-base.ts';
 import { EXT_TO_MIME_MAP } from '../server-utils.ts';
-import { addSession, storeResult, getAll, getSession } from '../sessions/sessions-service.js';
-import { collectTestResources } from '../../testing/testing-service.js';
+import { addSession, storeResult, getAll, getSession } from '../sessions/sessions-service.ts';
+import { collectTestResources } from '../../testing/testing-service.ts';
 import { IncomingMessage, ServerResponse } from 'node:http';
 
 export default class APIRequestHandler extends RequestHandlerBase {

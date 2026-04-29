@@ -28,11 +28,11 @@ Items are tiered by impact. Tick off as they ship; add/remove as reality changes
 - [ ] **3.2 Env-scoped logs lack identity.** `environments-service.js:57` — include env type+id in error logs.
 - [ ] **3.3 `waitInterval(999)` / `waitInterval(100)` dismiss-grace hacks.** Replace with deterministic flush (`networkidle`, or explicit last-message await). CI time savings.
 - [ ] **3.4 No integration test for per-mode coverage semantics.** Add `tests/server/test-coverage-modes.ts` that asserts iframe → 1 `TN:__session__`, page → ≥1 per-test, worker → 0. Prevents silent regression.
-- [ ] **3.5 Delete `src/configurer.js`.** 128 dead lines.
+- [x] **3.5 Delete `src/configurer.js`.** *DONE — 2026-04-28.* Removed as part of 4.1 sweep.
 
 ## Tier 4 — build / TS setup
 
-- [ ] **4.1 Commit to one of `.ts` or `.js` — not hybrid.** The mid-session external rename that broke resolution is a symptom of `rewriteRelativeImportExtensions` + mixed files. Recommendation: convert remaining `.js` under critical paths to `.ts`.
+- [x] **4.1 Commit to one of `.ts` or `.js` — not hybrid.** *DONE — 2026-04-28.* All 48 `src/**/*.js` renamed to `.ts`; `configurer.js` deleted. UI files carry `// @ts-nocheck` because `rich-component` ComponentBase exposes DOM-derived members dynamically and `/core/...` imports resolve at runtime through the core-request-handler. `tsc --noEmit` clean; 4/4 test configs green.
 - [ ] **4.2 Build silently ignores TS diagnostics.** `ci/build.ts` collects `emitResult` but never checks severity. Fail the build if any error-severity diagnostic. 10 lines.
 - [ ] **4.3 Lint scopes to `bin/` — remove.** Eslint configs lint the built output; narrow scope to `src/` + `tests/`. Quiets CI logs.
 

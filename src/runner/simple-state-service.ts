@@ -2,7 +2,7 @@
  * Manages simple session state (nodejs environment or non-UI reflected plain one)
  * - module is stateless, providing only the c~tor to create the service instance
  */
-import { STATUS } from '../common/constants.js';
+import { STATUS } from '../common/constants.ts';
 import { Session } from '../testing/model/session.ts';
 import { Suite } from '../testing/model/suite.ts';
 import { TestError } from '../testing/model/test-error.ts';

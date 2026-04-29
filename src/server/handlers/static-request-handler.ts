@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { IncomingMessage, ServerResponse, STATUS_CODES } from 'node:http';
 import { join } from 'node:path';
 import { cwd } from 'node:process';
-import Logger from '../logger/logger.js';
+import Logger from '../logger/logger.ts';
 import { RequestHandlerBase } from './request-handler-base.ts';
 import { findMimeType, EXT_TO_MIME_MAP } from '../server-utils.ts';
 

@@ -1,7 +1,7 @@
-import { test } from '../../src/runner/just-test.js';
+import { test } from '../../src/runner/just-test.ts';
 import { assert } from '../../src/common/assert-utils.ts';
-import RangeCov from '../../src/coverage/model/range-cov.js';
-import { merge } from '../../src/coverage/model/range-utils.js';
+import RangeCov from '../../src/coverage/model/range-cov.ts';
+import { merge } from '../../src/coverage/model/range-utils.ts';
 
 test('RangeCov - negative (beg not a number)', () => {
 	assert.throws(() => new RangeCov('some'), 'beg MUST be a non-negative number');

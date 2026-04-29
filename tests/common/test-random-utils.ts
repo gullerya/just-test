@@ -1,6 +1,6 @@
-﻿import { test } from '../../src/runner/just-test.js';
+﻿import { test } from '../../src/runner/just-test.ts';
 import { assert } from '../../src/common/assert-utils.ts';
-import { CHAR_SOURCES, getRandom } from '../../src/common/random-utils.js';
+import { CHAR_SOURCES, getRandom } from '../../src/common/random-utils.ts';
 
 test('random all', () => {
 	const it = 100;

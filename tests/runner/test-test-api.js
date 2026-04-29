@@ -1,8 +1,8 @@
-﻿import { test } from '../../src/runner/just-test.js';
+﻿import { test } from '../../src/runner/just-test.ts';
 import { assert } from '../../src/common/assert-utils.ts';
-import { waitInterval } from '../../src/common/time-utils.js';
-import { STATUS } from '../../src/common/constants.js';
-import { EXECUTION_MODES, setExecutionContext } from '../../src/runner/environment-config.js';
+import { waitInterval } from '../../src/common/time-utils.ts';
+import { STATUS } from '../../src/common/constants.ts';
+import { EXECUTION_MODES, setExecutionContext } from '../../src/runner/environment-config.ts';
 
 const isolatedECKey = 'test-runner-test-api-ec';
 const isoTestConf = { ecKey: isolatedECKey };

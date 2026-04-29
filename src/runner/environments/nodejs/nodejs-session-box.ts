@@ -7,11 +7,11 @@
 
 import url from 'node:url';
 import { workerData, Worker } from 'node:worker_threads';
-import * as serverAPI from '../../server-api-service.js';
+import * as serverAPI from '../../server-api-service.ts';
 import SimpleStateService from '../../simple-state-service.ts';
 import { runSession } from '../../session-service.ts';
 import { planSession } from '../../session-planner.ts';
-import { EVENT, STATUS } from '../../../common/constants.js';
+import { EVENT, STATUS } from '../../../common/constants.ts';
 import { TestError } from '../../../testing/model/test-error.ts';
 
 (async () => {

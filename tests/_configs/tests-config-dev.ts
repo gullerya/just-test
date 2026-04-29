@@ -6,8 +6,8 @@ const config = {
 				maxFail: 0,
 				maxSkip: 0,
 				include: [
-					'./tests/runner/**/*.js',
-					'./tests/common/**/*.js'
+					'./tests/runner/**/*.ts',
+					'./tests/common/**/*.ts'
 				],
 				esclude: [
 					'**/_configs/*'

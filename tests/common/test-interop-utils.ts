@@ -1,11 +1,11 @@
-﻿import { test } from '../../src/runner/just-test.js';
+﻿import { test } from '../../src/runner/just-test.ts';
 import { assert } from '../../src/common/assert-utils.ts';
 import {
 	TEST_ID_SEPARATOR,
 	getTestId,
 	parseTestId,
 	getValidName
-} from '../../src/common/interop-utils.js';
+} from '../../src/common/interop-utils.ts';
 
 test('getTestId - 2 parts', () => {
 	const tid = getTestId('some', 'thing');
