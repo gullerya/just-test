@@ -6,7 +6,7 @@
  */
 
 import { OrchestratorClient } from '../../../server/orchestrator-client.ts';
-import SimpleStateService from '../../simple-state-service.ts';
+import StateService from '../../state-service.ts';
 import { runSession } from '../../session-service.ts';
 import { planSession } from '../../session-planner.ts';
 import { ENVIRONMENT_KEYS } from '../../environment-config.ts';
@@ -17,7 +17,7 @@ import { TestError } from '../../../testing/model/test-error.ts';
 (async () => {
 	const { sesId, envId, serverOrigin } = await getEnvironmentConfig();
 	const client = new OrchestratorClient(serverOrigin);
-	const stateService = new SimpleStateService();
+	const stateService = new StateService();
 	try {
 		const metadata = await client.getEnvironmentMetadata(sesId, envId);
 		stateService.session.sessionId = metadata.sessionId;
@@ -47,7 +47,7 @@ import { TestError } from '../../../testing/model/test-error.ts';
 		//	session-global field so the backend can emit an honest
 		//	`__session__` lcov record. worker mode produces no coverage;
 		//	page mode has real per-test attribution and is left alone.
-		if (metadata.coverage && executorType !== 'page') {
+		if (metadata.coverageEnabled && executorType !== 'page') {
 			collapseToSessionCoverage(stateService.session);
 		}
 	} catch (e) {
@@ -107,7 +107,7 @@ function getIFrameExecutorFactory(metadata, stateService) {
 			const mc = setupMessaging(stateService, suiteName, resolve);
 
 			f.addEventListener('load', () => {
-				setupWorkerEvents(stateService, f.contentWindow, test, metadata.coverage, suiteName, mc, resolve);
+				setupWorkerEvents(stateService, f.contentWindow, test, metadata.coverageEnabled, suiteName, mc, resolve);
 			}, { once: true });
 		});
 	};
@@ -131,7 +131,7 @@ function getPageExecutor(metadata, stateService) {
 			const mc = setupMessaging(stateService, suiteName, resolve);
 
 			page.addEventListener('load', () => {
-				setupWorkerEvents(stateService, page, test, metadata.coverage, suiteName, mc, resolve);
+				setupWorkerEvents(stateService, page, test, metadata.coverageEnabled, suiteName, mc, resolve);
 			}, { once: true });
 		});
 	};
@@ -148,7 +148,7 @@ function getWorkerExecutorFactory(metadata, stateService) {
 
 		return new Promise(resolve => {
 			const mc = setupMessaging(stateService, suiteName, resolve);
-			setupWorkerEvents(stateService, worker, test, metadata.coverage, suiteName, mc, resolve);
+			setupWorkerEvents(stateService, worker, test, metadata.coverageEnabled, suiteName, mc, resolve);
 		});
 	};
 }
@@ -170,7 +170,7 @@ function setupMessaging(stateService, suiteName, resolve) {
 	return mc;
 }
 
-function setupWorkerEvents(stateService, worker, test, coverage, suiteName, mc, resolve) {
+function setupWorkerEvents(stateService, worker, test, coverageEnabled, suiteName, mc, resolve) {
 	worker.addEventListener('error', ee => {
 		console.error(`worker for test '${test.name}' errored: ${ee}`);
 		stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: TestError.fromError(ee.error) });
@@ -182,7 +182,7 @@ function setupWorkerEvents(stateService, worker, test, coverage, suiteName, mc, 
 			testName: test.name,
 			suiteName,
 			testSource: test.source,
-			coverage,
+			coverageEnabled,
 			port: mc.port2
 		}, [mc.port2]);
 	} else {
@@ -190,7 +190,7 @@ function setupWorkerEvents(stateService, worker, test, coverage, suiteName, mc, 
 			testName: test.name,
 			suiteName,
 			testSource: test.source,
-			coverage
+			coverageEnabled
 		}, '*', [mc.port2]);
 	}
 }

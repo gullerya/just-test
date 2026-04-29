@@ -8,7 +8,6 @@
  * @param {string} envConfig.node in this context expected always to equal true
  */
 import { Worker } from 'node:worker_threads';
-import { waitInterval } from '../../../common/time-utils.ts';
 import Logger, { FileOutput } from '../../logger/logger.ts';
 import { config as serverConfig } from '../../server-service.ts';
 import { EnvironmentBase } from '../environment-base.ts';
@@ -72,7 +71,6 @@ class NodeEnvImpl extends EnvironmentBase {
 	}
 
 	async dismiss() {
-		await waitInterval(100);
 		await this.#worker.terminate();
 	}
 }

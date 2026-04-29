@@ -12,14 +12,16 @@ import { TestRun } from '../../../testing/model/test-run.ts';
 
 const currentBase = pathToFileURL(cwd()).href;
 let testName;
-let coverageConfig;
+let coverageEnabled = false;
+let coverageInclude: string[] = [];
 
 parentPort.addEventListener('message', async (m: MessageEvent) => {
-	const { testName: tName, testSource, coverage } = m.data;
+	const { testName: tName, testSource, coverageEnabled: cov, coverageInclude: inc } = m.data;
 	testName = tName;
-	coverageConfig = coverage;
+	coverageEnabled = Boolean(cov);
+	coverageInclude = Array.isArray(inc) ? inc : [];
 
-	if (coverageConfig) {
+	if (coverageEnabled) {
 		sessionPost = await initCoverage();
 	}
 
@@ -52,7 +54,7 @@ async function runEndHandler(tName: string, run: TestRun): Promise<void> {
 	if (tName !== testName) {
 		throw new Error(`expected to get result of test '${testName}', but received of '${tName}'`);
 	}
-	if (coverageConfig) {
+	if (coverageEnabled) {
 		try {
 			const v8Coverage = await collectCoverage();
 			const jtCoverage = await v8toJustTest(v8Coverage, undefined);
@@ -96,9 +98,9 @@ async function collectCoverage() {
 				return result;
 			}
 
-			for (const ig of coverageConfig.include) {
+			for (const ig of coverageInclude) {
 				const m = minimatch(entry.url, ig, {
-					// ignore: coverageConfig.exclude
+					// ignore: exclude is filtered server-side at aggregation
 				});
 
 				result = result || m;

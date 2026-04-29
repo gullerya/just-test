@@ -24,6 +24,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ###	Changed
 
+-	Declarative route table in `api-request-handler`: each verb/path is
+	registered once with named params (`:sesId`, `:envId`) and dispatched
+	to a dedicated handler, replacing the nested `split('/').slice(2)`
+	branching.
+-	`EnvironmentMetadata` now carries `coverageEnabled: boolean` and a
+	narrow `coverageInclude: string[]` instead of the whole coverage
+	config. Report settings, exclusions, and output paths stay
+	server-side. Sandboxes (browser test-box, nodejs test-box) were
+	updated accordingly.
+-	`SimpleStateService` renamed to `StateService`
+	(`src/runner/state-service.ts`); the `Simple` prefix no longer
+	implied a contrast.
+-	Dismiss-grace `waitInterval(999)` / `waitInterval(100)` hacks
+	removed from browser and nodejs env services. CI time dropped ~1s
+	per browser config.
+-	Env-scoped error logs now include both env id and type
+	(`interactive` / `browser` / `node`).
 -	REST access consolidated into a typed `OrchestratorClient` SDK at
 	`src/server/orchestrator-client.ts`, consumed from both Node (local-runner,
 	nodejs-session-box) and browser (browser-session-box, interactive UI).

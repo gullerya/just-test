@@ -1,6 +1,6 @@
 /**
- * Manages simple session state (nodejs environment or non-UI reflected plain one)
- * - module is stateless, providing only the c~tor to create the service instance
+ * Session state service — owns the in-memory session model and exposes
+ * imperative mutators used by session-boxes and test dispatchers.
  */
 import { STATUS } from '../common/constants.ts';
 import { Session } from '../testing/model/session.ts';
@@ -8,7 +8,7 @@ import { Suite } from '../testing/model/suite.ts';
 import { TestError } from '../testing/model/test-error.ts';
 import { TestRun } from '../testing/model/test-run.ts';
 
-export default class SimpleStateService {
+export default class StateService {
 	#session: Session;
 
 	constructor(initState = new Session()) {
@@ -45,12 +45,12 @@ export default class SimpleStateService {
 
 	getTest(suiteName: string, testName: string) {
 		const suite = this.obtainSuite(suiteName);
-		return SimpleStateService.#getTestInternal(suite, testName);
+		return StateService.#getTestInternal(suite, testName);
 	}
 
 	addTest(test) {
 		const suite = this.obtainSuite(test.suiteName);
-		if (SimpleStateService.#getTestInternal(suite, test.name)) {
+		if (StateService.#getTestInternal(suite, test.name)) {
 			throw new Error(`test '${test.name}' already found in suite '${suite.name}'`);
 		}
 

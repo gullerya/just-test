@@ -9,7 +9,6 @@
  * @param {string} envConfig.browser in this context expected always to equal true
  */
 import Logger, { FileOutput } from '../../logger/logger.ts';
-import { waitInterval } from '../../../common/time-utils.ts';
 import { config as serverConfig } from '../../server-service.ts';
 import { collectTargetSources, v8toJustTest } from '../../../coverage/coverage-service.ts';
 import { EnvironmentBase } from '../environment-base.ts';
@@ -92,18 +91,17 @@ class BrowserEnvImpl extends EnvironmentBase {
 
 	async dismiss() {
 		if (!this.dismissPromise) {
-			this.dismissPromise = waitInterval(999)
-				.then(async () => {
-					await this.consoleLogger.close();
+			this.dismissPromise = (async () => {
+				await this.consoleLogger.close();
 
-					logger.info('closing browsing context...');
-					await this.#browsingContext.close();
-					logger.info('... closed');
+				logger.info('closing browsing context...');
+				await this.#browsingContext.close();
+				logger.info('... closed');
 
-					logger.info('closing browser...');
-					await this.#browser.close();
-					logger.info('... closed');
-				});
+				logger.info('closing browser...');
+				await this.#browser.close();
+				logger.info('... closed');
+			})();
 		}
 		return this.dismissPromise;
 	}

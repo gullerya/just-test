@@ -20,9 +20,9 @@ globalThis.addEventListener('message', async m => {
 	parentPort = m.ports?.[0] ? m.ports[0] : m.data?.port;
 
 	if (parentPort) {
-		const { testName, testSource, coverage } = m.data;
+		const { testName, testSource, coverageEnabled: cov } = m.data;
 		externalizedTestName = testName;
-		coverageEnabled = Boolean(coverage) && typeof globalThis.__jtStartCoverage === 'function';
+		coverageEnabled = Boolean(cov) && typeof globalThis.__jtStartCoverage === 'function';
 
 		if (coverageEnabled) {
 			try {

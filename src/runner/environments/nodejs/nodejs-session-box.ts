@@ -8,7 +8,7 @@
 import url from 'node:url';
 import { workerData, Worker } from 'node:worker_threads';
 import { OrchestratorClient } from '../../../server/orchestrator-client.ts';
-import SimpleStateService from '../../simple-state-service.ts';
+import StateService from '../../state-service.ts';
 import { runSession } from '../../session-service.ts';
 import { planSession } from '../../session-planner.ts';
 import { EVENT, STATUS } from '../../../common/constants.ts';
@@ -17,7 +17,7 @@ import { TestError } from '../../../testing/model/test-error.ts';
 (async () => {
 	const { sesId, envId, origin } = workerData;
 	const client = new OrchestratorClient(origin);
-	const stateService = new SimpleStateService();
+	const stateService = new StateService();
 	try {
 		const metadata = await client.getEnvironmentMetadata(sesId, envId);
 		stateService.session.sessionId = metadata.sessionId;
@@ -73,7 +73,8 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 				testName: test.name,
 				suiteName,
 				testSource: test.source,
-				coverage: sessionMetadata.coverage
+				coverageEnabled: sessionMetadata.coverageEnabled,
+				coverageInclude: sessionMetadata.coverageInclude
 			});
 		});
 	};

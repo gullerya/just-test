@@ -8,13 +8,13 @@
  * resolved to an importable URL — injected by the caller.
  */
 
-import SimpleStateService from './simple-state-service.ts';
+import StateService from './state-service.ts';
 import { PlanningExecutionContext, EXECUTION_MODES, setExecutionContext } from './environment-config.ts';
 import { TestError } from '../testing/model/test-error.ts';
 
 export async function planSession(
 	testsResources: string[],
-	stateService: SimpleStateService,
+	stateService: StateService,
 	resolveSource: (source: string) => string
 ): Promise<void> {
 	const started = globalThis.performance.now();

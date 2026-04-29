@@ -6,14 +6,39 @@ import { collectTestResources } from '../../testing/testing-service.ts';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import type { EnvironmentMetadata, SessionCreateResponse } from '../api-contracts.ts';
 
+type Route = {
+	method: 'GET' | 'POST';
+	pattern: RegExp;
+	keys: string[];
+	handler: (this: APIRequestHandler, params: Record<string, string>, req: IncomingMessage, res: ServerResponse) => Promise<void>;
+};
+
+function route(method: Route['method'], template: string, handler: Route['handler']): Route {
+	const keys: string[] = [];
+	const pattern = new RegExp('^' + template.replace(/:([a-zA-Z]+)/g, (_, k) => {
+		keys.push(k);
+		return '([^/]+)';
+	}) + '$');
+	return { method, pattern, keys, handler };
+}
+
 export default class APIRequestHandler extends RequestHandlerBase {
 	#config;
 	#logger;
+	#routes: Route[];
 
 	constructor(config) {
 		super();
 		this.#config = config;
 		this.#logger = new Logger({ context: `'API' handler` });
+		this.#routes = [
+			route('POST', '/v1/sessions', this.#createSession),
+			route('GET', '/v1/sessions', this.#getAllSessions),
+			route('GET', '/v1/sessions/interactive', this.#getInteractiveSession),
+			route('GET', '/v1/sessions/:sesId/result', this.#getSessionResult),
+			route('GET', '/v1/sessions/:sesId/environments/:envId/metadata', this.#getEnvironmentMetadata),
+			route('POST', '/v1/sessions/:sesId/environments/:envId/result', this.#postEnvironmentResult)
+		];
 		this.#logger.info(`'API' requests handler initialized; basePath: '${this.basePath}'`);
 	}
 
@@ -21,144 +46,79 @@ export default class APIRequestHandler extends RequestHandlerBase {
 	get basePath() { return 'api'; }
 
 	async handle(handlerRelativePath: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
-		let handled = false;
-		if (/^.+\/sessions(|\/.+)$/.test(handlerRelativePath)) {
-			if (req.method === 'POST') {
-				if (handlerRelativePath.endsWith('sessions')) {
-					await this.#createSession(req, res);
-				} else {
-					await this.#storeResult(handlerRelativePath, req, res);
-				}
-				handled = true;
-			} else if (req.method === 'GET') {
-				if (handlerRelativePath.endsWith('sessions')) {
-					await this.#getAllSessions(res);
-				} else {
-					await this.#getSession(handlerRelativePath, res);
-				}
-				handled = true;
+		const path = '/' + handlerRelativePath;
+		for (const r of this.#routes) {
+			if (r.method !== req.method) {
+				continue;
 			}
+			const match = r.pattern.exec(path);
+			if (!match) {
+				continue;
+			}
+			const params: Record<string, string> = {};
+			for (let i = 0; i < r.keys.length; i++) {
+				params[r.keys[i]] = match[i + 1];
+			}
+			await r.handler.call(this, params, req, res);
+			return;
 		}
-
-		if (!handled) {
-			res.writeHead(404).end();
-		}
+		res.writeHead(404).end();
 	}
 
-	async #createSession(req: IncomingMessage, res: ServerResponse): Promise<void> {
-		const sessionConfig = await new Promise((resolve, reject) => {
-			try {
-				let data = '';
-				req.on('error', reject);
-				req.on('data', chunk => data += chunk);
-				req.on('end', () => resolve(JSON.parse(data)));
-			} catch (error) {
-				reject(error);
-			}
-		});
-
+	async #createSession(_params: Record<string, string>, req: IncomingMessage, res: ServerResponse): Promise<void> {
+		const sessionConfig = await readJsonBody(req);
 		const sessionId = await addSession(sessionConfig);
 		const response: SessionCreateResponse = { sessionId };
-		res.writeHead(201, { 'Content-Type': EXT_TO_MIME_MAP.json })
-			.end(JSON.stringify(response));
+		res.writeHead(201, { 'Content-Type': EXT_TO_MIME_MAP.json }).end(JSON.stringify(response));
 	}
 
-	async #storeResult(handlerRelativePath: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
-		/* eslint-disable no-unused-vars */
-		const [sesId, _envConst, envId] = handlerRelativePath.split('/').slice(2);
-		const sesResult = await new Promise((resolve, reject) => {
-			try {
-				let data = '';
-				req.on('error', reject);
-				req.on('data', chunk => data += chunk);
-				req.on('end', () => resolve(JSON.parse(data)));
-			} catch (error) {
-				reject(error);
-			}
-		});
-		await storeResult(sesId, envId, sesResult);
-		res.writeHead(201).end();
-	}
-
-	async #getAllSessions(res: ServerResponse): Promise<void> {
+	async #getAllSessions(_params: Record<string, string>, _req: IncomingMessage, res: ServerResponse): Promise<void> {
 		const allSessions = await getAll();
 		res.writeHead(200, { 'Content-Type': EXT_TO_MIME_MAP.json }).end(JSON.stringify(allSessions));
 	}
 
-	async #getSession(handlerRelativePath: string, res: ServerResponse): Promise<void> {
-		const [sesId, entity, entityId, ...args] = handlerRelativePath.split('/').slice(2);
-
-		if (!sesId) {
-			res.writeHead(400).end(`invalid session ID part`);
-			return;
-		}
-
-		if (sesId === 'interactive') {
-			const sessions = await getAll();
-			let iResult = null;
-			if (sessions && Object.values(sessions).length === 1) {
-				const iSession = Object.values(sessions)[0];
-				for (const e of Object.values(iSession.config.environments)) {
-					if ((e as any).interactive) {
-						iResult = { id: iSession.id };
-					}
+	async #getInteractiveSession(_params: Record<string, string>, _req: IncomingMessage, res: ServerResponse): Promise<void> {
+		const sessions = await getAll();
+		let iResult: object | null = null;
+		if (sessions && Object.values(sessions).length === 1) {
+			const iSession = Object.values(sessions)[0];
+			for (const e of Object.values(iSession.config.environments)) {
+				if ((e as any).interactive) {
+					iResult = { id: iSession.id };
 				}
 			}
-			res.writeHead(200, { 'Content-Type': EXT_TO_MIME_MAP.json }).end(JSON.stringify(iResult));
-			return;
 		}
+		res.writeHead(200, { 'Content-Type': EXT_TO_MIME_MAP.json }).end(JSON.stringify(iResult));
+	}
 
-		if (!entity) {
-			res.writeHead(400).end(`invalid entity part`);
-			return;
-		}
-
+	async #getSessionResult({ sesId }: Record<string, string>, _req: IncomingMessage, res: ServerResponse): Promise<void> {
 		const session = await getSession(sesId);
 		if (!session) {
 			res.writeHead(404).end(`session '${sesId}' not found`);
 			return;
 		}
-
-		let result;
-		let found = false;
-		if (entity === 'environments') {
-			result = await this.#getEnvironmentData(session, entityId, args);
-			found = true;
-		} else if (entity === 'result') {
-			//	only publish the result once side-channel artifacts (e.g.
-			//	coverage) have been attached by storeResult; otherwise callers
-			//	polling `/result` race and resolve with a partial payload
-			result = session.resultReady ? session.result : null;
-			found = true;
-		}
-
-		if (found) {
-			if (result) {
-				res.writeHead(200, { 'Content-Type': EXT_TO_MIME_MAP.json }).end(JSON.stringify(result));
-			} else {
-				res.writeHead(204).end();
-			}
+		//	only publish the result once side-channel artifacts (e.g.
+		//	coverage) have been attached by storeResult; otherwise callers
+		//	polling `/result` race and resolve with a partial payload
+		const result = session.resultReady ? session.result : null;
+		if (result) {
+			res.writeHead(200, { 'Content-Type': EXT_TO_MIME_MAP.json }).end(JSON.stringify(result));
 		} else {
-			res.writeHead(404).end(`'${entity}' for session '${sesId}' not found`);
+			res.writeHead(204).end();
 		}
 	}
 
-	async #getEnvironmentData(session, envId: string, args: string[]): Promise<EnvironmentMetadata | { id: string } | null> {
+	async #getEnvironmentMetadata({ sesId, envId }: Record<string, string>, _req: IncomingMessage, res: ServerResponse): Promise<void> {
+		const session = await getSession(sesId);
+		if (!session) {
+			res.writeHead(404).end(`session '${sesId}' not found`);
+			return;
+		}
 		const env = session.config.environments[envId];
-
-		if (envId === 'interactive') {
-			for (const e of Object.values(session.config.environments)) {
-				if ((e as any).interactive) {
-					return { id: (e as any).id };
-				}
-			}
-			return null;
+		if (!env) {
+			res.writeHead(404).end(`environment '${envId}' not found`);
+			return;
 		}
-
-		if (!env || args[0] !== 'metadata') {
-			return null;
-		}
-
 		const testPaths = await collectTestResources(env.tests.include, env.tests.exclude);
 		const metadata: EnvironmentMetadata = {
 			id: envId,
@@ -168,8 +128,30 @@ export default class APIRequestHandler extends RequestHandlerBase {
 			node: env.node,
 			interactive: env.interactive,
 			tests: env.tests,
-			coverage: env.coverage
+			coverageEnabled: Boolean(env.coverage),
+			coverageInclude: env.coverage?.include
 		};
-		return metadata;
+		res.writeHead(200, { 'Content-Type': EXT_TO_MIME_MAP.json }).end(JSON.stringify(metadata));
 	}
+
+	async #postEnvironmentResult({ sesId, envId }: Record<string, string>, req: IncomingMessage, res: ServerResponse): Promise<void> {
+		const sesResult = await readJsonBody(req);
+		await storeResult(sesId, envId, sesResult);
+		res.writeHead(201).end();
+	}
+}
+
+async function readJsonBody(req: IncomingMessage): Promise<any> {
+	return new Promise((resolve, reject) => {
+		let data = '';
+		req.on('error', reject);
+		req.on('data', chunk => data += chunk);
+		req.on('end', () => {
+			try {
+				resolve(JSON.parse(data));
+			} catch (err) {
+				reject(err);
+			}
+		});
+	});
 }

@@ -27,5 +27,11 @@ export type EnvironmentMetadata = {
 	node?: any;
 	interactive?: any;
 	tests?: any;
-	coverage?: any;
+	//	narrow coverage contract — sandboxes learn whether to emit
+	//	coverage and (for nodejs) the include-glob list used to filter
+	//	V8 entries at collection time. Everything else in the coverage
+	//	config (report settings, exclusions, output paths) stays
+	//	server-side where the report is aggregated.
+	coverageEnabled: boolean;
+	coverageInclude?: string[];
 };

@@ -2,13 +2,13 @@
 /**
  * Manages observable session state (interactive environment only)
  */
-import SimpleStateService from '/core/runner/simple-state-service.ts';
+import StateService from '/core/runner/state-service.ts';
 import { Session } from '/core/testing/model/session.js';
 import { ties } from 'data-tier';
 
 const MODEL_KEY = 'justTestModel';
 
-class TiedStateService extends SimpleStateService {
+class TiedStateService extends StateService {
 	constructor() {
 		super(ties.get(MODEL_KEY) ? ties.get(MODEL_KEY) : ties.create(MODEL_KEY, new Session()));
 	}
