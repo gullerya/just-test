@@ -17,6 +17,19 @@ const program = ts.createProgram({
 // emit step — this transpiles to JS
 const emitResult = program.emit();
 
+const diagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+const errors = diagnostics.filter(d => d.category === ts.DiagnosticCategory.Error);
+if (errors.length) {
+	const formatHost: ts.FormatDiagnosticsHost = {
+		getCanonicalFileName: p => p,
+		getCurrentDirectory: ts.sys.getCurrentDirectory,
+		getNewLine: () => ts.sys.newLine
+	};
+	console.error(ts.formatDiagnosticsWithColorAndContext(errors, formatHost));
+	console.error(`build failed: ${errors.length} TypeScript error${errors.length === 1 ? '' : 's'}`);
+	process.exit(1);
+}
+
 // copy all other files
 function copyNonTS(dir: string) {
     for (const name of readdirSync(dir)) {

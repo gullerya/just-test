@@ -5,7 +5,19 @@ All notable changes to `@gullerya/just-test` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-##	[5.0.0]
+##	[Unreleased]
+
+###	Changed
+
+-	Source tree migrated from `.js` to `.ts`; dead `src/configurer.js`
+	removed.
+-	Shared `src/runner/session-planner.ts` extracted and reused by both
+	browser and nodejs session-boxes.
+-	Build (`ci/build.ts`) now aggregates TS pre-emit + emit diagnostics and
+	exits non-zero on any error-severity diagnostic.
+-	Lint configs ignore `bin/**` so built output is no longer walked.
+
+##	[5.0.0 - 2026-04-21]
 
 ###	Breaking changes
 

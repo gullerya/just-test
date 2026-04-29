@@ -23,5 +23,6 @@ const effectiveConfig = {
 };
 
 export default defineConfig([
+	{ ignores: ['bin/**'] },
 	effectiveConfig
 ]);
