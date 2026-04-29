@@ -4,7 +4,7 @@ const config = {
 			browser: {
 				type: 'firefox',
 				executors: {
-					type: 'worker'
+					type: 'page'
 				}
 			},
 			tests: {
@@ -16,6 +16,9 @@ const config = {
 				],
 				exclude: [
 					'**/_configs/**',
+					//	Worker-only: relative-path imports, covered by the
+					//	chromium-worker config
+					'**/tests/_worker/**',
 					//	Node-only: imports node:os / uses `glob` / server-specific
 					'**/tests/coverage/reporters/**',
 					'**/tests/coverage/coverage-service-test.ts',

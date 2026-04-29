@@ -135,6 +135,30 @@ Assertions live in `common/assert-utils.js` (consumed, not advertised).
 
 Covered: models, coverage utilities, server utilities. Not covered: session orchestration, env launch, interactive UI.
 
+### 6.1 Test harness imports
+
+Tests import the harness (`@gullerya/just-test`, `@gullerya/just-test/assert`) and any third-party library in one of two forms, depending on the sandbox they run in:
+
+**Default — bare imports.** Every test in this repo outside `tests/_worker/` uses bare specifiers:
+
+```ts
+import { test } from '@gullerya/just-test';
+import { assert } from '@gullerya/just-test/assert';
+```
+
+Node resolves them via `node_modules`. Browsers resolve them through an importmap that the static handler injects into `browser-session-box.html` / `browser-test-box.html` (see `DEFAULT_BROWSER_IMPORTS` in `server/environments/environments-configurer.ts`). This covers the Node, iframe, and page executors.
+
+**Worker-mode exception — relative path through `node_modules/`.** Web Workers (`new Worker(url, { type: 'module' })`) do not inherit the host document's importmap in any browser today, so bare specifiers fail to resolve inside the worker test-box. Tests that must run under the `worker` executor live under `tests/_worker/` and use a relative path instead:
+
+```ts
+import { test } from '../../node_modules/@gullerya/just-test/bin/runner/just-test.js';
+import { assert } from '../../node_modules/@gullerya/just-test/bin/common/assert-utils.js';
+```
+
+Node resolves this as a file path; the `/static/` handler (which serves from cwd) serves the same path to browsers — so the exact same string works in every environment.
+
+**Rule of thumb.** Prefer bare imports for maintainability. Put a test under `tests/_worker/` (and use the relative-path form) only if you specifically need worker-mode coverage for that behavior. The worker-mode config (`tests-config-ci-chromium-worker.ts`) is scoped to `tests/_worker/**` and the non-worker configs exclude it, so the matrix exercises both import styles without overlap.
+
 ---
 
 ## 7. Open gaps

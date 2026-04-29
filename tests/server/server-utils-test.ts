@@ -1,5 +1,5 @@
-import { test } from '../../src/runner/just-test.ts';
-import { assert } from '../../src/common/assert-utils.ts';
+import { test } from '@gullerya/just-test';
+import { assert } from '@gullerya/just-test/assert';
 import {
 	EXT_TO_MIME_MAP, findMimeType
 } from '../../src/server/server-utils.ts';

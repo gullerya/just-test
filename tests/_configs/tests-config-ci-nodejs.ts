@@ -10,7 +10,10 @@ const config = {
 					'./tests/**/*'
 				],
 				exclude: [
-					'**/_configs/**'
+					'**/_configs/**',
+					//	Worker-only: browser smoke test, covered by the
+					//	chromium-worker / firefox configs
+					'**/tests/_worker/**'
 				]
 			},
 			coverage: {

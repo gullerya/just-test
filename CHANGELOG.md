@@ -72,6 +72,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	pure coverage-model, url-utils, and v8-converter test files now
 	run in browsers as well as Node — matrix coverage (iframe / page /
 	worker × chromium / firefox / webkit) on shared logic.
+-	Tests now import the harness (`test`, `assert`) from the installed
+	`@gullerya/just-test` package (bare imports) rather than from live
+	`src/`, decoupling test-harness stability from in-flight source
+	changes. Node resolves bare imports via `node_modules`; browsers
+	resolve them through the importmap injected by the static handler.
+-	Worker-mode example test suite added at `tests/_worker/` (smoke
+	test). Web Workers do not inherit the host document's importmap,
+	so these tests import via a relative path through `node_modules/`
+	instead. The `chromium-worker` config is scoped to
+	`tests/_worker/**`; non-worker configs exclude it — the matrix now
+	exercises both import styles without overlap. See
+	`docs/architecture.md` §6.1.
 
 ##	[5.0.0 - 2026-04-21]
 

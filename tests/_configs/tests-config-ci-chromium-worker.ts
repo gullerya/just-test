@@ -1,7 +1,13 @@
-//	same as tests-config-ci-chromium but with the `worker`-per-test browser
-//	executor. coverage is a no-op in worker mode (page.coverage does not
-//	cover worker scripts) — the run should still succeed and produce a
-//	valid (possibly empty) lcov with the untouched-file fallback
+//	`worker`-per-test browser executor, scoped to `tests/_worker/` only.
+//	Web Workers don't inherit the host document's importmap, so bare
+//	specifiers like `@gullerya/just-test` don't resolve inside the worker
+//	test-box. Tests that must run here use a relative path through
+//	`node_modules/` instead — see `docs/architecture.md` §6.1.
+//
+//	All other tests in the repo use bare imports and run in the iframe /
+//	page / node configs; this config deliberately does not include them.
+//	coverage is a no-op in worker mode (page.coverage does not cover
+//	worker scripts).
 const config = {
 	environments: [
 		{
@@ -16,15 +22,7 @@ const config = {
 				maxFail: 0,
 				maxSkip: 0,
 				include: [
-					'./tests/**/*'
-				],
-				exclude: [
-					'**/_configs/**',
-					//	Node-only: imports node:os / uses `glob` / server-specific
-					'**/tests/coverage/reporters/**',
-					'**/tests/coverage/coverage-service-test.ts',
-					'**/tests/coverage/coverage-configurer-test.ts',
-					'**/tests/server/**'
+					'./tests/_worker/**/*'
 				]
 			},
 			coverage: {

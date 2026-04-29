@@ -1,5 +1,5 @@
-import { test } from '../../../src/runner/just-test.ts';
-import { assert } from '../../../src/common/assert-utils.ts';
+import { test } from '@gullerya/just-test';
+import { assert } from '@gullerya/just-test/assert';
 import { v8toJustTest } from '../../../src/coverage/converters/v8-coverage-converter.ts';
 
 const SOURCE = 'line 1\nline 2\nline 3';

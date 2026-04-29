@@ -1,5 +1,5 @@
-import { test } from '../../../src/runner/just-test.ts';
-import { assert } from '../../../src/common/assert-utils.ts';
+import { test } from '@gullerya/just-test';
+import { assert } from '@gullerya/just-test/assert';
 import { Session } from '../../../src/testing/model/session.ts';
 
 test('Session class - defaults', () => {

@@ -16,6 +16,9 @@ const config = {
 				],
 				exclude: [
 					'**/_configs/**',
+					//	Worker-only: relative-path imports, covered by the
+					//	chromium-worker / firefox configs
+					'**/tests/_worker/**',
 					//	Node-only: imports node:os / uses `glob` / server-specific
 					'**/tests/coverage/reporters/**',
 					'**/tests/coverage/coverage-service-test.ts',

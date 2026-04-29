@@ -1,5 +1,5 @@
-import { test } from '../../src/runner/just-test.ts';
-import { assert } from '../../src/common/assert-utils.ts';
+import { test } from '@gullerya/just-test';
+import { assert } from '@gullerya/just-test/assert';
 import { collectTargetSources } from '../../src/coverage/coverage-service.ts';
 
 test('collect sources - empty or null input', async () => {

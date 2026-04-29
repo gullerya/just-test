@@ -1,6 +1,6 @@
 import { EOL } from 'node:os';
-import { test } from '../../../src/runner/just-test.ts';
-import { assert } from '../../../src/common/assert-utils.ts';
+import { test } from '@gullerya/just-test';
+import { assert } from '@gullerya/just-test/assert';
 import lcovReporter from '../../../src/coverage/reporters/lcov-reporter.ts';
 
 function makeFileCov(url: string, lines: Array<{ number: number; beg: number; end: number }>, ranges: Array<{ beg: number; end: number; hits: number }>) {

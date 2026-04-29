@@ -1,5 +1,5 @@
-import { test } from '../../../src/runner/just-test.ts';
-import { assert } from '../../../src/common/assert-utils.ts';
+import { test } from '@gullerya/just-test';
+import { assert } from '@gullerya/just-test/assert';
 import RangeCov from '../../../src/coverage/model/range-cov.ts';
 import LineCov from '../../../src/coverage/model/line-cov.ts';
 import BaseRange from '../../../src/coverage/model/base-range.ts';
