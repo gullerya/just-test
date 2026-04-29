@@ -1,6 +1,6 @@
-import { test } from '../../src/runner/just-test.ts';
-import { assert } from '../../src/common/assert-utils.ts';
-import { buildJTFileCov } from '../../src/coverage/model/model-utils.ts';
+import { test } from '../../../src/runner/just-test.ts';
+import { assert } from '../../../src/common/assert-utils.ts';
+import { buildJTFileCov } from '../../../src/coverage/model/model-utils.ts';
 
 test('build model - negative (bad source URL, not a string)', async () => {
 	await assert.rejects(

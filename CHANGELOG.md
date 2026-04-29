@@ -60,6 +60,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -	Build (`ci/build.ts`) now aggregates TS pre-emit + emit diagnostics and
 	exits non-zero on any error-severity diagnostic.
 -	Lint configs ignore `bin/**` so built output is no longer walked.
+-	Test files renamed to the `<source>-test.<ext>` convention, mirrored
+	under `tests/` next to the source they cover (e.g. `src/coverage/
+	model/url-utils.ts` → `tests/coverage/model/url-utils-test.ts`).
+	Unit coverage added for `url-utils`, `lcov-reporter`, and
+	`v8-coverage-converter` (all now 100%), plus `range-utils`,
+	`file-cov`, `line-cov`, and `base-range` (all now 100%).
+-	Browser CI configs' blanket `tests/coverage/**` exclusion narrowed
+	to only the genuinely Node-only files (`reporters/**`,
+	`coverage-service-test.ts`, `coverage-configurer-test.ts`). The
+	pure coverage-model, url-utils, and v8-converter test files now
+	run in browsers as well as Node — matrix coverage (iframe / page /
+	worker × chromium / firefox / webkit) on shared logic.
 
 ##	[5.0.0 - 2026-04-21]
 

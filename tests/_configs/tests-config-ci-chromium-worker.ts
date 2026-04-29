@@ -20,7 +20,10 @@ const config = {
 				],
 				exclude: [
 					'**/_configs/**',
-					'**/tests/coverage/**',
+					//	Node-only: imports node:os / uses `glob` / server-specific
+					'**/tests/coverage/reporters/**',
+					'**/tests/coverage/coverage-service-test.ts',
+					'**/tests/coverage/coverage-configurer-test.ts',
 					'**/tests/server/**'
 				]
 			},
