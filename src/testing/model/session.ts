@@ -39,6 +39,7 @@ export class Session {
 			pass: this.pass,
 			fail: this.fail,
 			error: this.error,
+			onlyMode: this.onlyMode,
 			coverage: this.coverage
 		};
 	}

@@ -1,7 +1,7 @@
 import BaseRange from './base-range.ts';
 
 export default class LineCov extends BaseRange {
-	number = -1;
+	#number = -1;
 
 	constructor(number, beg, end) {
 		super(beg, end);
@@ -10,6 +10,8 @@ export default class LineCov extends BaseRange {
 			throw new Error(`line number MUST be a non-negative number; got: '${number}'`);
 		}
 
-		this.number = number;
+		this.#number = number;
 	}
+
+	get number() { return this.#number; }
 }

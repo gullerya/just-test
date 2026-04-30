@@ -32,7 +32,8 @@ export class Suite {
 			skip: this.skip,
 			pass: this.pass,
 			fail: this.fail,
-			error: this.error
+			error: this.error,
+			onlyMode: this.onlyMode
 		};
 	}
 }

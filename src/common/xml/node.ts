@@ -15,8 +15,8 @@ export default class NodeImpl {
 	static DOCUMENT_FRAGMENT_NODE = 11;
 	static NOTATION_NODE = 12;
 
-	_childNodes: any[];
-	_textContent: string;
+	#childNodes: any[];
+	#textContent: string;
 
 	constructor(nodeName, nodeType, ownerDocument = null) {
 		if (!nodeName || typeof nodeName !== 'string') {
@@ -29,22 +29,22 @@ export default class NodeImpl {
 		Object.defineProperty(this, 'ownerDocument', { value: ownerDocument });
 		Object.defineProperty(this, 'nodeName', { value: nodeName });
 		Object.defineProperty(this, 'nodeType', { value: nodeType });
-		this._childNodes = [];
-		this._textContent = '';
+		this.#childNodes = [];
+		this.#textContent = '';
 	}
 
-	get childNodes() { return this._childNodes; }
+	get childNodes() { return this.#childNodes; }
 
-	get firstChild() { return this._childNodes.length ? this.childNodes[0] : null; }
+	get firstChild() { return this.#childNodes.length ? this.#childNodes[0] : null; }
 
-	get lastChild() { return this.childNodes.length ? this.childNodes[this._childNodes.length - 1] : null; }
+	get lastChild() { return this.#childNodes.length ? this.#childNodes[this.#childNodes.length - 1] : null; }
 
-	get textContent() { return this._textContent; }
+	get textContent() { return this.#textContent; }
 
 	set textContent(newContent) {
-		this._textContent = newContent;
-		this._childNodes.splice(0);
+		this.#textContent = newContent;
+		this.#childNodes.splice(0);
 	}
 
-	appendChild(child) { this._childNodes.push(child); }
+	appendChild(child) { this.#childNodes.push(child); }
 }

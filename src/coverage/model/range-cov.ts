@@ -1,7 +1,7 @@
 import BaseRange from './base-range.ts';
 
 export default class RangeCov extends BaseRange {
-	hits = -1;
+	#hits = -1;
 
 	constructor(beg, end, hits) {
 		super(beg, end);
@@ -10,6 +10,8 @@ export default class RangeCov extends BaseRange {
 			throw new Error(`hits MUST be a non-negative number, got: '${hits}'`);
 		}
 
-		this.hits = hits;
+		this.#hits = hits;
 	}
+
+	get hits() { return this.#hits; }
 }

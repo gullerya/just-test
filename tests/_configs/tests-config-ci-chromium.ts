@@ -25,8 +25,17 @@ const config = {
 					'**/tests/coverage/reporters/**',
 					'**/tests/coverage/coverage-service-test.ts',
 					'**/tests/coverage/coverage-configurer-test.ts',
+					//	Imports `minimatch` (bare specifier, unresolvable
+					//	in the browser without an importmap entry)
+					'**/tests/coverage/model/v8-coverage-filter-test.ts',
 					'**/tests/server/**',
-					'**/tests/local-runner-test.ts'
+					'**/tests/local-runner-test.ts',
+					//	Node-only: testing-service.ts imports `glob`
+					//	(bare specifier, unresolvable in the browser);
+					//	testing-configurer.ts transitively pulls node:util
+					//	via the server logger
+					'**/tests/testing/testing-service-test.ts',
+					'**/tests/testing/testing-configurer-test.ts'
 				]
 			},
 			coverage: {

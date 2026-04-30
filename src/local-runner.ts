@@ -4,7 +4,7 @@ import * as process from 'node:process';
 import * as path from 'node:path';
 import { start, stop } from './server/cli.ts';
 import { xUnitReporter } from './testing/testing-service.ts';
-import { collectTargetSources, lcovReporter } from './coverage/coverage-service.ts';
+import { collectTargetSources, convertSessionCoverage, lcovReporter } from './coverage/coverage-service.ts';
 import { buildJTFileCov } from './coverage/model/model-utils.ts';
 import { normalizeCoverageUrl } from './coverage/model/url-utils.ts';
 import { getTestId } from './common/interop-utils.ts';
@@ -124,6 +124,10 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 	//	test report
 	const reportText = xUnitReporter.report(sessionResult);
 	await fs.writeFile('reports/results.xml', reportText, { encoding: 'utf-8' });
+
+	//	single host-side V8->jt conversion point: child environments ship
+	//	raw V8 over the wire; we convert here, once, right before reporting
+	await convertSessionCoverage(sessionResult);
 
 	//	coverage report
 	const testCoverages = sessionResult.suites

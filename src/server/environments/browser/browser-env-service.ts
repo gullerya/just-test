@@ -10,7 +10,7 @@
  */
 import Logger, { ConsoleOutput, FileOutput } from '../../logger/logger.ts';
 import { config as serverConfig } from '../../server-service.ts';
-import { collectTargetSources, v8toJustTest } from '../../../coverage/coverage-service.ts';
+import { filterV8Coverage } from '../../../coverage/coverage-service.ts';
 import { EnvironmentBase } from '../environment-base.ts';
 import { ENVIRONMENT_KEYS } from '../../../runner/environment-config.ts';
 import { normalizeCoverageUrl } from '../../../coverage/model/url-utils.ts';
@@ -29,7 +29,6 @@ class BrowserEnvImpl extends EnvironmentBase {
 	consoleLogger: any = null;
 	dismissPromise: Promise<any> | null = null;
 
-	#coverageTargets = null;
 	//	ref-count active start/stop brackets per page. iframe mode runs
 	//	many overlapping tests that all share the main page's V8 — we
 	//	start on the first overlapping call and stop only when the last
@@ -147,43 +146,60 @@ class BrowserEnvImpl extends EnvironmentBase {
 		//	(iframes share V8 with their host), page mode binds to the
 		//	per-test child page. workers have no `window` so they install
 		//	local no-op shims on their own global; no binding reaches them.
+		//	Playwright delivers binding calls concurrently, so the naive
+		//	`read count -> await -> set count` pattern races in iframe mode
+		//	(multiple tests overlap on the host page). Serialize per-page
+		//	bracket transitions via a promise chain held in `#pageLock`.
+		const coverageInclude: string[] = this.#envConfig.coverage?.include ?? [];
+
 		await this.#browsingContext.exposeBinding('__jtStartCoverage', async ({ page }) => {
-			if (!this.#coverageTargets) {
-				this.#coverageTargets = await collectTargetSources(this.#envConfig.coverage) ?? [];
-			}
-			if (!this.#coverageTargets.length) {
+			if (!coverageInclude.length) {
 				return;
 			}
-			const count = this.#pageCoverage.get(page) ?? 0;
-			if (count === 0) {
-				await page.coverage.startJSCoverage();
-			}
-			this.#pageCoverage.set(page, count + 1);
+			await this.#serialize(page, async () => {
+				const count = this.#pageCoverage.get(page) ?? 0;
+				if (count === 0) {
+					await page.coverage.startJSCoverage();
+				}
+				this.#pageCoverage.set(page, count + 1);
+			});
 		});
 
 		await this.#browsingContext.exposeBinding('__jtStopCoverage', async ({ page }) => {
-			const count = this.#pageCoverage.get(page) ?? 0;
-			if (count === 0) {
-				return [];
-			}
-			if (count > 1) {
-				//	another overlapping test on the same page (iframe mode)
-				//	is still running — don't stop v8 yet, and don't return
-				//	partial data to this caller either. coverage lands on
-				//	the last test on this page.
-				this.#pageCoverage.set(page, count - 1);
-				return [];
-			}
-			this.#pageCoverage.delete(page);
-			const jsCoverage = await page.coverage.stopJSCoverage();
-			const filtered = jsCoverage
-				.filter(entry => this.#coverageTargets.some(t => entry.url.endsWith(t)))
-				.map(entry => ({
+			return this.#serialize(page, async () => {
+				const count = this.#pageCoverage.get(page) ?? 0;
+				if (count === 0) {
+					return [];
+				}
+				if (count > 1) {
+					//	another overlapping test on the same page (iframe mode)
+					//	is still running — don't stop v8 yet, and don't return
+					//	partial data to this caller either. coverage lands on
+					//	the last test on this page.
+					this.#pageCoverage.set(page, count - 1);
+					return [];
+				}
+				this.#pageCoverage.delete(page);
+				const jsCoverage = await page.coverage.stopJSCoverage();
+				//	strip the server origin + /static/ prefix so URLs match the
+				//	`./src/**` style of the user's `coverage.include` patterns;
+				//	from here on the data is raw V8 (just with canonical URLs)
+				//	and flows unchanged to the host where conversion happens.
+				const normalized = jsCoverage.map(entry => ({
 					url: normalizeCoverageUrl(entry.url.replace(`${serverConfig.origin}/static/`, './')),
 					functions: entry.functions
 				}));
-			return filtered.length ? await v8toJustTest(filtered) : [];
+				return filterV8Coverage(normalized, coverageInclude);
+			});
 		});
+	}
+
+	#pageLock = new WeakMap();
+	async #serialize(page, task) {
+		const prev = this.#pageLock.get(page) ?? Promise.resolve();
+		const next = prev.then(task, task);
+		this.#pageLock.set(page, next.catch(() => {}));
+		return next;
 	}
 
 	#onDisconnected() {

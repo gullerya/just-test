@@ -1,8 +1,8 @@
 //	TODO: refactor the methods outside, to the utils file
 
 export default class BaseRange {
-	beg = -1;
-	end = -1;
+	#beg = -1;
+	#end = -1;
 
 	constructor(beg, end) {
 		if (typeof beg !== 'number' || beg < 0) {
@@ -15,35 +15,39 @@ export default class BaseRange {
 			throw new Error(`beg MUST precede end; got beg: ${beg}, end: ${end}`);
 		}
 
-		this.beg = beg;
-		this.end = end;
+		this.#beg = beg;
+		this.#end = end;
 	}
+
+	get beg() { return this.#beg; }
+
+	get end() { return this.#end; }
 
 	isAfterNonAdjacent(otherRange) {
 		BaseRange.validate(otherRange);
-		return this.beg > otherRange.end;
+		return this.#beg > otherRange.end;
 	}
 
 	isBeforeNonAdjacent(otherRange) {
 		BaseRange.validate(otherRange);
-		return this.end < otherRange.beg;
+		return this.#end < otherRange.beg;
 	}
 
 	isWithin(otherRange) {
 		BaseRange.validate(otherRange);
-		return this.beg >= otherRange.beg && this.end <= otherRange.end;
+		return this.#beg >= otherRange.beg && this.#end <= otherRange.end;
 	}
 
 	contains(otherRange) {
 		BaseRange.validate(otherRange);
-		return otherRange.beg >= this.beg && otherRange.end <= this.end;
+		return otherRange.beg >= this.#beg && otherRange.end <= this.#end;
 	}
 
 	includes(point) {
 		if (typeof point !== 'number') {
 			throw new Error(`invalid point parameter ${point}`);
 		}
-		return point >= this.beg && point < this.end;
+		return point >= this.#beg && point < this.#end;
 	}
 
 	static validate(...args) {
