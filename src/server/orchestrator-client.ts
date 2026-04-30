@@ -68,7 +68,9 @@ export class OrchestratorClient {
 			`${this.#baseUrl}/api/v1/sessions/${sessionId}/environments/${environmentId}/metadata`
 		);
 		if (!response.ok) {
-			throw new Error(`failed to fetch env metadata; status: ${response.status}`);
+			const body = await response.text().catch(() => '');
+			const detail = body ? `, message: ${body}` : '';
+			throw new Error(`failed to fetch env metadata; status: ${response.status}${detail}`);
 		}
 		return await response.json();
 	}

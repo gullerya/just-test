@@ -9,6 +9,7 @@ type FakeResponse = {
 	ok?: boolean;
 	statusText?: string;
 	body?: unknown;
+	text?: string;
 };
 
 type Call = { url: string; init?: RequestInit };
@@ -28,7 +29,8 @@ function installFetch(responses: FakeResponse[]): { calls: Call[]; restore: () =
 			status,
 			ok: r.ok ?? (status >= 200 && status < 300),
 			statusText: r.statusText ?? '',
-			json: () => Promise.resolve(r.body)
+			json: () => Promise.resolve(r.body),
+			text: () => Promise.resolve(r.text ?? '')
 		});
 	};
 	return {
@@ -172,6 +174,18 @@ test('getEnvironmentMetadata - throws on non-ok response', async () => {
 		const c = new OrchestratorClient('http://h');
 		const err = await c.getEnvironmentMetadata('S1', 'E1').then(() => null, (e: Error) => e);
 		assert.isTrue(err!.message.includes('404'));
+	} finally {
+		stub.restore();
+	}
+});
+
+test('getEnvironmentMetadata - includes response body text in error message when present', async () => {
+	const stub = installFetch([{ status: 500, ok: false, text: 'no test files matched include=["./x/**"]' }]);
+	try {
+		const c = new OrchestratorClient('http://h');
+		const err = await c.getEnvironmentMetadata('S1', 'E1').then(() => null, (e: Error) => e);
+		assert.isTrue(err!.message.includes('500'));
+		assert.isTrue(err!.message.includes('no test files matched'));
 	} finally {
 		stub.restore();
 	}

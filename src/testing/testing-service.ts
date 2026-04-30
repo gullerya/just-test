@@ -28,6 +28,8 @@ async function collectTestResources(include, exclude) {
 		nodir: true
 	});
 	logger.info(`... collected ${result.length} test resource/s (${(globalThis.performance.now() - started).toFixed(1)}ms)`);
-	logger.info(result);
+	if (result.length === 0) {
+		throw new Error(`no test files matched include=${JSON.stringify(include)} exclude=${JSON.stringify(exclude)}`);
+	}
 	return result;
 }

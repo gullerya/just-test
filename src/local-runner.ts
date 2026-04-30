@@ -11,7 +11,9 @@ import { getTestId } from './common/interop-utils.ts';
 import { Session } from './testing/model/session.ts';
 import { OrchestratorClient } from './server/orchestrator-client.ts';
 
-go();
+if (process.argv[1] && process.argv[1].endsWith('local-runner.js')) {
+	go();
+}
 
 const SESSION_STATUS_POLL_INTERVAL = 137;
 const SESSION_WAIT_TIMEOUT_MS = 30 * 60 * 1000;
@@ -162,9 +164,37 @@ async function readConfigAndMergeWithCLArguments(clArguments: Record<string, str
 
 	const configPath = path.resolve(process.cwd(), clArguments.config_file);
 	const config = await import(configPath);
-	//	merge with command line arguments
 
+	if (clArguments.files) {
+		return applyFilesOverride(config.default, clArguments.files);
+	}
 	return config.default;
+}
+
+//	`files=<pattern>` is a strict override: replaces `tests.include` with
+//	the given single entry (either a concrete path or a glob, matched by
+//	the same library used for `tests.include`) and clears `tests.exclude`
+//	on every environment. The user is opting out of guardrail excludes
+//	to run exactly what they asked for.
+export function applyFilesOverride(config: any, filesPattern: string): object {
+	if (!filesPattern || typeof filesPattern !== 'string') {
+		throw new Error(`'files' argument MUST be a non-empty string, got '${filesPattern}'`);
+	}
+	if (!config || typeof config !== 'object' || !Array.isArray(config.environments)) {
+		throw new Error(`config MUST have an 'environments' array to apply files override`);
+	}
+	const next = {
+		...config,
+		environments: config.environments.map((env: any) => ({
+			...env,
+			tests: {
+				...(env.tests ?? {}),
+				include: [filesPattern],
+				exclude: []
+			}
+		}))
+	};
+	return next;
 }
 
 async function waitSessionEnd(client: OrchestratorClient, sessionId: string): Promise<Session> {

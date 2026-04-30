@@ -101,6 +101,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ###	Added
 
+-	`files=<pattern>` CLI override for `local-runner`: a single file path
+	or glob that strictly replaces each environment's `tests.include`
+	and clears `tests.exclude`, letting you run one file or a subset
+	without editing a config. Example:
+	`node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-nodejs.ts files=./tests/server/**/*-test.ts`.
 -	Per-test coverage for browser environments in `page` executor mode is now
 	collected through a Playwright context-level route gate that installs V8
 	coverage before the first script request on each page, so child pages

@@ -85,7 +85,8 @@ class ServerService {
 				} catch (error) {
 					logger.error(`sending 500 for '${req.url}' due to:`);
 					logger.error(error);
-					res.writeHead(500, STATUS_CODES[500]).end();
+					const message = error instanceof Error ? error.message : String(error);
+					res.writeHead(500, STATUS_CODES[500], { 'Content-Type': 'text/plain' }).end(message);
 				}
 			} else {
 				res.writeHead(404, `no handler matched '${req.url}'`).end();
