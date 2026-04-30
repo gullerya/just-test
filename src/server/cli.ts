@@ -7,7 +7,7 @@
 import { resolve } from 'node:path';
 import Logger from './logger/logger.ts';
 import buildConfig from './configuration/server-configurer.ts';
-import { start as serverStart, stop } from './server-service.ts';
+import { start as serverStart, stop, ServerService } from './server-service.ts';
 
 export {
 	start,
@@ -31,7 +31,7 @@ if (process.argv[1] && process.argv[1].endsWith('cli.js')) {
 		});
 }
 
-async function start() {
+async function start(): Promise<ServerService> {
 	logger.info('Starting JustTest server');
 	const [args, envs] = await Promise.all([collectArgs(), collectEnvs()]);
 
@@ -57,7 +57,7 @@ async function start() {
 async function collectEnvs(): Promise<Record<string, string>> {
 	const result = {} as Record<string, string>;
 	for (const [key, val] of Object.entries(process.env)) {
-		if (SUPPORTED_ENV_KEY.includes(key)) {
+		if (val !== undefined && SUPPORTED_ENV_KEY.includes(key)) {
 			result[key] = val;
 		}
 	}

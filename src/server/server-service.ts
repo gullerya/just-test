@@ -11,7 +11,8 @@ import { RequestHandlerBase } from './handlers/request-handler-base.ts';
 export {
 	config,
 	start,
-	stop
+	stop,
+	ServerService
 };
 
 const
