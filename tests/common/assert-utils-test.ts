@@ -155,6 +155,32 @@ test('deepEqual - flags nested missing key on actual (symmetric)', () => {
 	assert.isTrue(e instanceof AssertionError);
 });
 
+//	one-sided nullish: must surface as AssertionError, not TypeError —
+//	a failed assertion shouldn't crash the test runtime
+test('deepEqual - throws AssertionError when actual is null and expected is an object', () => {
+	const e = catchThrown(() => subject.deepEqual(null as unknown as object, { a: 1 }));
+	assert.isTrue(e instanceof AssertionError);
+	assert.strictEqual((e as AssertionError).operator, 'deepEqual');
+});
+
+test('deepEqual - throws AssertionError when expected is null and actual is an object', () => {
+	const e = catchThrown(() => subject.deepEqual({ a: 1 } as object, null as unknown as object));
+	assert.isTrue(e instanceof AssertionError);
+	assert.strictEqual((e as AssertionError).operator, 'deepEqual');
+});
+
+test('deepEqual - throws AssertionError when actual is undefined and expected is an object', () => {
+	const e = catchThrown(() => subject.deepEqual(undefined as unknown as object, { a: 1 }));
+	assert.isTrue(e instanceof AssertionError);
+	assert.strictEqual((e as AssertionError).operator, 'deepEqual');
+});
+
+test('deepEqual - throws AssertionError when expected is undefined and actual is an object', () => {
+	const e = catchThrown(() => subject.deepEqual({ a: 1 } as object, undefined as unknown as object));
+	assert.isTrue(e instanceof AssertionError);
+	assert.strictEqual((e as AssertionError).operator, 'deepEqual');
+});
+
 //	deepStrictEqual
 //
 test('deepStrictEqual - passes on shallow identity', () => {
@@ -178,6 +204,24 @@ test('deepStrictEqual - throws on loose-but-not-strict leaf', () => {
 test('deepStrictEqual - flags extra key on actual (symmetric)', () => {
 	const e = catchThrown(() => subject.deepStrictEqual({ a: 1, b: 2 } as object, { a: 1 } as object));
 	assert.isTrue(e instanceof AssertionError);
+});
+
+test('deepStrictEqual - throws AssertionError when actual is null and expected is an object', () => {
+	const e = catchThrown(() => subject.deepStrictEqual(null as unknown as object, { a: 1 }));
+	assert.isTrue(e instanceof AssertionError);
+	assert.strictEqual((e as AssertionError).operator, 'deepStrictEqual');
+});
+
+test('deepStrictEqual - throws AssertionError when expected is null and actual is an object', () => {
+	const e = catchThrown(() => subject.deepStrictEqual({ a: 1 } as object, null as unknown as object));
+	assert.isTrue(e instanceof AssertionError);
+	assert.strictEqual((e as AssertionError).operator, 'deepStrictEqual');
+});
+
+test('deepStrictEqual - throws AssertionError when one side is null and the other undefined', () => {
+	const e = catchThrown(() => subject.deepStrictEqual(null as unknown as object, undefined as unknown as object));
+	assert.isTrue(e instanceof AssertionError);
+	assert.strictEqual((e as AssertionError).operator, 'deepStrictEqual');
 });
 
 //	throws / doesNotThrow

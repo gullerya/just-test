@@ -87,7 +87,6 @@ export default class FileOutput {
 				(lines.join(os.EOL) + os.EOL).replace(FILE_OUTPUT_TEXT_CLEANER, ''),
 				this.writeOptions
 			);
-			this.buffer.splice(0);
 		}
 		if (!this._closing) {
 			this._nextIteration = setTimeout(this._writer, 48);

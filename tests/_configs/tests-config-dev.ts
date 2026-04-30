@@ -9,7 +9,7 @@ const config = {
 					'./tests/runner/**/*.ts',
 					'./tests/common/**/*.ts'
 				],
-				esclude: [
+				exclude: [
 					'**/_configs/*'
 				]
 			}

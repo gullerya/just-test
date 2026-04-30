@@ -61,6 +61,9 @@ class Assert {
 		if (expected == null && actual == null) {
 			return;
 		}
+		if (expected == null || actual == null) {
+			throw new AssertionError(message, actual, expected, 'deepEqual');
+		}
 		for (const key in expected) {
 			if (typeof actual[key] === 'object' && typeof expected[key] === 'object') {
 				this.deepEqual(actual[key], expected[key], message);
@@ -95,6 +98,9 @@ class Assert {
 		}
 		if (expected === undefined && actual === undefined) {
 			return;
+		}
+		if (expected == null || actual == null) {
+			throw new AssertionError(message, actual, expected, 'deepStrictEqual');
 		}
 		for (const key in expected) {
 			if (typeof actual[key] === 'object' && typeof expected[key] === 'object') {
