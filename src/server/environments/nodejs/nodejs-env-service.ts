@@ -8,7 +8,7 @@
  * @param {string} envConfig.node in this context expected always to equal true
  */
 import { Worker } from 'node:worker_threads';
-import Logger, { FileOutput } from '../../logger/logger.ts';
+import Logger, { ConsoleOutput, FileOutput } from '../../logger/logger.ts';
 import { config as serverConfig } from '../../server-service.ts';
 import { EnvironmentBase } from '../environment-base.ts';
 
@@ -41,9 +41,12 @@ class NodeEnvImpl extends EnvironmentBase {
 
 		const versionNamed = `nodejs-${process.version.replace(/^[^0-9]+/, '')}`;
 		this.#consoleLogger = new FileOutput(`./reports/logs/${versionNamed}.log`);
+		//	mirror worker stdout/stderr to both file AND console so CI logs
+		//	surface per-test FAIL/ERROR prints (emitted by state-service) in
+		//	real time, not only at end-of-run
 		const nLogger = new Logger({
 			context: versionNamed,
-			outputs: [this.#consoleLogger]
+			outputs: [this.#consoleLogger, new ConsoleOutput()]
 		});
 
 		this.#worker = new Worker(

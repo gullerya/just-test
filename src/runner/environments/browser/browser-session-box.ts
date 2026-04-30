@@ -13,6 +13,7 @@ import { ENVIRONMENT_KEYS } from '../../environment-config.ts';
 import { EVENT, STATUS } from '../../../common/constants.ts';
 import { getTestId } from '../../../common/interop-utils.ts';
 import { TestError } from '../../../testing/model/test-error.ts';
+import { TestRun } from '../../../testing/model/test-run.ts';
 
 (async () => {
 	const { sesId, envId, serverOrigin } = await getEnvironmentConfig();
@@ -161,7 +162,9 @@ function setupMessaging(stateService, suiteName, resolve) {
 		if (type === EVENT.RUN_START) {
 			stateService.updateRunStarted(suiteName, testName);
 		} else if (type === EVENT.RUN_END) {
-			stateService.updateRunEnded(suiteName, testName, run);
+			//	run arrives as a plain object across postMessage; rehydrate
+			//	so TestRun#error setter accepts the payload (see test-box)
+			stateService.updateRunEnded(suiteName, testName, rehydrateRun(run));
 			resolve();
 		}
 	});
@@ -173,7 +176,10 @@ function setupMessaging(stateService, suiteName, resolve) {
 function setupWorkerEvents(stateService, worker, test, coverageEnabled, suiteName, mc, resolve) {
 	worker.addEventListener('error', ee => {
 		console.error(`worker for test '${test.name}' errored: ${ee}`);
-		stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: TestError.fromError(ee.error) });
+		const crashRun = new TestRun();
+		crashRun.status = STATUS.ERROR;
+		crashRun.error = ee.error ?? new Error(String(ee.message ?? ee));
+		stateService.updateRunEnded(suiteName, test.name, crashRun);
 		resolve();
 	});
 
@@ -193,4 +199,27 @@ function setupWorkerEvents(stateService, worker, test, coverageEnabled, suiteNam
 			coverageEnabled
 		}, '*', [mc.port2]);
 	}
+}
+
+function rehydrateRun(plain: any): TestRun {
+	const run = new TestRun();
+	run.status = plain.status;
+	run.time = plain.time ?? 0;
+	run.timestamp = plain.timestamp ?? 0;
+	run.coverage = plain.coverage ?? null;
+	if (plain.error) {
+		run.error = rehydrateError(plain.error);
+	}
+	return run;
+}
+
+function rehydrateError(plain: any): TestError {
+	const e: any = new Error(plain.message ?? '');
+	e.name = plain.name ?? 'Error';
+	e.stack = plain.stack ?? '';
+	if (plain.cause) {
+		e.cause = rehydrateError(plain.cause);
+	}
+	const te = TestError.fromError(e);
+	return new (TestError as any)(te.name, plain.type ?? te.type, te.message, te.stack, te.cause);
 }

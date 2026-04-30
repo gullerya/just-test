@@ -63,7 +63,10 @@ async function runEndHandler(tName: string, run: TestRun): Promise<void> {
 			console.error(`failed to collect coverage of '${testName}': ${e}`);
 		}
 	}
-	parentPort.postMessage({ type: EVENT.RUN_END, testName, run });
+	//	structured-clone on postMessage drops class identity AND private
+	//	fields (TestRun stores #error), so serialize explicitly via toJSON
+	//	so the error payload actually crosses the worker boundary
+	parentPort.postMessage({ type: EVENT.RUN_END, testName, run: run.toJSON() });
 }
 
 //	TODO: consider to move to coverage service

@@ -13,6 +13,7 @@ import { runSession } from '../../session-service.ts';
 import { planSession } from '../../session-planner.ts';
 import { EVENT, STATUS } from '../../../common/constants.ts';
 import { TestError } from '../../../testing/model/test-error.ts';
+import { TestRun } from '../../../testing/model/test-run.ts';
 
 (async () => {
 	const { sesId, envId, origin } = workerData;
@@ -55,7 +56,10 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 				if (type === EVENT.RUN_START) {
 					stateService.updateRunStarted(suiteName, testName);
 				} else if (type === EVENT.RUN_END) {
-					stateService.updateRunEnded(suiteName, testName, run);
+					//	`run` comes across worker boundary as a plain object
+					//	(see nodejs-test-box for the reason); rehydrate into
+					//	TestRun so the #error setter accepts the payload
+					stateService.updateRunEnded(suiteName, testName, rehydrateRun(run));
 					await worker.terminate();
 					worker.unref();
 					resolve(void 0);
@@ -63,7 +67,10 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 			});
 			worker.on('error', async error => {
 				console.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
-				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: TestError.fromError(error) });
+				const crashRun = new TestRun();
+				crashRun.status = STATUS.ERROR;
+				crashRun.error = error;
+				stateService.updateRunEnded(suiteName, test.name, crashRun);
 				await worker.terminate();
 				worker.unref();
 				resolve(void 0);
@@ -78,4 +85,35 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 			});
 		});
 	};
+}
+
+function rehydrateRun(plain: any): TestRun {
+	const run = new TestRun();
+	run.status = plain.status;
+	run.time = plain.time ?? 0;
+	run.timestamp = plain.timestamp ?? 0;
+	run.coverage = plain.coverage ?? null;
+	if (plain.error) {
+		run.error = rehydrateError(plain.error);
+	}
+	return run;
+}
+
+//	TestError.fromError requires an Error instance, so repackage the
+//	plain payload (from the test-box's toJSON) back into one; preserve
+//	the original type by re-assigning `constructor.name`-equivalent
+//	metadata onto the TestError fields via fromError's read path.
+function rehydrateError(plain: any): TestError {
+	const e: any = new Error(plain.message ?? '');
+	e.name = plain.name ?? 'Error';
+	e.stack = plain.stack ?? '';
+	if (plain.cause) {
+		e.cause = rehydrateError(plain.cause);
+	}
+	const te = TestError.fromError(e);
+	//	fromError reads error.constructor.name for `type`; but the original
+	//	type (AssertionError / TypeError / …) is what we actually want. The
+	//	TestError has private fields so we can't patch it directly — build a
+	//	fresh one with the right type.
+	return new (TestError as any)(te.name, plain.type ?? te.type, te.message, te.stack, te.cause);
 }

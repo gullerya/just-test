@@ -74,5 +74,7 @@ async function runEndHandler(testName, run) {
 			console.warn(`failed to stop coverage for '${testName}':`, e);
 		}
 	}
-	parentPort.postMessage({ type: EVENT.RUN_END, testName, run });
+	//	structured-clone drops class identity AND private fields (#error),
+	//	so serialize explicitly so the error payload crosses the boundary
+	parentPort.postMessage({ type: EVENT.RUN_END, testName, run: run.toJSON() });
 }

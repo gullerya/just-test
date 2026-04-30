@@ -8,6 +8,7 @@ import { collectTargetSources, lcovReporter } from './coverage/coverage-service.
 import { buildJTFileCov } from './coverage/model/model-utils.ts';
 import { normalizeCoverageUrl } from './coverage/model/url-utils.ts';
 import { getTestId } from './common/interop-utils.ts';
+import { STATUS } from './common/constants.ts';
 import { Session } from './testing/model/session.ts';
 import { OrchestratorClient } from './server/orchestrator-client.ts';
 
@@ -59,6 +60,31 @@ async function go() {
 			console.info(`SESSION SUMMARY: ${endedWithFailure
 				? `FAILURE (${sessionResult.summary.failReason})`
 				: 'SUCCESS'} (${duration}s)${os.EOL}`);
+			//	Surface individual failing / erroring tests with their cause
+			//	so CI logs show *which* test broke without needing the xunit
+			//	XML. Unlike `sessionResult.errors` (session-level), this walks
+			//	each test's `lastRun.error`.
+			const badTests = sessionResult.suites
+				.flatMap(s => s.tests.map(t => ({ suite: s.name, test: t })))
+				.filter(({ test: t }) => t?.lastRun
+					&& (t.lastRun.status === STATUS.FAIL || t.lastRun.status === STATUS.ERROR));
+			if (badTests.length > 0) {
+				console.info('FAILED / ERRORED TESTS');
+				console.info('======================');
+				for (const { suite, test: t } of badTests) {
+					const run = t.lastRun;
+					const err: any = run.error;
+					console.info(`- [${String(run.status).toUpperCase()}] ${suite} ${getTestId(suite, t.name)}`);
+					if (err) {
+						console.info(`    ${err.type ?? 'Error'}: ${err.message ?? ''}`);
+						if (err.stack) {
+							const stack = String(err.stack).split('\n').slice(0, 6).join('\n');
+							console.info(stack.split('\n').map(l => `    ${l}`).join('\n'));
+						}
+					}
+				}
+				console.info(os.EOL);
+			}
 			if (sessionResult.errors && sessionResult.errors.length > 0) {
 				console.info('SESSION ERRORS');
 				console.info('==============');

@@ -136,6 +136,18 @@ export default class StateService {
 			Object.assign(test.lastRun, run);
 		}
 
+		//	rolling per-test visibility — print FAIL/ERROR to stderr as they
+		//	happen so CI logs show the broken test mid-run, not only in the
+		//	end-of-session dump
+		if (run.status === STATUS.FAIL || run.status === STATUS.ERROR) {
+			const err: any = (run as any).error;
+			const head = `[${String(run.status).toUpperCase()}] ${suiteName} => ${testName}`;
+			const detail = err
+				? ` — ${err.type ?? 'Error'}: ${err.message ?? ''}`
+				: '';
+			console.error(head + detail);
+		}
+
 		//	update session globals
 		this.#session[run.status]++;
 		this.#session.done++;

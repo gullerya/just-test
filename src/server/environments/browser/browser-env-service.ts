@@ -8,7 +8,7 @@
  * @param {Object} envConfig environment configuration
  * @param {string} envConfig.browser in this context expected always to equal true
  */
-import Logger, { FileOutput } from '../../logger/logger.ts';
+import Logger, { ConsoleOutput, FileOutput } from '../../logger/logger.ts';
 import { config as serverConfig } from '../../server-service.ts';
 import { collectTargetSources, v8toJustTest } from '../../../coverage/coverage-service.ts';
 import { EnvironmentBase } from '../environment-base.ts';
@@ -60,9 +60,12 @@ class BrowserEnvImpl extends EnvironmentBase {
 		this.#browser.once('disconnected', () => this.#onDisconnected());
 
 		this.consoleLogger = new FileOutput(`./reports/logs/${browserType}-${this.#browser.version()}.log`);
+		//	mirror page console/page-error to both file AND the server
+		//	console so CI logs show per-test FAIL/ERROR (emitted by
+		//	state-service in the session-box) in real time
 		const pageLogger = new Logger({
 			context: `${browserType}-${this.#browser.version()}`,
-			outputs: [this.consoleLogger]
+			outputs: [this.consoleLogger, new ConsoleOutput()]
 		});
 
 		this.#browsingContext = await this.#browser.newContext();
