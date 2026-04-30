@@ -29,6 +29,7 @@ const config = {
 					'**/tests/coverage/coverage-service-test.ts',
 					'**/tests/coverage/coverage-configurer-test.ts',
 					'**/tests/server/**',
+					'**/tests/local-runner-test.ts',
 					//	Flaky under chromium + page-per-test: spawning ~200
 					//	popups alongside nested `import()` calls races in
 					//	Chromium (passes in iframe-chromium, firefox-page,

@@ -25,7 +25,8 @@ const config = {
 					'**/tests/coverage/reporters/**',
 					'**/tests/coverage/coverage-service-test.ts',
 					'**/tests/coverage/coverage-configurer-test.ts',
-					'**/tests/server/**'
+					'**/tests/server/**',
+					'**/tests/local-runner-test.ts'
 				]
 			},
 			coverage: {
