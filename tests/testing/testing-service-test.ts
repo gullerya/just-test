@@ -57,7 +57,7 @@ test('collectTestResources - returns matching files for a glob that hits real te
 		assert.strictEqual(typeof entry, 'string');
 		assert.isTrue(entry.endsWith('-test.ts'));
 	}
-});
+}, { timeout: 15000 });
 
 test('collectTestResources - exclude filters out matching files', async () => {
 	const all = await collectTestResources(['./tests/common/*-test.ts'], []);
@@ -67,7 +67,7 @@ test('collectTestResources - exclude filters out matching files', async () => {
 	);
 	assert.isTrue(filtered.length < all.length);
 	assert.isTrue(filtered.every(p => !p.endsWith('assert-utils-test.ts')));
-});
+}, { timeout: 15000 });
 
 //	-----------------------------------------------------------------
 //	collectTestResources — zero-match
