@@ -17,7 +17,7 @@ export {
 
 const logger = new Logger({ context: 'coverage' });
 
-async function collectTargetSources(config) {
+async function collectTargetSources(config?: { include?: string; exclude?: string[] }): Promise<string[]> {
 	if (!config || !config.include) {
 		return [];
 	}

@@ -49,7 +49,7 @@ test('testing-service - verifyEnrichConfig surfaces configurer validation errors
 
 test('collectTestResources - returns matching files for a glob that hits real tests', async () => {
 	//	the repo ships many *-test.ts files under tests/common
-	const result = await collectTestResources(['./tests/common/*-test.ts'], []);
+	const result = await collectTestResources(['./tests/common/*-test.ts'], ['**/node_modules/**']);
 	assert.isTrue(Array.isArray(result));
 	assert.isTrue(result.length >= 1);
 	//	every entry is a string path pointing to a *-test.ts file
@@ -57,17 +57,17 @@ test('collectTestResources - returns matching files for a glob that hits real te
 		assert.strictEqual(typeof entry, 'string');
 		assert.isTrue(entry.endsWith('-test.ts'));
 	}
-}, { timeout: 15000 });
+});
 
 test('collectTestResources - exclude filters out matching files', async () => {
-	const all = await collectTestResources(['./tests/common/*-test.ts'], []);
+	const all = await collectTestResources(['./tests/common/*-test.ts'], ['**/node_modules/**']);
 	const filtered = await collectTestResources(
 		['./tests/common/*-test.ts'],
-		['**/assert-utils-test.ts']
+		['**/assert-utils-test.ts', '**/node_modules/**']
 	);
 	assert.isTrue(filtered.length < all.length);
 	assert.isTrue(filtered.every(p => !p.endsWith('assert-utils-test.ts')));
-}, { timeout: 15000 });
+});
 
 //	-----------------------------------------------------------------
 //	collectTestResources — zero-match
