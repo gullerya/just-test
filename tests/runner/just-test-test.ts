@@ -1,5 +1,6 @@
 import { test } from '@gullerya/just-test';
 import { assert } from '@gullerya/just-test/assert';
+import { test as testSUT } from '../../src/runner/just-test.ts';
 import { waitInterval } from '../../src/common/time-utils.ts';
 import { STATUS } from '../../src/common/constants.ts';
 import { EXECUTION_MODES, PlanningExecutionContext, setExecutionContext } from '../../src/runner/environment-config.ts';
@@ -12,7 +13,7 @@ const isoTestConf = { ecKey: isolatedECKey };
 test('PLAN mode - registers testConfig with defaults', () => {
 	const planECKey = 'test-runner-test-api-plan-ec';
 	const ec = setExecutionContext(EXECUTION_MODES.PLAN, null, null, null, planECKey as any) as PlanningExecutionContext;
-	test('name', () => { }, { ecKey: planECKey });
+	testSUT('name', () => { }, { ecKey: planECKey });
 
 	assert.isTrue(ec instanceof Object && Array.isArray(ec.testConfigs));
 	assert.deepEqual(ec.testConfigs[0], {
@@ -24,7 +25,7 @@ test('PLAN mode - registers testConfig with defaults', () => {
 //	sync
 //
 test('run test - pass (sync)', async () => {
-	const tp = test('name', () => { }, isoTestConf);
+	const tp = testSUT('name', () => { }, isoTestConf);
 
 	assert.isTrue(tp instanceof Promise);
 	const m: any = await tp;
@@ -34,7 +35,7 @@ test('run test - pass (sync)', async () => {
 });
 
 test('run test - fail by assert (sync)', async () => {
-	const tp = test('name', () => assert.fail('reason'), isoTestConf);
+	const tp = testSUT('name', () => assert.fail('reason'), isoTestConf);
 
 	assert.isTrue(tp instanceof Promise);
 	const m: any = await tp;
@@ -49,7 +50,7 @@ test('run test - fail by assert (sync)', async () => {
 test('run test - fail by error (sync)', async () => {
 	//	`eval` preserves the original intent — reference a truly
 	//	undeclared identifier to get a genuine ReferenceError at runtime
-	const tp = test('name', () => { eval('nonsense_sync'); }, isoTestConf);
+	const tp = testSUT('name', () => { eval('nonsense_sync'); }, isoTestConf);
 
 	assert.isTrue(tp instanceof Promise);
 	const m: any = await tp;
@@ -62,7 +63,7 @@ test('run test - fail by error (sync)', async () => {
 });
 
 test('run test - skip', async () => {
-	const tp = test('name', () => { }, { ...isoTestConf, skip: true });
+	const tp = testSUT('name', () => { }, { ...isoTestConf, skip: true });
 
 	assert.isTrue(tp instanceof Promise);
 	const m: any = await tp;
@@ -72,19 +73,19 @@ test('run test - skip', async () => {
 });
 
 test('setup test - error on bad name', async () => {
-	const tr: any = await test('', () => { }, isoTestConf);
+	const tr: any = await testSUT('', () => { }, isoTestConf);
 	assert.strictEqual(tr.error.message, `test name MUST be a non-empty string, got: ''`);
 });
 
 test('setup test - error on bad options', { only: true }, async () => {
-	const tr: any = await test('name', () => { }, { ...isoTestConf, skip: true, only: true });
+	const tr: any = await testSUT('name', () => { }, { ...isoTestConf, skip: true, only: true });
 	assert.strictEqual(tr.error.message, `can't opt in 'only' and 'skip' at the same time`);
 });
 
 //	async
 //
 test('run test - pass (async)', async () => {
-	const tp = test('name', async () => {
+	const tp = testSUT('name', async () => {
 		await waitInterval(2);
 	}, isoTestConf);
 
@@ -97,7 +98,7 @@ test('run test - pass (async)', async () => {
 });
 
 test('run test - fail by assert (async)', async () => {
-	const tp = test('name', async () => {
+	const tp = testSUT('name', async () => {
 		await waitInterval(3);
 		assert.fail('reason');
 	}, isoTestConf);
@@ -114,7 +115,7 @@ test('run test - fail by assert (async)', async () => {
 });
 
 test('run test - fail by error (async)', async () => {
-	const tp = test('name', async () => {
+	const tp = testSUT('name', async () => {
 		await waitInterval(3);
 		eval('nonsense_async');
 	}, isoTestConf);
@@ -132,7 +133,7 @@ test('run test - fail by error (async)', async () => {
 
 test('run test - fail by timeout (async)', async () => {
 	const timeout = 30;
-	const tp = test('name', async () => {
+	const tp = testSUT('name', async () => {
 		await waitInterval(timeout);
 	}, { ...isoTestConf, timeout });
 
@@ -151,17 +152,17 @@ test('run test - fail by timeout (async)', async () => {
 //	validate - input shape
 //
 test('setup test - error on missing code', async () => {
-	const tr: any = await test('name', null as any, isoTestConf);
+	const tr: any = await testSUT('name', null as any, isoTestConf);
 	assert.isTrue(tr.error.message.startsWith('test code expected, got:'));
 });
 
 test('setup test - error on non-function code', async () => {
-	const tr: any = await test('name', 'not a function' as any, isoTestConf);
+	const tr: any = await testSUT('name', 'not a function' as any, isoTestConf);
 	assert.isTrue(tr.error.message.startsWith('test code expected, got:'));
 });
 
 test('setup test - error on non-object opts', async () => {
-	const tr: any = await test('name', () => { }, 'bogus' as any);
+	const tr: any = await testSUT('name', () => { }, 'bogus' as any);
 	assert.isTrue(tr.error.message.startsWith('options, when provided, expected to be a non-null object'));
 });
 
@@ -180,7 +181,7 @@ test('TEST mode - testId mismatch returns null without running code', async () =
 		isolatedKey as any
 	);
 
-	const result = await test('some-other-test', () => { executed = true; }, { ecKey: isolatedKey });
+	const result = await testSUT('some-other-test', () => { executed = true; }, { ecKey: isolatedKey });
 	assert.strictEqual(result, null);
 	assert.isFalse(started);
 	assert.isFalse(ended);
@@ -201,7 +202,7 @@ test('TEST mode - testId match invokes start/end handlers in order', async () =>
 		isolatedKey as any
 	);
 
-	await test('my-test', () => { order.push('code'); }, { ecKey: isolatedKey });
+	await testSUT('my-test', () => { order.push('code'); }, { ecKey: isolatedKey });
 	assert.deepEqual(order, ['start:my-test', 'code', 'end:my-test']);
 	assert.strictEqual(seenRun.status, STATUS.PASS);
 });
@@ -215,7 +216,7 @@ test('finalizeRun - error.name containing "assert" classifies as FAIL', async ()
 			this.name = 'MyAssertionError';
 		}
 	}
-	const tp = test('name', () => { throw new CustomAssertionError('boom'); }, isoTestConf);
+	const tp = testSUT('name', () => { throw new CustomAssertionError('boom'); }, isoTestConf);
 	const m: any = await tp;
 	assert.strictEqual(m.status, STATUS.FAIL);
 	assert.isTrue(m.error.name.toLowerCase().includes('assert'));
@@ -224,7 +225,7 @@ test('finalizeRun - error.name containing "assert" classifies as FAIL', async ()
 //	run.time - minimum floor of 0.1ms
 //
 test('run.time - instant sync success still reports time >= 0.1ms', async () => {
-	const tp = test('name', () => { }, isoTestConf);
+	const tp = testSUT('name', () => { }, isoTestConf);
 	const m: any = await tp;
 	assert.strictEqual(m.status, STATUS.PASS);
 	assert.isTrue(m.time >= 0.1);
