@@ -96,3 +96,40 @@ test('planSession - independent StateServices accumulate independently', async (
 	assert.strictEqual(a.session.total, 1);
 	assert.strictEqual(b.session.total, 2);
 });
+
+//	D1: resolveSource injection contract
+//
+test('planSession - calls resolveSource once per resource with the raw source string', async () => {
+	const svc = new StateService();
+	const calls: string[] = [];
+	const resolve = (s: string) => {
+		calls.push(s);
+		return resolveSource(s);
+	};
+	const sources = [
+		'tests/runner/_planner-fixtures/one-test.ts',
+		'tests/runner/_planner-fixtures/two-tests.ts'
+	];
+	await runPlan(sources, svc, resolve);
+	assert.deepEqual(calls, sources);
+});
+
+//	D2: fixture with zero test() calls produces no suite
+//
+test('planSession - fixture that registers no tests yields no suite', async () => {
+	const svc = new StateService();
+	await runPlan(['tests/runner/_planner-fixtures/no-tests.ts'], svc);
+	assert.strictEqual(svc.session.suites.length, 0);
+	assert.strictEqual(svc.session.total, 0);
+});
+
+//	D3: import-failure TestError carries a stack
+//
+test('planSession - TestError from import failure carries a non-empty stack', async () => {
+	const svc = new StateService();
+	await runPlan(['tests/runner/_planner-fixtures/throws-on-import.ts'], svc);
+	assert.strictEqual(svc.session.errors.length, 1);
+	const err = svc.session.errors[0];
+	assert.strictEqual(typeof err.stack, 'string');
+	assert.isTrue(err.stack.length > 0);
+});
