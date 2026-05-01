@@ -122,8 +122,10 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 	const sessionResult: Session & { summary: any } = (await waitSessionEnd(client, sessionId)) as any;
 
 	//	test report
+	const envSuffix = deriveEnvSuffix(config.environments[0]);
 	const reportText = xUnitReporter.report(sessionResult);
-	await fs.writeFile('reports/results.xml', reportText, { encoding: 'utf-8' });
+	await fs.mkdir('reports', { recursive: true });
+	await fs.writeFile(`reports/results-${envSuffix}.xml`, reportText, { encoding: 'utf-8' });
 
 	//	single host-side V8->jt conversion point: child environments ship
 	//	raw V8 over the wire; we convert here, once, right before reporting
@@ -162,10 +164,9 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 			.map(ts => buildJTFileCov(ts, false))
 	);
 	const covContent = lcovReporter.convert({ testCoverages, fileCoverages } as any);
-	const covPath = `reports/coverage-${deriveEnvSuffix(config.environments[0])}.lcov`;
+	const covPath = `reports/coverage-${envSuffix}.lcov`;
 	await fs.rm(covPath, { force: true, recursive: true });
 	if (covContent) {
-		await fs.mkdir('reports', { recursive: true });
 		await fs.writeFile(covPath, covContent, { encoding: 'utf-8' });
 	}
 
