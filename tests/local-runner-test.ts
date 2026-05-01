@@ -1,6 +1,6 @@
 import { test } from '@gullerya/just-test';
 import { assert } from '@gullerya/just-test/assert';
-import { applyFilesOverride } from '../src/local-runner.ts';
+import { applyFilesOverride, deriveEnvSuffix } from '../src/local-runner.ts';
 
 //	Representative input: the shape local-runner actually encounters
 //	after importing a config module — `environments: [...]` with `tests`
@@ -136,4 +136,39 @@ test('applyFilesOverride - works when an env has no tests field (creates one)', 
 	assert.deepEqual(out.environments[0].tests.include, ['x.ts']);
 	assert.deepEqual(out.environments[0].tests.exclude, []);
 	assert.strictEqual(out.environments[0].node, true);
+});
+
+//	deriveEnvSuffix — keeps per-env coverage artifacts discriminated in
+//	`reports/` so matrix configs don't overwrite each other
+//
+test('deriveEnvSuffix - node env', () => {
+	assert.strictEqual(deriveEnvSuffix({ node: true }), 'nodejs');
+});
+
+test('deriveEnvSuffix - interactive env', () => {
+	assert.strictEqual(deriveEnvSuffix({ interactive: true }), 'interactive');
+});
+
+test('deriveEnvSuffix - browser with explicit executor', () => {
+	assert.strictEqual(
+		deriveEnvSuffix({ browser: { type: 'chromium', executors: { type: 'page' } } }),
+		'chromium-page'
+	);
+	assert.strictEqual(
+		deriveEnvSuffix({ browser: { type: 'firefox', executors: { type: 'worker' } } }),
+		'firefox-worker'
+	);
+});
+
+test('deriveEnvSuffix - browser defaults executor to iframe when missing', () => {
+	assert.strictEqual(
+		deriveEnvSuffix({ browser: { type: 'webkit' } }),
+		'webkit-iframe'
+	);
+});
+
+test('deriveEnvSuffix - falls back to "env" for unrecognized shape', () => {
+	assert.strictEqual(deriveEnvSuffix({}), 'env');
+	assert.strictEqual(deriveEnvSuffix(null), 'env');
+	assert.strictEqual(deriveEnvSuffix(undefined), 'env');
 });

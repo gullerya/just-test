@@ -39,7 +39,7 @@ graph TB
 
 | Entry | Purpose |
 |---|---|
-| `local-runner.ts` | CLI: starts server in-process, posts config, polls `/result`, writes `reports/results.xml` + `reports/coverage.lcov`, exits. |
+| `local-runner.ts` | CLI: starts server in-process, posts config, polls `/result`, writes `reports/results.xml` + `reports/coverage-<env>.lcov` (suffix derived from the environment — e.g. `nodejs`, `chromium-iframe`), exits. |
 | `server/cli.ts` | Starts the server only. Interactive: a human opens the logged session URL. |
 
 Both accept `key=value` CLI arguments merged over the loaded config. `src/configurer.js` is dead code — delete pending.

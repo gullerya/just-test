@@ -162,10 +162,11 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 			.map(ts => buildJTFileCov(ts, false))
 	);
 	const covContent = lcovReporter.convert({ testCoverages, fileCoverages } as any);
-	await fs.rm('reports/coverage.lcov', { force: true, recursive: true });
+	const covPath = `reports/coverage-${deriveEnvSuffix(config.environments[0])}.lcov`;
+	await fs.rm(covPath, { force: true, recursive: true });
 	if (covContent) {
 		await fs.mkdir('reports', { recursive: true });
-		await fs.writeFile('reports/coverage.lcov', covContent, { encoding: 'utf-8' });
+		await fs.writeFile(covPath, covContent, { encoding: 'utf-8' });
 	}
 
 	//	analysis
@@ -184,6 +185,24 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 	}
 
 	return sessionResult;
+}
+
+//	mirrors the logger's per-environment context convention
+//	(`${browserType}-${executor}` / `nodejs`), minus versions — keeps
+//	coverage artifacts from different matrix configs from overwriting
+//	each other in `reports/`
+export function deriveEnvSuffix(env: any): string {
+	if (env?.node) {
+		return 'nodejs';
+	}
+	if (env?.interactive) {
+		return 'interactive';
+	}
+	if (env?.browser?.type) {
+		const executor = env.browser.executors?.type ?? 'iframe';
+		return `${env.browser.type}-${executor}`;
+	}
+	return 'env';
 }
 
 //	TODO: this is done in the cli as well, refactor to avoid code duplication
