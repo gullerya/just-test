@@ -12,7 +12,7 @@ const
 		include: [],
 		exclude: [],
 		reports: [
-			{ format: 'xUnit', path: './reports/test-results.xml' }
+			{ format: 'xUnit' }
 		]
 	});
 
@@ -39,9 +39,6 @@ function validate(config) {
 		if (!TEST_REPORTS_FORMATS.includes(report.format)) {
 			throw new Error(`reporter type MUST be a one of ${TEST_REPORTS_FORMATS}; got ${report.format}`);
 		}
-		if (!report.path || typeof report.path !== 'string') {
-			throw new Error(`reporter path MUST be a non-empty string; got ${report.path}`);
-		}
 	});
 
 	//	validate include/exclude
@@ -56,12 +53,11 @@ function validate(config) {
 function _reduceIdenticalReports(config) {
 	const map = {};
 	const toBeRemoved = config.reports.filter(report => {
-		const hash = report.type + report.path;
-		if (hash in map) {
+		if (report.format in map) {
 			logger.warn(`removing duplicate report (${JSON.stringify(report)})`);
 			return true;
 		} else {
-			map[hash] = true;
+			map[report.format] = true;
 			return false;
 		}
 	});

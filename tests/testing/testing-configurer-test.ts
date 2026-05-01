@@ -20,7 +20,6 @@ test('testing-configurer - returns DEFAULT_CONFIG fields when user gives only in
 	assert.deepStrictEqual(cfg.exclude, []);
 	assert.strictEqual(cfg.reports.length, 1);
 	assert.strictEqual(cfg.reports[0].format, 'xUnit');
-	assert.strictEqual(cfg.reports[0].path, './reports/test-results.xml');
 });
 
 test('testing-configurer - unknown user keys are filtered out', () => {
@@ -40,7 +39,7 @@ test('testing-configurer - user values override defaults for every known key', (
 		maxSkip: 2,
 		include: ['tests/**'],
 		exclude: ['tests/broken/**'],
-		reports: [{ format: 'xUnit', path: './out/a.xml' }]
+		reports: [{ format: 'xUnit' }]
 	});
 
 	assert.strictEqual(cfg.ttl, 5000);
@@ -49,7 +48,7 @@ test('testing-configurer - user values override defaults for every known key', (
 	assert.deepStrictEqual(cfg.include, ['tests/**']);
 	assert.deepStrictEqual(cfg.exclude, ['tests/broken/**']);
 	assert.strictEqual(cfg.reports.length, 1);
-	assert.strictEqual(cfg.reports[0].path, './out/a.xml');
+	assert.strictEqual(cfg.reports[0].format, 'xUnit');
 });
 
 test('testing-configurer - result is frozen', () => {
@@ -77,29 +76,8 @@ test('testing-configurer - reports with null element -> throws', () => {
 
 test('testing-configurer - report with unsupported format -> throws', () => {
 	assert.throws(
-		() => buildConfig({ include: ['a'], reports: [{ format: 'tap', path: './o.tap' }] as any }),
+		() => buildConfig({ include: ['a'], reports: [{ format: 'tap' }] as any }),
 		'reporter type MUST be a one of xUnit'
-	);
-});
-
-test('testing-configurer - report with missing path -> throws', () => {
-	assert.throws(
-		() => buildConfig({ include: ['a'], reports: [{ format: 'xUnit' }] as any }),
-		'reporter path MUST be a non-empty string'
-	);
-});
-
-test('testing-configurer - report with non-string path -> throws', () => {
-	assert.throws(
-		() => buildConfig({ include: ['a'], reports: [{ format: 'xUnit', path: 42 }] as any }),
-		'reporter path MUST be a non-empty string'
-	);
-});
-
-test('testing-configurer - report with empty-string path -> throws', () => {
-	assert.throws(
-		() => buildConfig({ include: ['a'], reports: [{ format: 'xUnit', path: '' }] as any }),
-		'reporter path MUST be a non-empty string'
 	);
 });
 
@@ -134,30 +112,17 @@ test('testing-configurer - exclude empty array is allowed', () => {
 });
 
 //	-----------------------------------------------------------------
-//	_reduceIdenticalReports — duplicate collapse
+//	_reduceIdenticalReports — duplicate collapse by format
 //	-----------------------------------------------------------------
 
-test('testing-configurer - duplicate reports (same type+path) are collapsed to one', () => {
+test('testing-configurer - duplicate reports (same format) are collapsed to one', () => {
 	const cfg = buildConfig({
 		include: ['a'],
 		reports: [
-			{ format: 'xUnit', path: './out/a.xml' },
-			{ format: 'xUnit', path: './out/a.xml' }
+			{ format: 'xUnit' },
+			{ format: 'xUnit' }
 		]
 	});
 	assert.strictEqual(cfg.reports.length, 1);
-	assert.strictEqual(cfg.reports[0].path, './out/a.xml');
-});
-
-test('testing-configurer - reports with distinct paths are both kept', () => {
-	const cfg = buildConfig({
-		include: ['a'],
-		reports: [
-			{ format: 'xUnit', path: './out/a.xml' },
-			{ format: 'xUnit', path: './out/b.xml' }
-		]
-	});
-	assert.strictEqual(cfg.reports.length, 2);
-	assert.strictEqual(cfg.reports[0].path, './out/a.xml');
-	assert.strictEqual(cfg.reports[1].path, './out/b.xml');
+	assert.strictEqual(cfg.reports[0].format, 'xUnit');
 });
