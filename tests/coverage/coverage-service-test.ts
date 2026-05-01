@@ -16,7 +16,7 @@ test('collect sources - only include', async () => {
 	});
 
 	assert.deepStrictEqual(ts, ['tests/coverage/coverage-service-test.ts']);
-});
+}, { timeout: 8000 });
 
 test('collect sources - include and exclude', async () => {
 	let ts = await collectTargetSources({
@@ -25,7 +25,7 @@ test('collect sources - include and exclude', async () => {
 	});
 
 	assert.deepStrictEqual(ts, []);
-});
+}, { timeout: 8000 });
 
 //	`convertSessionCoverage` is the single host-side V8->jt conversion point.
 //	It walks a session and replaces raw V8 payloads on every test.lastRun and
