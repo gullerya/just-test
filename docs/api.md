@@ -39,6 +39,8 @@ Options (all fields optional):
 - `skip: boolean` — skip this test. Mutually exclusive with `only`. Default `false`.
 - `timeout: number` — per-test deadline in milliseconds. Default `3000`.
 
+Names must be unique within a file. A second `test('same-name', ...)` in the same file is registered as a pre-settled failure (`DuplicateTestError`) — it is not executed, subsequent `test(...)` calls in the same file are unaffected, and the session report surfaces it as a normal FAIL.
+
 ## CLI
 
 `local-runner` is the entrypoint used by CI: it starts the server in-process, runs the session, writes reports, and exits with a non-zero code on failure.

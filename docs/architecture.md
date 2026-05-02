@@ -111,15 +111,15 @@ Only `page` mode gives true per-test browser coverage. `iframe` is the default (
 `runner/just-test.js` exports:
 
 ```js
-export { test, TestDto };
+export { test };
 ```
 
-- `test(name, code, opts)` — declare a test. Mode-dependent via execution context (`PLAN` registers, `TEST` runs, `PLAIN_RUN` runs immediately for library use). Per-test timeout enforced by `Promise.race` (default 3000 ms).
-- `TestDto` — payload passed to `opts`.
+- `test(name, code, opts?)` — declare a test. Mode-dependent via execution context (`PLAN` registers, `TEST` runs, `PLAIN_RUN` runs immediately for library use). Per-test timeout enforced by `Promise.race` (default 3000 ms).
 
 Assertions live in `common/assert-utils.js` (consumed, not advertised).
 
 **Removed in 5.0.0:** `suite()`.
+**Removed in 5.0.1:** `TestDto` (was never consumed).
 
 ---
 

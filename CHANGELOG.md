@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	check only iterated `expected`'s keys, so `{a:1,b:2}` was
 	considered "deep-equal" to `{a:1}`). Matches `deepStrictEqual`'s
 	behavior.
+-	Duplicate test names within a file no longer throw at registration
+	(which aborted planning for that file and dropped every subsequent
+	test). The second `test('same-name', …)` is now registered as a
+	pre-settled `DuplicateTestError` FAIL; siblings register normally
+	and the duplicate is surfaced via the standard session report.
 
 ###	Changed
 
@@ -108,6 +113,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	(chromium / firefox / webkit); the `nodejs` job no longer installs
 	Playwright at all. Typical PR install cost dropped from ~80–150s to
 	~10–15s per browser job on warm cache.
+
+###	Removed
+
+-	`TestDto` export from `@gullerya/just-test`. It had no consumer in
+	the codebase or the test suite; removing it shrinks the public
+	surface with no migration needed.
 
 ##	[[5.0.0](https://github.com/gullerya/just-test/releases/tag/v5.0.0) - 2026-04-21]
 

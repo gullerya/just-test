@@ -1,8 +1,10 @@
 import { test } from '@gullerya/just-test';
 import { assert } from '@gullerya/just-test/assert';
-import { runSession, runSuite } from '../../src/runner/session-service.ts';
+import { runSession, runSuite, isSettled } from '../../src/runner/session-service.ts';
 import { Session } from '../../src/testing/model/session.ts';
 import { Suite } from '../../src/testing/model/suite.ts';
+import { TestRun } from '../../src/testing/model/test-run.ts';
+import { STATUS } from '../../src/common/constants.ts';
 
 //	Fake state service: runSession only calls getExecutionData(), so a
 //	thin stub that returns a prebuilt Session is enough.
@@ -67,24 +69,6 @@ test('runSession - invokes executor for every non-skip test in every suite', asy
 });
 
 //	-----------------------------------------------------------------
-//	runSuite - skip short-circuit
-//	-----------------------------------------------------------------
-
-test('runSuite - tests with config.skip=true are NOT passed to executor', async () => {
-	const suite = makeSuite('S', 3, { skip: true });
-	//	flip one test back to non-skip to prove filtering is per-test
-	suite.tests[1].config = { skip: false } as any;
-	let callCount = 0;
-	const executor = (t: any) => {
-		callCount++;
-		assert.strictEqual(t.name, 'S-t1');
-		return Promise.resolve();
-	};
-	await runSuite(suite, executor);
-	assert.strictEqual(callCount, 1);
-});
-
-//	-----------------------------------------------------------------
 //	runSuite - parallel (default) vs. sync
 //	-----------------------------------------------------------------
 
@@ -144,4 +128,55 @@ test('runSuite - one failing executor promise does not short-circuit the others'
 	} catch (e: any) {
 		assert.strictEqual(e.message, 't1 boom');
 	}
+});
+
+//	-----------------------------------------------------------------
+//	isSettled
+//	-----------------------------------------------------------------
+
+function runWithStatus(status: string) {
+	const r = new TestRun();
+	r.status = status as any;
+	return r;
+}
+
+test('isSettled - false when test has no lastRun', () => {
+	assert.isFalse(isSettled({ lastRun: null } as any));
+});
+
+test('isSettled - false for non-terminal statuses (RUNS, WAIT, INIT)', () => {
+	for (const s of [STATUS.RUNS, STATUS.WAIT, STATUS.INIT]) {
+		assert.isFalse(isSettled({ lastRun: runWithStatus(s) } as any));
+	}
+});
+
+test('isSettled - true for every terminal status (SKIP, PASS, FAIL, ERROR)', () => {
+	for (const s of [STATUS.SKIP, STATUS.PASS, STATUS.FAIL, STATUS.ERROR]) {
+		assert.isTrue(isSettled({ lastRun: runWithStatus(s) } as any));
+	}
+});
+
+//	-----------------------------------------------------------------
+//	runSuite - dispatch gate reads isSettled
+//	-----------------------------------------------------------------
+
+test('runSuite - settled tests are NOT passed to the executor (every terminal status)', async () => {
+	for (const terminal of [STATUS.SKIP, STATUS.PASS, STATUS.FAIL, STATUS.ERROR]) {
+		const suite = makeSuite('G', 2);
+		suite.tests[0].lastRun = runWithStatus(terminal);
+		const dispatched: string[] = [];
+		const executor = async (t: any) => { dispatched.push(t.name); };
+		await runSuite(suite, executor);
+		assert.deepEqual(dispatched, ['G-t1'], `terminal=${terminal}`);
+	}
+});
+
+test('runSuite - mix of settled and unsettled only dispatches the unsettled ones', async () => {
+	const suite = makeSuite('M', 4);
+	suite.tests[0].lastRun = runWithStatus(STATUS.FAIL);
+	suite.tests[2].lastRun = runWithStatus(STATUS.SKIP);
+	const dispatched: string[] = [];
+	const executor = async (t: any) => { dispatched.push(t.name); };
+	await runSuite(suite, executor);
+	assert.deepEqual(dispatched.sort(), ['M-t1', 'M-t3']);
 });

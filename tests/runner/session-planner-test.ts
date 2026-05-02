@@ -2,6 +2,7 @@ import { test } from '@gullerya/just-test';
 import { assert } from '@gullerya/just-test/assert';
 import { planSession } from '../../src/runner/session-planner.ts';
 import StateService from '../../src/runner/state-service.ts';
+import { STATUS } from '../../src/common/constants.ts';
 
 //	In browsers the static handler serves the repo root at `/static/`;
 //	in Node a file:// URL resolves the absolute path. Unique query-string
@@ -132,4 +133,36 @@ test('planSession - TestError from import failure carries a non-empty stack', as
 	const err = svc.session.errors[0];
 	assert.strictEqual(typeof err.stack, 'string');
 	assert.isTrue(err.stack.length > 0);
+});
+
+//	D4: duplicate test name within a fixture — all three register; the
+//	second ('same') is pre-settled FAIL; the third ('other') is unaffected
+//	(cascade regression guard — the previous throw-on-duplicate implementation
+//	would have aborted at the second registration, dropping 'other').
+//
+test('planSession - duplicate test name does not cascade; all siblings register', async () => {
+	const svc = new StateService();
+	await runPlan(['tests/runner/_planner-fixtures/duplicate-name.ts'], svc);
+
+	assert.strictEqual(svc.session.suites.length, 1);
+	const suite = svc.session.suites[0];
+	assert.strictEqual(suite.tests.length, 3);
+
+	const [first, dup, other] = suite.tests;
+	assert.strictEqual(first.name, 'same');
+	assert.isTrue(!first.lastRun);
+
+	assert.strictEqual(dup.name, 'same');
+	assert.strictEqual(dup.lastRun.status, STATUS.FAIL);
+	assert.strictEqual(dup.lastRun.error.name, 'DuplicateTestError');
+
+	assert.strictEqual(other.name, 'other');
+	assert.isTrue(!other.lastRun);
+
+	//	planner itself did not report this as a session-level error
+	assert.strictEqual(svc.session.errors.length, 0);
+	//	suite/session counters reflect the FAIL of the duplicate only
+	assert.strictEqual(svc.session.fail, 1);
+	assert.strictEqual(svc.session.done, 1);
+	assert.strictEqual(svc.session.total, 3);
 });

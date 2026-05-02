@@ -8,23 +8,13 @@ import { STATUS } from '../common/constants.ts';
 import { TestError } from '../testing/model/test-error.ts';
 import { TestRun } from '../testing/model/test-run.ts';
 
-export { test, TestDto };
+export { test };
 
 const DEFAULT_TEST_OPTIONS = {
 	only: false,
 	skip: false,
 	timeout: 3000
 };
-
-class TestDto {
-	name: string;
-	config: any;
-
-	constructor(name, config) {
-		this.name = name;
-		this.config = config;
-	}
-}
 
 async function test(name, code, opts: any = DEFAULT_TEST_OPTIONS) {
 	const { name: nameF, code: codeF, opts: optsF, error } = validate(name, code, opts);

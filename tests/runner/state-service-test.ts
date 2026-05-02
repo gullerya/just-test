@@ -68,13 +68,60 @@ test('addTest - creates suite on demand and pushes test', () => {
 	assert.strictEqual(svc.session.total, 1);
 });
 
-test('addTest - throws on duplicate test name within a suite', () => {
+test('addTest - duplicate name does NOT throw; second is pre-settled FAIL', () => {
 	const svc = new StateService();
 	svc.addTest(makeTest('t1', 's1'));
-	assert.throws(
-		() => svc.addTest(makeTest('t1', 's1')),
-		`test 't1' already found in suite 's1'`
-	);
+	svc.addTest(makeTest('t1', 's1'));
+	const suite = svc.session.suites[0];
+	assert.strictEqual(suite.tests.length, 2);
+	const dup = suite.tests[1];
+	assert.strictEqual(dup.lastRun.status, STATUS.FAIL);
+	assert.strictEqual(dup.runs.length, 1);
+	assert.strictEqual(dup.runs[0], dup.lastRun);
+	assert.strictEqual(dup.lastRun.error.name, 'DuplicateTestError');
+	assert.isTrue(dup.lastRun.error.message.includes(`'t1'`));
+	assert.isTrue(dup.lastRun.error.message.includes(`'s1'`));
+	assert.isTrue(dup.lastRun.error.message.toLowerCase().includes('duplicate'));
+});
+
+test('addTest - duplicate increments fail/done counters at session and suite', () => {
+	const svc = new StateService();
+	svc.addTest(makeTest('t1', 's1'));
+	svc.addTest(makeTest('t1', 's1'));
+	const suite = svc.session.suites[0];
+	assert.strictEqual(svc.session.total, 2);
+	assert.strictEqual(svc.session.fail, 1);
+	assert.strictEqual(svc.session.done, 1);
+	assert.strictEqual(suite.total, 2);
+	assert.strictEqual(suite.fail, 1);
+	assert.strictEqual(suite.done, 1);
+});
+
+test('addTest - first test is unaffected by a later duplicate', () => {
+	const svc = new StateService();
+	svc.addTest(makeTest('t1', 's1'));
+	svc.addTest(makeTest('t1', 's1'));
+	const first = svc.session.suites[0].tests[0];
+	assert.strictEqual(first.lastRun, null);
+	assert.strictEqual(first.runs.length, 0);
+});
+
+test('addTest - duplicate with only:true does NOT flip suite.onlyMode', () => {
+	const svc = new StateService();
+	svc.addTest(makeTest('t1', 's1'));
+	svc.addTest(makeTest('t1', 's1', { only: true }));
+	assert.isFalse(!!svc.session.suites[0].onlyMode);
+});
+
+test('addTest - tests following a duplicate still register normally (no cascade)', () => {
+	const svc = new StateService();
+	svc.addTest(makeTest('t1', 's1'));
+	svc.addTest(makeTest('t1', 's1'));
+	svc.addTest(makeTest('t2', 's1'));
+	const suite = svc.session.suites[0];
+	assert.strictEqual(suite.tests.length, 3);
+	assert.strictEqual(suite.tests[2].name, 't2');
+	assert.strictEqual(suite.tests[2].lastRun, null);
 });
 
 test('addTest - same name in a different suite is allowed', () => {
@@ -82,6 +129,7 @@ test('addTest - same name in a different suite is allowed', () => {
 	svc.addTest(makeTest('t1', 's1'));
 	svc.addTest(makeTest('t1', 's2'));
 	assert.strictEqual(svc.session.total, 2);
+	assert.strictEqual(svc.session.fail, 0);
 });
 
 test('addTest - only:true flips suite.onlyMode', () => {

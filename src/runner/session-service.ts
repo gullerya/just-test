@@ -2,13 +2,25 @@
  * Runs a session of all suites/tests
  */
 
+import { STATUS } from '../common/constants.ts';
 import { Session } from '../testing/model/session.ts';
 import { Suite } from '../testing/model/suite.ts';
 
 export {
 	runSession,
 	runSuite,
+	isSettled
 };
+
+//	A test is "settled" when its outcome is already decided before the
+//	executor runs — skip at registration, duplicate-name rejection, and
+//	(future) planning-time validation errors all land here. Generic gate:
+//	anything the runner knows the result of should not be dispatched.
+const TERMINAL_STATUSES = new Set([STATUS.SKIP, STATUS.PASS, STATUS.FAIL, STATUS.ERROR]);
+
+function isSettled(test): boolean {
+	return !!test.lastRun && TERMINAL_STATUSES.has(test.lastRun.status);
+}
 
 async function runSession(stateService, testExecutor) {
 	const started = globalThis.performance.now();
@@ -29,7 +41,7 @@ async function runSuite(suite: Suite, testExecutor) {
 
 	let syncChain = Promise.resolve();
 	suite.tests.forEach(test => {
-		if (test.config.skip) {
+		if (isSettled(test)) {
 			testPromises.push(Promise.resolve());
 		} else {
 			const runResultPromise = testExecutor(test, suite.name);

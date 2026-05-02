@@ -50,15 +50,25 @@ export default class StateService {
 
 	addTest(test) {
 		const suite = this.obtainSuite(test.suiteName);
-		if (StateService.#getTestInternal(suite, test.name)) {
-			throw new Error(`test '${test.name}' already found in suite '${suite.name}'`);
-		}
+		const duplicate = !!StateService.#getTestInternal(suite, test.name);
 
-		if (test.config.only) {
+		if (test.config.only && !duplicate) {
 			suite.onlyMode = true;
 		}
 
-		if (test.config.skip) {
+		//	Pre-settle at registration time for cases the runner can decide
+		//	without dispatching the test: skip, duplicate-name. The dispatch
+		//	gate reads `lastRun.status` so any terminal status here means the
+		//	test is reported as-is and never executed.
+		if (duplicate) {
+			const err = new Error(`duplicate test name '${test.name}' in suite '${suite.name}'`);
+			err.name = 'DuplicateTestError';
+			const lRun = new TestRun();
+			lRun.status = STATUS.FAIL;
+			lRun.error = err;
+			test.lastRun = lRun;
+			test.runs.push(lRun);
+		} else if (test.config.skip) {
 			const lRun = new TestRun();
 			lRun.status = STATUS.SKIP;
 			test.lastRun = lRun;
@@ -68,14 +78,15 @@ export default class StateService {
 
 		//	update session globals
 		this.#session.total++;
-		if (test.config.skip) {
+		suite.total++;
+		if (duplicate) {
+			this.#session.fail++;
+			this.#session.done++;
+			suite.fail++;
+			suite.done++;
+		} else if (test.config.skip) {
 			this.#session.skip++;
 			this.#session.done++;
-		}
-
-		//	update suite globals
-		suite.total++;
-		if (test.config.skip) {
 			suite.skip++;
 			suite.done++;
 		}

@@ -77,9 +77,12 @@ test('setup test - error on bad name', async () => {
 	assert.strictEqual(tr.error.message, `test name MUST be a non-empty string, got: ''`);
 });
 
-test('setup test - error on bad options', { only: true }, async () => {
+test('setup test - error on only+skip combo', async () => {
 	const tr: any = await testSUT('name', () => { }, { ...isoTestConf, skip: true, only: true });
-	assert.strictEqual(tr.error.message, `can't opt in 'only' and 'skip' at the same time`);
+	assert.strictEqual(
+		tr.error.message,
+		`can't opt in 'only' and 'skip' at the same time, found in test: name`
+	);
 });
 
 //	async
