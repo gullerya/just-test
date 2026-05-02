@@ -1,4 +1,4 @@
-import { STATUS } from '../../common/constants.js';
+import { STATUS } from '../../common/constants.ts';
 import { TestError } from './test-error.ts';
 
 export class TestRun {

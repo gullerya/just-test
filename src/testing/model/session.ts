@@ -17,6 +17,10 @@ export class Session {
 
 	onlyMode: boolean = false;
 
+	//	session-global coverage (iframe/worker modes collapse per-test
+	//	coverage here because V8 attribution is shared / absent)
+	coverage: any | null = null;
+
 	constructor() {
 		Object.seal(this);
 	}
@@ -34,7 +38,9 @@ export class Session {
 			skip: this.skip,
 			pass: this.pass,
 			fail: this.fail,
-			error: this.error
+			error: this.error,
+			onlyMode: this.onlyMode,
+			coverage: this.coverage
 		};
 	}
 }

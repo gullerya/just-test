@@ -1,4 +1,4 @@
-import Logger from '../server/logger/logger.js';
+import Logger from '../server/logger/logger.ts';
 
 export {
 	EXT_TO_MIME_MAP,

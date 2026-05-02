@@ -7,24 +7,25 @@
 
 import url from 'node:url';
 import { workerData, Worker } from 'node:worker_threads';
-import * as serverAPI from '../../server-api-service.js';
-import SimpleStateService from '../../simple-state-service.ts';
+import { OrchestratorClient } from '../../../server/orchestrator-client.ts';
+import StateService from '../../state-service.ts';
 import { runSession } from '../../session-service.ts';
-import { setExecutionContext, EXECUTION_MODES } from '../../environment-config.js';
-import { PlanningExecutionContext } from '../../environment-config.js';
-import { EVENT, STATUS } from '../../../common/constants.js';
+import { planSession } from '../../session-planner.ts';
+import { EVENT, STATUS } from '../../../common/constants.ts';
 import { TestError } from '../../../testing/model/test-error.ts';
+import { TestRun } from '../../../testing/model/test-run.ts';
 
 (async () => {
 	const { sesId, envId, origin } = workerData;
-	const stateService = new SimpleStateService();
+	const client = new OrchestratorClient(origin);
+	const stateService = new StateService();
 	try {
-		const metadata = await serverAPI.getSessionMetadata(sesId, envId, origin);
+		const metadata = await client.getEnvironmentMetadata(sesId, envId);
 		stateService.session.sessionId = metadata.sessionId;
 		stateService.session.environmentId = metadata.id;
 
 		console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
-		await planSession(metadata.testPaths, stateService);
+		await planSession(metadata.testPaths, stateService, src => url.pathToFileURL(src).toString());
 
 		const testExecutor = createNodeJSExecutor(metadata, stateService);
 		await runSession(stateService, testExecutor);
@@ -35,40 +36,13 @@ import { TestError } from '../../../testing/model/test-error.ts';
 	} finally {
 		console.info(`reporting '${envId}':'${sesId}' results...`);
 		const sessionResult = stateService.session;
-		await serverAPI.reportSessionResult(sesId, envId, origin, sessionResult);
+		await client.reportEnvironmentResult(sesId, envId, sessionResult);
 		console.info(`session '${envId}':'${sesId}' finalized`);
 	}
 })();
 
 // internals
 //
-async function planSession(testsResources, stateService) {
-	const started = globalThis.performance.now();
-
-	console.info(`fetching ${testsResources.length} test resource/s...`);
-	for (const tr of testsResources) {
-		try {
-			const execContext = setExecutionContext(EXECUTION_MODES.PLAN) as PlanningExecutionContext;
-			execContext.suiteName = tr;
-			await import(url.pathToFileURL(tr).toString());
-			for (const { name, config } of execContext.testConfigs) {
-				stateService.addTest({
-					name,
-					config,
-					source: tr,
-					suiteName: execContext.suiteName,
-					runs: []
-				});
-			}
-		} catch (e) {
-			console.error(`failed to process '${tr}': `, e);
-		}
-	}
-
-	const ended = globalThis.performance.now();
-	console.info(`... ${testsResources.length} test resource/s fetched (planning phase) in ${(ended - started).toFixed(1)}ms`);
-}
-
 function createNodeJSExecutor(sessionMetadata, stateService) {
 	const workerUrl = new URL('./nodejs-test-box.js', import.meta.url);
 
@@ -82,7 +56,10 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 				if (type === EVENT.RUN_START) {
 					stateService.updateRunStarted(suiteName, testName);
 				} else if (type === EVENT.RUN_END) {
-					stateService.updateRunEnded(suiteName, testName, run);
+					//	`run` comes across worker boundary as a plain object
+					//	(see nodejs-test-box for the reason); rehydrate into
+					//	TestRun so the #error setter accepts the payload
+					stateService.updateRunEnded(suiteName, testName, rehydrateRun(run));
 					await worker.terminate();
 					worker.unref();
 					resolve(void 0);
@@ -90,7 +67,10 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 			});
 			worker.on('error', async error => {
 				console.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
-				stateService.updateRunEnded(suiteName, test.name, { status: STATUS.ERROR, error: TestError.fromError(error) });
+				const crashRun = new TestRun();
+				crashRun.status = STATUS.ERROR;
+				crashRun.error = error;
+				stateService.updateRunEnded(suiteName, test.name, crashRun);
 				await worker.terminate();
 				worker.unref();
 				resolve(void 0);
@@ -100,8 +80,40 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 				testName: test.name,
 				suiteName,
 				testSource: test.source,
-				coverage: sessionMetadata.coverage
+				coverageEnabled: sessionMetadata.coverageEnabled,
+				coverageInclude: sessionMetadata.coverageInclude
 			});
 		});
 	};
+}
+
+function rehydrateRun(plain: any): TestRun {
+	const run = new TestRun();
+	run.status = plain.status;
+	run.time = plain.time ?? 0;
+	run.timestamp = plain.timestamp ?? 0;
+	run.coverage = plain.coverage ?? null;
+	if (plain.error) {
+		run.error = rehydrateError(plain.error);
+	}
+	return run;
+}
+
+//	TestError.fromError requires an Error instance, so repackage the
+//	plain payload (from the test-box's toJSON) back into one; preserve
+//	the original type by re-assigning `constructor.name`-equivalent
+//	metadata onto the TestError fields via fromError's read path.
+function rehydrateError(plain: any): TestError {
+	const e: any = new Error(plain.message ?? '');
+	e.name = plain.name ?? 'Error';
+	e.stack = plain.stack ?? '';
+	if (plain.cause) {
+		e.cause = rehydrateError(plain.cause);
+	}
+	const te = TestError.fromError(e);
+	//	fromError reads error.constructor.name for `type`; but the original
+	//	type (AssertionError / TypeError / …) is what we actually want. The
+	//	TestError has private fields so we can't patch it directly — build a
+	//	fresh one with the right type.
+	return new (TestError as any)(te.name, plain.type ?? te.type, te.message, te.stack, te.cause);
 }

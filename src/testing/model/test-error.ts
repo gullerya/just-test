@@ -51,16 +51,32 @@ export class TestError {
 		);
 	}
 
-	static toJSON(error: Error): object {
+	static toJSON(error: Error | TestError): object {
 		if (error === null) {
 			return null;
 		}
+		//	a TestError already carries the preserved original type (from
+		//	fromError's `error.constructor.name` capture); for a native
+		//	Error we fall back to `constructor.name`. Using `constructor.name`
+		//	on a TestError would erase the original type as "TestError".
+		const type = error instanceof TestError
+			? (error as TestError).type
+			: error.constructor.name;
+		//	TestError doesn't extend Error, so `cause instanceof Error` is
+		//	false when a TestError's cause is itself a TestError; read via
+		//	the getter and recurse explicitly
+		const rawCause = error instanceof TestError
+			? (error as TestError).cause
+			: (error as Error).cause;
+		const cause = rawCause instanceof Error || rawCause instanceof TestError
+			? TestError.toJSON(rawCause)
+			: null;
 		return {
 			name: error.name,
-			type: error.constructor.name,
+			type,
 			message: error.message,
 			stack: error.stack,
-			cause: error.cause instanceof Error ? TestError.toJSON(error.cause) : null
+			cause
 		}
 	}
 }

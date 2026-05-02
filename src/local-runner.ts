@@ -3,16 +3,21 @@ import * as fs from 'node:fs/promises';
 import * as process from 'node:process';
 import * as path from 'node:path';
 import { start, stop } from './server/cli.ts';
-import { xUnitReporter } from './testing/testing-service.js';
-import { collectTargetSources, lcovReporter } from './coverage/coverage-service.js';
-import { buildJTFileCov } from './coverage/model/model-utils.js';
-import { normalizeCoverageUrl } from './coverage/model/url-utils.js';
-import { getTestId } from './common/interop-utils.js';
+import { xUnitReporter } from './testing/testing-service.ts';
+import { collectTargetSources, convertSessionCoverage, lcovReporter } from './coverage/coverage-service.ts';
+import { buildJTFileCov } from './coverage/model/model-utils.ts';
+import { normalizeCoverageUrl } from './coverage/model/url-utils.ts';
+import { getTestId } from './common/interop-utils.ts';
+import { STATUS } from './common/constants.ts';
 import { Session } from './testing/model/session.ts';
+import { OrchestratorClient } from './server/orchestrator-client.ts';
 
-go();
+if (process.argv[1] && process.argv[1].endsWith('local-runner.js')) {
+	go();
+}
 
 const SESSION_STATUS_POLL_INTERVAL = 137;
+const SESSION_WAIT_TIMEOUT_MS = 30 * 60 * 1000;
 
 async function go() {
 	const startTime = globalThis.performance.now();
@@ -55,6 +60,31 @@ async function go() {
 			console.info(`SESSION SUMMARY: ${endedWithFailure
 				? `FAILURE (${sessionResult.summary.failReason})`
 				: 'SUCCESS'} (${duration}s)${os.EOL}`);
+			//	Surface individual failing / erroring tests with their cause
+			//	so CI logs show *which* test broke without needing the xunit
+			//	XML. Unlike `sessionResult.errors` (session-level), this walks
+			//	each test's `lastRun.error`.
+			const badTests = sessionResult.suites
+				.flatMap(s => s.tests.map(t => ({ suite: s.name, test: t })))
+				.filter(({ test: t }) => t?.lastRun
+					&& (t.lastRun.status === STATUS.FAIL || t.lastRun.status === STATUS.ERROR));
+			if (badTests.length > 0) {
+				console.info('FAILED / ERRORED TESTS');
+				console.info('======================');
+				for (const { suite, test: t } of badTests) {
+					const run = t.lastRun;
+					const err: any = run.error;
+					console.info(`- [${String(run.status).toUpperCase()}] ${suite} ${getTestId(suite, t.name)}`);
+					if (err) {
+						console.info(`    ${err.type ?? 'Error'}: ${err.message ?? ''}`);
+						if (err.stack) {
+							const stack = String(err.stack).split('\n').slice(0, 6).join('\n');
+							console.info(stack.split('\n').map(l => `    ${l}`).join('\n'));
+						}
+					}
+				}
+				console.info(os.EOL);
+			}
 			if (sessionResult.errors && sessionResult.errors.length > 0) {
 				console.info('SESSION ERRORS');
 				console.info('==============');
@@ -87,12 +117,19 @@ function parseCLArgs(args): Record<string, string> {
 
 async function executeSession(serverBaseUrl, clArguments: Record<string, string>) {
 	const config: any = await readConfigAndMergeWithCLArguments(clArguments);
-	const sessionDetails = await sendAddSession(serverBaseUrl, config);
-	const sessionResult: Session & { summary: any } = (await waitSessionEnd(serverBaseUrl, sessionDetails)) as any;
+	const client = new OrchestratorClient(serverBaseUrl);
+	const { sessionId } = await client.createSession(config);
+	const sessionResult: Session & { summary: any } = (await waitSessionEnd(client, sessionId)) as any;
 
 	//	test report
+	const envSuffix = deriveEnvSuffix(config.environments[0]);
 	const reportText = xUnitReporter.report(sessionResult);
-	await fs.writeFile('reports/results.xml', reportText, { encoding: 'utf-8' });
+	await fs.mkdir('reports', { recursive: true });
+	await fs.writeFile(`reports/results-${envSuffix}.xml`, reportText, { encoding: 'utf-8' });
+
+	//	single host-side V8->jt conversion point: child environments ship
+	//	raw V8 over the wire; we convert here, once, right before reporting
+	await convertSessionCoverage(sessionResult);
 
 	//	coverage report
 	const testCoverages = sessionResult.suites
@@ -107,8 +144,9 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 		})
 		.filter(Boolean);
 
-	//	session-global coverage (main page / iframe / worker hosts): emitted
-	//	as a synthetic `__session__` lcov record alongside per-test records
+	//	iframe/worker modes can't attribute coverage per-test, so the
+	//	session-box collapses it onto `session.coverage`; emit it as a
+	//	synthetic `__session__` lcov record
 	const sessionCoverage = (sessionResult as any).coverage;
 	if (Array.isArray(sessionCoverage) && sessionCoverage.length) {
 		testCoverages.push({ testId: '__session__', coverage: sessionCoverage });
@@ -126,10 +164,10 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 			.map(ts => buildJTFileCov(ts, false))
 	);
 	const covContent = lcovReporter.convert({ testCoverages, fileCoverages } as any);
-	await fs.rm('reports/coverage.lcov', { force: true, recursive: true });
+	const covPath = `reports/coverage-${envSuffix}.lcov`;
+	await fs.rm(covPath, { force: true, recursive: true });
 	if (covContent) {
-		await fs.mkdir('reports', { recursive: true });
-		await fs.writeFile('reports/coverage.lcov', covContent, { encoding: 'utf-8' });
+		await fs.writeFile(covPath, covContent, { encoding: 'utf-8' });
 	}
 
 	//	analysis
@@ -150,6 +188,24 @@ async function executeSession(serverBaseUrl, clArguments: Record<string, string>
 	return sessionResult;
 }
 
+//	mirrors the logger's per-environment context convention
+//	(`${browserType}-${executor}` / `nodejs`), minus versions — keeps
+//	coverage artifacts from different matrix configs from overwriting
+//	each other in `reports/`
+export function deriveEnvSuffix(env: any): string {
+	if (env?.node) {
+		return 'nodejs';
+	}
+	if (env?.interactive) {
+		return 'interactive';
+	}
+	if (env?.browser?.type) {
+		const executor = env.browser.executors?.type ?? 'iframe';
+		return `${env.browser.type}-${executor}`;
+	}
+	return 'env';
+}
+
 //	TODO: this is done in the cli as well, refactor to avoid code duplication
 async function readConfigAndMergeWithCLArguments(clArguments: Record<string, string>): Promise<object> {
 	if (!clArguments || !clArguments.config_file || typeof clArguments.config_file !== 'string') {
@@ -158,44 +214,55 @@ async function readConfigAndMergeWithCLArguments(clArguments: Record<string, str
 
 	const configPath = path.resolve(process.cwd(), clArguments.config_file);
 	const config = await import(configPath);
-	//	merge with command line arguments
 
+	if (clArguments.files) {
+		return applyFilesOverride(config.default, clArguments.files);
+	}
 	return config.default;
 }
 
-async function sendAddSession(serverBaseUrl: string, config: object) {
-	const addSessionUrl = `${serverBaseUrl}/api/v1/sessions`;
-	const options = {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(config)
-	};
-
-	const response = await fetch(addSessionUrl, options);
-	if (response.status !== 201) {
-		throw new Error(`failed to create session; status: ${response.status}, message: ${response.statusText}`);
-	} else {
-		return await response.json();
+//	`files=<pattern>` is a strict override: replaces `tests.include` with
+//	the given single entry (either a concrete path or a glob, matched by
+//	the same library used for `tests.include`) and clears `tests.exclude`
+//	on every environment. The user is opting out of guardrail excludes
+//	to run exactly what they asked for.
+export function applyFilesOverride(config: any, filesPattern: string): object {
+	if (!filesPattern || typeof filesPattern !== 'string') {
+		throw new Error(`'files' argument MUST be a non-empty string, got '${filesPattern}'`);
 	}
+	if (!config || typeof config !== 'object' || !Array.isArray(config.environments)) {
+		throw new Error(`config MUST have an 'environments' array to apply files override`);
+	}
+	const next = {
+		...config,
+		environments: config.environments.map((env: any) => ({
+			...env,
+			tests: {
+				...(env.tests ?? {}),
+				include: [filesPattern],
+				exclude: []
+			}
+		}))
+	};
+	return next;
 }
 
-async function waitSessionEnd(serverBaseUrl: string, sessionDetails: object): Promise<Session> {
-	const sessionResultUrl = `${serverBaseUrl}/api/v1/sessions/${(sessionDetails as Session).sessionId}/result`;
+async function waitSessionEnd(client: OrchestratorClient, sessionId: string): Promise<Session> {
+	const deadline = Date.now() + SESSION_WAIT_TIMEOUT_MS;
 
-	//	TODO: add global timeout
-	return new Promise(resolve => {
+	return new Promise((resolve, reject) => {
 		const p = async () => {
-			const response = await fetch(sessionResultUrl);
-			if (response.status === 200) {
-				resolve(await response.json());
-			} else if (response.status === 204) {
-				setTimeout(p, SESSION_STATUS_POLL_INTERVAL);
+			if (Date.now() > deadline) {
+				reject(new Error(`session '${sessionId}' result poll timed out after ${SESSION_WAIT_TIMEOUT_MS}ms`));
+				return;
+			}
+			const poll = await client.pollSessionResult(sessionId);
+			if (poll.ready) {
+				resolve(poll.result);
 			} else {
-				throw new Error(`failed to obtain session status; status: ${response.status}, message: ${response.statusText}`);
+				setTimeout(() => p().catch(reject), SESSION_STATUS_POLL_INTERVAL);
 			}
 		};
-		p();
+		p().catch(reject);
 	});
 }

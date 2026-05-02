@@ -4,14 +4,15 @@
  * - starting the server
  */
 import { IncomingMessage, Server, ServerResponse, STATUS_CODES, createServer } from 'node:http';
-import Logger from './logger/logger.js';
-import { dismissAll } from './environments/environments-service.js';
+import Logger from './logger/logger.ts';
+import { dismissAll } from './environments/environments-service.ts';
 import { RequestHandlerBase } from './handlers/request-handler-base.ts';
 
 export {
 	config,
 	start,
-	stop
+	stop,
+	ServerService
 };
 
 const
@@ -85,7 +86,8 @@ class ServerService {
 				} catch (error) {
 					logger.error(`sending 500 for '${req.url}' due to:`);
 					logger.error(error);
-					res.writeHead(500, STATUS_CODES[500]).end();
+					const message = error instanceof Error ? error.message : String(error);
+					res.writeHead(500, STATUS_CODES[500], { 'Content-Type': 'text/plain' }).end(message);
 				}
 			} else {
 				res.writeHead(404, `no handler matched '${req.url}'`).end();

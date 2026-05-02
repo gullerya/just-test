@@ -1,8 +1,8 @@
 import { IncomingMessage, ServerResponse } from 'node:http';
 import ts from 'typescript';
-import Logger from '../logger/logger.js';
-import { getSession } from '../sessions/sessions-service.js';
-import { ENVIRONMENT_KEYS } from '../../runner/environment-config.js';
+import Logger from '../logger/logger.ts';
+import { getSession } from '../sessions/sessions-service.ts';
+import { ENVIRONMENT_KEYS } from '../../runner/environment-config.ts';
 
 const logger = new Logger({ context: 'base handler' });
 const basePathValidator = /^[a-z-_]+$/;

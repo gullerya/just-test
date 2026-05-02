@@ -5,7 +5,92 @@ All notable changes to `@gullerya/just-test` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-##	[5.0.0]
+##	[Unreleased]
+
+###	Fixed
+
+-	`normalizeCoverageUrl` now throws `TypeError` on empty / non-string input
+	instead of silently passing it through, so coverage match-set equality
+	can no longer be poisoned by an empty key.
+-	`finalizeSession` now publishes a proper `Session`-shape failure object
+	(and flips `resultReady`) when no environment reports a result, instead
+	of assigning the string `'failure'` and leaving `/result` stuck at 204.
+-	`local-runner`'s `waitSessionEnd` has a 30-minute hard timeout and
+	propagates fetch errors via `reject`, closing the CI-hang path where a
+	crashed env would loop forever.
+-	Error-path `dismiss()` and `finalizeSession()` calls inside event
+	listeners are now `.catch`-guarded so promise rejections are logged
+	instead of becoming unhandled rejections.
+-	`assert.deepEqual` now compares symmetrically — extra keys on
+	`actual` that aren't in `expected` are flagged (previously the
+	check only iterated `expected`'s keys, so `{a:1,b:2}` was
+	considered "deep-equal" to `{a:1}`). Matches `deepStrictEqual`'s
+	behavior.
+
+###	Changed
+
+-	Declarative route table in `api-request-handler`: each verb/path is
+	registered once with named params (`:sesId`, `:envId`) and dispatched
+	to a dedicated handler, replacing the nested `split('/').slice(2)`
+	branching.
+-	`EnvironmentMetadata` now carries `coverageEnabled: boolean` and a
+	narrow `coverageInclude: string[]` instead of the whole coverage
+	config. Report settings, exclusions, and output paths stay
+	server-side. Sandboxes (browser test-box, nodejs test-box) were
+	updated accordingly.
+-	`SimpleStateService` renamed to `StateService`
+	(`src/runner/state-service.ts`); the `Simple` prefix no longer
+	implied a contrast.
+-	Dismiss-grace `waitInterval(999)` / `waitInterval(100)` hacks
+	removed from browser and nodejs env services. CI time dropped ~1s
+	per browser config.
+-	Env-scoped error logs now include both env id and type
+	(`interactive` / `browser` / `node`).
+-	REST access consolidated into a typed `OrchestratorClient` SDK at
+	`src/server/orchestrator-client.ts`, consumed from both Node (local-runner,
+	nodejs-session-box) and browser (browser-session-box, interactive UI).
+	`src/runner/server-api-service.ts` and the local-runner's inline
+	`sendAddSession` / fetch-in-`waitSessionEnd` are gone; the polling
+	loop stayed in `local-runner` where the timeout policy belongs.
+-	Wire shapes (`SessionCreateResponse`, `EnvironmentMetadata`) moved to
+	`src/server/api-contracts.ts` — the server owns them, the SDK
+	re-exports. The `environments/:id/config` + `test-file-paths` endpoint
+	pair collapsed into a single `environments/:id/metadata` endpoint
+	that returns the full stitched shape, so the SDK no longer stitches
+	on the client side.
+-	Source tree migrated from `.js` to `.ts`; dead `src/configurer.js`
+	removed.
+-	Shared `src/runner/session-planner.ts` extracted and reused by both
+	browser and nodejs session-boxes.
+-	Build (`ci/build.ts`) now aggregates TS pre-emit + emit diagnostics and
+	exits non-zero on any error-severity diagnostic.
+-	Lint configs ignore `bin/**` so built output is no longer walked.
+-	Test files renamed to the `<source>-test.<ext>` convention, mirrored
+	under `tests/` next to the source they cover (e.g. `src/coverage/
+	model/url-utils.ts` → `tests/coverage/model/url-utils-test.ts`).
+	Unit coverage added for `url-utils`, `lcov-reporter`, and
+	`v8-coverage-converter` (all now 100%), plus `range-utils`,
+	`file-cov`, `line-cov`, and `base-range` (all now 100%).
+-	Browser CI configs' blanket `tests/coverage/**` exclusion narrowed
+	to only the genuinely Node-only files (`reporters/**`,
+	`coverage-service-test.ts`, `coverage-configurer-test.ts`). The
+	pure coverage-model, url-utils, and v8-converter test files now
+	run in browsers as well as Node — matrix coverage (iframe / page /
+	worker × chromium / firefox / webkit) on shared logic.
+-	Tests now import the harness (`test`, `assert`) from the installed
+	`@gullerya/just-test` package (bare imports) rather than from live
+	`src/`, decoupling test-harness stability from in-flight source
+	changes. Node resolves bare imports via `node_modules`; browsers
+	resolve them through the importmap injected by the static handler.
+-	Worker-mode example test suite added at `tests/_worker/` (smoke
+	test). Web Workers do not inherit the host document's importmap,
+	so these tests import via a relative path through `node_modules/`
+	instead. The `chromium-worker` config is scoped to
+	`tests/_worker/**`; non-worker configs exclude it — the matrix now
+	exercises both import styles without overlap. See
+	`docs/architecture.md` §6.1.
+
+##	[5.0.0 - 2026-04-21]
 
 ###	Breaking changes
 
@@ -16,6 +101,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ###	Added
 
+-	`files=<pattern>` CLI override for `local-runner`: a single file path
+	or glob that strictly replaces each environment's `tests.include`
+	and clears `tests.exclude`, letting you run one file or a subset
+	without editing a config. Example:
+	`node ./bin/local-runner.js config_file=./tests/_configs/tests-config-ci-nodejs.ts files=./tests/server/**/*-test.ts`.
 -	Per-test coverage for browser environments in `page` executor mode is now
 	collected through a Playwright context-level route gate that installs V8
 	coverage before the first script request on each page, so child pages
