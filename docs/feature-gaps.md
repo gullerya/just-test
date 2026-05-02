@@ -68,13 +68,56 @@ The `files=` override removed the "write a throwaway config to isolate a file" p
 
 ---
 
-## 4. Assertion diffs on failure
+## 4. Drop the in-house assertion library — bring your own
 
-**Status:** `AssertionError` embeds `actual` and `expected` as JSON — no diff, no pretty-print.
+**Status:** `src/common/assert-utils.ts` is still shipped as `@gullerya/just-test/assert`. No consumer outside the repo's own tests is known to use it.
 
-**Symptom.** `assert.deepEqual(actualBigObject, expectedBigObject)` fails and dumps two JSON blobs. For objects > ~5 keys deep, eyeballing the delta is a real time-sink. In the xunit reporter, the `<failure>` element gets the JSON blob as text content — no diff there either.
+**Thesis.** `just-test` is a test runner, not a framework. Assertions are userland. Shipping an in-house lib couples the runner to the quality of our own `throws` / `deepEqual` / diff output, when Chai / Node `assert` / any other lib solves it better and is already ESM + bare-import friendly.
 
-**What's needed.** A built-in structural diff on `deepEqual` / `deepStrictEqual` failures. Even a line-diff over `JSON.stringify(..., null, 2)` would be a large step up. Include the diff both in the thrown error's `message` and in the xunit `<failure>` textContent so CI logs are useful.
+**Plan (breaking, one version bump):**
+
+- Delete `src/common/assert-utils.ts` and its tests.
+- Drop the `./assert` entry from `package.json#exports`. Remove `@gullerya/just-test/assert` from the browser importmap defaults.
+- Define the runner's contract explicitly in `docs/architecture.md`:
+    - Any thrown error whose `name` contains `assert` (case-insensitive) classifies as `STATUS.FAIL`; all others as `STATUS.ERROR`.
+    - `expected`, `actual`, `operator`, `showDiff` fields on thrown errors are preserved end-to-end through `TestError` → `TestRun.error` → xunit `<failure>`.
+- Verify the preservation with one integration test: throw `{ name: 'AssertionError', expected, actual }` and assert the xunit output retains both fields.
+- Migrate the repo's own `tests/` to Chai 5 as the first consumer of the new boundary. This is the dogfooding proof.
+- Changelog as a breaking change; readme points at Chai (or any standard lib) as a suggestion, not a requirement.
+
+**Why now.** 5.0 already removed `suite()`. Removing `assert` continues the "runner, not framework" positioning without a second breaking bump.
+
+**Why this also closes the old "assertion diffs" gap.** Chai produces structural diffs natively; Node `assert/strict` embeds `expected`/`actual` in its error. By preserving those fields through `TestError` we get diffs for free, from whatever lib the consumer chose, without owning the code.
+
+---
+
+## 4a. Align the test declaration API with Node's built-in test runner
+
+**Status:** `just-test`'s surface (`test(name, code, opts?)`) is a custom shape. Every mainstream alternative — Node `node:test`, Mocha, Jest, Vitest — uses a different ordering or different semantics. The one place consumers can't isolate behind an abstraction is the one place we're nonstandard.
+
+**Thesis.** `just-test` is a runner. Test declaration is userland contract; picking the *spec* that contract conforms to matters more than the contract itself. Of the candidates, only `node:test` is a written spec (not a tool), is assertion-agnostic (composes with the "bring your own assertions" direction in #4), and has zero-dep conformance for free in the Node path.
+
+**Plan (same major as #4, so consumers take one break, not two):**
+
+- Adopt Node's shape as the spec:
+    - `test(name, opts?, fn)` — note the arg order flip from the current `test(name, fn, opts?)`.
+    - `describe(name, opts?, fn)` / `it(name, opts?, fn)` — one level of nesting minimum (closes gap #2).
+    - `before` / `after` / `beforeEach` / `afterEach` (closes gap #1).
+    - `skip` / `only` / `todo` honored via `opts` and (optionally) `test.skip(...)` / `test.only(...)` shorthands.
+- **Node path**: re-export from `node:test` directly. Listen to its run events / TAP stream for reporting. Free conformance, nothing to polyfill.
+- **Browser path**: implement a strict subset polyfill with the same signatures — the session-box already owns the execution loop, so this is mostly name-tree + hook-stack bookkeeping. Target ~a few hundred lines.
+- **Shared core**: the `TestRegistry` / `session-planner` seam already exists; both paths emit into it so reporters stay environment-agnostic.
+- **Conformance claim** in the readme: *"test declaration is a subset of Node's built-in test runner; tests written against `node:test` run unchanged here."* Explicitly document what's not covered (e.g. `t.mock`, full subtest trees if omitted).
+
+**Why now.** `#4` (assert-lib removal) is a breaking change for the next major. `node:test` adoption is another. They belong in the same cut — one break, one changelog, clean re-positioning as "runner, not framework."
+
+**Honest cost.**
+
+- Arg-order flip from `(name, fn, opts)` to `(name, opts, fn)` — we just documented the current order in 5.0.1. It flips in the next major.
+- Node's API has surface we may not want (TAP output, `t.mock`, full subtests). Shipping a strict subset and documenting the omissions is legitimate; pretending it's full conformance is not.
+- Browser polyfill is new code to own. Payoff is that it conforms to a stable written spec rather than drifting with whatever we invent next.
+
+**Why not Vitest/Jest as the anchor.** Vitest is the most popular, but it's a tool, not a spec, and its declaration API is tangled with `expect`-style assertions. Building on `node:test` keeps the runner assertion-neutral; a Vitest-compat shim can be added later on top of a `node:test`-shaped core. The reverse is much harder.
 
 ---
 
@@ -164,12 +207,14 @@ test.each([
 
 ## Recommended priority order
 
+The next major is a single repositioning: **"runner, not framework."** #4 and #4a ship together — one break, one changelog.
+
 | Rank | Item | Blast radius |
 |---|---|---|
-| 1 | Lifecycle hooks (#1) | Affects every test with setup/teardown |
-| 2 | `describe` groups (#2) | Unlocks #1's full value |
-| 3 | CLI name filter + `test.only` shorthand (#3) | Day-to-day TDD speed |
-| 4 | Assertion diffs (#4) | Debug time on every `deepEqual` failure |
-| 5 | Rerun-failed / watch (#5) | Inner-loop speed |
+| 1 | `node:test`-compatible declaration API (#4a) | Next major. Subsumes #1, #2, and most of #3 — hooks, `describe`, `skip`/`only` all come with the spec. |
+| 2 | Drop in-house assert lib (#4) | Next major. Shrinks the surface; diffs come from Chai/Node for free. |
+| 3 | CLI name filter — `--grep` (#3 residual) | Inner-loop speed once `skip`/`only` are standard. |
+| 4 | Rerun-failed / watch (#5) | Inner-loop speed. |
+| 5 | Snapshot, parameterized, parallelism (#8, #9, #7) | Opt-in conveniences on top of a stable core. |
 
-`#1` and `#3` together would be the biggest single quality-of-life jump.
+`#4a + #4` together is the biggest single architectural shift. `#3` + `#5` are the follow-up quality-of-life pass once the new API surface has settled.

@@ -23,14 +23,16 @@ test('Test A', async () => {
 	assert.strictEqual(1 + 1, 2);
 });
 
-test('Test B - skipped', { skip: true }, async () => {
+test('Test B - skipped', async () => {
 	//	will not run
-});
+}, { skip: true });
 
-test('Test C - custom timeout', { timeout: 10000 }, async () => {
+test('Test C - custom timeout', async () => {
 	//	runs with a 10s deadline
-});
+}, { timeout: 10000 });
 ```
+
+Signature: `test(name, code, opts?)` — options always go last.
 
 Options (all fields optional):
 - `only: boolean` — when any test in the suite is `only`, only such tests run. Default `false`.
@@ -38,7 +40,20 @@ Options (all fields optional):
 - `timeout: number` — per-test deadline in milliseconds. Default `3000`.
 
 ## CLI
-TODO: explain CLI command and options possible.
+
+`local-runner` is the entrypoint used by CI: it starts the server in-process, runs the session, writes reports, and exits with a non-zero code on failure.
+
+```
+node ./bin/local-runner.js config_file=<path> [files=<pattern>]
+```
+
+| Arg | Required | Purpose |
+|---|---|---|
+| `config_file` | yes | Path to a config module (see `tests/_configs/*`). Loaded via dynamic `import`. |
+| `files` | no | Strict override: replaces every environment's `tests.include` with this single entry (concrete path or glob) and clears `tests.exclude`. Use to run one file or a subset without editing a config. |
+
+Reports are written to `reports/results-<env>.xml` (xUnit) and `reports/coverage-<env>.lcov` (lcov). The `<env>` suffix is derived from the environment — `nodejs`, `chromium-iframe`, `chromium-page`, `firefox-iframe`, `webkit-iframe`, `interactive` — so matrix configs do not overwrite each other.
 
 ## REST
-TODO: explain REST APIs.
+
+The server exposes a REST contract used internally by session-boxes and the local-runner (sessions, environment metadata, result polling, coverage reporting). It is not a public integration surface. The authoritative wire shapes live in `src/server/api-contracts.ts`; consumers should go through `OrchestratorClient` (`src/server/orchestrator-client.ts`) rather than calling endpoints directly.

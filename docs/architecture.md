@@ -42,7 +42,7 @@ graph TB
 | `local-runner.ts` | CLI: starts server in-process, posts config, polls `/result`, writes `reports/results-<env>.xml` + `reports/coverage-<env>.lcov` (suffix derived from the environment — e.g. `nodejs`, `chromium-iframe`), exits. |
 | `server/cli.ts` | Starts the server only. Interactive: a human opens the logged session URL. |
 
-Both accept `key=value` CLI arguments merged over the loaded config. `src/configurer.js` is dead code — delete pending.
+Both accept `key=value` CLI arguments merged over the loaded config.
 
 ---
 
@@ -165,8 +165,6 @@ Node resolves this as a file path; the `/static/` handler (which serves from cwd
 
 | # | Tier | What |
 |---|---|---|
-| 1 | 2 | Test discovery duplicated between `browser-session-box.js` and `nodejs-session-box.ts` — extract a shared `planSession`. |
-| 2 | 2 | `src/configurer.js` is dead — delete. |
-| 3 | 3 | Multi-env session finalization: last env wins; `sessions-service.js:finalizeSession` is still a TODO. |
-| 4 | 3 | Resource pooling of iframes/pages/workers (three TODOs in `browser-session-box.js`). |
-| 5 | 3 | `functions` coverage in `v8-coverage-converter.js` — not emitted to lcov; line-level is sufficient for now. |
+| 1 | 3 | Multi-env session finalization: last env wins; `sessions-service.ts:finalizeSession` is still a TODO. |
+| 2 | 3 | Resource pooling of iframes/pages/workers (three TODOs in `browser-session-box.ts`). |
+| 3 | 3 | `functions` coverage in `v8-coverage-converter.ts` — not emitted to lcov; line-level is sufficient for now. |

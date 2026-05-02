@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##	[Unreleased]
 
+##	[[5.0.1](https://github.com/gullerya/just-test/releases/tag/v5.0.1) - 2026-05-02]
+
 ###	Fixed
 
 -	`normalizeCoverageUrl` now throws `TypeError` on empty / non-string input
@@ -89,8 +91,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	`tests/_worker/**`; non-worker configs exclude it — the matrix now
 	exercises both import styles without overlap. See
 	`docs/architecture.md` §6.1.
+-	Report files are suffixed per environment: `reports/results-<env>.xml`
+	and `reports/coverage-<env>.lcov`, where `<env>` is derived from the
+	environment shape (`nodejs`, `chromium-iframe`, `chromium-page`,
+	`firefox-iframe`, `webkit-iframe`, `interactive`). Matrix configs no
+	longer overwrite each other in `reports/`. `deriveEnvSuffix` is
+	exported from `src/local-runner.ts`.
+-	`testing-configurer` default report entries dropped the unused `path`
+	field; `_reduceIdenticalReports` now collapses duplicates by `format`
+	only. There is no user-facing behavior change — `path` was never
+	consumed.
+-	CI (`.github/workflows/quality.yml`): `cache: 'npm'` on every job
+	caches `~/.npm` keyed on `package-lock.json`. Playwright browser
+	binaries cached at `~/.cache/ms-playwright` keyed on Playwright
+	version. Browser jobs install only the browser they need
+	(chromium / firefox / webkit); the `nodejs` job no longer installs
+	Playwright at all. Typical PR install cost dropped from ~80–150s to
+	~10–15s per browser job on warm cache.
 
-##	[5.0.0 - 2026-04-21]
+##	[[5.0.0](https://github.com/gullerya/just-test/releases/tag/v5.0.0) - 2026-04-21]
 
 ###	Breaking changes
 
@@ -140,5 +159,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -	Dependency bumps: `eslint` 9 → 10, `typescript` 5 → 6, `playwright` 1.56
 	→ 1.59, `glob` 12 → 13, `minimatch` 10.1 → 10.2.
 -	Repository normalized to LF line endings via `.gitattributes`.
-
-[5.0.0]: https://github.com/gullerya/just-test/releases/tag/v5.0.0

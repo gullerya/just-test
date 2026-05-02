@@ -4,39 +4,119 @@
 [![Quality pipeline](https://github.com/gullerya/just-test/actions/workflows/quality.yml/badge.svg?branch=main)](https://github.com/gullerya/just-test/actions/workflows/quality.yml)
 [![Codecov](https://codecov.io/gh/gullerya/just-test/branch/main/graph/badge.svg?token=gq1k48NawB)](https://codecov.io/gh/gullerya/just-test)
 
-[![Codacy](https://img.shields.io/codacy/grade/9aa34b1cf3c248fea0164e71137dce1c.svg?logo=codacy)](https://www.codacy.com/app/gullerya/just-test)
+# just-test
 
-# Summary
+`just-test` is a one-stop-shop library to test JS/TS code in Node and browsers with a uniform, zero-touch-per-environment syntax — the same `test()` you write once runs everywhere, with no environment-specific wrappers.
 
-`just-test` is an all JS platforms oriented test runner strongly opinionated about testing practices, libraries, frameworks and components.
+## Features
 
-TODO
+- **Runs in Node** (worker threads) and in all three major browser engines driven by **Playwright**: Chromium, Firefox, WebKit.
+- **Three browser executor modes**: `iframe` (default, cheap), `page` (per-test page — true per-test coverage), `worker` (Web Worker).
+- **Per-test isolation** across every mode.
+- **Coverage** out of the box (V8 → `lcov`), per-test where the mode allows it, session-global where it doesn't.
+- **Test reporting** in `xUnit`.
+- **Selective runs**: `{ skip }`, `{ only }`, and a `files=<pattern>` CLI override to run a single file or glob without editing a config.
+- **One assertion library** (`@gullerya/just-test/assert`) shared across every environment.
 
-#### Highlights:
+## Install
 
-- running tests in __browser__, no server needed, import/link your code (static files) and just test, literally __TDD__ oriented
-- __re-running__ any test in browser ad-hoc - convenient for debugging and developing on the fly
-- friendly __UI__ on top of the page of the tests, allows immediatelly observe the behavior of the code and the test
-- running tests from __NodeJS__ via headless browser (chromium, firefox, webkit) to run in __CI/CD automation__
-- generating __test results__ report (types: __xUnit__)
-- collecting __coverage__ and generating report (types: __lcov__)
-- flexible yet simple ability to run tests in __sync__ as well as __async__ (default) manner
-- in general, a lot of attention was paid to create __simple and usable__ framework even for a not-so-simple cases, like asynchronous tests etc
+```bash
+npm install --save-dev @gullerya/just-test
+```
 
-> Attention: the doc below is still in construction, more updates and detailed one will be published very soon!!!
-> Meanwhile, the best way to actually see how the library should be used is it look onto its own tests in `tests` folder, and for CI/CD case - `travis.yml` is a good start.
+## Write a test
 
-# CI readiness
+```ts
+import { test } from '@gullerya/just-test';
+import { assert } from '@gullerya/just-test/assert';
 
-TODO - move to features
-* run your tests in CI in the following browsers: Chromium (covering all based upon), Firefox, WebKit
-* test report types: `xUnit`
-* coverage report types: `lcov`
+test('adds', () => {
+	assert.strictEqual(1 + 1, 2);
+});
 
-# Examples
+test('async work', async () => {
+	const v = await Promise.resolve(42);
+	assert.strictEqual(v, 42);
+});
 
-TODO
+test('skip me', () => { }, { skip: true });
 
-# API
+test('only me', () => { }, { only: true });
 
-TODO
+test('custom timeout', async () => { }, { timeout: 10000 });
+```
+
+A **file is a suite**. There is no `suite()` / `describe()` wrapper.
+
+## Run
+
+`just-test` uses a small config module per environment, consumed by a CLI.
+
+**Node:**
+
+```ts
+// tests-config-nodejs.ts
+export default {
+	environments: [{
+		node: true,
+		tests:    { include: ['./tests/**/*-test.ts'] },
+		coverage: { include: ['./src/**/*'] }
+	}]
+};
+```
+
+**Browser (Chromium, iframe executor):**
+
+```ts
+// tests-config-chromium.ts
+export default {
+	environments: [{
+		browser:  { type: 'chromium', executors: { type: 'iframe' } },
+		tests:    { include: ['./tests/**/*-test.ts'] },
+		coverage: { include: ['./src/**/*'] }
+	}]
+};
+```
+
+Swap `type: 'chromium'` for `'firefox'` or `'webkit'`, and `executors.type` for `'iframe'` / `'page'` / `'worker'`.
+
+Invoke:
+
+```bash
+node ./node_modules/.bin/local-runner config_file=./tests-config-nodejs.ts
+node ./node_modules/.bin/local-runner config_file=./tests-config-chromium.ts
+
+# run a subset without editing the config
+node ./node_modules/.bin/local-runner \
+  config_file=./tests-config-nodejs.ts \
+  files='./tests/common/**/*-test.ts'
+```
+
+Reports land in `reports/results-<env>.xml` and `reports/coverage-<env>.lcov`, where `<env>` is derived from the environment (e.g. `nodejs`, `chromium-iframe`, `firefox-iframe`). Matrix runs do not overwrite each other.
+
+## Executor modes — trade-offs
+
+| Mode | What it does | Coverage attribution |
+|---|---|---|
+| `iframe` *(default)* | Each test in its own iframe on a shared page. | Session-global (iframes share V8 with the host page). |
+| `page` | Each test in its own Playwright page. | **Per-test.** |
+| `worker` | Each test in its own Web Worker. | Not collected (workers are out of V8 coverage's reach). |
+
+Node uses `worker_thread`s and collects per-test coverage via the Inspector directly.
+
+## CI readiness
+
+- Matrix across Node, Chromium, Firefox, WebKit — run each as its own job.
+- `xUnit` xml and `lcov` artifacts are env-suffixed; upload them to Codecov or similar.
+- Non-zero exit on failure; `maxFail` / `maxSkip` are configurable gates.
+
+## Docs
+
+- [API](docs/api.md) — `test()` options, CLI flags, REST pointer.
+- [Architecture](docs/architecture.md) — backend + sandbox split, coverage pipeline, public API, dogfooding.
+- [Feature gaps](docs/feature-gaps.md) — what's missing and where it hurts.
+- [Changelog](CHANGELOG.md)
+
+## License
+
+[MIT](license)
