@@ -53,8 +53,15 @@ export default class CoreRequestHandler extends RequestHandlerBase {
 		}
 	}
 
-	async #readFile(resourcePath: string): Promise<string> {
+	async #readFile(resourcePath: string): Promise<string | null> {
 		const fullPath = join(this.#baseFolder, resourcePath);
-		return await readFile(fullPath, { encoding: 'utf-8' });
+		try {
+			return await readFile(fullPath, { encoding: 'utf-8' });
+		} catch (e) {
+			if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
+				return null;
+			}
+			throw e;
+		}
 	}
 }

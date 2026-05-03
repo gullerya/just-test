@@ -62,20 +62,10 @@ test('StaticRequestHandler - GET browser-session-box.html goes through enrichImp
 	assert.isTrue(res.body.includes('IMPORT_MAP_PLACEHOLDER'));
 });
 
-test('StaticRequestHandler - GET missing file propagates the ENOENT', async () => {
+test('StaticRequestHandler - GET missing file returns 404', async () => {
 	const h = new StaticRequestHandler({});
 	const res = mockRes();
-	//	#readFile uses fs/promises.readFile which rejects on ENOENT
-	//	instead of returning null — the handler's `if (responseBody)`
-	//	branch is unreachable that way. The rejection bubbles up; the
-	//	dispatcher (server-service) turns it into a 500. We assert the
-	//	raised error here; dispatcher behavior is Slice 2.
-	let caught: any = null;
-	try {
-		await h.handle('does-not-exist-xyz.json', mockReq({ url: '/static/does-not-exist-xyz.json' }), res as any);
-	} catch (e) {
-		caught = e;
-	}
-	assert.isTrue(caught instanceof Error);
-	assert.strictEqual((caught as any).code, 'ENOENT');
+	await h.handle('does-not-exist-xyz.json', mockReq({ url: '/static/does-not-exist-xyz.json' }), res as any);
+	assert.strictEqual(res.statusCode, 404);
+	assert.isTrue(res.ended);
 });

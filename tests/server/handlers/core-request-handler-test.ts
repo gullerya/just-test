@@ -37,18 +37,10 @@ test('CoreRequestHandler - GET existing .ts transpiles and returns 200 with JS m
 	assert.isTrue(typeof res.body === 'string' && res.body.length > 0);
 });
 
-test('CoreRequestHandler - GET missing file propagates the ENOENT', async () => {
+test('CoreRequestHandler - GET missing file returns 404', async () => {
 	const h = new CoreRequestHandler({});
 	const res = mockRes();
-	//	Same latent-dead-else-branch caveat as static-request-handler —
-	//	fs/promises.readFile rejects; the `if (responseBody)` else
-	//	never runs. Dispatcher maps the rejection to 500.
-	let caught: any = null;
-	try {
-		await h.handle('does-not-exist-xyz.js', mockReq({ url: '/core/does-not-exist-xyz.js' }), res as any);
-	} catch (e) {
-		caught = e;
-	}
-	assert.isTrue(caught instanceof Error);
-	assert.strictEqual((caught as any).code, 'ENOENT');
+	await h.handle('does-not-exist-xyz.js', mockReq({ url: '/core/does-not-exist-xyz.js' }), res as any);
+	assert.strictEqual(res.statusCode, 404);
+	assert.isTrue(res.ended);
 });
