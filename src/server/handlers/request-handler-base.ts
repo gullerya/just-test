@@ -57,7 +57,7 @@ export class RequestHandlerBase {
 				},
 			});
 			this.#tsToJsCache[reqUrl] = transpilationResult;
-			logger.info(`TypeScript file '${reqUrl}' compiled to JavaScript: took ${(performance.now() - startTime).toFixed(2)} ms`);
+			logger.info(`TS '${reqUrl}' compiled to JS in ${(performance.now() - startTime).toFixed(2)} ms`);
 		}
 
 		return this.#tsToJsCache[reqUrl].outputText;

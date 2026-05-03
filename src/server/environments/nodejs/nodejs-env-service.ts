@@ -64,7 +64,9 @@ class NodeEnvImpl extends EnvironmentBase {
 		);
 		const pipe = (sinkMethod: 'info' | 'error') => (data: Buffer) => {
 			for (const line of data.toString().split(/\r?\n/)) {
-				if (!line) continue;
+				if (!line) {
+					continue;
+				}
 				this.#consoleLogger[sinkMethod](line);
 				consoleOutput[sinkMethod](line);
 			}
