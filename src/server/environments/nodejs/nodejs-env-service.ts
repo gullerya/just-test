@@ -41,13 +41,14 @@ class NodeEnvImpl extends EnvironmentBase {
 
 		const versionNamed = `nodejs-${process.version.replace(/^[^0-9]+/, '')}`;
 		this.#consoleLogger = new FileOutput(`./reports/logs/${versionNamed}.log`);
-		//	mirror worker stdout/stderr to both file AND console so CI logs
-		//	surface per-test FAIL/ERROR prints (emitted by state-service) in
-		//	real time, not only at end-of-run
-		const nLogger = new Logger({
-			context: versionNamed,
-			outputs: [this.#consoleLogger, new ConsoleOutput()]
-		});
+		//	Worker stdout/stderr already carries fully formatted log lines
+		//	(timestamp, level, context) emitted by the session-box's own
+		//	Logger. Pass them through verbatim to the file + console sinks;
+		//	re-wrapping via another Logger would double-prefix every line
+		//	with the drain timestamp of the parent, which is misleading —
+		//	the outer timestamp reflects stdout drain, not emit time, and
+		//	can lag by seconds under load.
+		const consoleOutput = new ConsoleOutput();
 
 		this.#worker = new Worker(
 			new URL('../../../runner/environments/nodejs/nodejs-session-box.js', import.meta.url),
@@ -61,8 +62,15 @@ class NodeEnvImpl extends EnvironmentBase {
 				}
 			}
 		);
-		this.#worker.stdout.on('data', data => nLogger.info(data.toString().trim()));
-		this.#worker.stderr.on('data', data => nLogger.error(data.toString().trim()));
+		const pipe = (sinkMethod: 'info' | 'error') => (data: Buffer) => {
+			for (const line of data.toString().split(/\r?\n/)) {
+				if (!line) continue;
+				this.#consoleLogger[sinkMethod](line);
+				consoleOutput[sinkMethod](line);
+			}
+		};
+		this.#worker.stdout.on('data', pipe('info'));
+		this.#worker.stderr.on('data', pipe('error'));
 
 		this.#worker.on('error', error => {
 			logger.error(error);
