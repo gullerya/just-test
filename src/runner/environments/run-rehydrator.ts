@@ -29,9 +29,11 @@ export function rehydrateError(plain: any): TestError {
 	const e: any = new Error(plain.message ?? '');
 	e.name = plain.name ?? 'Error';
 	e.stack = plain.stack ?? '';
-	if (plain.cause) {
-		e.cause = rehydrateError(plain.cause);
-	}
 	const te = TestError.fromError(e);
-	return new (TestError as any)(te.name, plain.type ?? te.type, te.message, te.stack, te.cause);
+	//	TestError#cause is `TestError | null`, but the class doesn't
+	//	extend Error — so TestError.fromError's `cause instanceof Error`
+	//	check would always drop a TestError cause. Rebuild the chain
+	//	directly instead of round-tripping through fromError.
+	const cause = plain.cause ? rehydrateError(plain.cause) : null;
+	return new (TestError as any)(te.name, plain.type ?? te.type, te.message, te.stack, cause);
 }
