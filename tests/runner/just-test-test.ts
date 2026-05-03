@@ -233,3 +233,28 @@ test('run.time - instant sync success still reports time >= 0.1ms', async () => 
 	assert.strictEqual(m.status, STATUS.PASS);
 	assert.isTrue(m.time >= 0.1);
 });
+
+//	finalizeRun - non-Error-shaped runError (no name/message) falls through to PASS
+//
+//	covers the else-branch in finalizeRun when the thrown value lacks
+//	the standard Error shape — logger.error still runs, but the run is
+//	classified as PASS because nothing identifiable failed
+test('finalizeRun - thrown non-Error (e.g. thrown string) classifies as PASS', async () => {
+	const tp = testSUT('name', () => {
+		//	eslint-disable-next-line no-throw-literal
+		throw 'plain-string-thrown';
+	}, isoTestConf);
+	const m: any = await tp;
+	assert.strictEqual(m.status, STATUS.PASS);
+	assert.isTrue(m.error === null);
+});
+
+test('finalizeRun - thrown non-Error object without name/message classifies as PASS', async () => {
+	const tp = testSUT('name', () => {
+		// eslint-disable-next-line @typescript-eslint/only-throw-error
+		throw { foo: 'bar' };
+	}, isoTestConf);
+	const m: any = await tp;
+	assert.strictEqual(m.status, STATUS.PASS);
+	assert.isTrue(m.error === null);
+});

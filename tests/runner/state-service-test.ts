@@ -227,6 +227,50 @@ test('updateRunEnded - re-run rolls back previous result', () => {
 	assert.strictEqual(svc.session.done, 1);
 });
 
+test('updateRunEnded - without prior updateRunStarted seeds runs with the provided run', () => {
+	const svc = new StateService();
+	svc.addTest(makeTest('t1', 's1'));
+
+	const run = new TestRun();
+	run.status = STATUS.PASS;
+	svc.updateRunEnded('s1', 't1', run);
+
+	const t = svc.session.suites[0].tests[0];
+	assert.strictEqual(t.lastRun, run);
+	assert.strictEqual(t.runs.length, 1);
+	assert.strictEqual(t.runs[0], run);
+	assert.strictEqual(svc.session.pass, 1);
+});
+
+test('updateRunStarted - session.timestamp is seeded once and not overwritten on subsequent calls', () => {
+	const svc = new StateService();
+	svc.addTest(makeTest('t1', 's1'));
+	svc.addTest(makeTest('t2', 's1'));
+
+	svc.updateRunStarted('s1', 't1');
+	const firstTs = svc.session.timestamp;
+	assert.isTrue(firstTs > 0);
+
+	//	even a later run-start must NOT re-seed the session timestamp
+	svc.updateRunStarted('s1', 't2');
+	assert.strictEqual(svc.session.timestamp, firstTs);
+});
+
+//	getTest
+//
+test('getTest - returns the registered test by suite/name', () => {
+	const svc = new StateService();
+	const t = makeTest('t1', 's1');
+	svc.addTest(t);
+	assert.strictEqual(svc.getTest('s1', 't1'), t);
+});
+
+test('getTest - returns undefined when test not registered in the suite', () => {
+	const svc = new StateService();
+	svc.addTest(makeTest('t1', 's1'));
+	assert.isTrue(svc.getTest('s1', 'nope') === undefined);
+});
+
 //	reportError
 //
 test('reportError - appends to session.errors and bumps error counter', () => {

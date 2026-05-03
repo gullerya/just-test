@@ -103,9 +103,14 @@ export default class Logger {
 			if (typeof arg === 'string') {
 				result.push(`${prefix} ${arg}`);
 			} else if (arg instanceof Error) {
-				result.push(`${prefix} ${arg.name}: ${arg.message}`);
+				const header = `${arg.name}: ${arg.message}`;
+				result.push(`${prefix} ${header}`);
 				if (arg.stack) {
-					result.push(arg.stack);
+					//	V8 prepends `${name}: ${message}` to `stack`;
+					//	SpiderMonkey / JavaScriptCore do not. Normalize so
+					//	the emitted stack line is self-describing across engines.
+					const stack = arg.stack.startsWith(header) ? arg.stack : `${header}\n${arg.stack}`;
+					result.push(stack);
 				}
 			} else {
 				result.push(prefix);
