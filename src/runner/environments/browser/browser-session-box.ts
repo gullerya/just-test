@@ -15,6 +15,8 @@ import { EVENT, STATUS } from '../../../common/constants.ts';
 import { getTestId } from '../../../common/interop-utils.ts';
 import { TestError } from '../../../testing/model/test-error.ts';
 import { TestRun } from '../../../testing/model/test-run.ts';
+import { rehydrateRun } from '../run-rehydrator.ts';
+import { collapseToSessionCoverage } from './coverage-collapse.ts';
 
 const logger = new Logger({ context: 'browser-session-box' });
 
@@ -75,21 +77,6 @@ function getEnvironmentConfig() {
 		envId: sp.get(ENVIRONMENT_KEYS.ENVIRONMENT_ID),
 		serverOrigin: globalThis.location.origin
 	};
-}
-
-function collapseToSessionCoverage(session) {
-	const merged = [];
-	for (const suite of session.suites) {
-		for (const t of suite.tests) {
-			if (t.lastRun?.coverage?.length) {
-				merged.push(...t.lastRun.coverage);
-				t.lastRun.coverage = null;
-			}
-		}
-	}
-	if (merged.length) {
-		session.coverage = merged;
-	}
 }
 
 function getIFrameExecutorFactory(metadata, stateService) {
@@ -204,25 +191,3 @@ function setupWorkerEvents(stateService, worker, test, coverageEnabled, suiteNam
 	}
 }
 
-function rehydrateRun(plain: any): TestRun {
-	const run = new TestRun();
-	run.status = plain.status;
-	run.time = plain.time ?? 0;
-	run.timestamp = plain.timestamp ?? 0;
-	run.coverage = plain.coverage ?? null;
-	if (plain.error) {
-		run.error = rehydrateError(plain.error);
-	}
-	return run;
-}
-
-function rehydrateError(plain: any): TestError {
-	const e: any = new Error(plain.message ?? '');
-	e.name = plain.name ?? 'Error';
-	e.stack = plain.stack ?? '';
-	if (plain.cause) {
-		e.cause = rehydrateError(plain.cause);
-	}
-	const te = TestError.fromError(e);
-	return new (TestError as any)(te.name, plain.type ?? te.type, te.message, te.stack, te.cause);
-}
