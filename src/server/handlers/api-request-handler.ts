@@ -1,4 +1,4 @@
-import Logger from '../logger/logger.ts';
+import Logger from '../../logging/logger.ts';
 import { RequestHandlerBase } from './request-handler-base.ts';
 import { EXT_TO_MIME_MAP } from '../server-utils.ts';
 import { addSession, storeResult, getAll, getSession } from '../sessions/sessions-service.ts';

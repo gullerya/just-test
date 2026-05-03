@@ -5,7 +5,7 @@
  * - starts the server
  */
 import { resolve } from 'node:path';
-import Logger from './logger/logger.ts';
+import Logger from '../logging/logger.ts';
 import buildConfig from './configuration/server-configurer.ts';
 import { start as serverStart, stop, ServerService } from './server-service.ts';
 

@@ -23,7 +23,7 @@ export default class XMLSerializerImpl {
 			throw new TypeError(`valid 'rootNode' MUST be provided; got '${rootNode}'`);
 		}
 
-		let tmpNode = rootNode.documentElement ? rootNode.documentElement : rootNode;
+		const tmpNode = rootNode.documentElement ? rootNode.documentElement : rootNode;
 
 		let textContent = '';
 		for (const child of tmpNode.childNodes) {

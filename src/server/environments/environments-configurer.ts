@@ -1,4 +1,4 @@
-import Logger from '../logger/logger.ts';
+import Logger from '../../logging/logger.ts';
 
 const
 	logger = new Logger({ context: 'environment configurer' }),

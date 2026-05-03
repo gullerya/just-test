@@ -1,7 +1,10 @@
+import Logger from '../../../logging/logger.ts';
 import { EVENT, STATUS } from '../../../common/constants.ts';
 import { TestRun } from '../../../testing/model/test-run.ts';
 import { TestError } from '../../../testing/model/test-error.ts';
 import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.ts';
+
+const logger = new Logger({ context: 'browser-test-box' });
 
 //	workers have no `window` and no Playwright `exposeBinding` reaches them,
 //	so the same symmetric start/stop calls still run but resolve to no-ops.
@@ -28,7 +31,7 @@ globalThis.addEventListener('message', async m => {
 			try {
 				await globalThis.__jtStartCoverage();
 			} catch (e) {
-				console.warn(`failed to start coverage for '${testName}':`, e);
+				logger.warn(`failed to start coverage for '${testName}':`, e);
 				coverageEnabled = false;
 			}
 		}
@@ -38,7 +41,7 @@ globalThis.addEventListener('message', async m => {
 		try {
 			await import(`/static/${testSource}`);
 		} catch (e) {
-			console.error(`failed to import test source for '${testName}' from '/static/${testSource}'`, e);
+			logger.error(`failed to import test source for '${testName}' from '/static/${testSource}'`, e);
 			const run = new TestRun();
 			run.timestamp = Date.now();
 			run.status = STATUS.ERROR;
@@ -46,7 +49,7 @@ globalThis.addEventListener('message', async m => {
 			await runEndHandler(testName, run);
 		}
 	} else {
-		console.warn(`unexpected message from parent: ${JSON.stringify(m.data)}`);
+		logger.warn(`unexpected message from parent: ${JSON.stringify(m.data)}`);
 	}
 });
 
@@ -71,7 +74,7 @@ async function runEndHandler(testName, run) {
 				run.coverage = coverage;
 			}
 		} catch (e) {
-			console.warn(`failed to stop coverage for '${testName}':`, e);
+			logger.warn(`failed to stop coverage for '${testName}':`, e);
 		}
 	}
 	//	structured-clone drops class identity AND private fields (#error),

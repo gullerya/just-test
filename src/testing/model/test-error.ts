@@ -77,6 +77,6 @@ export class TestError {
 			message: error.message,
 			stack: error.stack,
 			cause
-		}
+		};
 	}
 }

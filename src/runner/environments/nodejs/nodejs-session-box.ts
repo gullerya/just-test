@@ -7,6 +7,7 @@
 
 import url from 'node:url';
 import { workerData, Worker } from 'node:worker_threads';
+import Logger from '../../../logging/logger.ts';
 import { OrchestratorClient } from '../../../server/orchestrator-client.ts';
 import StateService from '../../state-service.ts';
 import { runSession } from '../../session-service.ts';
@@ -14,6 +15,8 @@ import { planSession } from '../../session-planner.ts';
 import { EVENT, STATUS } from '../../../common/constants.ts';
 import { TestError } from '../../../testing/model/test-error.ts';
 import { TestRun } from '../../../testing/model/test-run.ts';
+
+const logger = new Logger({ context: `nodejs-${process.version.replace(/^[^0-9]+/, '')}` });
 
 (async () => {
 	const { sesId, envId, origin } = workerData;
@@ -24,20 +27,20 @@ import { TestRun } from '../../../testing/model/test-run.ts';
 		stateService.session.sessionId = metadata.sessionId;
 		stateService.session.environmentId = metadata.id;
 
-		console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
+		logger.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
 		await planSession(metadata.testPaths, stateService, src => url.pathToFileURL(src).toString());
 
 		const testExecutor = createNodeJSExecutor(metadata, stateService);
 		await runSession(stateService, testExecutor);
 	} catch (e) {
 		stateService.reportError(TestError.fromError(e));
-		console.error(e);
-		console.error('session execution failed due to the previous error/s');
+		logger.error(e);
+		logger.error('session execution failed due to the previous error/s');
 	} finally {
-		console.info(`reporting '${envId}':'${sesId}' results...`);
+		logger.info(`reporting '${envId}':'${sesId}' results...`);
 		const sessionResult = stateService.session;
 		await client.reportEnvironmentResult(sesId, envId, sessionResult);
-		console.info(`session '${envId}':'${sesId}' finalized`);
+		logger.info(`session '${envId}':'${sesId}' finalized`);
 	}
 })();
 
@@ -66,7 +69,7 @@ function createNodeJSExecutor(sessionMetadata, stateService) {
 				}
 			});
 			worker.on('error', async error => {
-				console.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
+				logger.error(`worker for test '${test.name}' errored: ${error}, stack: ${error.stack}`);
 				const crashRun = new TestRun();
 				crashRun.status = STATUS.ERROR;
 				crashRun.error = error;

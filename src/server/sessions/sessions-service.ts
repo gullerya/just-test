@@ -4,7 +4,7 @@
  * - creating new session with validated configuration
  * - providing session data upon demand
  */
-import Logger from '../logger/logger.ts';
+import Logger from '../../logging/logger.ts';
 import { getRandom } from '../../common/random-utils.ts';
 import buildConfig from './sessions-configurer.ts';
 import { launch, dismiss } from '../environments/environments-service.ts';
@@ -32,7 +32,7 @@ async function addSession(sessionConfig): Promise<string> {
 
 	logger.info('session effective config', effectiveConfig);
 
-	let sessionId = getRandom(8);
+	const sessionId = getRandom(8);
 	if (sessionId in sessions) {
 		throw new Error(`session ID collision on '${sessionId}'`);
 	}

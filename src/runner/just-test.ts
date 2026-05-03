@@ -3,12 +3,15 @@
 //	- plain_run - simple test execution, no server, no interop, just debugging the tests
 //	- plan - tests planning phase, tests are not being run
 //	- test - test run, only the tests required by environment will be running
+import Logger from '../logging/logger.ts';
 import { getExecutionContext, EXECUTION_MODES } from './environment-config.ts';
 import { STATUS } from '../common/constants.ts';
 import { TestError } from '../testing/model/test-error.ts';
 import { TestRun } from '../testing/model/test-run.ts';
 
 export { test };
+
+const logger = new Logger({ context: 'just-test' });
 
 const DEFAULT_TEST_OPTIONS = {
 	only: false,
@@ -86,7 +89,7 @@ async function executeRun(name, code, opts, run) {
 		]);
 		runError = await runPromise;
 	} catch (e) {
-		console.error(e);
+		logger.error(e);
 		runError = e;
 	} finally {
 		clearTimeout(timeout);

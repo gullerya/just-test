@@ -3,11 +3,14 @@ import { cwd } from 'node:process';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import { parentPort } from 'node:worker_threads';
+import Logger from '../../../logging/logger.ts';
 import { EXECUTION_MODES, setExecutionContext } from '../../environment-config.ts';
 import { filterV8Coverage } from '../../../coverage/coverage-service.ts';
 import { EVENT, STATUS } from '../../../common/constants.ts';
 import { TestError } from '../../../testing/model/test-error.ts';
 import { TestRun } from '../../../testing/model/test-run.ts';
+
+const logger = new Logger({ context: 'nodejs-test-box' });
 
 const currentBase = pathToFileURL(cwd()).href;
 let testName;
@@ -28,7 +31,7 @@ parentPort.addEventListener('message', async (m: MessageEvent) => {
 	try {
 		await import(pathToFileURL(testSource).toString());
 	} catch (e) {
-		console.error(`failed to import test '${testName}':`, e);
+		logger.error(`failed to import test '${testName}':`, e);
 		const run = new TestRun();
 		run.status = STATUS.ERROR;
 		run.time = 0;
@@ -60,7 +63,7 @@ async function runEndHandler(tName: string, run: TestRun): Promise<void> {
 			//	`convertSessionCoverage` in coverage-service.ts)
 			run.coverage = await collectCoverage();
 		} catch (e) {
-			console.error(`failed to collect coverage of '${testName}': ${e}`);
+			logger.error(`failed to collect coverage of '${testName}': ${e}`);
 		}
 	}
 	//	structured-clone on postMessage drops class identity AND private

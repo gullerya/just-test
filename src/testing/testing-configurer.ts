@@ -1,4 +1,4 @@
-import Logger from '../server/logger/logger.ts';
+import Logger from '../logging/logger.ts';
 
 //	TOOD: do reporters as a separate module, each with it's own registration routine + extensibility
 

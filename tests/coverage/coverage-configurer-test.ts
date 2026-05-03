@@ -3,7 +3,7 @@ import { assert } from '@gullerya/just-test/assert';
 import covConf from '../../src/coverage/coverage-configurer.ts';
 
 test('coverage config - empty config, empty envs', () => {
-	let cc = covConf();
+	const cc = covConf();
 
 	assert.deepStrictEqual(cc, {
 		include: [],
@@ -25,7 +25,7 @@ test('coverage config - unsupported env - empty', () => {
 });
 
 test('coverage config - supported env - chromium', () => {
-	let cc = covConf({}, { browser: { type: 'chromium' } });
+	const cc = covConf({}, { browser: { type: 'chromium' } });
 
 	assert.deepStrictEqual(cc, {
 		include: [],
@@ -35,7 +35,7 @@ test('coverage config - supported env - chromium', () => {
 });
 
 test('coverage config - supported env - node', () => {
-	let cc = covConf({}, { node: true });
+	const cc = covConf({}, { node: true });
 
 	assert.deepStrictEqual(cc, {
 		include: [],
@@ -61,7 +61,7 @@ test('coverage config - bad include part - empty array', () => {
 });
 
 test('coverage config - enriching the include', () => {
-	let cc = covConf({
+	const cc = covConf({
 		include: ['some/path']
 	}, { node: true });
 
@@ -89,7 +89,7 @@ test('coverage config - bad exclude part - empty array', () => {
 });
 
 test('coverage config - enriching the exclude', () => {
-	let cc = covConf({
+	const cc = covConf({
 		include: ['some/path'],
 		exclude: ['some/else']
 	}, { node: true });
@@ -129,7 +129,7 @@ test('coverage config - bad report type - wrong type', () => {
 });
 
 test('coverage config - correct report type', () => {
-	let cc = covConf({
+	const cc = covConf({
 		include: ['some/path'],
 		reports: [{ type: 'lcov' }]
 	}, { node: true });

@@ -8,7 +8,7 @@
  * Default environment is INTERACTIVE (server opened for user's browser connection).
  */
 
-import Logger from '../logger/logger.ts';
+import Logger from '../../logging/logger.ts';
 import buildConfig from './environments-configurer.ts';
 import launchInteractive from './interactive/interactive-env-service.ts';
 import launchBrowser from './browser/browser-env-service.ts';
@@ -41,7 +41,7 @@ async function launch(session) {
 	const envsToLaunch = Object.keys(session.config.environments).length;
 	logger.info(`launching ${envsToLaunch} environment/s for session '${session.id}'...`);
 
-	let envsLaunched = [];
+	const envsLaunched = [];
 	for (const envConfig of Object.values(session.config.environments) as any[]) {
 		let env;
 		if (envConfig.interactive) {

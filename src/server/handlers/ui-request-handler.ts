@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs';
 import { resolve } from 'node:path';
 import { IncomingMessage, ServerResponse } from 'node:http';
-import Logger from '../logger/logger.ts';
+import Logger from '../../logging/logger.ts';
 import { RequestHandlerBase } from './request-handler-base.ts';
 import { findMimeType, EXT_TO_MIME_MAP } from '../server-utils.ts';
 

@@ -39,6 +39,8 @@ const config = {
 					//	via the server logger
 					'**/tests/testing/testing-service-test.ts',
 					'**/tests/testing/testing-configurer-test.ts',
+					//	Node-only: FileOutput imports node:fs/node:os/node:path
+					'**/tests/logging/file-output-test.ts',
 					//	Flaky under chromium + page-per-test: spawning ~200
 					//	popups alongside nested `import()` calls races in
 					//	Chromium (passes in iframe-chromium, firefox-page,

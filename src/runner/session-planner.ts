@@ -8,9 +8,12 @@
  * resolved to an importable URL — injected by the caller.
  */
 
+import Logger from '../logging/logger.ts';
 import StateService from './state-service.ts';
 import { PlanningExecutionContext, EXECUTION_MODES, setExecutionContext } from './environment-config.ts';
 import { TestError } from '../testing/model/test-error.ts';
+
+const logger = new Logger({ context: 'session-planner' });
 
 export async function planSession(
 	testsResources: string[],
@@ -19,7 +22,7 @@ export async function planSession(
 ): Promise<void> {
 	const started = globalThis.performance.now();
 
-	console.info(`fetching ${testsResources.length} test resource/s...`);
+	logger.info(`fetching ${testsResources.length} test resource/s...`);
 	for (const testSource of testsResources) {
 		try {
 			const execContext = setExecutionContext(EXECUTION_MODES.PLAN) as PlanningExecutionContext;
@@ -35,12 +38,12 @@ export async function planSession(
 				});
 			}
 		} catch (e) {
-			console.error(`failed to process '${testSource}':`);
-			console.error(e);
+			logger.error(`failed to process '${testSource}':`);
+			logger.error(e);
 			stateService.reportError(TestError.fromError(e as Error));
 		}
 	}
 
 	const ended = globalThis.performance.now();
-	console.info(`... ${testsResources.length} test resource/s fetched (planning phase) in ${(ended - started).toFixed(1)}ms`);
+	logger.info(`... ${testsResources.length} test resource/s fetched (planning phase) in ${(ended - started).toFixed(1)}ms`);
 }

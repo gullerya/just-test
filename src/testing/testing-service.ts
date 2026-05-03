@@ -1,5 +1,5 @@
 import { glob } from 'glob';
-import Logger from '../server/logger/logger.ts';
+import Logger from '../logging/logger.ts';
 import buildConfig from './testing-configurer.ts';
 import xUnitReporter from './reporters/xunit-reporter.ts';
 

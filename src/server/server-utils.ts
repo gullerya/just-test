@@ -1,4 +1,4 @@
-import Logger from '../server/logger/logger.ts';
+import Logger from '../logging/logger.ts';
 
 export {
 	EXT_TO_MIME_MAP,
@@ -28,14 +28,12 @@ function findMimeType(filePath: string, fallback: string = EXT_TO_MIME_MAP.txt):
 }
 
 function extractExtension(filePath: string): string {
-	let result: string = '';
 	const i = filePath.lastIndexOf('.');
-	if (i > 0) {
-		result = filePath.substring(i + 1);
-	} else {
+	if (i <= 0) {
 		logger.warn(`extensionless path '${filePath}', falling back to the default mime type`);
 		return '';
 	}
+	const result = filePath.substring(i + 1);
 	if (!(result in EXT_TO_MIME_MAP)) {
 		throw new Error(`unexpected file extension '.${result}'`);
 	}

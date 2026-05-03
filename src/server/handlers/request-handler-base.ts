@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'node:http';
 import ts from 'typescript';
-import Logger from '../logger/logger.ts';
+import Logger from '../../logging/logger.ts';
 import { getSession } from '../sessions/sessions-service.ts';
 import { ENVIRONMENT_KEYS } from '../../runner/environment-config.ts';
 
@@ -21,7 +21,7 @@ export class RequestHandlerBase {
 		return '';
 	}
 
-	async handle(handlerRelativePath: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
+	async handle(_handlerRelativePath: string, _req: IncomingMessage, _res: ServerResponse): Promise<void> {
 		throw new Error('implementation missing');
 	}
 
@@ -44,7 +44,7 @@ export class RequestHandlerBase {
 
 	compileTsToJs(reqUrl: string, tsContent: string): string {
 		if (!this.#tsToJsCache[reqUrl]) {
-			let startTime = performance.now();
+			const startTime = performance.now();
 			const transpilationResult = ts.transpileModule(tsContent, {
 				compilerOptions: {
 					module: ts.ModuleKind.ES2022,

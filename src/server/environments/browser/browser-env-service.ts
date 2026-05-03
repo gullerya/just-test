@@ -8,7 +8,8 @@
  * @param {Object} envConfig environment configuration
  * @param {string} envConfig.browser in this context expected always to equal true
  */
-import Logger, { ConsoleOutput, FileOutput } from '../../logger/logger.ts';
+import Logger from '../../../logging/logger.ts';
+import FileOutput from '../../../logging/file-output.ts';
 import { config as serverConfig } from '../../server-service.ts';
 import { filterV8Coverage } from '../../../coverage/coverage-service.ts';
 import { EnvironmentBase } from '../environment-base.ts';
@@ -59,13 +60,17 @@ class BrowserEnvImpl extends EnvironmentBase {
 		this.#browser.once('disconnected', () => this.#onDisconnected());
 
 		this.consoleLogger = new FileOutput(`./reports/logs/${browserType}-${this.#browser.version()}.log`);
-		//	mirror page console/page-error to both file AND the server
-		//	console so CI logs show per-test FAIL/ERROR (emitted by
-		//	state-service in the session-box) in real time
-		const pageLogger = new Logger({
+		//	page console lines arrive already fully formatted (timestamp +
+		//	level + context) from the runner-side Logger in the session-box;
+		//	re-wrapping them via another Logger would double-prefix every
+		//	line. Dumb-pipe to the file sink + server console instead. Only
+		//	"crash" / "pageerror" signals (which originate in Playwright, not
+		//	the runner) get a real Logger so they pick up a server prefix.
+		const pageErrLogger = new Logger({
 			context: `${browserType}-${this.#browser.version()}`,
-			outputs: [this.consoleLogger, new ConsoleOutput()]
+			outputs: [this.consoleLogger, console]
 		});
+		const pageSinks = [this.consoleLogger, console];
 
 		this.#browsingContext = await this.#browser.newContext();
 
@@ -74,7 +79,7 @@ class BrowserEnvImpl extends EnvironmentBase {
 		}
 
 		this.#browsingContext.on('page', async page => {
-			await this.#setupPage(page, pageLogger);
+			await this.#setupPage(page, pageSinks, pageErrLogger);
 		});
 
 		logger.info(`setting timeout for the whole tests execution to ${this.#envConfig.tests.ttl}ms as per configuration`);
@@ -108,14 +113,23 @@ class BrowserEnvImpl extends EnvironmentBase {
 		return this.dismissPromise;
 	}
 
-	async #setupPage(page, pageLogger) {
-		const self = this;
+	async #setupPage(page, pageSinks, pageErrLogger) {
 		page.on('console', async msg => {
 			const type = msg.type();
+			const method = type === 'warning' ? 'warn' : type;
 			for (const msgArg of msg.args()) {
 				try {
 					const consoleMessage = await msgArg.evaluate(o => o);
-					pageLogger[type](consoleMessage);
+					if (typeof consoleMessage !== 'string') {
+						//	non-string values coming from the page haven't been
+						//	formatted by a Logger; fall back to the error-side
+						//	logger so the server attaches a proper prefix
+						pageErrLogger[method]?.(consoleMessage);
+						continue;
+					}
+					for (const sink of pageSinks) {
+						sink[method]?.(consoleMessage);
+					}
 				} catch {
 					//	page closed / navigated away before the arg could be
 					//	serialized; common in page-per-test mode and not an
@@ -124,15 +138,15 @@ class BrowserEnvImpl extends EnvironmentBase {
 			}
 		});
 		page.on('crash', () => {
-			pageLogger.error('"crash" event fired on page');
-			pageLogger.info('dismissing the environment due to previous error/s...');
-			self.#notifyError(null);
+			pageErrLogger.error('"crash" event fired on page');
+			pageErrLogger.info('dismissing the environment due to previous error/s...');
+			this.#notifyError(null);
 		});
 		page.on('pageerror', e => {
-			pageLogger.error('"pageerror" event fired on page:');
-			pageLogger.error(e);
-			pageLogger.info('dismissing the environment due to previous error/s...');
-			self.#notifyError(e);
+			pageErrLogger.error('"pageerror" event fired on page:');
+			pageErrLogger.error(e);
+			pageErrLogger.info('dismissing the environment due to previous error/s...');
+			this.#notifyError(e);
 		});
 	}
 

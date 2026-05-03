@@ -156,7 +156,7 @@ class Assert {
 	}
 
 	throws(fn: () => unknown, error: unknown, message?: string): void {
-		let internalError
+		let internalError;
 		try {
 			const r = fn();
 			if (r instanceof Promise) {
@@ -203,7 +203,7 @@ class Assert {
 				return;
 			}
 		} else if (typeof expected === 'object' || typeof expected === 'function') {
-			if (!(error instanceof (expected as Function))) {
+			if (!(error instanceof (expected as new (...args: unknown[]) => unknown))) {
 				throw new AssertionError(message, error, expected, operator);
 			}
 		} else if (typeof expected === 'string') {

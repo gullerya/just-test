@@ -7,7 +7,7 @@
  * @param {boolean} envConfig.interactive in this context expected always to equal true
  */
 import { ENVIRONMENT_KEYS } from '../../../runner/environment-config.ts';
-import Logger from '../../logger/logger.ts';
+import Logger from '../../../logging/logger.ts';
 import { config as serverConfig } from '../../server-service.ts';
 import { EnvironmentBase } from '../environment-base.ts';
 

@@ -1,5 +1,5 @@
 import { glob } from 'glob';
-import Logger from '../server/logger/logger.ts';
+import Logger from '../logging/logger.ts';
 import verifyEnrichConfig from './coverage-configurer.ts';
 import { v8toJustTest } from './converters/v8-coverage-converter.ts';
 import { filterV8Coverage } from './model/v8-coverage-filter.ts';

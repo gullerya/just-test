@@ -36,22 +36,30 @@ export default class FileOutput {
 	}
 
 	debug(arg) {
-		if (this.#closing) return;
+		if (this.#closing) {
+			return;
+		}
 		this.#buffer.push(arg);
 	}
 
 	info(arg) {
-		if (this.#closing) return;
+		if (this.#closing) {
+			return;
+		}
 		this.#buffer.push(arg);
 	}
 
 	warn(arg) {
-		if (this.#closing) return;
+		if (this.#closing) {
+			return;
+		}
 		this.#buffer.push(arg);
 	}
 
 	error(arg) {
-		if (this.#closing) return;
+		if (this.#closing) {
+			return;
+		}
 		this.#buffer.push(arg);
 	}
 

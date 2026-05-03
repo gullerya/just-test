@@ -1,4 +1,4 @@
-import Logger from '../logger/logger.ts';
+import Logger from '../../logging/logger.ts';
 import { getRandom } from '../../common/random-utils.ts';
 import { verifyEnrichConfig } from '../environments/environments-service.ts';
 import { verifyEnrichConfig as verifyEnrichTestsConfig } from '../../testing/testing-service.ts';

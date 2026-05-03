@@ -35,7 +35,9 @@ const config = {
 					//	testing-configurer.ts transitively pulls node:util
 					//	via the server logger
 					'**/tests/testing/testing-service-test.ts',
-					'**/tests/testing/testing-configurer-test.ts'
+					'**/tests/testing/testing-configurer-test.ts',
+					//	Node-only: FileOutput imports node:fs/node:os/node:path
+					'**/tests/logging/file-output-test.ts'
 				]
 			}
 		}

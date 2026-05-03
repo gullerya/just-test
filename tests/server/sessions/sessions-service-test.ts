@@ -20,7 +20,7 @@ test('getSession - rejects empty id', async () => {
 		await getSession('');
 		assert.fail('expected throw on empty id');
 	} catch (e: any) {
-		assert.isTrue(e.message.includes("invalid session ID"));
+		assert.isTrue(e.message.includes('invalid session ID'));
 	}
 });
 
@@ -29,7 +29,7 @@ test('getSession - rejects non-string id', async () => {
 		await getSession(123 as any);
 		assert.fail('expected throw on numeric id');
 	} catch (e: any) {
-		assert.isTrue(e.message.includes("invalid session ID"));
+		assert.isTrue(e.message.includes('invalid session ID'));
 	}
 });
 

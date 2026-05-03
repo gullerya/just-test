@@ -11,7 +11,7 @@ test('collect sources - empty or null input', async () => {
 });
 
 test('collect sources - only include', async () => {
-	let ts = await collectTargetSources({
+	const ts = await collectTargetSources({
 		include: './tests/**/coverage-service-test.ts',
 	});
 
@@ -19,7 +19,7 @@ test('collect sources - only include', async () => {
 }, { timeout: 12000 });
 
 test('collect sources - include and exclude', async () => {
-	let ts = await collectTargetSources({
+	const ts = await collectTargetSources({
 		include: './tests/**/coverage-service-test.ts',
 		exclude: ['**/*-test.ts', '**/node_modules/**']
 	});

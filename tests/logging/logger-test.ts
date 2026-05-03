@@ -1,7 +1,7 @@
 import { test } from '@gullerya/just-test';
 import { assert } from '@gullerya/just-test/assert';
-import { getRandom } from '../../../src/common/random-utils.ts';
-import Logger, { LOG_LEVELS } from '../../../src/server/logger/logger.ts';
+import { getRandom } from '../../src/common/random-utils.ts';
+import Logger, { LOG_LEVELS } from '../../src/logging/logger.ts';
 
 //	CONTEXTS_REGISTRAR is a module-level registry; each Logger instance MUST
 //	have a unique context name across the entire test run. Use a fresh
@@ -154,17 +154,40 @@ test('logger - string args are formatted inline with ISO date, level tag, contex
 	assert.isTrue(line.endsWith('- hello world'));
 });
 
-test('logger - object args emit a header line AND an inspected line', () => {
+test('logger - object args emit a header line AND a serialized JSON line', () => {
 	const out = new FakeOutput();
 	const ctx = uniqueContext('fmt-obj');
 	const l = new Logger({ context: ctx, outputs: [out] });
 	l.info({ a: 1, b: 'two' });
-	//	object args => 2 entries pushed to the output (header + inspection)
+	//	object args => 2 entries pushed to the output (header + serialization)
 	assert.strictEqual(out.infoArgs.length, 2);
 	assert.isTrue(out.infoArgs[0].includes(`[${ctx}]`));
 	assert.isTrue(out.infoArgs[0].endsWith('-'));
-	assert.isTrue(out.infoArgs[1].includes('a:'));
-	assert.isTrue(out.infoArgs[1].includes("b:"));
+	assert.isTrue(out.infoArgs[1].includes('"a": 1'));
+	assert.isTrue(out.infoArgs[1].includes('"b": "two"'));
+});
+
+test('logger - Error args emit name/message header and stack line', () => {
+	const out = new FakeOutput();
+	const ctx = uniqueContext('fmt-err');
+	const l = new Logger({ context: ctx, outputs: [out] });
+	const e = new TypeError('something broke');
+	l.error(e);
+	assert.strictEqual(out.errorArgs.length, 2);
+	assert.isTrue(out.errorArgs[0].includes(`[${ctx}]`));
+	assert.isTrue(out.errorArgs[0].endsWith('TypeError: something broke'));
+	assert.isTrue(typeof out.errorArgs[1] === 'string');
+	assert.isTrue(out.errorArgs[1].includes('TypeError: something broke'));
+});
+
+test('logger - object with circular reference serializes without throwing', () => {
+	const out = new FakeOutput();
+	const l = new Logger({ context: uniqueContext('fmt-circ'), outputs: [out] });
+	const o: any = { a: 1 };
+	o.self = o;
+	l.info(o);
+	assert.strictEqual(out.infoArgs.length, 2);
+	assert.isTrue(out.infoArgs[1].includes('[Circular]'));
 });
 
 test('logger - level tags map to DBG/INF/WRN/ERR', () => {

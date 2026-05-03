@@ -3,8 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from '@gullerya/just-test';
 import { assert } from '@gullerya/just-test/assert';
-import { getRandom } from '../../../../src/common/random-utils.ts';
-import FileOutput from '../../../../src/server/logger/outputs/file-output.ts';
+import FileOutput from '../../src/logging/file-output.ts';
 
 //	FileOutput buffers writes and flushes on a 48ms setTimeout. Each test
 //	creates its own tempdir so flushes from sibling tests cannot collide,

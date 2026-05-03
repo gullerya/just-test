@@ -2,11 +2,14 @@
  * Session state service — owns the in-memory session model and exposes
  * imperative mutators used by session-boxes and test dispatchers.
  */
+import Logger from '../logging/logger.ts';
 import { STATUS } from '../common/constants.ts';
 import { Session } from '../testing/model/session.ts';
 import { Suite } from '../testing/model/suite.ts';
 import { TestError } from '../testing/model/test-error.ts';
 import { TestRun } from '../testing/model/test-run.ts';
+
+const logger = new Logger({ context: 'state-service' });
 
 export default class StateService {
 	#session: Session;
@@ -156,7 +159,7 @@ export default class StateService {
 			const detail = err
 				? ` — ${err.type ?? 'Error'}: ${err.message ?? ''}`
 				: '';
-			console.error(head + detail);
+			logger.error(head + detail);
 		}
 
 		//	update session globals

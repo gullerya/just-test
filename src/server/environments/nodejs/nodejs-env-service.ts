@@ -8,7 +8,8 @@
  * @param {string} envConfig.node in this context expected always to equal true
  */
 import { Worker } from 'node:worker_threads';
-import Logger, { ConsoleOutput, FileOutput } from '../../logger/logger.ts';
+import Logger from '../../../logging/logger.ts';
+import FileOutput from '../../../logging/file-output.ts';
 import { config as serverConfig } from '../../server-service.ts';
 import { EnvironmentBase } from '../environment-base.ts';
 
@@ -48,7 +49,7 @@ class NodeEnvImpl extends EnvironmentBase {
 		//	with the drain timestamp of the parent, which is misleading —
 		//	the outer timestamp reflects stdout drain, not emit time, and
 		//	can lag by seconds under load.
-		const consoleOutput = new ConsoleOutput();
+		const consoleOutput = console;
 
 		this.#worker = new Worker(
 			new URL('../../../runner/environments/nodejs/nodejs-session-box.js', import.meta.url),

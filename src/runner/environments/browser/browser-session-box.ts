@@ -5,6 +5,7 @@
  * - manages tests execution: frames/workers, lifecycle reporting
  */
 
+import Logger from '../../../logging/logger.ts';
 import { OrchestratorClient } from '../../../server/orchestrator-client.ts';
 import StateService from '../../state-service.ts';
 import { runSession } from '../../session-service.ts';
@@ -15,6 +16,8 @@ import { getTestId } from '../../../common/interop-utils.ts';
 import { TestError } from '../../../testing/model/test-error.ts';
 import { TestRun } from '../../../testing/model/test-run.ts';
 
+const logger = new Logger({ context: 'browser-session-box' });
+
 (async () => {
 	const { sesId, envId, serverOrigin } = await getEnvironmentConfig();
 	const client = new OrchestratorClient(serverOrigin);
@@ -24,7 +27,7 @@ import { TestRun } from '../../../testing/model/test-run.ts';
 		stateService.session.sessionId = metadata.sessionId;
 		stateService.session.environmentId = metadata.id;
 
-		console.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
+		logger.info(`planning session '${envId}':'${sesId}' contents (suites/tests)...`);
 		await planSession(metadata.testPaths, stateService, src => `/static/${src}`);
 
 		let testExecutor;
@@ -53,13 +56,13 @@ import { TestRun } from '../../../testing/model/test-run.ts';
 		}
 	} catch (e) {
 		stateService.reportError(TestError.fromError(e));
-		console.error(e);
-		console.error('session execution failed due to the previous error/s');
+		logger.error(e);
+		logger.error('session execution failed due to the previous error/s');
 	} finally {
-		console.info(`reporting '${envId}':'${sesId}' results...`);
+		logger.info(`reporting '${envId}':'${sesId}' results...`);
 		const sessionResult = stateService.session;
 		await client.reportEnvironmentResult(sesId, envId, sessionResult);
-		console.info(`session '${envId}':'${sesId}' finalized`);
+		logger.info(`session '${envId}':'${sesId}' finalized`);
 	}
 })();
 
@@ -90,7 +93,7 @@ function collapseToSessionCoverage(session) {
 }
 
 function getIFrameExecutorFactory(metadata, stateService) {
-	console.info('preparing IFrame executors factory');
+	logger.info('preparing IFrame executors factory');
 
 	const executorUrl = new URL('./browser-test-box.html', import.meta.url);
 	executorUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, metadata.sessionId);
@@ -115,7 +118,7 @@ function getIFrameExecutorFactory(metadata, stateService) {
 }
 
 function getPageExecutor(metadata, stateService) {
-	console.info('preparing Page executors factory');
+	logger.info('preparing Page executors factory');
 
 	const baseExecutorUrl = new URL('./browser-test-box.html', import.meta.url);
 	baseExecutorUrl.searchParams.append(ENVIRONMENT_KEYS.SESSION_ID, metadata.sessionId);
@@ -139,7 +142,7 @@ function getPageExecutor(metadata, stateService) {
 }
 
 function getWorkerExecutorFactory(metadata, stateService) {
-	console.info('preparing WebWorker executors factory');
+	logger.info('preparing WebWorker executors factory');
 
 	const workerUrl = new URL('./browser-test-box.js', import.meta.url);
 
@@ -175,7 +178,7 @@ function setupMessaging(stateService, suiteName, resolve) {
 
 function setupWorkerEvents(stateService, worker, test, coverageEnabled, suiteName, mc, resolve) {
 	worker.addEventListener('error', ee => {
-		console.error(`worker for test '${test.name}' errored: ${ee}`);
+		logger.error(`worker for test '${test.name}' errored: ${ee}`);
 		const crashRun = new TestRun();
 		crashRun.status = STATUS.ERROR;
 		crashRun.error = ee.error ?? new Error(String(ee.message ?? ee));
