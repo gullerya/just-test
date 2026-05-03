@@ -136,6 +136,11 @@ class ServerService {
 		return this.#baseUrl;
 	}
 
+	get port(): number | null {
+		const addr = this.#server?.address();
+		return addr && typeof addr === 'object' ? addr.port : null;
+	}
+
 	get isRunning() {
 		return this.#status === STATUS_RUNNING;
 	}
